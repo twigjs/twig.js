@@ -141,11 +141,12 @@ var twig = (function(Twig) {
     Twig.expression = {
         type: {
             expression: 'expression',
-            operator: 'operator',
-            string: 'string',
-            variable: 'variable',
-            number: 'number',
-            unknown: 'unknown'
+            operator:   'operator',
+            string:     'string',
+            filter:     'filter',
+            variable:   'variable',
+            number:     'number',
+            unknown:    'unknown'
         }
     };
 
@@ -161,7 +162,7 @@ var twig = (function(Twig) {
         {
             type: Twig.expression.type.operator,
             // Match any of +, *, /, -,^, ~, !
-            regex: /(^[\+\*\/\-\^~!])/,
+            regex: /(^[\+\*\/\-\^~!%])/,
             next: [
                 Twig.expression.type.expression,
                 Twig.expression.type.string,
@@ -170,30 +171,69 @@ var twig = (function(Twig) {
             ]
         },
         {
+            /**
+             * Match a string. This is anything between a pair of single or double quotes.
+             * NOTE: this doesn't yet handle \' or \"
+             */
             type: Twig.expression.type.string,
-            // Match ", anything but ", "  OR  ', anything but ', '  (NOTE: doesn't handle \' or \")
+            // Match ", anything but ", "  OR  ', anything but ', '
             regex: /(^"[^"]*"|'[^']*')/,
             next: [
                 Twig.expression.type.operator
             ]
         },
         {
+            /**
+             * Match a filter of the form something|encode(...)
+             */
+            type: Twig.expression.type.filter,
+            // match a | then a letter or _, then any number of letters, numbers, _ or -
+            regex: /(^\|[a-zA-Z_][a-zA-Z0-9_\-]*\([^\)]\))/,
+            next: [
+                Twig.expression.type.operator
+            ]
+        },
+        {
+            /**
+             * Match a filter of the form something|raw
+             */
+            type: Twig.expression.type.filter,
+            // match a | then a letter or _, then any number of letters, numbers, _ or -
+            regex: /(^\|[a-zA-Z_][a-zA-Z0-9_\-]*)/,
+            next: [
+                Twig.expression.type.operator
+            ]
+        },
+        {
+            /**
+             * Match a variable. Variables can contain letters, numbers, underscores and dashes
+             * but must start with a letter or underscore.
+             */
             type: Twig.expression.type.variable,
             // match any letter or _, then any number of letters, numbers, _ or -
             regex: /(^[a-zA-Z_][a-zA-Z0-9_\-]*)/,
             next: [
-                Twig.expression.type.operator
+                Twig.expression.type.operator,
+                Twig.expression.type.filter
             ]
         },
         {
+            /**
+             * Match a number (integer or decimal)
+             */
             type: Twig.expression.type.number,
             // match a number
             regex: /(^\-?\d*\.?\d+)/,
             next: [
-                Twig.expression.type.operator
+                Twig.expression.type.operator,
+                Twig.expression.type.filter
             ]
         },
         {
+            /*
+             * Match anything else.
+             * This type will throw an error and halt parsing.
+             */
             type: Twig.expression.type.unknown,
             // Catch-all for unknown expressions
             regex:  /^(.*)/,
@@ -207,18 +247,112 @@ var twig = (function(Twig) {
 
         // Tokenize expression
         var tokens = Twig.expression.tokenize(expression);
+        tokens.reverse();
         console.log("tokens are ", tokens);
 
-        // What do valid expressions look like:
-        //  a + b * c - d
-        //  basically: (expression)[(operator)(expression)]*
-        // What are the operators
-        //   +, -, *, /, ~, ^
+        // Push tokens into stack in RPN using the Sunting-yard algorithm
+        // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
+
+        var output = [];
+        var operator_stack = [];
+
+        while(tokens.length > 0) {
+            var token = tokens.pop(),
+                type = token.type,
+                value = token.value;
+
+            switch (type) {
+                // variable/contant types
+                case Twig.expression.type.string:
+                case Twig.expression.type.variable:
+                case Twig.expression.type.number:
+                    console.log("value: ", value)
+                    output.push(token);
+                    break;
+
+
+                case Twig.expression.type.operator:
+                    var operator = Twig.expression.parseOperator(value);
+                    console.log("operator: ", operator);
+
+                    while (operator_stack.length > 0 && (
+                                (operator.associativity == Twig.expression.associativity.leftToRight &&
+                                 operator.precidence    >= operator_stack[operator_stack.length-1].precidence)
+
+                             || (operator.associativity == Twig.expression.associativity.rightToLeft &&
+                                 operator.precidence    >  operator_stack[operator_stack.length-1].precidence))
+                           ) {
+                         output.push(operator_stack.pop());
+                    }
+
+                    operator_stack.push(operator);
+
+                case Twig.expression.type.expression:
+                case Twig.expression.type.filter:
+            }
+        }
+
+        while(operator_stack.length > 0) {
+            output.push(operator_stack.pop());
+        }
+
+        console.log("stack is", output);
+
     };
+
+    Twig.expression.associativity = {
+        leftToRight: 'leftToRight',
+        rightToLeft: 'rightToLeft'
+    }
+
+    Twig.expression.parseOperator = function(operator) {
+        var output = {};
+
+        switch (operator) {
+            // Ternary
+            case '?':
+            case ':':
+                output = {
+                    precidence: 16,
+                    associativity: Twig.expression.associativity.rightToLeft
+                };
+                break;
+
+            case '+':
+            case '-':
+                output = {
+                    precidence: 6,
+                    associativity: Twig.expression.associativity.leftToRight
+                };
+                break;
+
+            case '*':
+            case '/':
+            case '%':
+                output = {
+                    precidence: 5,
+                    associativity: Twig.expression.associativity.leftToRight
+                };
+                break;
+
+            case '!':
+                output = {
+                    precidence: 3,
+                    associativity: Twig.expression.associativity.rightToLeft
+                };
+                break;
+
+            default:
+                throw operator + " is an unknown operator."
+        }
+        output.operator = operator;
+        return output;
+    }
 
     Twig.expression.tokenize = function(expression) {
         var tokens = [],
-            exp_offset = 0;
+            exp_offset = 0,
+            prev_next = null;
         while (expression.length > 0) {
             var l = Twig.expression.regex.length;
             for (var i = 0; i < l; i++) {
@@ -230,19 +364,19 @@ var twig = (function(Twig) {
                 expression = expression.trim().replace(regex, function(match, from, offset, string) {
                     if (Twig.trace) console.log("Matched a ", type, " regular expression of ", match);
 
-                    if (type == "unknown") throw "Unable to parse '" + match + "' at template:" + exp_offset;
+                    if (type == Twig.expression.type.unknown) throw "Unable to parse '" + match + "' at template:" + exp_offset;
                     // Check that this token is a valid next token
                     var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
-                    if (prev_token != null && prev_token.next.indexOf(type) < 0) {
+                    if (prev_next != null && prev_next.indexOf(type) < 0) {
                         throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
                     }
 
                     match_found = true;
                     tokens.push({
                         type: type,
-                        value: match,
-                        next: token_template.next
+                        value: match
                     });
+                    prev_next = token_template.next;
                     exp_offset += match.length;
                     return '';
                 });
