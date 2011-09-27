@@ -9,9 +9,11 @@ var example = twig({
 });
 console.log(example);
 
-console.log(example.render({
-    baked_good: 'cake'
-}));
+window.onload = function() {
+    document.getElementById("test").innerHTML = example.render({
+        baked_good: 'cake'
+    });
+}
 
 //
 //console.log(twig({

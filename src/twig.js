@@ -1,39 +1,78 @@
 var Twig = {};
 
 var twig = (function(Twig) {
+    // Language:
+    /*
+    OPEN   token_value   CLOSE
+    {{ user }}
+
+    Command Logic:
+    {%  command  %}
+
+    Comments:
+    {# comment... #}
+    */
 
     Twig.trace = false;
 
-    Twig.token = {
-        type: {
-            output: 'output',
-            logic: 'logic',
-            comment: 'comment',
-            raw: 'raw'
-        }
-    }
+    /**
+     * Container for methods related to handling high level template tokens
+     *      (for example: {{ expression }}, {% logic %}, {# comment #}, raw data)
+     */
+    Twig.token = {};
+
+    /**
+     * Token types.
+     */
+    Twig.token.type = {
+        output: 'output',
+        logic: 'logic',
+        comment: 'comment',
+        raw: 'raw'
+    };
+
+    /**
+     * Token syntax definitions.
+     */
     Twig.token.definitions = {
+        /**
+         * Output type tokens.
+         *  These typically take the form {{ expression }}.
+         */
         output: {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
         },
-        login: {
+        /**
+         * Logic type tokens.
+         *  These typically take a form like {% if expression %} or {% endif %}
+         */
+        logic: {
             type: Twig.token.type.logic,
             open: '{%',
             close: '%}'
         },
+        /**
+         * Comment type tokens.
+         *  These take the form {# anything #}
+         */
         comment: {
             type: Twig.token.type.comment,
             open: '{#',
             close: '#}'
         }
     };
-    // What characters start "strings" in token definitions
-    Twig.token.strings = [
-        '"', "'"
-    ];
 
+    /**
+     * What characters start "strings" in token definitions. We need this to ignore token close
+     * strings inside an expression.
+     */
+    Twig.token.strings = ['"', "'"];
+
+    /**
+     * Convert a template into high-level tokens.
+     */
     Twig.tokenize = function(template) {
         var tokens = [];
 
@@ -271,8 +310,10 @@ var twig = (function(Twig) {
         }
     ];
 
+    /**
+     * Parse an RPN expression stack within a context.
+     */
     Twig.expression.parse = function(tokens, context) {
-        // Parse an RPN expression stack within a context
 
         // The output stack
         var stack = [];
@@ -495,49 +536,44 @@ var twig = (function(Twig) {
         return tokens;
     };
 
-    // Language:
-    /*
+    /**
+     * A Twig Template model.
+     *
+     * Holds a set of compiled tokens ready to be rendered.
+     */
+    Twig.Template = function( tokens ) {
+        this.tokens = tokens;
+        this.render = function(context) {
+            console.log("Render context is ", context);
+            var output = [];
+            tokens.forEach(function(token) {
+                switch (token.type) {
+                    case Twig.token.type.raw:
+                        output.push(token.value);
+                        break;
 
-    Output:
+                    case Twig.token.type.logic:
+                        break;
 
-    OPEN   token_value   CLOSE
-    {{ user }}
+                    case Twig.token.type.comment:
+                        // Do nothing, comments should be ignored
+                        break;
 
-    Command Logic:
-    {%  command  %}
+                    case Twig.token.type.output:
+                        // Parse the given expression in the given context
+                        output.push(Twig.expression.parse(token.stack, context));
+                        break;
+                }
+            });
+            return output.join("");
+        }
+    }
 
-    Comments:
-    {# comment... #}
-    */
-
-   Twig.Template = function( tokens ) {
-       this.tokens = tokens;
-       this.render = function(context) {
-           console.log("Render context is ", context);
-           var output = [];
-           tokens.forEach(function(token) {
-               switch (token.type) {
-                   case Twig.token.type.raw:
-                       output.push(token.value);
-                       break;
-
-                   case Twig.token.type.logic:
-                       break;
-
-                   case Twig.token.type.comment:
-                       // Do nothing, comments should be ignored
-                       break;
-
-                   case Twig.token.type.output:
-                       // Parse the given expression in the given context
-                       output.push(Twig.expression.parse(token.stack, context));
-                       break;
-               }
-           });
-           return output.join("");
-       }
-   }
-
+    /**
+     * Create and compile a Twig template.
+     *
+     * Returns a Twig.Template ready for rendering.
+     */
     return function(params) {
         if (Twig.debug) console.log("parsing ", params);
 
