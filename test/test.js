@@ -5,7 +5,7 @@
 Twig.debug = true;
 
 var example = twig({
-    html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / 2 - 3.5 }} == 14'
+    html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / 2 - 3.5}} == 14'
 });
 console.log(example);
 

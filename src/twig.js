@@ -47,7 +47,7 @@ var twig = (function(Twig) {
                 if (found_token.position > 0) {
                     tokens.push({
                         type: Twig.token.type.raw,
-                        value: template.substring(0, found_token.position - 1)
+                        value: template.substring(0, found_token.position)
                     });
                 }
                 template = template.substr(found_token.position + found_token.def.open.length);
@@ -59,7 +59,7 @@ var twig = (function(Twig) {
                 var end = findTokenEnd(template, found_token.def, found_token.position);
                 if (Twig.trace) console.log("Token ends at ", end);
 
-                var token_str = template.substring(start, end - 1).trim();
+                var token_str = template.substring(start, end).trim();
                 tokens.push({
                     type: found_token.def.type,
                     value: token_str
@@ -138,18 +138,48 @@ var twig = (function(Twig) {
         return end;
     }
 
-    Twig.expression = {
-        type: {
-            expression: 'expression',
-            operator:   'operator',
-            string:     'string',
-            filter:     'filter',
-            variable:   'variable',
-            number:     'number',
-            unknown:    'unknown'
-        }
+    Twig.compile = function(tokens) {
+        var output = [];
+        tokens.forEach(function(token) {
+           switch (token.type) {
+               case Twig.token.type.raw:
+                   output.push(token);
+                   break;
+
+               case Twig.token.type.logic:
+                   break;
+
+               case Twig.token.type.comment:
+                   // Do nothing, comments should be ignored
+                   break;
+
+               case Twig.token.type.output:
+                   // Parse the given expression in the given context
+                   output.push(Twig.expression.compile(token));
+                   break;
+           }
+        });
+        return output;
     };
 
+    Twig.expression = { };
+
+    /**
+     * The type of tokens used in expressions.
+     */
+    Twig.expression.type = {
+        expression: 'expression',
+        operator:   'operator',
+        string:     'string',
+        filter:     'filter',
+        variable:   'variable',
+        number:     'number',
+        unknown:    'unknown'
+    };
+
+    /**
+     * The regular expressions used to match tokens in expressions.
+     */
     Twig.expression.regex = [
         {
             type: Twig.expression.type.expression,
@@ -241,14 +271,99 @@ var twig = (function(Twig) {
         }
     ];
 
+    Twig.expression.parse = function(tokens, context) {
+        // Parse an RPN expression stack within a context
 
-    Twig.expression.parse = function(expression, context) {
-        console.log("Parsing expression", expression);
+        // The output stack
+        var stack = [];
+        tokens.forEach(function(token) {
+            console.log("Parsing ", token);
+            switch (token.type) {
+                // variable/contant types
+                case Twig.expression.type.string:
+                case Twig.expression.type.number:
+                    stack.push(token.value);
+                    break;
+                case Twig.expression.type.variable:
+                    // Get the variable from the context
+                    if (!context.hasOwnProperty(token.value)) {
+                        throw "Model doesn't provide the property " + token.value;
+                    }
+                    stack.push(context[token.value]);
+                    break;
+
+                case Twig.expression.type.operator:
+                    var operator = token.value;
+                    stack = Twig.expression.handleOperator(operator, stack);
+                    break;
+            }
+        });
+        console.log("Stack result: ", stack);
+        // Pop the final value off the stack
+        return stack.pop();
+    };
+
+    /**
+     * Handle operations on the RPN stack.
+     *
+     * Returns the updated stack.
+     */
+    Twig.expression.handleOperator = function(operator, stack) {
+        console.log("Handling", operator);
+        var a,b,c;
+        switch (operator) {
+            case '+':
+                b = parseInt(stack.pop());
+                a = parseInt(stack.pop());
+                console.log(a, ' + ', b, ' = ', a + b);
+                stack.push(a + b);
+                break;
+
+            case '-':
+                b = parseInt(stack.pop());
+                a = parseInt(stack.pop());
+                console.log(a, ' - ', b, ' = ', a - b);
+                stack.push(a - b);
+                break;
+
+            case '*':
+                stack.push(stack.pop() * stack.pop());
+                break;
+
+            case '/':
+                b = parseInt(stack.pop());
+                a = parseInt(stack.pop());
+                console.log(a, ' / ', b, ' = ', a / b);
+                stack.push(a / b);
+                break;
+
+            case '%':
+                b = parseInt(stack.pop());
+                a = parseInt(stack.pop());
+                console.log(a, ' % ', b, ' = ', a % b);
+                stack.push(a % b);
+                break;
+
+            case '~':
+                stack.push(stack.pop().toString() + stack.pop().toString());
+                break;
+
+            case '!':
+                stack.push(!stack.pop());
+                break;
+        }
+
+        return stack;
+    };
+
+    Twig.expression.compile = function(raw_token) {
+        var expression = raw_token.value;
+        if (Twig.trace) console.log("Compiling expression", expression);
 
         // Tokenize expression
         var tokens = Twig.expression.tokenize(expression);
         tokens.reverse();
-        console.log("tokens are ", tokens);
+        if (Twig.trace) console.log("tokens are ", tokens);
 
         // Push tokens into stack in RPN using the Sunting-yard algorithm
         // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
@@ -266,14 +381,14 @@ var twig = (function(Twig) {
                 case Twig.expression.type.string:
                 case Twig.expression.type.variable:
                 case Twig.expression.type.number:
-                    console.log("value: ", value)
+                    if (Twig.trace) console.log("value: ", value)
                     output.push(token);
                     break;
 
 
                 case Twig.expression.type.operator:
-                    var operator = Twig.expression.parseOperator(value);
-                    console.log("operator: ", operator);
+                    var operator = Twig.expression.parseOperator(value, token);
+                    if (Twig.trace) console.log("operator: ", operator);
 
                     while (operator_stack.length > 0 && (
                                 (operator.associativity == Twig.expression.associativity.leftToRight &&
@@ -296,7 +411,11 @@ var twig = (function(Twig) {
             output.push(operator_stack.pop());
         }
 
-        console.log("stack is", output);
+        if (Twig.trace) console.log("stack is", output);
+
+        raw_token.stack = output;
+
+        return raw_token;
 
     };
 
@@ -305,48 +424,38 @@ var twig = (function(Twig) {
         rightToLeft: 'rightToLeft'
     }
 
-    Twig.expression.parseOperator = function(operator) {
-        var output = {};
-
+    Twig.expression.parseOperator = function(operator, token) {
         switch (operator) {
             // Ternary
             case '?':
             case ':':
-                output = {
-                    precidence: 16,
-                    associativity: Twig.expression.associativity.rightToLeft
-                };
+                token.precidence = 16;
+                token.associativity = Twig.expression.associativity.rightToLeft;
                 break;
 
             case '+':
             case '-':
-                output = {
-                    precidence: 6,
-                    associativity: Twig.expression.associativity.leftToRight
-                };
+                token.precidence = 6;
+                token.associativity = Twig.expression.associativity.leftToRight;
                 break;
 
             case '*':
             case '/':
             case '%':
-                output = {
-                    precidence: 5,
-                    associativity: Twig.expression.associativity.leftToRight
-                };
+                token.precidence = 5;
+                token.associativity = Twig.expression.associativity.leftToRight;
                 break;
 
             case '!':
-                output = {
-                    precidence: 3,
-                    associativity: Twig.expression.associativity.rightToLeft
-                };
+                token.precidence = 3;
+                token.associativity = Twig.expression.associativity.rightToLeft;
                 break;
 
             default:
                 throw operator + " is an unknown operator."
         }
-        output.operator = operator;
-        return output;
+        token.operator = operator;
+        return token;
     }
 
     Twig.expression.tokenize = function(expression) {
@@ -404,9 +513,9 @@ var twig = (function(Twig) {
    Twig.Template = function( tokens ) {
        this.tokens = tokens;
        this.render = function(context) {
+           console.log("Render context is ", context);
            var output = [];
            tokens.forEach(function(token) {
-               console.log(token);
                switch (token.type) {
                    case Twig.token.type.raw:
                        output.push(token.value);
@@ -421,7 +530,7 @@ var twig = (function(Twig) {
 
                    case Twig.token.type.output:
                        // Parse the given expression in the given context
-                       output.push(Twig.expression.parse(token.value, context));
+                       output.push(Twig.expression.parse(token.stack, context));
                        break;
                }
            });
@@ -432,9 +541,11 @@ var twig = (function(Twig) {
     return function(params) {
         if (Twig.debug) console.log("parsing ", params);
 
-        var tokens = Twig.tokenize(params.html);
+        var raw_tokens = Twig.tokenize(params.html);
+        console.log("compiling ", raw_tokens);
+        var tokens = Twig.compile(raw_tokens);
 
-        if (Twig.debug) console.log("Parsed into ", tokens);
+        if (Twig.debug) console.log("Parzed into ", tokens);
 
         return new Twig.Template( tokens );
     }
