@@ -64,6 +64,136 @@ var twig = (function(Twig) {
         }
     };
 
+    Twig.logic = {};
+
+    Twig.logic.type = {
+        _if: 'if',
+        endif: 'endif',
+        _for: 'for',
+        endfor: 'endfor',
+        _else: 'else',
+        elseif: 'elseif',
+        set: 'set',
+
+        // Meta-type: Unknown tags, should throw an exception
+        unknown: 'unknown'
+    }
+
+    /**
+     * Regular expressions to match templates to.
+     *
+     * FORMAT:
+     *      type:  The type of expression this matches
+     *
+     *      regex: A regular expression that matches the format of the token
+     *
+     *      next:  What logic tokens (if any) pop this token off the logic stack. If empty, the
+     *             logic token is assumed to not require an end tag and isn't push onto the stack.
+     *
+     *      open:  Does this tag open a logic expression or is it standalone. For example,
+     *             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
+     */
+    Twig.logic.regex = [
+        {
+            /**
+             * If type logic tokens.
+             *
+             *  Format: {% if expression %}
+             */
+            type: Twig.logic.type._if,
+            regex: /^if\s+([^\s].+)$/,
+            next: [
+                Twig.logic.type._else,
+                Twig.logic.type.elseif,
+                Twig.logic.type.endif
+            ],
+            open: true
+        },
+        {
+            /**
+             * Else if type logic tokens.
+             *
+             *  Format: {% elseif expression %}
+             */
+            type: Twig.logic.type.elseif,
+            regex: /^elseif\s+([^\s].*)$/,
+            next: [
+                Twig.logic.type._else,
+                Twig.logic.type.endif
+            ],
+            open: false
+        },
+        {
+            /**
+             * Else if type logic tokens.
+             *
+             *  Format: {% elseif expression %}
+             */
+            type: Twig.logic.type._else,
+            regex: /^else$/,
+            next: [
+                Twig.logic.type.endif
+            ],
+            open: false
+        },
+        {
+            /**
+             * End if type logic tokens.
+             *
+             *  Format: {% endif %}
+             */
+            type: Twig.logic.type.endif,
+            regex: /^endif$/,
+            next: [ ],
+            open: false
+        },
+        {
+            /**
+             * Unknown token.
+             *
+             * Matches of this type should generate an exception.
+             */
+            type: Twig.logic.type.unknown,
+            regex: /.*/
+        }
+    ];
+
+    Twig.logic.compile = function(raw_token) {
+        var expression = raw_token.value.trim();
+        var token = Twig.logic.tokenize(expression);
+    };
+
+    Twig.logic.tokenize = function(expression) {
+        var token;
+
+        var l = Twig.logic.regex.length;
+        for (var i = 0; i < l; i++) {
+            var token_template = Twig.logic.regex[i],
+                type = token_template.type,
+                regex = token_template.regex,
+                match_found = false;
+
+            var match = regex.exec(expression.trim());
+            if (match != null) {
+                match_found = true;
+                console.log("Matched a ", type, " regular expression of ", match[0]);
+
+                if (type == Twig.logic.type.unknown) throw "Unable to parse '" + match[0] + "' at template:" + exp_offset;
+
+                match_found = true;
+                token = {
+                    type: type,
+                    value: match[0]
+                };
+            }
+
+            if (match_found) break;
+        }
+
+        return token;
+    };
+
+
     /**
      * What characters start "strings" in token definitions. We need this to ignore token close
      * strings inside an expression.
@@ -179,25 +309,34 @@ var twig = (function(Twig) {
 
     Twig.compile = function(tokens) {
         var output = [];
-        tokens.forEach(function(token) {
-           switch (token.type) {
-               case Twig.token.type.raw:
-                   output.push(token);
-                   break;
+        var logic_stack = [];
 
-               case Twig.token.type.logic:
-                   break;
+        tokens.reverse();
+        while (tokens.length > 0) {
+            var token = tokens.pop();
+            switch (token.type) {
+                case Twig.token.type.raw:
+                    output.push(token);
+                    break;
 
-               case Twig.token.type.comment:
-                   // Do nothing, comments should be ignored
-                   break;
+                case Twig.token.type.logic:
+                    // Compile the logic token
+                    var logic_token = Twig.logic.compile(token);
 
-               case Twig.token.type.output:
-                   // Parse the given expression in the given context
-                   output.push(Twig.expression.compile(token));
-                   break;
-           }
-        });
+                    // Check if this pops the current top of the stack
+                    // Check if this needs to be pushed to the stack
+                    break;
+
+                case Twig.token.type.comment:
+                    // Do nothing, comments should be ignored
+                    break;
+
+                case Twig.token.type.output:
+                    // Parse the given expression in the given context
+                    output.push(Twig.expression.compile(token));
+                    break;
+            }
+        }
         return output;
     };
 
@@ -354,15 +493,15 @@ var twig = (function(Twig) {
         var a,b,c;
         switch (operator) {
             case '+':
-                b = parseInt(stack.pop());
-                a = parseInt(stack.pop());
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
                 console.log(a, ' + ', b, ' = ', a + b);
                 stack.push(a + b);
                 break;
 
             case '-':
-                b = parseInt(stack.pop());
-                a = parseInt(stack.pop());
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
                 console.log(a, ' - ', b, ' = ', a - b);
                 stack.push(a - b);
                 break;
@@ -372,15 +511,15 @@ var twig = (function(Twig) {
                 break;
 
             case '/':
-                b = parseInt(stack.pop());
-                a = parseInt(stack.pop());
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
                 console.log(a, ' / ', b, ' = ', a / b);
                 stack.push(a / b);
                 break;
 
             case '%':
-                b = parseInt(stack.pop());
-                a = parseInt(stack.pop());
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
                 console.log(a, ' % ', b, ' = ', a % b);
                 stack.push(a % b);
                 break;
@@ -399,14 +538,14 @@ var twig = (function(Twig) {
 
     Twig.expression.compile = function(raw_token) {
         var expression = raw_token.value;
-        if (Twig.trace) console.log("Compiling expression", expression);
+        console.log("Compiling expression", expression); // if (Twig.trace)
 
         // Tokenize expression
         var tokens = Twig.expression.tokenize(expression);
         tokens.reverse();
         if (Twig.trace) console.log("tokens are ", tokens);
 
-        // Push tokens into stack in RPN using the Sunting-yard algorithm
+        // Push tokens into RPN stack using the Sunting-yard algorithm
         // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
 
         var output = [];
@@ -442,8 +581,20 @@ var twig = (function(Twig) {
                     }
 
                     operator_stack.push(operator);
+                    break;
 
+                /**
+                 * Handle sub-expressions (expressions in parenthesis)
+                 */
                 case Twig.expression.type.expression:
+                    var evaluated_expression = Twig.expression.compile(token),
+                        sub_stack = evaluated_expression.stack;
+                    sub_stack.reverse();
+                    while (sub_stack.length > 0) {
+                        output.push(sub_stack.pop());
+                    }
+                    break;
+
                 case Twig.expression.type.filter:
             }
         }
@@ -519,6 +670,12 @@ var twig = (function(Twig) {
                     var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
                     if (prev_next != null && prev_next.indexOf(type) < 0) {
                         throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
+                    }
+
+                    if (type == Twig.expression.type.expression) {
+                        // Trim parenthesis of of an expression
+                        match = match.substring(1, match.length-1);
+                        console.log("Matched: ", match);
                     }
 
                     match_found = true;
