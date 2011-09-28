@@ -370,137 +370,47 @@ var twig = (function(Twig) {
         }
     ];
 
-    /**
-     * Parse an RPN expression stack within a context.
-     */
-    Twig.expression.parse = function(tokens, context) {
+    Twig.expression.tokenize = function(expression) {
+        if (Twig.trace) console.log("T.e.t: Tokenizing expression ", expression);
+        var tokens = [],
+            exp_offset = 0,
+            prev_next = null;
+        while (expression.length > 0) {
+            var l = Twig.expression.regex.length;
+            for (var i = 0; i < l; i++) {
+                var token_template = Twig.expression.regex[i],
+                    type = token_template.type,
+                    regex = token_template.regex,
+                    match_found = false;
 
-        // The output stack
-        var stack = [];
-        tokens.forEach(function(token) {
-            if (Twig.trace) console.log("Parsing ", token);
-            switch (token.type) {
-                // variable/contant types
-                case Twig.expression.type.string:
-                case Twig.expression.type.number:
-                    stack.push(token.value);
-                    break;
-                case Twig.expression.type.variable:
-                    // Get the variable from the context
-                    if (!context.hasOwnProperty(token.value)) {
-                        throw "Model doesn't provide the property " + token.value;
+                expression = expression.trim().replace(regex, function(match, from, offset, string) {
+                    if (Twig.trace) console.log("Matched a ", type, " regular expression of ", match);
+
+                    if (type == Twig.expression.type.unknown) throw "Unable to parse '" + match + "' at template:" + exp_offset;
+                    // Check that this token is a valid next token
+                    var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
+                    if (prev_next != null && prev_next.indexOf(type) < 0) {
+                        throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
                     }
-                    stack.push(context[token.value]);
-                    break;
 
-                case Twig.expression.type.operator:
-                    var operator = token.value;
-                    stack = Twig.expression.handleOperator(operator, stack);
-                    break;
+                    if (type == Twig.expression.type.expression) {
+                        // Trim parenthesis of of an expression
+                        match = match.substring(1, match.length-1);
+                    }
+
+                    match_found = true;
+                    tokens.push({
+                        type: type,
+                        value: match
+                    });
+                    prev_next = token_template.next;
+                    exp_offset += match.length;
+                    return '';
+                });
+                if (match_found) break;
             }
-        });
-        if (Twig.trace) console.log("Stack result: ", stack);
-        // Pop the final value off the stack
-        return stack.pop();
-    };
-
-    /**
-     * Handle operations on the RPN stack.
-     *
-     * Returns the updated stack.
-     */
-    Twig.expression.handleOperator = function(operator, stack) {
-        if (Twig.trace) console.log("Handling", operator);
-        var a,b,c;
-        switch (operator) {
-            case '+':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
-                stack.push(a + b);
-                break;
-
-            case '-':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
-                stack.push(a - b);
-                break;
-
-            case '*':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
-                stack.push(a * b);
-                break;
-
-            case '/':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
-                stack.push(a / b);
-                break;
-
-            case '%':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
-                stack.push(a % b);
-                break;
-
-            case '~':
-                stack.push(stack.pop().toString() + stack.pop().toString());
-                break;
-
-            case '!':
-                stack.push(!stack.pop());
-                break;
-
-            case '<':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a < b);
-                break;
-
-            case '<=':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a <= b);
-                break;
-
-            case '>':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a > b);
-                break;
-
-            case '>=':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a >= b);
-                break;
-
-            case '==':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a == b);
-                break;
-
-            case '!=':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a != b);
-                break;
-
-            case '||':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a || b);
-                break;
-
-            case '&&':
-                b = stack.pop();
-                a = stack.pop();
-                stack.push(a && b);
-                break;
         }
-
-        return stack;
+        return tokens;
     };
 
     Twig.expression.compile = function(raw_token) {
@@ -647,49 +557,139 @@ var twig = (function(Twig) {
         return token;
     }
 
-    Twig.expression.tokenize = function(expression) {
-        if (Twig.trace) console.log("T.e.t: Tokenizing expression ", expression);
-        var tokens = [],
-            exp_offset = 0,
-            prev_next = null;
-        while (expression.length > 0) {
-            var l = Twig.expression.regex.length;
-            for (var i = 0; i < l; i++) {
-                var token_template = Twig.expression.regex[i],
-                    type = token_template.type,
-                    regex = token_template.regex,
-                    match_found = false;
 
-                expression = expression.trim().replace(regex, function(match, from, offset, string) {
-                    if (Twig.trace) console.log("Matched a ", type, " regular expression of ", match);
+    /**
+     * Parse an RPN expression stack within a context.
+     */
+    Twig.expression.parse = function(tokens, context) {
 
-                    if (type == Twig.expression.type.unknown) throw "Unable to parse '" + match + "' at template:" + exp_offset;
-                    // Check that this token is a valid next token
-                    var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
-                    if (prev_next != null && prev_next.indexOf(type) < 0) {
-                        throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
+        // The output stack
+        var stack = [];
+        tokens.forEach(function(token) {
+            if (Twig.trace) console.log("Parsing ", token);
+            switch (token.type) {
+                // variable/contant types
+                case Twig.expression.type.string:
+                case Twig.expression.type.number:
+                    stack.push(token.value);
+                    break;
+                case Twig.expression.type.variable:
+                    // Get the variable from the context
+                    if (!context.hasOwnProperty(token.value)) {
+                        throw "Model doesn't provide the property " + token.value;
                     }
+                    stack.push(context[token.value]);
+                    break;
 
-                    if (type == Twig.expression.type.expression) {
-                        // Trim parenthesis of of an expression
-                        match = match.substring(1, match.length-1);
-                    }
-
-                    match_found = true;
-                    tokens.push({
-                        type: type,
-                        value: match
-                    });
-                    prev_next = token_template.next;
-                    exp_offset += match.length;
-                    return '';
-                });
-                if (match_found) break;
+                case Twig.expression.type.operator:
+                    var operator = token.value;
+                    stack = Twig.expression.handleOperator(operator, stack);
+                    break;
             }
-        }
-        return tokens;
+        });
+        if (Twig.trace) console.log("Stack result: ", stack);
+        // Pop the final value off the stack
+        return stack.pop();
     };
 
+    /**
+     * Handle operations on the RPN stack.
+     *
+     * Returns the updated stack.
+     */
+    Twig.expression.handleOperator = function(operator, stack) {
+        if (Twig.trace) console.log("Handling", operator);
+        var a,b,c;
+        switch (operator) {
+            case '+':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(a + b);
+                break;
+
+            case '-':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(a - b);
+                break;
+
+            case '*':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(a * b);
+                break;
+
+            case '/':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(a / b);
+                break;
+
+            case '%':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(a % b);
+                break;
+
+            case '~':
+                stack.push(stack.pop().toString() + stack.pop().toString());
+                break;
+
+            case '!':
+                stack.push(!stack.pop());
+                break;
+
+            case '<':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a < b);
+                break;
+
+            case '<=':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a <= b);
+                break;
+
+            case '>':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a > b);
+                break;
+
+            case '>=':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a >= b);
+                break;
+
+            case '==':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a == b);
+                break;
+
+            case '!=':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a != b);
+                break;
+
+            case '||':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a || b);
+                break;
+
+            case '&&':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a && b);
+                break;
+        }
+
+        return stack;
+    };
 
     /**
      * What characters start "strings" in token definitions. We need this to ignore token close
@@ -751,7 +751,6 @@ var twig = (function(Twig) {
             position: null,
             def: null
         };
-        if (Twig.trace) console.log(Twig.token.definitions);
         for (tok_name in Twig.token.definitions) {
             var tok = Twig.token.definitions[tok_name];
             var key = tok.open;
