@@ -434,7 +434,6 @@ var twig = (function(Twig) {
             case '/':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
-                console.log(a, ' / ', b, ' = ', a / b );
                 stack.push(a / b);
                 break;
 
@@ -497,7 +496,7 @@ var twig = (function(Twig) {
             case '&&':
                 b = stack.pop();
                 a = stack.pop();
-                stack.push(a && a);
+                stack.push(a && b);
                 break;
         }
 
@@ -585,6 +584,10 @@ var twig = (function(Twig) {
         rightToLeft: 'rightToLeft'
     }
 
+    /**
+     * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
+     * See http://en.wikipedia.org/wiki/Operators_in_C_and_C++ for the table of values.
+     */
     Twig.expression.parseOperator = function(operator, token) {
         switch (operator) {
             // Ternary
@@ -698,7 +701,8 @@ var twig = (function(Twig) {
      * Convert a template into high-level tokens.
      */
     Twig.tokenize = function(template) {
-        var tokens = [];
+        var tokens = [],
+            error_offset = 0;
 
         while (template.length > 0) {
             // Find the first occurance of any token type in the template
@@ -714,21 +718,20 @@ var twig = (function(Twig) {
                     });
                 }
                 template = template.substr(found_token.position + found_token.def.open.length);
-
-                var start = 0;
-                if (Twig.trace) console.log("Token starts at ", start);
+                error_offset += found_token.position + found_token.def.open.length;
 
                 // Find the end of the token
-                var end = findTokenEnd(template, found_token.def, found_token.position);
+                var end = findTokenEnd(template, found_token.def, error_offset);
                 if (Twig.trace) console.log("Token ends at ", end);
 
-                var token_str = template.substring(start, end).trim();
+                var token_str = template.substring(0, end).trim();
                 tokens.push({
                     type: found_token.def.type,
                     value: token_str
                 });
 
                 template = template.substr(end + found_token.def.close.length);
+                error_offset += end + found_token.def.close.length;
 
             } else {
                 // No more tokens -> add the rest of the template as a raw-type token
@@ -778,7 +781,7 @@ var twig = (function(Twig) {
                 found = true;
             } else {
                 // throw an exception
-                throw "Unable to find closing bracket '" + token_def.close + "'" + " opened at template position " + start;
+                throw "Unable to find closing bracket '" + token_def.close + "'" + " opened near template position " + start;
             }
             var str_pos = null;
             var str_found = null;
@@ -867,6 +870,10 @@ var twig = (function(Twig) {
                     }
                     break;
             }
+        }
+        if (logic_stack.length > 0) {
+            var unclosed_token = logic_stack.pop();
+            throw "Unable to find an end tag for " + unclosed_token.type + ", expecting one of " + unclosed_token.next.join(", ");
         }
         return output;
     };
