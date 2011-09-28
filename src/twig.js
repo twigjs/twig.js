@@ -168,7 +168,7 @@ var twig = (function(Twig) {
                 var if_expression = token.value[1];
                 if (Twig.trace) console.log("T.l.c: Compiling expression ", if_expression);
                 // Compile the expression.
-                token.expression_stack = Twig.expression.compile({
+                token.stack = Twig.expression.compile({
                     type:  Twig.expression.type.expression,
                     value: if_expression
                 }).stack;
@@ -212,50 +212,52 @@ var twig = (function(Twig) {
         return token;
     };
 
-    var continue_chain = true;
-    Twig.logic.parse = function(token, context) {
+    Twig.logic.parse = function(token, context, continue_chain) {
         // Should we continue a chain of expressions
         // If false, no logic token with an open: false should be evaluated
         //  e.g. If an {% if ... %} evaluates true, then sets continue_chain = false,
         //       any following tokens with open=false (else, elseif) should be ignored.
 
-        var output = [];
+        var output = '';
 
         switch (token.type) {
             case Twig.logic.type.if_:
                 // Start a new logic chain
                 continue_chain = true;
 
-                console.log("parsing ", token);
+                if (Twig.trace) console.log("parsing ", token);
 
                 // Parse the expression
-                var result = Twig.expression.parse(token.expression_stack, context);
-                console.log("parsed to ", result);
+                var result = Twig.expression.parse(token.stack, context);
+                if (Twig.trace) console.log("parsed to ", result);
                 if (result == true) {
                     continue_chain = false;
                     // parse if output
-                    output.push(Twig.parse(token.output, context));
+                    output = Twig.parse(token.output, context);
                 }
                 break;
             case Twig.logic.type.elseif:
                 if (continue_chain) {
-                    var result = Twig.expression.parse(token.expression_stack, context);
+                    var result = Twig.expression.parse(token.stack, context);
                     if (result == true) {
                         continue_chain = false;
                         // parse if output
-                        output.push(Twig.parse(token.output, context));
+                        output = Twig.parse(token.output, context);
                     }
                 }
                 break;
 
             case Twig.logic.type.else_:
                 if (continue_chain) {
-                    output.push(Twig.parse(token.output, context));
+                    output = Twig.parse(token.output, context);
                 }
                 break;
 
         }
-        return output.join('');
+        return {
+            continue_chain: continue_chain,
+            output: output
+        };
     };
 
 
@@ -288,8 +290,8 @@ var twig = (function(Twig) {
         },
         {
             type: Twig.expression.type.operator,
-            // Match any of +, *, /, -,^, ~, !
-            regex: /(^[\+\*\/\-\^~!%])/,
+            // Match any of +, *, /, -,^, ~, !, <, <=, >, >=, !=, ==, ||, &&
+            regex: /(^[\+\*\/\-\^~%]|^[<>!]=?|^==|^\|\||^&&)/,
             next: [
                 Twig.expression.type.expression,
                 Twig.expression.type.string,
@@ -414,32 +416,31 @@ var twig = (function(Twig) {
             case '+':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
-                console.log(a, ' + ', b, ' = ', a + b);
                 stack.push(a + b);
                 break;
 
             case '-':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
-                console.log(a, ' - ', b, ' = ', a - b);
                 stack.push(a - b);
                 break;
 
             case '*':
-                stack.push(stack.pop() * stack.pop());
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(a * b);
                 break;
 
             case '/':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
-                console.log(a, ' / ', b, ' = ', a / b);
+                console.log(a, ' / ', b, ' = ', a / b );
                 stack.push(a / b);
                 break;
 
             case '%':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
-                console.log(a, ' % ', b, ' = ', a % b);
                 stack.push(a % b);
                 break;
 
@@ -449,6 +450,54 @@ var twig = (function(Twig) {
 
             case '!':
                 stack.push(!stack.pop());
+                break;
+
+            case '<':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a < b);
+                break;
+
+            case '<=':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a <= b);
+                break;
+
+            case '>':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a > b);
+                break;
+
+            case '>=':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a >= b);
+                break;
+
+            case '==':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a == b);
+                break;
+
+            case '!=':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a != b);
+                break;
+
+            case '||':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a || b);
+                break;
+
+            case '&&':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a && a);
                 break;
         }
 
@@ -544,6 +593,31 @@ var twig = (function(Twig) {
                 token.precidence = 16;
                 token.associativity = Twig.expression.associativity.rightToLeft;
                 break;
+
+            case '||':
+                token.precidence = 14;
+                token.associativity = Twig.expression.associativity.leftToRight;
+                break;
+
+            case '&&':
+                token.precidence = 13;
+                token.associativity = Twig.expression.associativity.leftToRight;
+                break;
+
+            case '==':
+            case '!=':
+                token.precidence = 9;
+                token.associativity = Twig.expression.associativity.leftToRight;
+                break;
+
+            case '<':
+            case '<=':
+            case '>':
+            case '>=':
+                token.precidence = 8;
+                token.associativity = Twig.expression.associativity.leftToRight;
+                break;
+
 
             case '+':
             case '-':
@@ -799,6 +873,8 @@ var twig = (function(Twig) {
 
     Twig.parse = function(tokens, context) {
         var output = [];
+        // Track logic chains
+        var continue_chain = true;
         tokens.forEach(function(token) {
             switch (token.type) {
                 case Twig.token.type.raw:
@@ -806,8 +882,10 @@ var twig = (function(Twig) {
                     break;
 
                 case Twig.token.type.logic:
-                    var logic_token = token.token;
-                    output.push(Twig.logic.parse(logic_token, context));
+                    var logic_token = token.token,
+                        logic = Twig.logic.parse(logic_token, context, continue_chain);
+                    continue_chain = logic.continue_chain;
+                    output.push(logic.output);
                     break;
 
                 case Twig.token.type.comment:
@@ -831,8 +909,10 @@ var twig = (function(Twig) {
     Twig.Template = function( tokens ) {
         this.tokens = tokens;
         this.render = function(context) {
-            console.log("Render context is ", context);
-            return Twig.parse(tokens, context);
+            if (Twig.debug) console.log("Render context is ", context);
+            var output = Twig.parse(tokens, context);
+            if (Twig.debug) console.log("Rendered to: ", output);
+            return output;
         }
     }
 
@@ -842,12 +922,12 @@ var twig = (function(Twig) {
      * Returns a Twig.Template ready for rendering.
      */
     return function(params) {
-        if (Twig.debug) console.log("parsing ", params);
+        if (Twig.debug) console.log("Parsing ", params);
 
-        var raw_tokens = Twig.tokenize(params.html);
+        var raw_tokens = Twig.tokenize(params.data);
         var tokens = Twig.compile(raw_tokens);
 
-        if (Twig.debug) console.log("Parzed into ", tokens);
+        if (Twig.debug) console.log("Parsed into ", tokens);
 
         return new Twig.Template( tokens );
     }
