@@ -11,6 +11,20 @@ var test_data = [
     {a: 14, b: 14}
 ]
 
+module("Tags");
+test("tags.output", function() {
+    // Really all we care about here is not throwing exceptions.
+    equal( twig({data: '{{ "test" }}'}).render(), "test" );
+    equal( twig({data: '{{ " }} " }}'}).render(), " }} " );
+    equal( twig({data: '{{ " \\"}} " }}'}).render(), ' "}} ' );
+    equal( twig({data: "{{ ' }} ' }}"}).render(), " }} " );
+    equal( twig({data: "{{ ' \\'}} ' }}"}).render(), " '}} " );
+
+    equal( twig({data: '{{ " \'}} " }}'}).render(), " '}} " );
+    equal( twig({data: "{{ ' \"}} ' }}"}).render(), ' "}} ' );
+});
+
+
 module("Static Expressions");
 
 test("static.number", function() {
