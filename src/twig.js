@@ -161,10 +161,27 @@ var twig = (function(Twig) {
     Twig.logic.compile = function(raw_token) {
         var expression = raw_token.value.trim();
         var token = Twig.logic.tokenize(expression);
+
+        switch (token.type) {
+            case Twig.logic.type._if:
+            case Twig.logic.type.elseif:
+                var if_expression = token.value[1];
+                console.log("T.l.c: Compiling expression ", if_expression);
+                // Compile the expression.
+                token.expression = Twig.expression.compile({
+                    type:  Twig.expression.type.expression,
+                    value: if_expression
+                });
+                delete token.value;
+
+                break;
+        }
+        console.log("T.l.c: Compiled if data to ", token);
+        return token;
     };
 
     Twig.logic.tokenize = function(expression) {
-        var token;
+        var token = {};
 
         var l = Twig.logic.regex.length;
         for (var i = 0; i < l; i++) {
@@ -176,15 +193,15 @@ var twig = (function(Twig) {
             var match = regex.exec(expression.trim());
             if (match != null) {
                 match_found = true;
-                console.log("Matched a ", type, " regular expression of ", match[0]);
-
+                token.type  = type;
+                token.value = match;
+                
+                if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match[0]);
+                if (Twig.trace) console.log(match);
+                
                 if (type == Twig.logic.type.unknown) throw "Unable to parse '" + match[0] + "' at template:" + exp_offset;
 
                 match_found = true;
-                token = {
-                    type: type,
-                    value: match[0]
-                };
             }
 
             if (match_found) break;
@@ -307,39 +324,6 @@ var twig = (function(Twig) {
         return end;
     }
 
-    Twig.compile = function(tokens) {
-        var output = [];
-        var logic_stack = [];
-
-        tokens.reverse();
-        while (tokens.length > 0) {
-            var token = tokens.pop();
-            switch (token.type) {
-                case Twig.token.type.raw:
-                    output.push(token);
-                    break;
-
-                case Twig.token.type.logic:
-                    // Compile the logic token
-                    var logic_token = Twig.logic.compile(token);
-
-                    // Check if this pops the current top of the stack
-                    // Check if this needs to be pushed to the stack
-                    break;
-
-                case Twig.token.type.comment:
-                    // Do nothing, comments should be ignored
-                    break;
-
-                case Twig.token.type.output:
-                    // Parse the given expression in the given context
-                    output.push(Twig.expression.compile(token));
-                    break;
-            }
-        }
-        return output;
-    };
-
     Twig.expression = { };
 
     /**
@@ -457,7 +441,7 @@ var twig = (function(Twig) {
         // The output stack
         var stack = [];
         tokens.forEach(function(token) {
-            console.log("Parsing ", token);
+            if (Twig.trace) console.log("Parsing ", token);
             switch (token.type) {
                 // variable/contant types
                 case Twig.expression.type.string:
@@ -478,7 +462,7 @@ var twig = (function(Twig) {
                     break;
             }
         });
-        console.log("Stack result: ", stack);
+        if (Twig.trace) console.log("Stack result: ", stack);
         // Pop the final value off the stack
         return stack.pop();
     };
@@ -489,7 +473,7 @@ var twig = (function(Twig) {
      * Returns the updated stack.
      */
     Twig.expression.handleOperator = function(operator, stack) {
-        console.log("Handling", operator);
+        if (Twig.trace) console.log("Handling", operator);
         var a,b,c;
         switch (operator) {
             case '+':
@@ -538,7 +522,7 @@ var twig = (function(Twig) {
 
     Twig.expression.compile = function(raw_token) {
         var expression = raw_token.value;
-        console.log("Compiling expression", expression); // if (Twig.trace)
+        if (Twig.trace) console.log("Compiling expression", expression);
 
         // Tokenize expression
         var tokens = Twig.expression.tokenize(expression);
@@ -606,6 +590,7 @@ var twig = (function(Twig) {
         if (Twig.trace) console.log("stack is", output);
 
         raw_token.stack = output;
+        delete raw_token.value;
 
         return raw_token;
 
@@ -651,6 +636,7 @@ var twig = (function(Twig) {
     }
 
     Twig.expression.tokenize = function(expression) {
+        console.log("T.e.t: Tokenizing expression ", expression);
         var tokens = [],
             exp_offset = 0,
             prev_next = null;
@@ -693,6 +679,41 @@ var twig = (function(Twig) {
         return tokens;
     };
 
+    Twig.compile = function(tokens) {
+        var output = [];
+        var logic_stack = [];
+
+        tokens.reverse();
+        while (tokens.length > 0) {
+            var token = tokens.pop();
+            switch (token.type) {
+                case Twig.token.type.raw:
+                    output.push(token);
+                    break;
+
+                case Twig.token.type.logic:
+                    // Compile the logic token
+                    var logic_token = Twig.logic.compile(token);
+                    console.log("compiled logic token to ", logic_token);
+                    logic_token.type = Twig.token.type.logic;
+                    output.push({
+                        type: Twig.token.type.logic,
+                        token: logic_token
+                    });
+                    break;
+
+                case Twig.token.type.comment:
+                    // Do nothing, comments should be ignored
+                    break;
+
+                case Twig.token.type.output:
+                    output.push(Twig.expression.compile(token));
+                    break;
+            }
+        }
+        return output;
+    };
+    
     /**
      * A Twig Template model.
      *
