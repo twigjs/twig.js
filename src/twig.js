@@ -302,11 +302,10 @@ var twig = (function(Twig) {
         {
             /**
              * Match a string. This is anything between a pair of single or double quotes.
-             * NOTE: this doesn't yet handle \' or \"
              */
             type: Twig.expression.type.string,
-            // Match ", anything but ", "  OR  ', anything but ', '
-            regex: /(^"[^"]*"|'[^']*')/,
+            // See: http://blog.stevenlevithan.com/archives/match-quoted-string
+            regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
             next: [
                 Twig.expression.type.operator
             ]
@@ -436,9 +435,20 @@ var twig = (function(Twig) {
             switch (type) {
                 // variable/contant types
                 case Twig.expression.type.string:
+                    // Remove the quotes from the string
+                    if (value.substring(0,1) == '"') {
+                        value = value.replace('\\"', '"');
+                    } else {
+                        value = value.replace("\\'", "'");
+                    }
+                    token.value = value.substring(1, value.length-1);
+                    if (Twig.trace) console.log("String value: ", token.value)
+                    output.push(token);
+                    break;
+
                 case Twig.expression.type.variable:
                 case Twig.expression.type.number:
-                    if (Twig.trace) console.log("value: ", value)
+                    if (Twig.trace) console.log("Var/number value: ", value)
                     output.push(token);
                     break;
 
@@ -532,6 +542,7 @@ var twig = (function(Twig) {
                 break;
 
 
+            case '~': // String concatination
             case '+':
             case '-':
                 token.precidence = 6;
@@ -632,7 +643,9 @@ var twig = (function(Twig) {
                 break;
 
             case '~':
-                stack.push(stack.pop().toString() + stack.pop().toString());
+                b = stack.pop().toString();
+                a = stack.pop().toString();
+                stack.push(a + b);
                 break;
 
             case '!':

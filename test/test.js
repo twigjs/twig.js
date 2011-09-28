@@ -11,6 +11,25 @@ var test_data = [
     {a: 14, b: 14}
 ]
 
+module("Static Expressions");
+
+test("static.number", function() {
+    expect(3);
+    equal( twig({data: '{{ 12 }}'}).render(), "12" );
+    equal( twig({data: '{{ 12.64 }}'}).render(), "12.64" );
+    equal( twig({data: '{{ .64 }}'}).render(), ".64" );
+});
+
+test("static.string", function() {
+    expect(6);
+    equal( twig({data: '{{ "double" }}'}).render(), "double" );
+    equal( twig({data: "{{ 'single' }}"}).render(), 'single' );
+    equal( twig({data: '{{ "dou\'ble" }}'}).render(), "dou'ble" );
+    equal( twig({data: "{{ 'sin\"gle' }}"}).render(), 'sin"gle' );
+    equal( twig({data: '{{ "dou\\"ble" }}'}).render(), "dou\"ble" );
+    equal( twig({data: "{{ 'sin\\'gle' }}"}).render(), "sin'gle" );
+});
+
 // Expression tests
 module("Basic Expressions");
 
@@ -50,7 +69,38 @@ test("expression.divide", function() {
     });
 });
 
+test("expression.concat.number", function() {
+    expect(test_data.length);
+    var test_template = twig({data: '{{ a ~ b }}'});
+    test_data.forEach(function(pair) {
+        var output = test_template.render(pair);
+        equal( output, pair.a.toString() + pair.b.toString() );
+    });
+});
+
+string_data = [
+    {a: 'test', b: 'string'},
+    {a: 'test', b: ''},
+    {a: '', b: 'string'},
+    {a: '', b: ''},
+]
+
+test("expression.concat.string", function() {
+    expect(string_data.length);
+    var test_template = twig({data: '{{ a ~ b }}'});
+    string_data.forEach(function(pair) {
+        var output = test_template.render(pair);
+        equal( output, pair.a.toString() + pair.b.toString() );
+    });
+});
+
 module("Combined Expressions");
+
+test("combined.concat", function() {
+    equal( twig({data: '{{ "test" ~ a }}'}).render({a:1234}), "test1234" );
+    equal( twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}), "1234test1234" );
+    equal( twig({data: '{{ "this" ~ "test" }}'}).render({a:1234}), "thistest" );
+});
 
 test("combined.basic", function() {
     var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
