@@ -67,11 +67,11 @@ var twig = (function(Twig) {
     Twig.logic = {};
 
     Twig.logic.type = {
-        _if: 'if',
+        if_: 'if',
         endif: 'endif',
-        _for: 'for',
+        for_: 'for',
         endfor: 'endfor',
-        _else: 'else',
+        else_: 'else',
         elseif: 'elseif',
         set: 'set',
 
@@ -100,10 +100,10 @@ var twig = (function(Twig) {
              *
              *  Format: {% if expression %}
              */
-            type: Twig.logic.type._if,
+            type: Twig.logic.type.if_,
             regex: /^if\s+([^\s].+)$/,
             next: [
-                Twig.logic.type._else,
+                Twig.logic.type.else_,
                 Twig.logic.type.elseif,
                 Twig.logic.type.endif
             ],
@@ -118,7 +118,7 @@ var twig = (function(Twig) {
             type: Twig.logic.type.elseif,
             regex: /^elseif\s+([^\s].*)$/,
             next: [
-                Twig.logic.type._else,
+                Twig.logic.type.else_,
                 Twig.logic.type.endif
             ],
             open: false
@@ -129,7 +129,7 @@ var twig = (function(Twig) {
              *
              *  Format: {% elseif expression %}
              */
-            type: Twig.logic.type._else,
+            type: Twig.logic.type.else_,
             regex: /^else$/,
             next: [
                 Twig.logic.type.endif
@@ -163,20 +163,20 @@ var twig = (function(Twig) {
         var token = Twig.logic.tokenize(expression);
 
         switch (token.type) {
-            case Twig.logic.type._if:
+            case Twig.logic.type.if_:
             case Twig.logic.type.elseif:
                 var if_expression = token.value[1];
-                console.log("T.l.c: Compiling expression ", if_expression);
+                if (Twig.trace) console.log("T.l.c: Compiling expression ", if_expression);
                 // Compile the expression.
-                token.expression = Twig.expression.compile({
+                token.expression_stack = Twig.expression.compile({
                     type:  Twig.expression.type.expression,
                     value: if_expression
-                });
+                }).stack;
                 delete token.value;
 
                 break;
         }
-        console.log("T.l.c: Compiled if data to ", token);
+        if (Twig.trace) console.log("T.l.c: Compiled if data to ", token);
         return token;
     };
 
@@ -195,10 +195,12 @@ var twig = (function(Twig) {
                 match_found = true;
                 token.type  = type;
                 token.value = match;
-                
+                token.next = token_template.next;
+                token.open = token_template.open;
+
                 if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match[0]);
                 if (Twig.trace) console.log(match);
-                
+
                 if (type == Twig.logic.type.unknown) throw "Unable to parse '" + match[0] + "' at template:" + exp_offset;
 
                 match_found = true;
@@ -210,119 +212,52 @@ var twig = (function(Twig) {
         return token;
     };
 
+    var continue_chain = true;
+    Twig.logic.parse = function(token, context) {
+        // Should we continue a chain of expressions
+        // If false, no logic token with an open: false should be evaluated
+        //  e.g. If an {% if ... %} evaluates true, then sets continue_chain = false,
+        //       any following tokens with open=false (else, elseif) should be ignored.
 
-    /**
-     * What characters start "strings" in token definitions. We need this to ignore token close
-     * strings inside an expression.
-     */
-    Twig.token.strings = ['"', "'"];
+        var output = [];
 
-    /**
-     * Convert a template into high-level tokens.
-     */
-    Twig.tokenize = function(template) {
-        var tokens = [];
+        switch (token.type) {
+            case Twig.logic.type.if_:
+                // Start a new logic chain
+                continue_chain = true;
 
-        while (template.length > 0) {
-            // Find the first occurance of any token type in the template
-            var found_token = findToken(template);
-            if (Twig.trace) console.log("Found token ", found_token);
+                console.log("parsing ", token);
 
-            if (found_token.position !== null) {
-                // Add a raw type token for anything before the start of the token
-                if (found_token.position > 0) {
-                    tokens.push({
-                        type: Twig.token.type.raw,
-                        value: template.substring(0, found_token.position)
-                    });
+                // Parse the expression
+                var result = Twig.expression.parse(token.expression_stack, context);
+                console.log("parsed to ", result);
+                if (result == true) {
+                    continue_chain = false;
+                    // parse if output
+                    output.push(Twig.parse(token.output, context));
                 }
-                template = template.substr(found_token.position + found_token.def.open.length);
-
-                var start = 0;
-                if (Twig.trace) console.log("Token starts at ", start);
-
-                // Find the end of the token
-                var end = findTokenEnd(template, found_token.def, found_token.position);
-                if (Twig.trace) console.log("Token ends at ", end);
-
-                var token_str = template.substring(start, end).trim();
-                tokens.push({
-                    type: found_token.def.type,
-                    value: token_str
-                });
-
-                template = template.substr(end + found_token.def.close.length);
-
-            } else {
-                // No more tokens -> add the rest of the template as a raw-type token
-                tokens.push({
-                    type: Twig.token.type.raw,
-                    value: template
-                });
-                template = '';
-            }
-        }
-
-        return tokens;
-    }
-
-    function findToken(template) {
-        var output = {
-            position: null,
-            def: null
-        };
-        if (Twig.trace) console.log(Twig.token.definitions);
-        for (tok_name in Twig.token.definitions) {
-            var tok = Twig.token.definitions[tok_name];
-            var key = tok.open;
-            if (Twig.trace) console.log("Searching for ", key);
-            var first_key = template.indexOf(key);
-            if (Twig.trace) console.log("Found at ", first_key);
-            // Does this token occur before any other types?
-            if (first_key >= 0 && (output.position == null || first_key < output.position)) {
-                output.position = first_key;
-                output.def = tok;
-            }
-        }
-        return output;
-    }
-
-    function findTokenEnd(template, token_def, start) {
-        var end = null;
-        var found = false;
-        var offset = 0;
-        while (!found) {
-            if (Twig.trace) console.log("Looking for ", token_def.close);
-            if (Twig.trace) console.log("Looking in ", template);
-            var pos = template.indexOf(token_def.close, offset);
-            if (Twig.trace) console.log("Found end at ", pos);
-            if (pos >= 0) {
-                end = pos;
-                found = true;
-            } else {
-                // throw an exception
-                throw "Unable to find closing bracket '" + token_def.close + "'" + " opened at template position " + start;
-            }
-            var str_pos = null;
-            var str_found = null;
-            for (var i=0,l=Twig.token.strings.length;i<l;i++) {
-                var str = Twig.token.strings[i];
-                var this_str_pos = template.indexOf(str, offset);
-                if (this_str_pos > 0 && this_str_pos < pos && ( str_pos == null || this_str_pos < str_pos ) ) {
-                    str_pos = this_str_pos;
-                    str_found = str;
+                break;
+            case Twig.logic.type.elseif:
+                if (continue_chain) {
+                    var result = Twig.expression.parse(token.expression_stack, context);
+                    if (result == true) {
+                        continue_chain = false;
+                        // parse if output
+                        output.push(Twig.parse(token.output, context));
+                    }
                 }
-            }
-            // We found a string before the end of the token, now find the string's end and set the search offset to it
-            if (str_pos != null) {
-                end = null;
-                found = false;
-                var end_str_pos = template.indexOf(str_found, str_pos);
-                offset = end_str_pos + 1;
-            }
+                break;
+
+            case Twig.logic.type.else_:
+                if (continue_chain) {
+                    output.push(Twig.parse(token.output, context));
+                }
+                break;
+
         }
-        return end;
-    }
+        return output.join('');
+    };
+
 
     Twig.expression = { };
 
@@ -636,7 +571,7 @@ var twig = (function(Twig) {
     }
 
     Twig.expression.tokenize = function(expression) {
-        console.log("T.e.t: Tokenizing expression ", expression);
+        if (Twig.trace) console.log("T.e.t: Tokenizing expression ", expression);
         var tokens = [],
             exp_offset = 0,
             prev_next = null;
@@ -661,7 +596,6 @@ var twig = (function(Twig) {
                     if (type == Twig.expression.type.expression) {
                         // Trim parenthesis of of an expression
                         match = match.substring(1, match.length-1);
-                        console.log("Matched: ", match);
                     }
 
                     match_found = true;
@@ -679,27 +613,171 @@ var twig = (function(Twig) {
         return tokens;
     };
 
+
+    /**
+     * What characters start "strings" in token definitions. We need this to ignore token close
+     * strings inside an expression.
+     */
+    Twig.token.strings = ['"', "'"];
+
+    /**
+     * Convert a template into high-level tokens.
+     */
+    Twig.tokenize = function(template) {
+        var tokens = [];
+
+        while (template.length > 0) {
+            // Find the first occurance of any token type in the template
+            var found_token = findToken(template);
+            if (Twig.trace) console.log("Found token ", found_token);
+
+            if (found_token.position !== null) {
+                // Add a raw type token for anything before the start of the token
+                if (found_token.position > 0) {
+                    tokens.push({
+                        type: Twig.token.type.raw,
+                        value: template.substring(0, found_token.position)
+                    });
+                }
+                template = template.substr(found_token.position + found_token.def.open.length);
+
+                var start = 0;
+                if (Twig.trace) console.log("Token starts at ", start);
+
+                // Find the end of the token
+                var end = findTokenEnd(template, found_token.def, found_token.position);
+                if (Twig.trace) console.log("Token ends at ", end);
+
+                var token_str = template.substring(start, end).trim();
+                tokens.push({
+                    type: found_token.def.type,
+                    value: token_str
+                });
+
+                template = template.substr(end + found_token.def.close.length);
+
+            } else {
+                // No more tokens -> add the rest of the template as a raw-type token
+                tokens.push({
+                    type: Twig.token.type.raw,
+                    value: template
+                });
+                template = '';
+            }
+        }
+
+        return tokens;
+    }
+
+    function findToken(template) {
+        var output = {
+            position: null,
+            def: null
+        };
+        if (Twig.trace) console.log(Twig.token.definitions);
+        for (tok_name in Twig.token.definitions) {
+            var tok = Twig.token.definitions[tok_name];
+            var key = tok.open;
+            if (Twig.trace) console.log("Searching for ", key);
+            var first_key = template.indexOf(key);
+            if (Twig.trace) console.log("Found at ", first_key);
+            // Does this token occur before any other types?
+            if (first_key >= 0 && (output.position == null || first_key < output.position)) {
+                output.position = first_key;
+                output.def = tok;
+            }
+        }
+        return output;
+    }
+
+    function findTokenEnd(template, token_def, start) {
+        var end = null;
+        var found = false;
+        var offset = 0;
+        while (!found) {
+            if (Twig.trace) console.log("Looking for ", token_def.close);
+            if (Twig.trace) console.log("Looking in ", template);
+            var pos = template.indexOf(token_def.close, offset);
+            if (Twig.trace) console.log("Found end at ", pos);
+            if (pos >= 0) {
+                end = pos;
+                found = true;
+            } else {
+                // throw an exception
+                throw "Unable to find closing bracket '" + token_def.close + "'" + " opened at template position " + start;
+            }
+            var str_pos = null;
+            var str_found = null;
+            for (var i=0,l=Twig.token.strings.length;i<l;i++) {
+                var str = Twig.token.strings[i];
+                var this_str_pos = template.indexOf(str, offset);
+                if (this_str_pos > 0 && this_str_pos < pos && ( str_pos == null || this_str_pos < str_pos ) ) {
+                    str_pos = this_str_pos;
+                    str_found = str;
+                }
+            }
+            // We found a string before the end of the token, now find the string's end and set the search offset to it
+            if (str_pos != null) {
+                end = null;
+                found = false;
+                var end_str_pos = template.indexOf(str_found, str_pos);
+                offset = end_str_pos + 1;
+            }
+        }
+        return end;
+    }
+
     Twig.compile = function(tokens) {
         var output = [];
         var logic_stack = [];
+        var intermediate_output = [];
 
         tokens.reverse();
         while (tokens.length > 0) {
             var token = tokens.pop();
             switch (token.type) {
                 case Twig.token.type.raw:
-                    output.push(token);
+                    if (logic_stack.length > 0) {
+                        intermediate_output.push(token);
+                    } else {
+                        output.push(token);
+                    }
                     break;
 
                 case Twig.token.type.logic:
                     // Compile the logic token
-                    var logic_token = Twig.logic.compile(token);
-                    console.log("compiled logic token to ", logic_token);
-                    logic_token.type = Twig.token.type.logic;
-                    output.push({
-                        type: Twig.token.type.logic,
-                        token: logic_token
-                    });
+                    var logic_token = Twig.logic.compile(token),
+                        open = logic_token.open,
+                        next = logic_token.next,
+                        type = logic_token.type;
+                    if (Twig.trace) console.log("compiled logic token to ", logic_token);
+
+                    // Not a standalone token, check logic stack to see if this is expected
+                    if (open != undefined && !open) {
+                        var prev_token = logic_stack.pop();
+                        if (prev_token.next.indexOf(type) < 0) {
+                            throw type + " not expected after a " + prev_token.type;
+                        }
+                        prev_token.output = intermediate_output;
+                        delete prev_token.next;
+
+                        intermediate_output = [];
+                        output.push({
+                            type: Twig.token.type.logic,
+                            token: prev_token
+                        });
+                    }
+                    // This token requires additional tokens to complete the logic structure.
+                    if (next != undefined && next.length > 0) {
+                        logic_stack.push(logic_token);
+
+                    } else if (open != undefined && open) {
+                        // Standalone token (like {% set ... %}
+                        output.push({
+                            type: Twig.token.type.logic,
+                            token: logic_token
+                        });
+                    }
                     break;
 
                 case Twig.token.type.comment:
@@ -707,13 +785,44 @@ var twig = (function(Twig) {
                     break;
 
                 case Twig.token.type.output:
-                    output.push(Twig.expression.compile(token));
+                    var expression_token = Twig.expression.compile(token);
+                    if (logic_stack.length > 0) {
+                        intermediate_output.push(expression_token);
+                    } else {
+                        output.push(expression_token);
+                    }
                     break;
             }
         }
         return output;
     };
-    
+
+    Twig.parse = function(tokens, context) {
+        var output = [];
+        tokens.forEach(function(token) {
+            switch (token.type) {
+                case Twig.token.type.raw:
+                    output.push(token.value);
+                    break;
+
+                case Twig.token.type.logic:
+                    var logic_token = token.token;
+                    output.push(Twig.logic.parse(logic_token, context));
+                    break;
+
+                case Twig.token.type.comment:
+                    // Do nothing, comments should be ignored
+                    break;
+
+                case Twig.token.type.output:
+                    // Parse the given expression in the given context
+                    output.push(Twig.expression.parse(token.stack, context));
+                    break;
+            }
+        });
+        return output.join("");
+    };
+
     /**
      * A Twig Template model.
      *
@@ -723,27 +832,7 @@ var twig = (function(Twig) {
         this.tokens = tokens;
         this.render = function(context) {
             console.log("Render context is ", context);
-            var output = [];
-            tokens.forEach(function(token) {
-                switch (token.type) {
-                    case Twig.token.type.raw:
-                        output.push(token.value);
-                        break;
-
-                    case Twig.token.type.logic:
-                        break;
-
-                    case Twig.token.type.comment:
-                        // Do nothing, comments should be ignored
-                        break;
-
-                    case Twig.token.type.output:
-                        // Parse the given expression in the given context
-                        output.push(Twig.expression.parse(token.stack, context));
-                        break;
-                }
-            });
-            return output.join("");
+            return Twig.parse(tokens, context);
         }
     }
 
@@ -756,7 +845,6 @@ var twig = (function(Twig) {
         if (Twig.debug) console.log("parsing ", params);
 
         var raw_tokens = Twig.tokenize(params.html);
-        console.log("compiling ", raw_tokens);
         var tokens = Twig.compile(raw_tokens);
 
         if (Twig.debug) console.log("Parzed into ", tokens);

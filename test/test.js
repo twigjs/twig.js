@@ -1,7 +1,7 @@
 Twig.debug = true;
 
 var interesting = twig({
-    html: '{% if interesting %}Nothing of interest in here{% else %}Just keep looking.{% endif %}'
+    html: '{% if interesting %}Nothing of interest in here{% else %}Just keep looking, ater all you said {{ interesting }}.{% endif %}'
 });
 console.log(interesting);
 
@@ -15,7 +15,7 @@ window.onload = function() {
         baked_good: 'cake'
     }); */
     document.getElementById("test").innerHTML = interesting.render({
-        interesting: true
+        interesting: false
     });
 }
 
