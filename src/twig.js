@@ -340,7 +340,7 @@ var twig = (function(Twig) {
              */
             type: Twig.expression.type.variable,
             // match any letter or _, then any number of letters, numbers, _ or -
-            regex: /(^[a-zA-Z_][a-zA-Z0-9_\-]*)/,
+            regex: /(^[a-zA-Z_][a-zA-Z0-9_]*)/,
             next: [
                 Twig.expression.type.operator,
                 Twig.expression.type.filter
