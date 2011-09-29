@@ -244,6 +244,15 @@ test("if.elseif", function() {
     equal( test_template.render({test: false, other:false}), "3" );
 });
 
+test("if.nested", function() {
+    expect(4);
+    var test_template = twig({data: '{% if test %}{% if test2 %}true{% else %}false{% endif%}{% else %}not{% endif%}'});
+    equal( test_template.render({test: true, test2: true}), "true" );
+    equal( test_template.render({test: true, test2: false}), "false" );
+    equal( test_template.render({test: false, test2: true}), "not" );
+    equal( test_template.render({test: false, test2: false}), "not" );
+});
+
 /* var example = twig({
     html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / (2 - 4) + 6.5}} == 14.<br /> 123 % 4 = {{ 123 % 4 }}'
 });

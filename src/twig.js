@@ -194,7 +194,7 @@ var twig = (function(Twig) {
 
     Twig.compile = function(tokens) {
         var output = [];
-        var logic_stack = [];
+        var stack = [];
         var intermediate_output = [];
 
         tokens.reverse();
@@ -202,7 +202,7 @@ var twig = (function(Twig) {
             var token = tokens.pop();
             switch (token.type) {
                 case Twig.token.type.raw:
-                    if (logic_stack.length > 0) {
+                    if (stack.length > 0) {
                         intermediate_output.push(token);
                     } else {
                         output.push(token);
@@ -212,36 +212,63 @@ var twig = (function(Twig) {
                 case Twig.token.type.logic:
                     // Compile the logic token
                     var logic_token = Twig.logic.compile(token),
-                        open = logic_token.open,
-                        next = logic_token.next,
-                        type = logic_token.type;
-                    if (Twig.trace) console.log("compiled logic token to ", logic_token);
+                        type = logic_token.type,
+                        token_template = Twig.logic.handler[type],
+                        open = token_template.open,
+                        next = token_template.next;
+
+                    if (Twig.trace) console.log("compiled logic token to ", logic_token, " next is: ", next, " open is : ", open);
 
                     // Not a standalone token, check logic stack to see if this is expected
                     if (open != undefined && !open) {
-                        var prev_token = logic_stack.pop();
-                        if (prev_token.next.indexOf(type) < 0) {
+                        var prev_token = stack.pop(),
+                            prev_template = Twig.logic.handler[prev_token.type];
+
+                        if (prev_template.next.indexOf(type) < 0) {
                             throw type + " not expected after a " + prev_token.type;
                         }
-                        prev_token.output = intermediate_output;
-                        delete prev_token.next;
 
+                        if (!prev_token.output) prev_token.output = [];
+                        prev_token.output = prev_token.output.concat(intermediate_output);
                         intermediate_output = [];
-                        output.push({
+
+                        var tok_output = {
                             type: Twig.token.type.logic,
                             token: prev_token
-                        });
+                        };
+                        if (stack.length > 0) {
+                            intermediate_output.push(tok_output);
+                        } else {
+                            output.push(tok_output);
+                        }
                     }
+
                     // This token requires additional tokens to complete the logic structure.
                     if (next != undefined && next.length > 0) {
-                        logic_stack.push(logic_token);
+                        if (Twig.trace) console.log("pushing ", logic_token, " to logic stack: ", stack);
+                        if (stack.length > 0) {
+                            // Put any currently held output into the output list of the logic operator
+                            // currently at the head of the stack before we push a new one on.
+                            var prev_token = stack.pop();
+                            if (!prev_token.output) prev_token.output = [];
+                            prev_token.output = prev_token.output.concat(intermediate_output);
+                            stack.push(prev_token);
+                        }
+
+                        // Push the new logic token onto the logic stack
+                        stack.push(logic_token);
 
                     } else if (open != undefined && open) {
-                        // Standalone token (like {% set ... %}
-                        output.push({
+                        var tok_output = {
                             type: Twig.token.type.logic,
                             token: logic_token
-                        });
+                        };
+                        // Standalone token (like {% set ... %}
+                        if (stack.length > 0) {
+                            intermediate_output.push(tok_output);
+                        } else {
+                            output.push(tok_output);
+                        }
                     }
                     break;
 
@@ -251,17 +278,20 @@ var twig = (function(Twig) {
 
                 case Twig.token.type.output:
                     var expression_token = Twig.expression.compile(token);
-                    if (logic_stack.length > 0) {
+                    if (stack.length > 0) {
                         intermediate_output.push(expression_token);
                     } else {
                         output.push(expression_token);
                     }
                     break;
             }
+
+            if (Twig.trace) console.log("Output: ", output, " Logic Stack: ", stack, " Pending Output: ", intermediate_output );
         }
-        if (logic_stack.length > 0) {
-            var unclosed_token = logic_stack.pop();
-            throw "Unable to find an end tag for " + unclosed_token.type + ", expecting one of " + unclosed_token.next.join(", ");
+        if (stack.length > 0) {
+            var unclosed_token = stack.pop();
+            throw "Unable to find an end tag for " + unclosed_token.type
+                + ", expecting one of " + unclosed_token.next.join(", ");
         }
         return output;
     };
@@ -269,7 +299,7 @@ var twig = (function(Twig) {
     Twig.parse = function(tokens, context) {
         var output = [];
         // Track logic chains
-        var continue_chain = true;
+        var chain = true;
         tokens.forEach(function(token) {
             switch (token.type) {
                 case Twig.token.type.raw:
@@ -278,8 +308,8 @@ var twig = (function(Twig) {
 
                 case Twig.token.type.logic:
                     var logic_token = token.token,
-                        logic = Twig.logic.parse(logic_token, context, continue_chain);
-                    continue_chain = logic.continue_chain;
+                        logic = Twig.logic.parse(logic_token, context, chain);
+                    chain = logic.chain;
                     output.push(logic.output);
                     break;
 
@@ -347,6 +377,26 @@ var twig = (function(Twig) {
                 }).stack;
                 delete token.match;
                 return token;
+            },
+            parse: function(token, context, chain) {
+                var output = '';
+                // Start a new logic chain
+                chain = true;
+
+                if (Twig.trace) console.log("parsing ", token);
+
+                // Parse the expression
+                var result = Twig.expression.parse(token.stack, context);
+                if (Twig.trace) console.log("parsed to ", result);
+                if (result == true) {
+                    chain = false;
+                    // parse if output
+                    output = Twig.parse(token.output, context);
+                }
+                return {
+                    chain: chain,
+                    output: output
+                };
             }
         },
         {
@@ -372,6 +422,21 @@ var twig = (function(Twig) {
                 }).stack;
                 delete token.match;
                 return token;
+            },
+            parse: function(token, context, chain) {
+                var output = '';
+                if (chain) {
+                    var result = Twig.expression.parse(token.stack, context);
+                    if (result == true) {
+                        chain = false;
+                        // parse if output
+                        output = Twig.parse(token.output, context);
+                    }
+                }
+                return {
+                    chain: chain,
+                    output: output
+                };
             }
         },
         {
@@ -385,7 +450,17 @@ var twig = (function(Twig) {
             next: [
                 Twig.logic.type.endif
             ],
-            open: false
+            open: false,
+            parse: function(token, context, chain) {
+                var output = '';
+                if (chain) {
+                    output = Twig.parse(token.output, context);
+                }
+                return {
+                    chain: chain,
+                    output: output
+                };
+            }
         },
         {
             /**
@@ -430,7 +505,13 @@ var twig = (function(Twig) {
      */
     Twig.logic.handler = {};
 
+    Twig.logic.extendType = function(type, value) {
+        if (value == undefined) value = type;
+        Twig.logic.type[type] = value;
+    }
+
     Twig.logic.extend = function(definition) {
+
         if (!definition.type) {
             throw "Unable to extend logic definition. No type provided for " + definition;
         }
@@ -454,6 +535,15 @@ var twig = (function(Twig) {
         return token;
     };
 
+    /**
+     * Tokenize logic expressions. This function matches token expressions against regular
+     * expressions provided in token definitions provided with Twig.logic.extend.
+     *
+     * @param {string} expression the logic token expression to tokenize
+     *                (i.e. what's between {% and %})
+     *
+     * @return {Object} The matched token with a type and regex match set.
+     */
     Twig.logic.tokenize = function(expression) {
         var token = {};
 
@@ -467,8 +557,6 @@ var twig = (function(Twig) {
             if (match != null) {
                 token.type  = type;
                 token.match = match;
-                token.next = token_template.next;
-                token.open = token_template.open;
 
                 if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match);
 
@@ -483,55 +571,26 @@ var twig = (function(Twig) {
         return token;
     };
 
-    Twig.logic.parse = function(token, context, continue_chain) {
+    Twig.logic.parse = function(token, context, chain) {
         // Should we continue a chain of expressions
         // If false, no logic token with an open: false should be evaluated
-        //  e.g. If an {% if ... %} evaluates true, then sets continue_chain = false,
-        //       any following tokens with open=false (else, elseif) should be ignored.
+        //  e.g. If an {% if ... %} evaluates true, then sets chain = false, any
+        //       following tokens with open=false (else, elseif) should be ignored.
 
-        var output = '';
+        if (Twig.trace) console.log("Parsing logic token ", token);
 
-        switch (token.type) {
-            case Twig.logic.type.if_:
-                // Start a new logic chain
-                continue_chain = true;
+        var output = '',
+            token_template = Twig.logic.handler[token.type];
 
-                if (Twig.trace) console.log("parsing ", token);
-
-                // Parse the expression
-                var result = Twig.expression.parse(token.stack, context);
-                if (Twig.trace) console.log("parsed to ", result);
-                if (result == true) {
-                    continue_chain = false;
-                    // parse if output
-                    output = Twig.parse(token.output, context);
-                }
-                break;
-            case Twig.logic.type.elseif:
-                if (continue_chain) {
-                    var result = Twig.expression.parse(token.stack, context);
-                    if (result == true) {
-                        continue_chain = false;
-                        // parse if output
-                        output = Twig.parse(token.output, context);
-                    }
-                }
-                break;
-
-            case Twig.logic.type.else_:
-                if (continue_chain) {
-                    output = Twig.parse(token.output, context);
-                }
-                break;
-
+        if (token_template.parse) {
+            output = token_template.parse(token, context, chain);
         }
-        return {
-            continue_chain: continue_chain,
-            output: output
-        };
+        return output;
     };
 
-
+    /**
+     * Namespace for expression handling.
+     */
     Twig.expression = { };
 
     /**
