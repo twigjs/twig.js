@@ -9,7 +9,7 @@ var test_data = [
     {a: -56, b: -1.7},
     {a: 34, b: 0},
     {a: 14, b: 14}
-]
+];
 
 module("Tags");
 test("tags.output", function() {

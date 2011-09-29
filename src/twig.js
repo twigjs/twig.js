@@ -305,10 +305,7 @@ var twig = (function(Twig) {
         endfor: 'endfor',
         else_: 'else',
         elseif: 'elseif',
-        set: 'set',
-
-        // Meta-type: Unknown tags, should throw an exception
-        unknown: 'unknown'
+        set: 'set'
     }
 
     /**
@@ -325,7 +322,7 @@ var twig = (function(Twig) {
      *      open:  Does this tag open a logic expression or is it standalone. For example,
      *             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
      */
-    Twig.logic.regex = [
+    Twig.logic.definitions = [
         {
             /**
              * If type logic tokens.
@@ -339,7 +336,18 @@ var twig = (function(Twig) {
                 Twig.logic.type.elseif,
                 Twig.logic.type.endif
             ],
-            open: true
+            open: true,
+            compile: function(token) {
+                var expression = token.match[1];
+                if (Twig.trace) console.log("Compiling IF token with expression", expression);
+                // Compile the expression.
+                token.stack = Twig.expression.compile({
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }).stack;
+                delete token.match;
+                return token;
+            }
         },
         {
             /**
@@ -353,7 +361,18 @@ var twig = (function(Twig) {
                 Twig.logic.type.else_,
                 Twig.logic.type.endif
             ],
-            open: false
+            open: false,
+            compile: function(token) {
+                var expression = token.match[1];
+                if (Twig.trace) console.log("Compiling ELSEIF token with expression", expression);
+                // Compile the expression.
+                token.stack = Twig.expression.compile({
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }).stack;
+                delete token.match;
+                return token;
+            }
         },
         {
             /**
@@ -381,64 +400,84 @@ var twig = (function(Twig) {
         },
         {
             /**
-             * Unknown token.
+             * For type logic tokens.
              *
-             * Matches of this type should generate an exception.
+             *  Format: {% for expression %}
              */
-            type: Twig.logic.type.unknown,
-            regex: /.*/
+            type: Twig.logic.type.for_,
+            regex: /^for\s+([^\s].+)$/,
+            next: [
+                Twig.logic.type.else_,
+                Twig.logic.type.endfor
+            ],
+            open: true
+        },
+        {
+            /**
+             * End if type logic tokens.
+             *
+             *  Format: {% endif %}
+             */
+            type: Twig.logic.type.endfor,
+            regex: /^endfor$/,
+            next: [ ],
+            open: false
         }
     ];
 
-    Twig.logic.compile = function(raw_token) {
-        var expression = raw_token.value.trim();
-        var token = Twig.logic.tokenize(expression);
+    /**
+     * Registry for logic handlers.
+     */
+    Twig.logic.handler = {};
 
-        switch (token.type) {
-            case Twig.logic.type.if_:
-            case Twig.logic.type.elseif:
-                var if_expression = token.value[1];
-                if (Twig.trace) console.log("T.l.c: Compiling expression ", if_expression);
-                // Compile the expression.
-                token.stack = Twig.expression.compile({
-                    type:  Twig.expression.type.expression,
-                    value: if_expression
-                }).stack;
-                delete token.value;
-
-                break;
+    Twig.logic.extend = function(definition) {
+        if (!definition.type) {
+            throw "Unable to extend logic definition. No type provided for " + definition;
         }
-        if (Twig.trace) console.log("T.l.c: Compiled if data to ", token);
+        Twig.logic.handler[definition.type] = definition;
+    };
+
+    // Load built-in expressions
+    while (Twig.logic.definitions.length > 0) Twig.logic.extend(Twig.logic.definitions.pop());
+
+    Twig.logic.compile = function(raw_token) {
+        var expression = raw_token.value.trim(),
+            token = Twig.logic.tokenize(expression),
+            token_template = Twig.logic.handler[token.type];
+
+        // Check if the token needs compiling
+        if (token_template.compile) {
+            token = token_template.compile(token);
+            if (Twig.trace) console.log("T.l.c: Compiled logic token to ", token);
+        }
+
         return token;
     };
 
     Twig.logic.tokenize = function(expression) {
         var token = {};
 
-        var l = Twig.logic.regex.length;
-        for (var i = 0; i < l; i++) {
-            var token_template = Twig.logic.regex[i],
+        var found = false;
+        for (token_type in Twig.logic.handler) {
+            var token_template = Twig.logic.handler[token_type],
                 type = token_template.type,
-                regex = token_template.regex,
-                match_found = false;
+                regex = token_template.regex;
 
             var match = regex.exec(expression.trim());
             if (match != null) {
-                match_found = true;
                 token.type  = type;
-                token.value = match;
+                token.match = match;
                 token.next = token_template.next;
                 token.open = token_template.open;
 
-                if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match[0]);
-                if (Twig.trace) console.log(match);
+                if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match);
 
-                if (type == Twig.logic.type.unknown) throw "Unable to parse '" + match[0] + "' at template:" + exp_offset;
-
-                match_found = true;
+                found = true;
+                break;
             }
-
-            if (match_found) break;
+        }
+        if (!found) {
+            throw "Unable to parse '" + expression.trim() + "'";
         }
 
         return token;
@@ -511,7 +550,7 @@ var twig = (function(Twig) {
     /**
      * The regular expressions used to match tokens in expressions.
      */
-    Twig.expression.regex = [
+    Twig.expression.definitions = [
         {
             type: Twig.expression.type.expression,
             // Match (, anything but ), )
@@ -607,9 +646,9 @@ var twig = (function(Twig) {
             exp_offset = 0,
             prev_next = null;
         while (expression.length > 0) {
-            var l = Twig.expression.regex.length;
+            var l = Twig.expression.definitions.length;
             for (var i = 0; i < l; i++) {
-                var token_template = Twig.expression.regex[i],
+                var token_template = Twig.expression.definitions[i],
                     type = token_template.type,
                     regex = token_template.regex,
                     match_found = false;
