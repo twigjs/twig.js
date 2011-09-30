@@ -530,7 +530,7 @@ var twig = (function(Twig) {
                     token.expression = expression_token;
                 }
 
-                console.log("Compiled for token to ", token);
+                if (Twig.trace) console.log("Compiled for token to ", token);
 
                 delete token.match;
                 return token;
@@ -539,14 +539,12 @@ var twig = (function(Twig) {
                 // Parse expression
                 var result = Twig.expression.parse(token.expression, context),
                     output = [];
-                console.log(result);
-                console.log(token);
+
                 if (result instanceof Array) {
                     var key = 0;
                     result.forEach(function(value) {
                         context[token.value_var] = value;
                         if (token.key_var) context[token.key_var] = key++;
-                        console.log(context);
                         output.push(Twig.parse(token.output, context));
                     })
                 } else if (result instanceof Object) {
