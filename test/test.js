@@ -219,7 +219,7 @@ test("comparison.not", function() {
     equal( test_template.render({a:true}), false.toString() );
 });
 
-module("Logic/If");
+module("Logic");
 
 test("if.basic", function() {
     expect(2);
@@ -251,6 +251,40 @@ test("if.nested", function() {
     equal( test_template.render({test: true, test2: false}), "false" );
     equal( test_template.render({test: false, test2: true}), "not" );
     equal( test_template.render({test: false, test2: false}), "not" );
+});
+
+test("for.basic.array", function() {
+    var test_template = twig({data: '{% for value in test %}{{ value }}{% endfor %}'});
+    equal( test_template.render({test: [1,2,3,4]}), "1234" );
+    equal( test_template.render({test: []}), "" );
+});
+test("for.key.array", function() {
+    var test_template = twig({data: '{% for key,value in test %}{{key}}:{{ value }}{% endfor %}'});
+    equal( test_template.render({test: [1,2,3,4]}), "0:11:22:33:4" );
+    equal( test_template.render({test: []}), "" );
+});
+
+test("for.basic.object", function() {
+    var test_template = twig({data: '{% for value in test %}{{ value }}{% endfor %}'});
+    equal( test_template.render({test: {one: 1, two: 2, three: 3}}), "123" );
+    equal( test_template.render({test: {}}), "" );
+});
+test("for.key.object", function() {
+    var test_template = twig({data: '{% for key, value in test %}{{key}}:{{ value }}{% endfor %}'});
+    equal( test_template.render({test: {one: 1, two: 2, three: 3}}), "one:1two:2three:3" );
+    equal( test_template.render({test: {}}), "" );
+});
+
+test("for.else", function() {
+    var test_template = twig({data: '{% for key,value in test %}{{ value }}{% else %}else{% endfor %}'});
+    equal( test_template.render({test: [1,2,3,4]}), "1234" );
+    equal( test_template.render({test: []}), "else" );
+});
+
+test("for.nested", function() {
+    var test_template = twig({data: '{% for key,list in test %}{% for val in list %}{{ val }}{%endfor %}.{% else %}else{% endfor %}'});
+    equal( test_template.render({test: [[1,2],[3,4],[5,6]]}), "12.34.56." );
+    equal( test_template.render({test: []}), "else" );
 });
 
 /* var example = twig({

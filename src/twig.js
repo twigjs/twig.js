@@ -448,7 +448,8 @@ var twig = (function(Twig) {
             type: Twig.logic.type.else_,
             regex: /^else$/,
             next: [
-                Twig.logic.type.endif
+                Twig.logic.type.endif,
+                Twig.logic.type.endfor
             ],
             open: false,
             parse: function(token, context, chain) {
@@ -480,12 +481,90 @@ var twig = (function(Twig) {
              *  Format: {% for expression %}
              */
             type: Twig.logic.type.for_,
-            regex: /^for\s+([^\s].+)$/,
+            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([^\s].+)$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.endfor
             ],
-            open: true
+            open: true,
+            compile: function(token) {
+                var key_value = token.match[1],
+                    expression = token.match[2];
+                if (Twig.trace) console.log("Compiling FOR token with expression", expression);
+
+                token.key_var = null,
+                token.value_var = null;
+                if (key_value.indexOf(",") >= 0) {
+                    var kv_split = key_value.split(',')
+                    if (kv_split.length == 2) {
+                        token.key_var = kv_split[0].trim();
+                        token.value_var = kv_split[1].trim();
+                    } else {
+                        throw "Invalid expression in for loop: " + key_value;
+                    }
+                } else {
+                    token.value_var = key_value;
+                }
+
+                // Valid expressions for a for loop
+                //   for item     in expression
+                //   for key,item in expression
+
+                // Compile the expression.
+                var expression_stack = Twig.expression.compile({
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }).stack;
+
+                if (expression_stack.length != 1) {
+                    throw "Invalid expression in for loop, expected one expression, got " + expression_stack;
+
+                } else {
+                    var expression_token = expression_stack.pop();
+                    if (expression_token.type != Twig.expression.type.array
+                        && expression_token.type != Twig.expression.type.object
+                        && expression_token.type != Twig.expression.type.variable) {
+
+                        throw "Invalid expression in for loop " + expression_token.type;
+                    }
+                    token.expression = expression_token;
+                }
+
+                console.log("Compiled for token to ", token);
+
+                delete token.match;
+                return token;
+            },
+            parse: function(token, context, continue_chain) {
+                // Parse expression
+                var result = Twig.expression.parse(token.expression, context),
+                    output = [];
+                console.log(result);
+                console.log(token);
+                if (result instanceof Array) {
+                    var key = 0;
+                    result.forEach(function(value) {
+                        context[token.value_var] = value;
+                        if (token.key_var) context[token.key_var] = key++;
+                        console.log(context);
+                        output.push(Twig.parse(token.output, context));
+                    })
+                } else if (result instanceof Object) {
+                    for (key in result) {
+                        var value = result[key];
+                        context[token.value_var] = value;
+                        if (token.key_var) context[token.key_var] = key;
+                        output.push(Twig.parse(token.output, context));
+                    }
+                }
+                // Only allow else statements if no output was generated
+                continue_chain = (output.length == 0);
+
+                return {
+                    chain: continue_chain,
+                    output: output.join("")
+                };
+            }
         },
         {
             /**
@@ -505,11 +584,17 @@ var twig = (function(Twig) {
      */
     Twig.logic.handler = {};
 
+    /**
+     * Register a new logic token type.
+     */
     Twig.logic.extendType = function(type, value) {
         if (value == undefined) value = type;
         Twig.logic.type[type] = value;
     }
 
+    /**
+     * Extend the logic parsing functionality with a new token definition.
+     */
     Twig.logic.extend = function(definition) {
 
         if (!definition.type) {
@@ -519,7 +604,7 @@ var twig = (function(Twig) {
     };
 
     // Load built-in expressions
-    while (Twig.logic.definitions.length > 0) Twig.logic.extend(Twig.logic.definitions.pop());
+    while (Twig.logic.definitions.length > 0) Twig.logic.extend(Twig.logic.definitions.shift());
 
     Twig.logic.compile = function(raw_token) {
         var expression = raw_token.value.trim(),
@@ -546,36 +631,45 @@ var twig = (function(Twig) {
      */
     Twig.logic.tokenize = function(expression) {
         var token = {};
-
-        var found = false;
         for (token_type in Twig.logic.handler) {
             var token_template = Twig.logic.handler[token_type],
                 type = token_template.type,
-                regex = token_template.regex;
+                token_regex = token_template.regex,
+                regexArray = [];
 
-            var match = regex.exec(expression.trim());
-            if (match != null) {
-                token.type  = type;
-                token.match = match;
 
-                if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match);
+            if (token_regex instanceof Array) {
+                regexArray = token_regex;
+            } else {
+                regexArray.push(token_regex);
+            }
 
-                found = true;
-                break;
+            while (regexArray.length > 0)  {
+                var regex = regexArray.shift();
+                var match = regex.exec(expression.trim());
+                if (match != null) {
+                    token.type  = type;
+                    token.match = match;
+
+                    if (Twig.trace) console.log("T.l.t: Matched a ", type, " regular expression of ", match);
+
+                    found = true;
+
+                    return token;
+                }
             }
         }
-        if (!found) {
-            throw "Unable to parse '" + expression.trim() + "'";
-        }
+        throw "Unable to parse '" + expression.trim() + "'";
 
         return token;
     };
 
     Twig.logic.parse = function(token, context, chain) {
-        // Should we continue a chain of expressions
-        // If false, no logic token with an open: false should be evaluated
-        //  e.g. If an {% if ... %} evaluates true, then sets chain = false, any
-        //       following tokens with open=false (else, elseif) should be ignored.
+        // What does chain mean:
+        //   Should we continue a chain of expressions?
+        //   If false, no logic token with an open: false should be evaluated
+        //     e.g. If an {% if ... %} evaluates true, then sets chain = false, any
+        //          following tokens with open=false (else, elseif) should be ignored.
 
         if (Twig.trace) console.log("Parsing logic token ", token);
 
@@ -600,6 +694,8 @@ var twig = (function(Twig) {
         expression: 'expression',
         operator:   'operator',
         string:     'string',
+        array:      'array',
+        object:     'object',
         filter:     'filter',
         variable:   'variable',
         number:     'number',
@@ -639,6 +735,22 @@ var twig = (function(Twig) {
             next: [
                 Twig.expression.type.operator
             ]
+        },
+        {
+            /**
+             * Match an array.
+             */
+            type: Twig.expression.type.array,
+            regex: /\[[^\]]\]/,
+            next: [ ]
+        },
+        {
+            /**
+             * Match an object/hash map.
+             */
+            type: Twig.expression.type.object,
+            regex: /\{[^\}]\}/,
+            next: [ ]
         },
         {
             /**
@@ -839,6 +951,8 @@ var twig = (function(Twig) {
      * Parse an RPN expression stack within a context.
      */
     Twig.expression.parse = function(tokens, context) {
+        // If the token isn't an array, make it one.
+        if (!(tokens instanceof Array)) tokens = [tokens];
 
         // The output stack
         var stack = [];
@@ -869,6 +983,9 @@ var twig = (function(Twig) {
         return stack.pop();
     };
 
+    /**
+     * Operator associativity constants.
+     */
     Twig.expression.operator = {
         leftToRight: 'leftToRight',
         rightToLeft: 'rightToLeft'
