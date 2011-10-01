@@ -41,7 +41,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.expression,
                 Twig.expression.type.string,
                 Twig.expression.type.variable,
-                Twig.expression.type.number,
+                Twig.expression.type.number
             ]
         },
         {
@@ -117,65 +117,78 @@ var Twig = (function (Twig) {
                 Twig.expression.type.operator,
                 Twig.expression.type.filter
             ]
-        },
-        {
-            /*
-             * Match anything else.
-             * This type will throw an error and halt parsing.
-             */
-            type: Twig.expression.type.unknown,
-            // Catch-all for unknown expressions
-            regex:  /^(.*)/,
-            next: [ ]
         }
     ];
 
+    /**
+     * Break an expression into tokens defined in Twig.expression.definitions.
+     */
     Twig.expression.tokenize = function (expression) {
         var tokens = [],
+            // Keep an offset of the location in the expression for error messages.
             exp_offset = 0,
-            prev_next = null;
+            // The valid next tokens of the previous token
+            prev_next = null,
+            // Match type
+            type,
+            // Match regex
+            regex,
+            // The possible next token for the match
+            next,
+            // Has a match been found from the definitions
+            match_found,
+            i,
+            l;
 
         if (Twig.debug) {
             console.log("Twig.expression.tokenize", "Tokenizing expression ", expression);
         }
 
+        var match_function = function (match) {
+            if (Twig.trace) {
+                console.log("Twig.expression.tokenize",
+                            "Matched a ", type, " regular expression of ", match);
+            }
+
+            // Check that this token is a valid next token
+            var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
+            if (prev_next !== null && prev_next.indexOf(type) < 0) {
+                throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
+            }
+
+            if (type === Twig.expression.type.expression) {
+                // Trim parenthesis of of an expression
+                match = match.substring(1, match.length-1);
+            }
+
+            tokens.push({
+                type: type,
+                value: match
+            });
+            match_found = true;
+            prev_next = next;
+            exp_offset += match.length;
+            return '';
+        };
+
         while (expression.length > 0) {
-            var l = Twig.expression.definitions.length;
-            for (var i = 0; i < l; i += 1) {
-                var token_template = Twig.expression.definitions[i],
-                    type = token_template.type,
-                    regex = token_template.regex,
-                    match_found = false;
+            l = Twig.expression.definitions.length;
+            for (i = 0; i < l; i += 1) {
+                next = Twig.expression.definitions[i].next;
+                type = Twig.expression.definitions[i].type;
+                regex = Twig.expression.definitions[i].regex;
+                match_found = false;
 
-                expression = expression.trim().replace(regex, function (match) {
-                    if (Twig.trace) {
-                        console.log("Twig.expression.tokenize", "Matched a ", type, " regular expression of ", match);
-                    }
+                expression = expression.trim().replace(regex, match_function);
 
-                    if (type == Twig.expression.type.unknown) {
-                        throw "Unable to parse '" + match + "' at template:" + exp_offset;
-                    }
-                    // Check that this token is a valid next token
-                    var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
-                    if (prev_next != null && prev_next.indexOf(type) < 0) {
-                        throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
-                    }
-
-                    if (type == Twig.expression.type.expression) {
-                        // Trim parenthesis of of an expression
-                        match = match.substring(1, match.length-1);
-                    }
-
-                    match_found = true;
-                    tokens.push({
-                        type: type,
-                        value: match
-                    });
-                    prev_next = token_template.next;
-                    exp_offset += match.length;
-                    return '';
-                });
-                if (match_found) break;
+                // An expression token has been matched. Break the for loop and start trying to
+                //  match the next template (if expression isn't empty.)
+                if (match_found) {
+                    break;
+                }
+            }
+            if (!match_found) {
+                throw "Unable to parse '" + expression + "' at template position" + exp_offset;
             }
         }
         return tokens;
@@ -209,14 +222,14 @@ var Twig = (function (Twig) {
                 // variable/contant types
                 case Twig.expression.type.string:
                     // Remove the quotes from the string
-                    if (value.substring(0,1) == '"') {
+                    if (value.substring(0,1) === '"') {
                         value = value.replace('\\"', '"');
                     } else {
                         value = value.replace("\\'", "'");
                     }
                     token.value = value.substring(1, value.length-1);
                     if (Twig.trace) {
-                        console.log("Twig.expression.compile: ", "String value: ", token.value)
+                        console.log("Twig.expression.compile: ", "String value: ", token.value);
                     }
                     output.push(token);
                     break;
@@ -224,7 +237,7 @@ var Twig = (function (Twig) {
                 case Twig.expression.type.variable:
                 case Twig.expression.type.number:
                     if (Twig.trace) {
-                        console.log("Twig.expression.compile: ", "Var/number value: ", value)
+                        console.log("Twig.expression.compile: ", "Var/number value: ", value);
                     }
                     output.push(token);
                     break;
@@ -242,10 +255,10 @@ var Twig = (function (Twig) {
                     }
 
                     while (operator_stack.length > 0 && (
-                                (operator.associativity == Twig.expression.operator.leftToRight &&
+                                (operator.associativity === Twig.expression.operator.leftToRight &&
                                  operator.precidence    >= operator_stack[operator_stack.length-1].precidence)
 
-                             || (operator.associativity == Twig.expression.operator.rightToLeft &&
+                             || (operator.associativity === Twig.expression.operator.rightToLeft &&
                                  operator.precidence    >  operator_stack[operator_stack.length-1].precidence))
                            ) {
                          output.push(operator_stack.pop());
@@ -267,6 +280,8 @@ var Twig = (function (Twig) {
                     break;
 
                 case Twig.expression.type.filter:
+                    // TODO: implement
+                    break;
             }
         }
 
@@ -291,7 +306,9 @@ var Twig = (function (Twig) {
      */
     Twig.expression.parse = function (tokens, context) {
         // If the token isn't an array, make it one.
-        if (!(tokens instanceof Array)) tokens = [tokens];
+        if (!(tokens instanceof Array)) {
+            tokens = [tokens];
+        }
 
         // The output stack
         var stack = [];
@@ -332,7 +349,7 @@ var Twig = (function (Twig) {
     Twig.expression.operator = {
         leftToRight: 'leftToRight',
         rightToLeft: 'rightToLeft'
-    }
+    };
 
     /**
      * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
@@ -392,11 +409,11 @@ var Twig = (function (Twig) {
                 break;
 
             default:
-                throw operator + " is an unknown operator."
+                throw operator + " is an unknown operator.";
         }
         token.operator = operator;
         return token;
-    }
+    };
 
     /**
      * Handle operations on the RPN stack.

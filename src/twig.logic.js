@@ -17,7 +17,7 @@ var Twig = (function (Twig) {
         else_: 'else',
         elseif: 'elseif',
         set: 'set'
-    }
+    };
 
     /**
      * Regular expressions to match templates to.
@@ -74,7 +74,7 @@ var Twig = (function (Twig) {
 
                 // Parse the expression
                 var result = Twig.expression.parse(token.stack, context);
-                if (result == true) {
+                if (result === true) {
                     chain = false;
                     // parse if output
                     output = Twig.parse(token.output, context);
@@ -112,7 +112,7 @@ var Twig = (function (Twig) {
                 var output = '';
                 if (chain) {
                     var result = Twig.expression.parse(token.stack, context);
-                    if (result == true) {
+                    if (result === true) {
                         chain = false;
                         // parse if output
                         output = Twig.parse(token.output, context);
@@ -176,11 +176,12 @@ var Twig = (function (Twig) {
                 var key_value = token.match[1],
                     expression = token.match[2];
 
-                token.key_var = null,
+                token.key_var = null;
                 token.value_var = null;
+
                 if (key_value.indexOf(",") >= 0) {
-                    var kv_split = key_value.split(',')
-                    if (kv_split.length == 2) {
+                    var kv_split = key_value.split(',');
+                    if (kv_split.length === 2) {
                         token.key_var = kv_split[0].trim();
                         token.value_var = kv_split[1].trim();
                     } else {
@@ -200,16 +201,16 @@ var Twig = (function (Twig) {
                     value: expression
                 }).stack;
 
-                if (expression_stack.length != 1) {
+                if (expression_stack.length !== 1) {
                     throw "Invalid expression in for loop, expected one expression, got " + expression_stack;
 
                 } else {
                     // Validate that the expression is an explicit array or object
                     //  declaration or that it's a variable.
                     var expression_token = expression_stack.pop();
-                    if (expression_token.type != Twig.expression.type.array
-                        && expression_token.type != Twig.expression.type.object
-                        && expression_token.type != Twig.expression.type.variable) {
+                    if (expression_token.type !== Twig.expression.type.array
+                        && expression_token.type !== Twig.expression.type.object
+                        && expression_token.type !== Twig.expression.type.variable) {
 
                         throw "Invalid expression in for loop " + expression_token.type;
                     }
@@ -222,25 +223,33 @@ var Twig = (function (Twig) {
             parse: function (token, context, continue_chain) {
                 // Parse expression
                 var result = Twig.expression.parse(token.expression, context),
-                    output = [];
+                    output = [],
+                    key;
 
                 if (result instanceof Array) {
-                    var key = 0;
+                    key = 0;
                     result.forEach(function (value) {
                         context[token.value_var] = value;
-                        if (token.key_var) context[token.key_var] = key++;
+                        if (token.key_var) {
+                            context[token.key_var] = key;
+                        }
                         output.push(Twig.parse(token.output, context));
-                    })
+
+                        key += 1;
+                    });
                 } else if (result instanceof Object) {
                     for (key in result) {
-                        var value = result[key];
-                        context[token.value_var] = value;
-                        if (token.key_var) context[token.key_var] = key;
-                        output.push(Twig.parse(token.output, context));
+                        if (result.hasOwnProperty(key)) {
+                            context[token.value_var] = result[key];
+                            if (token.key_var) {
+                                context[token.key_var] = key;
+                            }
+                            output.push(Twig.parse(token.output, context));
+                        }
                     }
                 }
                 // Only allow else statements if no output was generated
-                continue_chain = (output.length == 0);
+                continue_chain = (output.length === 0);
 
                 return {
                     chain: continue_chain,
@@ -270,9 +279,9 @@ var Twig = (function (Twig) {
      * Register a new logic token type.
      */
     Twig.logic.extendType = function (type, value) {
-        if (value == undefined) value = type;
+        value = value || type;
         Twig.logic.type[type] = value;
-    }
+    };
 
     /**
      * Extend the logic parsing functionality with a new token definition.
@@ -285,8 +294,10 @@ var Twig = (function (Twig) {
         Twig.logic.handler[definition.type] = definition;
     };
 
-    // Load built-in expressions
-    while (Twig.logic.definitions.length > 0) Twig.logic.extend(Twig.logic.definitions.shift());
+    // Extend with built-in expressions
+    while (Twig.logic.definitions.length > 0) {
+        Twig.logic.extend(Twig.logic.definitions.shift());
+    }
 
     /**
      * Compile logic tokens into JSON form ready for parsing.
@@ -321,39 +332,52 @@ var Twig = (function (Twig) {
      * @return {Object} The matched token with type set to the token type and match to the regex match.
      */
     Twig.logic.tokenize = function (expression) {
-        var token = {};
-        for (var token_type in Twig.logic.handler) {
-            var token_template = Twig.logic.handler[token_type],
-                type = token_template.type,
-                token_regex = token_template.regex,
-                regexArray = [];
+        var token = {},
+            token_template_type,
+            token_type,
+            token_regex,
+            regex_array;
 
+        // Ignore whitespace around expressions.
+        expression = expression.trim();
 
-            if (token_regex instanceof Array) {
-                regexArray = token_regex;
-            } else {
-                regexArray.push(token_regex);
-            }
+        for (token_template_type in Twig.logic.handler) {
+            if (Twig.logic.handler.hasOwnProperty(token_template_type)) {
+                // Get the type and regex for this template type
+                token_type = Twig.logic.handler[token_template_type].type;
+                token_regex = Twig.logic.handler[token_template_type].regex;
 
-            while (regexArray.length > 0)  {
-                var regex = regexArray.shift();
-                var match = regex.exec(expression.trim());
-                if (match != null) {
-                    token.type  = type;
-                    token.match = match;
-                    if (Twig.trace) {
-                        console.log("Twig.logic.tokenize: ", "Matched a ", type, " regular expression of ", match);
+                // Handle multiple regular expressions per type.
+                regex_array = [];
+                if (token_regex instanceof Array) {
+                    regex_array = token_regex;
+                } else {
+                    regex_array.push(token_regex);
+                }
+
+                // Check regular expressions in the order they were specified in the definition.
+                while (regex_array.length > 0)  {
+                    var regex = regex_array.shift();
+                    var match = regex.exec(expression.trim());
+                    if (match !== null) {
+                        token.type  = token_type;
+                        token.match = match;
+                        if (Twig.trace) {
+                            console.log("Twig.logic.tokenize: ", "Matched a ", token_type, " regular expression of ", match);
+                        }
+                        return token;
                     }
-                    return token;
                 }
             }
         }
-        throw "Unable to parse '" + expression.trim() + "'";
 
-        return token;
+        throw "Unable to parse '" + expression.trim() + "'";
     };
 
     Twig.logic.parse = function (token, context, chain) {
+        var output = '',
+            token_template;
+
         // What does chain mean:
         //   Should we continue a chain of expressions?
         //   If false, no logic token with an open: false should be evaluated
@@ -364,8 +388,7 @@ var Twig = (function (Twig) {
             console.log("Twig.logic.parse: " ,"Parsing logic token ", token);
         }
 
-        var output = '',
-            token_template = Twig.logic.handler[token.type];
+        token_template = Twig.logic.handler[token.type];
 
         if (token_template.parse) {
             output = token_template.parse(token, context, chain);
@@ -374,4 +397,5 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
+
 })( Twig || { } );

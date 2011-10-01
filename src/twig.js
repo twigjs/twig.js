@@ -1,7 +1,103 @@
-var Twig = function(Twig) {
+(function() {
+    // Handle methods that don't yet exist in every browser
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+            "use strict";
+            if (this === void 0 || this === null) {
+                throw new TypeError();
+            }
+            var t = Object(this);
+            var len = t.length >>> 0;
+            if (len === 0) {
+                return -1;
+            }
+            var n = 0;
+            if (arguments.length > 0) {
+                n = Number(arguments[1]);
+                if (n !== n) { // shortcut for verifying if it's NaN
+                    n = 0;
+                } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
+                    n = (n > 0 || -1) * Math.floor(Math.abs(n));
+                }
+            }
+            if (n >= len) {
+                return -1;
+            }
+            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+            for (; k < len; k++) {
+                if (k in t && t[k] === searchElement) {
+                    return k;
+                }
+            }
+            return -1;
+        }
+    };
+
+    // Production steps of ECMA-262, Edition 5, 15.4.4.18
+    // Reference: http://es5.github.com/#x15.4.4.18
+    if ( !Array.prototype.forEach ) {
+
+      Array.prototype.forEach = function( callback, thisArg ) {
+
+        var T, k;
+
+        if ( this == null ) {
+          throw new TypeError( " this is null or not defined" );
+        }
+
+        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
+        var O = Object(this);
+
+        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = O.length >>> 0; // Hack to convert O.length to a UInt32
+
+        // 4. If IsCallable(callback) is false, throw a TypeError exception.
+        // See: http://es5.github.com/#x9.11
+        if ( {}.toString.call(callback) != "[object Function]" ) {
+          throw new TypeError( callback + " is not a function" );
+        }
+
+        // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
+        if ( thisArg ) {
+          T = thisArg;
+        }
+
+        // 6. Let k be 0
+        k = 0;
+
+        // 7. Repeat, while k < len
+        while( k < len ) {
+
+          var kValue;
+
+          // a. Let Pk be ToString(k).
+          //   This is implicit for LHS operands of the in operator
+          // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
+          //   This step can be combined with c
+          // c. If kPresent is true, then
+          if ( k in O ) {
+
+            // i. Let kValue be the result of calling the Get internal method of O with argument Pk.
+            kValue = O[ k ];
+
+            // ii. Call the Call internal method of callback with T as the this value and
+            // argument list containing kValue, k, and O.
+            callback.call( T, kValue, k, O );
+          }
+          // d. Increase k by 1.
+          k++;
+        }
+        // 8. return undefined
+      };
+    };
+})();
+
+var Twig = (function (Twig) {
+    "use strict";
+
     Twig.trace = false;
     Twig.debug = false;
-
 
     /**
      * Container for methods related to handling high level template tokens
@@ -92,7 +188,10 @@ var Twig = function(Twig) {
         var end = null,
             found = false,
             offset = 0,
-            i, l;
+
+            // For loop variables
+            i,
+            l;
 
         while (!found) {
             var str_pos = null,
@@ -109,12 +208,12 @@ var Twig = function(Twig) {
             }
 
             l = Twig.token.strings.length;
-            for (i = 0; i < l; i++) {
+            for (i = 0; i < l; i += 1) {
                 var str = Twig.token.strings[i];
                 var this_str_pos = template.indexOf(str, offset);
-                if ( this_str_pos > 0
-                    && this_str_pos < pos
-                    && ( str_pos == null || this_str_pos < str_pos ) ) {
+                if (this_str_pos > 0
+                        && this_str_pos < pos
+                        && (str_pos === null || this_str_pos < str_pos)) {
 
                     str_pos = this_str_pos;
                     str_found = str;
@@ -122,17 +221,17 @@ var Twig = function(Twig) {
             }
 
             // We found a string before the end of the token, now find the string's end and set the search offset to it
-            if (str_pos != null) {
+            if (str_pos !== null) {
                 var end_offset = str_pos + 1;
                 end = null;
                 found = false;
                 while (true) {
                     var end_str_pos = template.indexOf(str_found, end_offset);
-                    if (end_str_pos == -1) {
+                    if (end_str_pos < 0) {
                         throw "Unclosed string in template";
                     }
                     // Ignore escaped quotes
-                    if (template.substr(end_str_pos-1, 1) != "\\") {
+                    if (template.substr(end_str_pos - 1, 1) !== "\\") {
                         offset = end_str_pos + 1;
                         break;
                     } else {
@@ -142,7 +241,7 @@ var Twig = function(Twig) {
             }
         }
         return end;
-    }
+    };
 
     /**
      * Convert a template into high-level tokens.
@@ -195,7 +294,7 @@ var Twig = function(Twig) {
         }
 
         return tokens;
-    }
+    };
 
 
     Twig.compile = function (tokens) {
@@ -238,15 +337,16 @@ var Twig = function(Twig) {
                     }
 
                     // Not a standalone token, check logic stack to see if this is expected
-                    if (open != undefined && !open) {
-                        prev_token = stack.pop(),
+                    if (open !== undefined && !open) {
+                        prev_token = stack.pop();
                         prev_template = Twig.logic.handler[prev_token.type];
 
                         if (prev_template.next.indexOf(type) < 0) {
                             throw type + " not expected after a " + prev_token.type;
                         }
 
-                        if (!prev_token.output) prev_token.output = [];
+                        prev_token.output = prev_token.output || [];
+
                         prev_token.output = prev_token.output.concat(intermediate_output);
                         intermediate_output = [];
 
@@ -262,7 +362,7 @@ var Twig = function(Twig) {
                     }
 
                     // This token requires additional tokens to complete the logic structure.
-                    if (next != undefined && next.length > 0) {
+                    if (next !== undefined && next.length > 0) {
                         if (Twig.trace) {
                             console.log("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
                         }
@@ -270,7 +370,7 @@ var Twig = function(Twig) {
                             // Put any currently held output into the output list of the logic operator
                             // currently at the head of the stack before we push a new one on.
                             prev_token = stack.pop();
-                            if (!prev_token.output) prev_token.output = [];
+                            prev_token.output = prev_token.output || [];
                             prev_token.output = prev_token.output.concat(intermediate_output);
                             stack.push(prev_token);
                         }
@@ -278,7 +378,7 @@ var Twig = function(Twig) {
                         // Push the new logic token onto the logic stack
                         stack.push(logic_token);
 
-                    } else if (open != undefined && open) {
+                    } else if (open !== undefined && open) {
                         tok_output = {
                             type: Twig.token.type.logic,
                             token: logic_token
@@ -367,12 +467,12 @@ var Twig = function(Twig) {
                 console.log("Twig.Template: ", "Template rendered to: ", output);
             }
             return output;
-        }
+        };
     };
 
     return Twig;
 
-} ( Twig || { } );
+}) ( Twig || { } );
 
 /**
  * Create and compile a Twig template.
@@ -380,6 +480,7 @@ var Twig = function(Twig) {
  * Returns a Twig.Template ready for rendering.
  */
 var twig = function (params) {
+    'use strict';
     var raw_tokens,
         tokens;
 
@@ -393,7 +494,7 @@ var twig = function (params) {
         console.log("twig(): ", "Compiling ", raw_tokens);
     }
 
-    tokens     = Twig.compile(raw_tokens);
+    tokens = Twig.compile(raw_tokens);
 
     if (Twig.debug) {
         console.log("twig(): ", "Parsed ", tokens);
