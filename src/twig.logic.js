@@ -267,7 +267,47 @@ var Twig = (function (Twig) {
             regex: /^endfor$/,
             next: [ ],
             open: false
-        }
+        },
+        {
+            /**
+             * Set type logic tokens.
+             *
+             *  Format: {% set key = expression %}
+             */
+            type: Twig.logic.type.set,
+            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([^\s].+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var key = token.match[1],
+                    expression = token.match[2];
+
+                token.key = key.trim();
+
+                // Compile the expression.
+                var expression_token = Twig.expression.compile({
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                });
+
+                token.expression = expression_token.stack;
+
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, continue_chain) {
+                var value = Twig.expression.parse(token.expression, context),
+                    key = token.key;
+
+                context[key] = value;
+
+                return {
+                    chain: continue_chain,
+                    context: context
+                };
+            }
+        },
+
     ];
 
     /**
@@ -377,6 +417,8 @@ var Twig = (function (Twig) {
     Twig.logic.parse = function (token, context, chain) {
         var output = '',
             token_template;
+
+        context = context || { };
 
         // What does chain mean:
         //   Should we continue a chain of expressions?

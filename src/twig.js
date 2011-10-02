@@ -1,4 +1,5 @@
 (function() {
+    "use strict";
     // Handle methods that don't yet exist in every browser
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
@@ -36,7 +37,6 @@
     // Production steps of ECMA-262, Edition 5, 15.4.4.18
     // Reference: http://es5.github.com/#x15.4.4.18
     if ( !Array.prototype.forEach ) {
-
       Array.prototype.forEach = function( callback, thisArg ) {
 
         var T, k;
@@ -109,10 +109,10 @@ var Twig = (function (Twig) {
      * Token types.
      */
     Twig.token.type = {
-        output: 'output',
-        logic: 'logic',
+        output:  'output',
+        logic:   'logic',
         comment: 'comment',
-        raw: 'raw'
+        raw:     'raw'
     };
 
     /**
@@ -433,8 +433,16 @@ var Twig = (function (Twig) {
                 case Twig.token.type.logic:
                     var logic_token = token.token,
                         logic = Twig.logic.parse(logic_token, context, chain);
-                    chain = logic.chain;
-                    output.push(logic.output);
+
+                    if (logic.chain !== undefined) {
+                        chain = logic.chain;
+                    }
+                    if (logic.context !== undefined) {
+                        context = logic.context;
+                    }
+                    if (logic.output !== undefined) {
+                        output.push(logic.output);
+                    }
                     break;
 
                 case Twig.token.type.comment:
@@ -483,6 +491,10 @@ var twig = function (params) {
     'use strict';
     var raw_tokens,
         tokens;
+
+    if (params.debug !== undefined) {
+        Twig.debug = params.debug;
+    }
 
     if (Twig.debug) {
         console.log("twig(): ", "Tokenizing ", params.data);

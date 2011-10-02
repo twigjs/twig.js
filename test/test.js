@@ -287,6 +287,11 @@ test("for.nested", function() {
     equal( test_template.render({test: []}), "else" );
 });
 
+test("set.basic", function() {
+    var test_template = twig({data: '{% set key = "chaos" %}{{ key }}' });
+    equal( test_template.render(), "chaos" );
+});
+
 /* var example = twig({
     html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / (2 - 4) + 6.5}} == 14.<br /> 123 % 4 = {{ 123 % 4 }}'
 });
