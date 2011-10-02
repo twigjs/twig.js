@@ -275,7 +275,7 @@ var Twig = (function (Twig) {
              *  Format: {% set key = expression %}
              */
             type: Twig.logic.type.set,
-            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([^\s].+)$/,
+            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*(.+)$/,
             next: [ ],
             open: true,
             compile: function (token) {

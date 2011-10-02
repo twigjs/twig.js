@@ -60,7 +60,7 @@ var Twig = (function (Twig) {
              * Match an array.
              */
             type: Twig.expression.type.array,
-            regex: /\[[^\]]\]/,
+            regex: /\[[^\]]*\]/,
             next: [ ]
         },
         {
@@ -68,7 +68,7 @@ var Twig = (function (Twig) {
              * Match an object/hash map.
              */
             type: Twig.expression.type.object,
-            regex: /\{[^\}]\}/,
+            regex: /\{[^\}]*\}/,
             next: [ ]
         },
         {
@@ -129,6 +129,8 @@ var Twig = (function (Twig) {
             exp_offset = 0,
             // The valid next tokens of the previous token
             prev_next = null,
+            // The previous token.
+            prev_token,
             // Match type
             type,
             // Match regex
@@ -151,7 +153,12 @@ var Twig = (function (Twig) {
             }
 
             // Check that this token is a valid next token
-            var prev_token = tokens.length > 0 ? tokens[tokens.length-1] : null;
+            if (tokens.length > 0) {
+                prev_token = tokens[tokens.length-1]
+            } else {
+                prev_token = null;
+            }
+
             if (prev_next !== null && prev_next.indexOf(type) < 0) {
                 throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
             }
@@ -161,10 +168,12 @@ var Twig = (function (Twig) {
                 match = match.substring(1, match.length-1);
             }
 
-            tokens.push({
-                type: type,
+            var obj = {
+                type:  type,
                 value: match
-            });
+            };
+            tokens.push(obj);
+
             match_found = true;
             prev_next = next;
             exp_offset += match.length;
@@ -172,6 +181,7 @@ var Twig = (function (Twig) {
         };
 
         while (expression.length > 0) {
+            expression = expression.trim();
             l = Twig.expression.definitions.length;
             for (i = 0; i < l; i += 1) {
                 next = Twig.expression.definitions[i].next;
@@ -179,7 +189,7 @@ var Twig = (function (Twig) {
                 regex = Twig.expression.definitions[i].regex;
                 match_found = false;
 
-                expression = expression.trim().replace(regex, match_function);
+                expression = expression.replace(regex, match_function);
 
                 // An expression token has been matched. Break the for loop and start trying to
                 //  match the next template (if expression isn't empty.)
@@ -190,6 +200,10 @@ var Twig = (function (Twig) {
             if (!match_found) {
                 throw "Unable to parse '" + expression + "' at template position" + exp_offset;
             }
+        }
+
+        if (Twig.trace) {
+            console.log("Twig.expression.tokenize", "Tokenized to ", tokens);
         }
         return tokens;
     };
@@ -279,6 +293,23 @@ var Twig = (function (Twig) {
                     }
                     break;
 
+                case Twig.expression.type.array:
+                    // Remove [ and ] from array
+                    value = value.substring(1, value.length-1);
+                    token.value = [];
+                    // TODO: handle strings that contain ","
+                    var expressions = value.split(",");
+                    while(expressions.length > 0) {
+                        var val_expression = expressions.shift().trim(),
+                            val_expression_token = Twig.expression.compile({
+                                type:  Twig.token.type.expression,
+                                value: val_expression
+                            }).stack;
+                        token.value.push(val_expression_token);
+                    }
+                    output.push(token);
+                    break
+
                 case Twig.expression.type.filter:
                     // TODO: implement
                     break;
@@ -333,6 +364,15 @@ var Twig = (function (Twig) {
                 case Twig.expression.type.operator:
                     var operator = token.value;
                     stack = Twig.expression.operator.parse(operator, stack);
+                    break;
+
+                case Twig.expression.type.array:
+                    // value is an array of stacks
+                    var array = [];
+                    token.value.forEach(function(val_stack) {
+                        array.push(Twig.expression.parse(val_stack));
+                    });
+                    stack.push(array);
                     break;
             }
         });
