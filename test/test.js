@@ -25,16 +25,16 @@ test("tags.output", function() {
 });
 
 
-module("Static Expressions");
+module("Expression Types");
 
-test("static.number", function() {
+test("type.number", function() {
     expect(3);
     equal( twig({data: '{{ 12 }}'}).render(), "12" );
     equal( twig({data: '{{ 12.64 }}'}).render(), "12.64" );
     equal( twig({data: '{{ .64 }}'}).render(), ".64" );
 });
 
-test("static.string", function() {
+test("type.string", function() {
     expect(6);
     equal( twig({data: '{{ "double" }}'}).render(), "double" );
     equal( twig({data: "{{ 'single' }}"}).render(), 'single' );
@@ -42,6 +42,14 @@ test("static.string", function() {
     equal( twig({data: "{{ 'sin\"gle' }}"}).render(), 'sin"gle' );
     equal( twig({data: '{{ "dou\\"ble" }}'}).render(), "dou\"ble" );
     equal( twig({data: "{{ 'sin\\'gle' }}"}).render(), "sin'gle" );
+});
+
+test("type.array", function() {
+    equal( twig({data: '{{ [1] }}'}).render(), "1" );
+    equal( twig({data: '{{ [1,2 ,3 ] }}'}).render(), "1,2,3" );
+    equal( twig({data: '{{ [1,2 ,3 , val ] }}'}).render({val: 4}), "1,2,3,4" );
+    equal( twig({data: '{{ ["[to",\'the\' ,"string]" ] }}'}).render(), '[to,the,string]' );
+    equal( twig({data: '{{ ["[to",\'the\' ,"str\\"ing]" ] }}'}).render(), '[to,the,str"ing]' );
 });
 
 // Expression tests
