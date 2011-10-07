@@ -1,3 +1,13 @@
+/**
+ * Twig.js v0.1
+ * Copyright (c) 2011 John Roepke
+ * Available under the BSD 2-Clause License
+ */
+ 
+ 
+ /**
+  * This file handles tokenizing, compiling and parsing logic (tags).
+  */
 var Twig = (function (Twig) {
     "use strict";
 
@@ -292,8 +302,7 @@ var Twig = (function (Twig) {
                     context: context
                 };
             }
-        },
-
+        }
     ];
 
     /**
@@ -302,7 +311,7 @@ var Twig = (function (Twig) {
     Twig.logic.handler = {};
 
     /**
-     * Register a new logic token type.
+     * Define a new token type, available at Twig.logic.type.{type}
      */
     Twig.logic.extendType = function (type, value) {
         value = value || type;
@@ -311,6 +320,20 @@ var Twig = (function (Twig) {
 
     /**
      * Extend the logic parsing functionality with a new token definition.
+     * 
+     * // Define a new tag 
+     * Twig.logic.extend({
+     *     type: Twig.logic.type.{type},
+     *     // The pattern to match for this token
+     *     regex: ...,
+     *     // What token types can follow this token, leave blank if any.
+     *     next: [ ... ]
+     *     // Create and return compiled version of the token
+     *     compile: function(token) { ... } 
+     *     // Parse the compiled token with the context provided by the render call
+     *     //   and whether this token chain is complete.
+     *     parse: function(token, context, chain) { ... }
+     * });
      */
     Twig.logic.extend = function (definition) {
 

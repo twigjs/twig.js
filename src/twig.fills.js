@@ -1,6 +1,17 @@
+/**
+ * The following methods are from MDN and are available under a
+ * Creative Commons Attribution-ShareAlike 2.5 License.
+ *     http://creativecommons.org/licenses/by-sa/2.5/
+ * 
+ * See:
+ * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
+ * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach
+ */
+
 (function() {
     "use strict";
     // Handle methods that don't yet exist in every browser
+    
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
             "use strict";

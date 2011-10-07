@@ -1,3 +1,12 @@
+/**
+ * Twig.js v0.1
+ * Copyright (c) 2011 John Roepke
+ * Available under the BSD 2-Clause License
+ */
+ 
+ /**
+  * This file handles tokenizing, compiling and parsing expression.
+  */
 var Twig = (function (Twig) {
     "use strict";
 
