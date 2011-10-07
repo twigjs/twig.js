@@ -54,6 +54,7 @@ test("type.array", function() {
 test("type.array.complex", function() {
     equal( twig({data: '{{ [1,2 ,1+2 ] }}'}).render(), "1,2,3" );
     equal( twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}), "1,2,3,-,4,5,6" );
+    equal( twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}), "1,2,3" );
 });
 
 // Expression tests
