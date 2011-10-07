@@ -3,11 +3,10 @@
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
- 
- 
- /**
-  * This file handles tokenizing, compiling and parsing logic (tags).
-  */
+
+/**
+ * This file handles tokenizing, compiling and parsing logic (tags).
+ */
 var Twig = (function (Twig) {
     "use strict";
 
@@ -78,12 +77,13 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var output = '';
+                var output = '',
+                    // Parse the expression
+                    result = Twig.expression.parse(token.stack, context);
+
                 // Start a new logic chain
                 chain = true;
 
-                // Parse the expression
-                var result = Twig.expression.parse(token.stack, context);
                 if (result === true) {
                     chain = false;
                     // parse if output
@@ -120,14 +120,13 @@ var Twig = (function (Twig) {
             },
             parse: function (token, context, chain) {
                 var output = '';
-                if (chain) {
-                    var result = Twig.expression.parse(token.stack, context);
-                    if (result === true) {
-                        chain = false;
-                        // parse if output
-                        output = Twig.parse(token.output, context);
-                    }
+
+                if (chain && Twig.expression.parse(token.stack, context) === true) {
+                    chain = false;
+                    // parse if output
+                    output = Twig.parse(token.output, context);
                 }
+
                 return {
                     chain: chain,
                     output: output
@@ -184,13 +183,15 @@ var Twig = (function (Twig) {
             open: true,
             compile: function (token) {
                 var key_value = token.match[1],
-                    expression = token.match[2];
+                    expression = token.match[2],
+                    kv_split = null,
+                    expression_stack = null;
 
                 token.key_var = null;
                 token.value_var = null;
 
                 if (key_value.indexOf(",") >= 0) {
-                    var kv_split = key_value.split(',');
+                    kv_split = key_value.split(',');
                     if (kv_split.length === 2) {
                         token.key_var = kv_split[0].trim();
                         token.value_var = kv_split[1].trim();
@@ -206,7 +207,7 @@ var Twig = (function (Twig) {
                 //   for key,item in expression
 
                 // Compile the expression.
-                var expression_stack = Twig.expression.compile({
+                expression_stack = Twig.expression.compile({
                     type:  Twig.expression.type.expression,
                     value: expression
                 }).stack;
@@ -275,18 +276,16 @@ var Twig = (function (Twig) {
             next: [ ],
             open: true,
             compile: function (token) {
-                var key = token.match[1],
-                    expression = token.match[2];
+                var key = token.match[1].trim(),
+                    expression = token.match[2],
+                    // Compile the expression.
+                    expression_stack  = Twig.expression.compile({
+                        type:  Twig.expression.type.expression,
+                        value: expression
+                    }).stack;
 
-                token.key = key.trim();
-
-                // Compile the expression.
-                var expression_token = Twig.expression.compile({
-                    type:  Twig.expression.type.expression,
-                    value: expression
-                });
-
-                token.expression = expression_token.stack;
+                token.key = key;
+                token.expression = expression_stack;
 
                 delete token.match;
                 return token;
@@ -382,10 +381,12 @@ var Twig = (function (Twig) {
      */
     Twig.logic.tokenize = function (expression) {
         var token = {},
-            token_template_type,
-            token_type,
-            token_regex,
-            regex_array;
+            token_template_type = null,
+            token_type = null,
+            token_regex = null,
+            regex_array = null,
+            regex = null,
+            match = null;
 
         // Ignore whitespace around expressions.
         expression = expression.trim();
@@ -405,9 +406,9 @@ var Twig = (function (Twig) {
                 }
 
                 // Check regular expressions in the order they were specified in the definition.
-                while (regex_array.length > 0)  {
-                    var regex = regex_array.shift();
-                    var match = regex.exec(expression.trim());
+                while (regex_array.length > 0) {
+                    regex = regex_array.shift();
+                    match = regex.exec(expression.trim());
                     if (match !== null) {
                         token.type  = token_type;
                         token.match = match;
@@ -449,4 +450,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-})( Twig || { } );
+})(Twig || { });

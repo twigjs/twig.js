@@ -206,45 +206,40 @@ var Twig = (function (Twig) {
             // Has a match been found from the definitions
             match_found,
             i,
-            l;
-
-        if (Twig.debug) {
-            console.log("Twig.expression.tokenize", "Tokenizing expression ", expression);
-        }
-
-        var match_function = function (match) {
-            if (Twig.trace) {
-                console.log("Twig.expression.tokenize",
-                            "Matched a ", type, " regular expression of ", match);
-            }
-
-            // Check that this token is a valid next token
-            if (tokens.length > 0) {
-                prev_token = tokens[tokens.length-1]
-            } else {
-                prev_token = null;
-            }
-
-            if (prev_next !== null && prev_next.indexOf(type) < 0) {
-                throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
-            }
-
-            if (type === Twig.expression.type.expression) {
-                // Trim parenthesis of of an expression
-                match = match.substring(1, match.length-1);
-            }
-
-            var obj = {
-                type:  type,
-                value: match
+            l,
+            match_function = function (match) {
+                Twig.log.trace("Twig.expression.tokenize",
+                               "Matched a ", type, " regular expression of ", match);
+    
+                // Check that this token is a valid next token
+                if (tokens.length > 0) {
+                    prev_token = tokens[tokens.length-1];
+                } else {
+                    prev_token = null;
+                }
+    
+                if (prev_next !== null && prev_next.indexOf(type) < 0) {
+                    throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
+                }
+    
+                if (type === Twig.expression.type.expression) {
+                    // Trim parenthesis of of an expression
+                    match = match.substring(1, match.length-1);
+                }
+    
+                var obj = {
+                    type:  type,
+                    value: match
+                };
+                tokens.push(obj);
+    
+                match_found = true;
+                prev_next = next;
+                exp_offset += match.length;
+                return '';
             };
-            tokens.push(obj);
 
-            match_found = true;
-            prev_next = next;
-            exp_offset += match.length;
-            return '';
-        };
+        Twig.log.debug("Twig.expression.tokenize", "Tokenizing expression ", expression);
 
         while (expression.length > 0) {
             expression = expression.trim();
@@ -268,37 +263,30 @@ var Twig = (function (Twig) {
             }
         }
 
-        if (Twig.trace) {
-            console.log("Twig.expression.tokenize", "Tokenized to ", tokens);
-        }
+        Twig.log.trace("Twig.expression.tokenize", "Tokenized to ", tokens);
         return tokens;
     };
 
     Twig.expression.compile = function (raw_token) {
-        var expression = raw_token.value;
-        if (Twig.trace) {
-            console.log("Twig.expression.compile: ", "Compiling expression", expression);
-        }
+        var expression = raw_token.value,
+            // Tokenize expression
+            tokens = Twig.expression.tokenize(expression),
+            output = [],
+            operator_stack = [],
+            token = null,
+            value = null;
 
-        // Tokenize expression
-        var tokens = Twig.expression.tokenize(expression);
-
-        if (Twig.trace) {
-            console.log("Twig.expression.compile: ", "Tokens tokenized to ", tokens);
-        }
+        Twig.log.trace("Twig.expression.compile: ", "Compiling ", expression);
+        Twig.log.trace("Twig.expression.compile: ", "Tokens tokenized to ", tokens);
 
         // Push tokens into RPN stack using the Sunting-yard algorithm
         // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
 
-        var output = [];
-        var operator_stack = [];
+        while (tokens.length > 0) {
+            token = tokens.shift();
+            value = token.value;
 
-        while(tokens.length > 0) {
-            var token = tokens.shift(),
-                type = token.type,
-                value = token.value;
-
-            switch (type) {
+            switch (token.type) {
                 // variable/contant types
                 case Twig.expression.type.string:
                     // Remove the quotes from the string
@@ -308,17 +296,13 @@ var Twig = (function (Twig) {
                         value = value.replace("\\'", "'");
                     }
                     token.value = value.substring(1, value.length-1);
-                    if (Twig.trace) {
-                        console.log("Twig.expression.compile: ", "String value: ", token.value);
-                    }
+                    Twig.log.trace("Twig.expression.compile: ", "String value: ", token.value);
                     output.push(token);
                     break;
 
                 case Twig.expression.type.variable:
                 case Twig.expression.type.number:
-                    if (Twig.trace) {
-                        console.log("Twig.expression.compile: ", "Var/number value: ", value);
-                    }
+                    Twig.log.trace("Twig.expression.compile: ", "Var/number value: ", value);
                     output.push(token);
                     break;
 
@@ -330,15 +314,13 @@ var Twig = (function (Twig) {
                  */
                 case Twig.expression.type.operator:
                     var operator = Twig.expression.operator.lookup(value, token);
-                    if (Twig.trace) {
-                        console.log("Twig.expression.compile: ", "Operator: ", operator);
-                    }
+                    Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator);
 
                     while (operator_stack.length > 0 && (
                                 (operator.associativity === Twig.expression.operator.leftToRight &&
-                                 operator.precidence    >= operator_stack[operator_stack.length-1].precidence)
+                                 operator.precidence    >= operator_stack[operator_stack.length-1].precidence) ||
 
-                             || (operator.associativity === Twig.expression.operator.rightToLeft &&
+                                (operator.associativity === Twig.expression.operator.rightToLeft &&
                                  operator.precidence    >  operator_stack[operator_stack.length-1].precidence))
                            ) {
                          output.push(operator_stack.pop());
@@ -370,7 +352,7 @@ var Twig = (function (Twig) {
                 case Twig.expression.type.object.end:
                 case Twig.expression.type.array.start:
                     output.push(token);
-                    break
+                    break;
 
                 case Twig.expression.type.filter:
                     // TODO: implement
@@ -382,9 +364,7 @@ var Twig = (function (Twig) {
             output.push(operator_stack.pop());
         }
 
-        if (Twig.trace) {
-            console.log("Twig.expression.compile: ", "Stack is", output);
-        }
+        Twig.log.trace("Twig.expression.compile: ", "Stack is", output);
 
         raw_token.stack = output;
         delete raw_token.value;
@@ -412,9 +392,7 @@ var Twig = (function (Twig) {
             array_temp;
 
         tokens.forEach(function (token) {
-            if (Twig.trace) {
-                console.log("Twig.expression.parse: ", "Parsing ", token);
-            }
+            Twig.log.trace("Twig.expression.parse: ", "Parsing ", token);
             switch (token.type) {
                 // variable/contant types
                 case Twig.expression.type.string:
@@ -463,7 +441,7 @@ var Twig = (function (Twig) {
                     break;
                     
                 case Twig.expression.type.array.end:
-                    if (array_stack.length == 0) {
+                    if (array_stack.length === 0) {
                         throw "Get array close but no array was started.";
                     }
                     var new_array = array_stack.pop();
@@ -476,7 +454,7 @@ var Twig = (function (Twig) {
                     
                     if (array_stack.length > 0) {
                         array_temp = array_stack.pop();
-                        array_temp.push(new_array)
+                        array_temp.push(new_array);
                         array_stack.push(array_temp);
                         
                     } else {
@@ -484,11 +462,9 @@ var Twig = (function (Twig) {
                     }
                     break;
             }
-            if (Twig.trace) {
-                console.log("Twig.expression.parse: ", "Stack result: ", stack,
-                                                       ", intermediate stack: ", intermediate_stack,
-                                                       ", array_stack", array_stack);
-            }
+            Twig.log.trace("Twig.expression.parse: ", "Stack result: ", stack,
+                                                      ", intermediate stack: ", intermediate_stack,
+                                                      ", array_stack", array_stack);
         });
         // Pop the final value off the stack
         return stack.pop();
@@ -511,6 +487,7 @@ var Twig = (function (Twig) {
             case ',':
                 token.precidence = 18;
                 token.associativity = Twig.expression.operator.leftToRight;
+                break;
             
             // Ternary
             case '?':
@@ -576,9 +553,7 @@ var Twig = (function (Twig) {
      * Returns the updated stack.
      */
     Twig.expression.operator.parse = function (operator, stack) {
-        if (Twig.trace) {
-            console.log("Twig.expression.operator.parse: ", "Handling ", operator);
-        }
+        Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
         var a,b;
         switch (operator) {
             case '+':
