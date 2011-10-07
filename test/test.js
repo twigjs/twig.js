@@ -51,6 +51,10 @@ test("type.array", function() {
     equal( twig({data: '{{ ["[to",\'the\' ,"string]" ] }}'}).render(), '[to,the,string]' );
     equal( twig({data: '{{ ["[to",\'the\' ,"str\\"ing]" ] }}'}).render(), '[to,the,str"ing]' );
 });
+test("type.array.complex", function() {
+    equal( twig({data: '{{ [1,2 ,1+2 ] }}'}).render(), "1,2,3" );
+    equal( twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}), "1,2,3,-,4,5,6" );
+});
 
 // Expression tests
 module("Basic Expressions");

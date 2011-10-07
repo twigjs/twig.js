@@ -99,7 +99,11 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.array.end,
             regex: /^\]/,
-            next: [ ]
+            next: [ 
+                Twig.expression.type.filter,
+                Twig.expression.type.array.end,
+                Twig.expression.type.comma
+            ]
         },
         {
             /**
@@ -286,10 +290,6 @@ var Twig = (function (Twig) {
                 value = token.value;
 
             switch (type) {
-                case Twig.expression.type.comma:
-                    // Ignore commas.
-                    break;
-                    
                 // variable/contant types
                 case Twig.expression.type.string:
                     // Remove the quotes from the string
@@ -344,16 +344,22 @@ var Twig = (function (Twig) {
                 case Twig.expression.type.expression:
                     var evaluated_expression = Twig.expression.compile(token),
                         sub_stack = evaluated_expression.stack;
-                    sub_stack.reverse();
                     while (sub_stack.length > 0) {
-                        output.push(sub_stack.pop());
+                        output.push(sub_stack.shift());
                     }
                     break;
 
+                case Twig.expression.type.comma:
+                case Twig.expression.type.array.end:
+                    while(operator_stack.length > 0) {
+                        output.push(operator_stack.pop());
+                    }
+                    output.push(token);
+                    break;
+                    
                 case Twig.expression.type.object.start:
                 case Twig.expression.type.object.end:
                 case Twig.expression.type.array.start:
-                case Twig.expression.type.array.end:
                     output.push(token);
                     break
 
@@ -390,9 +396,12 @@ var Twig = (function (Twig) {
 
         // The output stack
         var stack = [],
+            // Handle nested arrays
             array_stack = [],
+            // Stack for nexted expressions
+            intermediate_stack = [],
             array_temp;
-            
+
         tokens.forEach(function (token) {
             if (Twig.trace) {
                 console.log("Twig.expression.parse: ", "Parsing ", token);
@@ -402,9 +411,7 @@ var Twig = (function (Twig) {
                 case Twig.expression.type.string:
                 case Twig.expression.type.number:
                     if (array_stack.length > 0) {
-                        array_temp = array_stack.pop();
-                        array_temp.push(token.value);
-                        array_stack.push(array_temp);
+                        intermediate_stack.push(token.value);
                     } else {
                         stack.push(token.value);
                     }
@@ -415,9 +422,7 @@ var Twig = (function (Twig) {
                         throw "Model doesn't provide the property " + token.value;
                     }
                     if (array_stack.length > 0) {
-                        array_temp = array_stack.pop();
-                        array_temp.push(context[token.value]);
-                        array_stack.push(array_temp);
+                        intermediate_stack.push(context[token.value]);
                     } else {
                         stack.push(context[token.value]);
                     }
@@ -426,11 +431,20 @@ var Twig = (function (Twig) {
                 case Twig.expression.type.operator:
                     var operator = token.value;
                     if (array_stack.length > 0) {
-                        array_temp = array_stack.pop();
-                        array_temp = Twig.expression.operator.parse(operator, array_temp);
-                        array_stack.push(array_temp);
+                        intermediate_stack = Twig.expression.operator.parse(operator, intermediate_stack);
                     } else {
                         stack = Twig.expression.operator.parse(operator, stack);
+                    }
+                    break;
+                    
+                case Twig.expression.type.comma:
+                    if (array_stack.length > 0) {
+                        array_temp = array_stack.pop();
+                        array_temp.push(intermediate_stack.pop());
+                        if (intermediate_stack.length > 0) {
+                            throw "Unexpected comma when parsing array.";
+                        }
+                        array_stack.push(array_temp);
                     }
                     break;
 
@@ -441,15 +455,32 @@ var Twig = (function (Twig) {
                     
                 case Twig.expression.type.array.end:
                     if (array_stack.length == 0) {
-                        throw "Get array close but no array was started."
+                        throw "Get array close but no array was started.";
                     }
-                    stack.push(array_stack.pop());
+                    var new_array = array_stack.pop();
+                    if (intermediate_stack.length > 0) {
+                        new_array.push(intermediate_stack.pop());
+                        if (intermediate_stack.length > 0) {
+                            throw "Unexpected end of array, unfinished expression.";
+                        }
+                    }
+                    
+                    if (array_stack.length > 0) {
+                        array_temp = array_stack.pop();
+                        array_temp.push(new_array)
+                        array_stack.push(array_temp);
+                        
+                    } else {
+                        stack.push(new_array);
+                    }
                     break;
             }
+            if (Twig.trace) {
+                console.log("Twig.expression.parse: ", "Stack result: ", stack,
+                                                       ", intermediate stack: ", intermediate_stack,
+                                                       ", array_stack", array_stack);
+            }
         });
-        if (Twig.trace) {
-            console.log("Twig.expression.parse: ", "Stack result: ", stack);
-        }
         // Pop the final value off the stack
         return stack.pop();
     };
