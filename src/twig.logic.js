@@ -10,13 +10,13 @@ var Twig = (function (Twig) {
      * Logic token types.
      */
     Twig.logic.type = {
-        if_: 'if',
-        endif: 'endif',
-        for_: 'for',
+        if_:    'if',
+        endif:  'endif',
+        for_:   'for',
         endfor: 'endfor',
-        else_: 'else',
+        else_:  'else',
         elseif: 'elseif',
-        set: 'set'
+        set:    'set'
     };
 
     /**
@@ -201,21 +201,7 @@ var Twig = (function (Twig) {
                     value: expression
                 }).stack;
 
-                if (expression_stack.length !== 1) {
-                    throw "Invalid expression in for loop, expected one expression, got " + expression_stack;
-
-                } else {
-                    // Validate that the expression is an explicit array or object
-                    //  declaration or that it's a variable.
-                    var expression_token = expression_stack.pop();
-                    if (expression_token.type !== Twig.expression.type.array
-                        && expression_token.type !== Twig.expression.type.object
-                        && expression_token.type !== Twig.expression.type.variable) {
-
-                        throw "Invalid expression in for loop " + expression_token.type;
-                    }
-                    token.expression = expression_token;
-                }
+                token.expression = expression_stack;
 
                 delete token.match;
                 return token;

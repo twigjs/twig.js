@@ -10,15 +10,21 @@ var Twig = (function (Twig) {
      * The type of tokens used in expressions.
      */
     Twig.expression.type = {
+        comma:      'comma',
         expression: 'expression',
         operator:   'operator',
         string:     'string',
-        array:      'array',
-        object:     'object',
+        array: {
+            start:  'array_start',
+            end:    'array_end'
+        },
+        object: {
+            start:  'object_start',
+            end:    'object_end'
+        },
         filter:     'filter',
         variable:   'variable',
-        number:     'number',
-        unknown:    'unknown'
+        number:     'number'
     };
 
     /**
@@ -26,11 +32,25 @@ var Twig = (function (Twig) {
      */
     Twig.expression.definitions = [
         {
+            type: Twig.expression.type.comma,
+            // Match a comma
+            regex: /^,/,
+            next: [
+                Twig.expression.type.expression,
+                Twig.expression.type.string,
+                Twig.expression.type.variable,
+                Twig.expression.type.number,
+                Twig.expression.type.array.start,
+                Twig.expression.type.object.start
+            ]
+        },
+        {
             type: Twig.expression.type.expression,
             // Match (, anything but ), )
             regex: /^\([^\)]+\)/,
             next: [
-                Twig.expression.type.operator
+                Twig.expression.type.operator,
+                Twig.expression.type.array.end
             ]
         },
         {
@@ -41,7 +61,9 @@ var Twig = (function (Twig) {
                 Twig.expression.type.expression,
                 Twig.expression.type.string,
                 Twig.expression.type.variable,
-                Twig.expression.type.number
+                Twig.expression.type.number,
+                Twig.expression.type.array.start,
+                Twig.expression.type.object.start
             ]
         },
         {
@@ -52,23 +74,47 @@ var Twig = (function (Twig) {
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
             regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
             next: [
-                Twig.expression.type.operator
+                Twig.expression.type.operator,
+                Twig.expression.type.array.end,
+                Twig.expression.type.comma
             ]
         },
         {
             /**
-             * Match an array.
+             * Match an array start.
              */
-            type: Twig.expression.type.array,
-            regex: /\[[^\]]*\]/,
+            type: Twig.expression.type.array.start,
+            regex: /^\[/,
+            next: [
+                Twig.expression.type.expression,
+                Twig.expression.type.string,
+                Twig.expression.type.variable,
+                Twig.expression.type.number,
+                Twig.expression.type.array.end
+            ]
+        },
+        {
+            /**
+             * Match an array end.
+             */
+            type: Twig.expression.type.array.end,
+            regex: /^\]/,
             next: [ ]
         },
         {
             /**
-             * Match an object/hash map.
+             * Match an object/hash map start.
              */
-            type: Twig.expression.type.object,
-            regex: /\{[^\}]*\}/,
+            type: Twig.expression.type.object.start,
+            regex: /^\{/,
+            next: [ ]
+        },
+        {
+            /**
+             * Match an object/hash map snd.
+             */
+            type: Twig.expression.type.object.end,
+            regex: /^\}/,
             next: [ ]
         },
         {
@@ -79,7 +125,8 @@ var Twig = (function (Twig) {
             // match a | then a letter or _, then any number of letters, numbers, _ or -
             regex: /(^\|[a-zA-Z_][a-zA-Z0-9_\-]*\([^\)]\))/,
             next: [
-                Twig.expression.type.operator
+                Twig.expression.type.operator,
+                Twig.expression.type.array.end
             ]
         },
         {
@@ -90,7 +137,9 @@ var Twig = (function (Twig) {
             // match a | then a letter or _, then any number of letters, numbers, _ or -
             regex: /(^\|[a-zA-Z_][a-zA-Z0-9_\-]*)/,
             next: [
-                Twig.expression.type.operator
+                Twig.expression.type.operator,
+                Twig.expression.type.array.end,
+                Twig.expression.type.comma
             ]
         },
         {
@@ -103,7 +152,9 @@ var Twig = (function (Twig) {
             regex: /(^[a-zA-Z_][a-zA-Z0-9_]*)/,
             next: [
                 Twig.expression.type.operator,
-                Twig.expression.type.filter
+                Twig.expression.type.filter,
+                Twig.expression.type.array.end,
+                Twig.expression.type.comma
             ]
         },
         {
@@ -115,7 +166,9 @@ var Twig = (function (Twig) {
             regex: /(^\-?\d*\.?\d+)/,
             next: [
                 Twig.expression.type.operator,
-                Twig.expression.type.filter
+                Twig.expression.type.filter,
+                Twig.expression.type.array.end,
+                Twig.expression.type.comma
             ]
         }
     ];
@@ -233,6 +286,10 @@ var Twig = (function (Twig) {
                 value = token.value;
 
             switch (type) {
+                case Twig.expression.type.comma:
+                    // Ignore commas.
+                    break;
+                    
                 // variable/contant types
                 case Twig.expression.type.string:
                     // Remove the quotes from the string
@@ -293,20 +350,10 @@ var Twig = (function (Twig) {
                     }
                     break;
 
-                case Twig.expression.type.array:
-                    // Remove [ and ] from array
-                    value = value.substring(1, value.length-1);
-                    token.value = [];
-                    // TODO: handle strings that contain ","
-                    var expressions = value.split(",");
-                    while(expressions.length > 0) {
-                        var val_expression = expressions.shift().trim(),
-                            val_expression_token = Twig.expression.compile({
-                                type:  Twig.token.type.expression,
-                                value: val_expression
-                            }).stack;
-                        token.value.push(val_expression_token);
-                    }
+                case Twig.expression.type.object.start:
+                case Twig.expression.type.object.end:
+                case Twig.expression.type.array.start:
+                case Twig.expression.type.array.end:
                     output.push(token);
                     break
 
@@ -342,7 +389,10 @@ var Twig = (function (Twig) {
         }
 
         // The output stack
-        var stack = [];
+        var stack = [],
+            array_stack = [],
+            array_temp;
+            
         tokens.forEach(function (token) {
             if (Twig.trace) {
                 console.log("Twig.expression.parse: ", "Parsing ", token);
@@ -351,28 +401,49 @@ var Twig = (function (Twig) {
                 // variable/contant types
                 case Twig.expression.type.string:
                 case Twig.expression.type.number:
-                    stack.push(token.value);
+                    if (array_stack.length > 0) {
+                        array_temp = array_stack.pop();
+                        array_temp.push(token.value);
+                        array_stack.push(array_temp);
+                    } else {
+                        stack.push(token.value);
+                    }
                     break;
                 case Twig.expression.type.variable:
                     // Get the variable from the context
                     if (!context.hasOwnProperty(token.value)) {
                         throw "Model doesn't provide the property " + token.value;
                     }
-                    stack.push(context[token.value]);
+                    if (array_stack.length > 0) {
+                        array_temp = array_stack.pop();
+                        array_temp.push(context[token.value]);
+                        array_stack.push(array_temp);
+                    } else {
+                        stack.push(context[token.value]);
+                    }
                     break;
 
                 case Twig.expression.type.operator:
                     var operator = token.value;
-                    stack = Twig.expression.operator.parse(operator, stack);
+                    if (array_stack.length > 0) {
+                        array_temp = array_stack.pop();
+                        array_temp = Twig.expression.operator.parse(operator, array_temp);
+                        array_stack.push(array_temp);
+                    } else {
+                        stack = Twig.expression.operator.parse(operator, stack);
+                    }
                     break;
 
-                case Twig.expression.type.array:
+                case Twig.expression.type.array.start:
                     // value is an array of stacks
-                    var array = [];
-                    token.value.forEach(function(val_stack) {
-                        array.push(Twig.expression.parse(val_stack));
-                    });
-                    stack.push(array);
+                    array_stack.push([]);
+                    break;
+                    
+                case Twig.expression.type.array.end:
+                    if (array_stack.length == 0) {
+                        throw "Get array close but no array was started."
+                    }
+                    stack.push(array_stack.pop());
                     break;
             }
         });
@@ -397,6 +468,10 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
+            case ',':
+                token.precidence = 18;
+                token.associativity = Twig.expression.operator.leftToRight;
+            
             // Ternary
             case '?':
             case ':':
