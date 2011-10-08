@@ -435,12 +435,7 @@ var Twig = (function (Twig) {
         }
 
         // The output stack
-        var stack = [],
-            // Handle nested arrays
-            array_stack = [],
-            // Stack for nexted expressions
-            intermediate_stack = [],
-            array_temp;
+        var stack = [];
 
         tokens.forEach(function (token) {
             Twig.log.trace("Twig.expression.parse: ", "Parsing ", token);
@@ -448,74 +443,50 @@ var Twig = (function (Twig) {
                 // variable/contant types
                 case Twig.expression.type.string:
                 case Twig.expression.type.number:
-                    if (array_stack.length > 0) {
-                        intermediate_stack.push(token.value);
-                    } else {
-                        stack.push(token.value);
-                    }
+                    stack.push(token.value);
                     break;
                 case Twig.expression.type.variable:
                     // Get the variable from the context
                     if (!context.hasOwnProperty(token.value)) {
                         throw "Model doesn't provide the property " + token.value;
                     }
-                    if (array_stack.length > 0) {
-                        intermediate_stack.push(context[token.value]);
-                    } else {
-                        stack.push(context[token.value]);
-                    }
+                    stack.push(context[token.value]);
                     break;
 
                 case Twig.expression.type.operator:
                     var operator = token.value;
-                    if (array_stack.length > 0) {
-                        intermediate_stack = Twig.expression.operator.parse(operator, intermediate_stack);
-                    } else {
-                        stack = Twig.expression.operator.parse(operator, stack);
-                    }
+                    stack = Twig.expression.operator.parse(operator, stack);
                     break;
                     
                 case Twig.expression.type.comma:
-                    if (array_stack.length > 0) {
-                        array_temp = array_stack.pop();
-                        array_temp.push(intermediate_stack.pop());
-                        if (intermediate_stack.length > 0) {
-                            throw "Unexpected comma when parsing array.";
-                        }
-                        array_stack.push(array_temp);
-                    }
+                    // Ignore commas
                     break;
 
                 case Twig.expression.type.array.start:
                     // value is an array of stacks
-                    array_stack.push([]);
+                    stack.push(token);
                     break;
                     
                 case Twig.expression.type.array.end:
-                    if (array_stack.length === 0) {
-                        throw "Get array close but no array was started.";
-                    }
-                    var new_array = array_stack.pop();
-                    if (intermediate_stack.length > 0) {
-                        new_array.push(intermediate_stack.pop());
-                        if (intermediate_stack.length > 0) {
-                            throw "Unexpected end of array, unfinished expression.";
+                    var new_array = [],
+                        array_ended = false;
+                    while (stack.length > 0) {
+                        var value = stack.pop();
+                        // Push values into the array until the start of the array
+                        if (value.type && value.type == Twig.expression.type.array.start) {
+                            array_ended = true;
+                            break;
                         }
+                        new_array.unshift(value);
+                    }
+                    if (!array_ended) {
+                        throw "Expected end of array.";
                     }
                     
-                    if (array_stack.length > 0) {
-                        array_temp = array_stack.pop();
-                        array_temp.push(new_array);
-                        array_stack.push(array_temp);
-                        
-                    } else {
-                        stack.push(new_array);
-                    }
+                    stack.push(new_array);
                     break;
             }
-            Twig.log.trace("Twig.expression.parse: ", "Stack result: ", stack,
-                                                      ", intermediate stack: ", intermediate_stack,
-                                                      ", array_stack", array_stack);
+            Twig.log.trace("Twig.expression.parse: ", "Stack result: ", stack);
         });
         // Pop the final value off the stack
         return stack.pop();
