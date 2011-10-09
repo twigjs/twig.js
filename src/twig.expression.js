@@ -81,6 +81,12 @@ var Twig = (function (Twig) {
                     stack: stack,
                     output: output
                 };
+            },
+            parse: function(token, stack, context) {
+                return {
+                    stack: stack,
+                    context: context
+                };
             }
         },
         {
@@ -116,6 +122,13 @@ var Twig = (function (Twig) {
                     stack: stack,
                     output: output
                 };
+            },
+            parse: function(token, stack, context) {
+                stack = Twig.expression.operator.parse(token.value, stack);
+                return {
+                    stack: stack,
+                    context: context
+                };
             }
         },
         {
@@ -146,6 +159,13 @@ var Twig = (function (Twig) {
                     stack: stack,
                     output: output
                 };
+            },
+            parse: function(token, stack, context) {
+                stack.push(token.value);
+                return {
+                    stack: stack,
+                    context: context
+                };
             }
         },
         {
@@ -166,6 +186,13 @@ var Twig = (function (Twig) {
                 return {
                     stack: stack,
                     output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                stack.push(token);
+                return {
+                    stack: stack,
+                    context: context
                 };
             }
         },
@@ -188,6 +215,29 @@ var Twig = (function (Twig) {
                 return {
                     stack: stack,
                     output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                var new_array = [],
+                    array_ended = false;
+                    
+                while (stack.length > 0) {
+                    var value = stack.pop();
+                    // Push values into the array until the start of the array
+                    if (value.type && value.type == Twig.expression.type.array.start) {
+                        array_ended = true;
+                        break;
+                    }
+                    new_array.unshift(value);
+                }
+                if (!array_ended) {
+                    throw "Expected end of array.";
+                }
+                
+                stack.push(new_array);
+                return {
+                    stack: stack,
+                    context: context
                 };
             }
         },
@@ -252,6 +302,17 @@ var Twig = (function (Twig) {
                     stack: stack,
                     output: output
                 };
+            },
+            parse: function(token, stack, context) {
+                // Get the variable from the context
+                if (!context.hasOwnProperty(token.value)) {
+                    throw "Model doesn't provide the property " + token.value;
+                }
+                stack.push(context[token.value]);
+                return {
+                    stack: stack,
+                    context: context
+                };
             }
         },
         {
@@ -272,6 +333,13 @@ var Twig = (function (Twig) {
                 return {
                     stack: stack,
                     output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                stack.push(token.value);
+                return {
+                    stack: stack,
+                    context: context
                 };
             }
         }
@@ -435,56 +503,18 @@ var Twig = (function (Twig) {
         }
 
         // The output stack
-        var stack = [];
+        var stack = [],
+            token_template = null,
+            new_env = null;
 
         tokens.forEach(function (token) {
+            token_template = Twig.expression.handler[token.type];
+            
             Twig.log.trace("Twig.expression.parse: ", "Parsing ", token);
-            switch (token.type) {
-                // variable/contant types
-                case Twig.expression.type.string:
-                case Twig.expression.type.number:
-                    stack.push(token.value);
-                    break;
-                case Twig.expression.type.variable:
-                    // Get the variable from the context
-                    if (!context.hasOwnProperty(token.value)) {
-                        throw "Model doesn't provide the property " + token.value;
-                    }
-                    stack.push(context[token.value]);
-                    break;
-
-                case Twig.expression.type.operator:
-                    var operator = token.value;
-                    stack = Twig.expression.operator.parse(operator, stack);
-                    break;
-                    
-                case Twig.expression.type.comma:
-                    // Ignore commas
-                    break;
-
-                case Twig.expression.type.array.start:
-                    // value is an array of stacks
-                    stack.push(token);
-                    break;
-                    
-                case Twig.expression.type.array.end:
-                    var new_array = [],
-                        array_ended = false;
-                    while (stack.length > 0) {
-                        var value = stack.pop();
-                        // Push values into the array until the start of the array
-                        if (value.type && value.type == Twig.expression.type.array.start) {
-                            array_ended = true;
-                            break;
-                        }
-                        new_array.unshift(value);
-                    }
-                    if (!array_ended) {
-                        throw "Expected end of array.";
-                    }
-                    
-                    stack.push(new_array);
-                    break;
+            if (token_template.parse) {
+                new_env = token_template.parse(token, stack, context);
+                stack = new_env.stack && stack;
+                context = new_env.context && context;
             }
             Twig.log.trace("Twig.expression.parse: ", "Stack result: ", stack);
         });
