@@ -37,7 +37,21 @@ var Twig = (function (Twig) {
     };
 
     /**
-     * The regular expressions used to match tokens in expressions.
+     * The regular expressions and compile/parse logic used to match tokens in expressions.
+     * 
+     * Properties:
+     *
+     *      type:  The type of expression this matches
+     *
+     *      regex: One or more regular expressions that matche the format of the token.
+     *
+     *      next:  Valid tokens that can occur next in the expression.
+     *
+     * Functions:
+     *
+     *      compile: A function that compiles the raw regular expression match into a token.
+     *
+     *      parse:   A function that parses the compiled token into output.
      */
     Twig.expression.definitions = [
         {
