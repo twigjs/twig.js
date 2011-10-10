@@ -315,6 +315,16 @@ test("set.loop", function() {
     equal( test_template.render(), "10" );
 });
 
+test("set.object", function() {
+    var test_template = twig({data: '{% set obj = { "key" : "value", "other":"test" } %}{{ obj.key }}:{{ obj.other }}' });
+    equal( test_template.render(), "value:test" );
+});
+
+test("set.object", function() {
+    var test_template = twig({data: '{% set obj = { "key" : "value", \'sub\':{"other":[1,2]} } %}{{ obj.key }}:{{ obj.sub.other }}' });
+    equal( test_template.render(), "value:1,2" );
+});
+
 /* var example = twig({
     html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / (2 - 4) + 6.5}} == 14.<br /> 123 % 4 = {{ 123 % 4 }}'
 });

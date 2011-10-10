@@ -104,7 +104,7 @@ var Twig = (function (Twig) {
         var end = null,
             found = false,
             offset = 0,
-            
+
             // String position variables
             str_pos = null,
             str_found = null,
@@ -181,7 +181,7 @@ var Twig = (function (Twig) {
         while (template.length > 0) {
             // Find the first occurance of any token type in the template
             found_token = Twig.token.findStart(template);
-            
+
             Twig.log.trace("Twig.tokenize: ", "Found token: ", found_token);
 
             if (found_token.position !== null) {
@@ -197,7 +197,7 @@ var Twig = (function (Twig) {
 
                 // Find the end of the token
                 end = Twig.token.findEnd(template, found_token.def, error_offset);
-                
+
                 Twig.log.trace("Twig.tokenize: ", "Token ends at ", end);
 
                 tokens.push({
@@ -206,7 +206,7 @@ var Twig = (function (Twig) {
                 });
 
                 template = template.substr(end + found_token.def.close.length);
-                
+
                 // Increment the position in the template
                 error_offset += end + found_token.def.close.length;
 
@@ -259,7 +259,7 @@ var Twig = (function (Twig) {
                 case Twig.token.type.logic:
                     // Compile the logic token
                     logic_token = Twig.logic.compile(token);
-                    
+
                     type = logic_token.type;
                     open = Twig.logic.handler[type].open;
                     next = Twig.logic.handler[type].next;
@@ -295,7 +295,7 @@ var Twig = (function (Twig) {
                     // This token requires additional tokens to complete the logic structure.
                     if (next !== undefined && next.length > 0) {
                         Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
-                        
+
                         if (stack.length > 0) {
                             // Put any currently held output into the output list of the logic operator
                             // currently at the head of the stack before we push a new one on.
@@ -398,7 +398,7 @@ var Twig = (function (Twig) {
         this.tokens = tokens;
         this.render = function (context) {
             Twig.log.debug("Twig.Template: ", "Rendering template with context: ", context);
-            
+
             var output = Twig.parse(tokens, context);
 
             Twig.log.debug("Twig.Template: ", "Template rendered to: ", output);
