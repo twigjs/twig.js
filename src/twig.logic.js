@@ -355,16 +355,12 @@ var Twig = (function (Twig) {
             token = Twig.logic.tokenize(expression),
             token_template = Twig.logic.handler[token.type];
 
-        if (Twig.trace) {
-            console.log("Twig.logic.compile: ", "Compiling logic token ", token);
-        }
+        Twig.log.trace("Twig.logic.compile: ", "Compiling logic token ", token);
 
         // Check if the token needs compiling
         if (token_template.compile) {
             token = token_template.compile(token);
-            if (Twig.trace) {
-                console.log("Twig.logic.compile: ", "Compiled logic token to ", token);
-            }
+            Twig.log.trace("Twig.logic.compile: ", "Compiled logic token to ", token);
         }
 
         return token;
@@ -412,9 +408,7 @@ var Twig = (function (Twig) {
                     if (match !== null) {
                         token.type  = token_type;
                         token.match = match;
-                        if (Twig.trace) {
-                            console.log("Twig.logic.tokenize: ", "Matched a ", token_type, " regular expression of ", match);
-                        }
+                        Twig.log.trace("Twig.logic.tokenize: ", "Matched a ", token_type, " regular expression of ", match);
                         return token;
                     }
                 }
@@ -436,9 +430,7 @@ var Twig = (function (Twig) {
         //     e.g. If an {% if ... %} evaluates true, then sets chain = false, any
         //          following tokens with open=false (else, elseif) should be ignored.
 
-        if (Twig.trace) {
-            console.log("Twig.logic.parse: " ,"Parsing logic token ", token);
-        }
+        Twig.log.trace("Twig.logic.parse: " ,"Parsing logic token ", token);
 
         token_template = Twig.logic.handler[token.type];
 

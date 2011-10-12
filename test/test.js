@@ -60,6 +60,31 @@ test("type.array.complex", function() {
 // Expression tests
 module("Basic Expressions");
 
+test("expression.key", function() {
+    var test_template = twig({data: '{{ key.value }} {{ key.sub.test }}'});
+    var output = test_template.render({
+        key: {
+            value: "test",
+            sub: {
+                test: "value"
+            }
+        }
+    });
+    equal( output, "test value" );
+    
+    test_template = twig({data: '{{ key["value"] }} {{ key.sub[key.value] }} {{ s.t["u"].v["w"] }}'});
+    output = test_template.render({
+        key: {
+            value: "test",
+            sub: {
+                test: "value"
+            }
+        },
+        s: { t: { u: { v: { w: 'x' } } } }
+    });
+    equal( output, "test value x" );
+});
+
 test("expression.add", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a + b }}'});
@@ -313,16 +338,6 @@ test("set.complex", function() {
 test("set.loop", function() {
     var test_template = twig({data: '{% set key = 0 %}{% for val in [1,2,3,4] %}{% set key = key + val %}{% endfor %}{{ key }}' });
     equal( test_template.render(), "10" );
-});
-
-test("set.object", function() {
-    var test_template = twig({data: '{% set obj = { "key" : "value", "other":"test" } %}{{ obj.key }}:{{ obj.other }}' });
-    equal( test_template.render(), "value:test" );
-});
-
-test("set.object", function() {
-    var test_template = twig({data: '{% set obj = { "key" : "value", \'sub\':{"other":[1,2]} } %}{{ obj.key }}:{{ obj.sub.other }}' });
-    equal( test_template.render(), "value:1,2" );
 });
 
 /* var example = twig({

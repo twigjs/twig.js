@@ -19,26 +19,26 @@ var Twig = (function (Twig) {
      * The type of tokens used in expressions.
      */
     Twig.expression.type = {
-        comma:      'comma',
-        expression: 'expression',
-        operator:   'operator',
-        string:     'string',
+        comma:      'Twig.expression.type.comma',
+        expression: 'Twig.expression.type.expression',
+        operator:   'Twig.expression.type.operator',
+        string:     'Twig.expression.type.string',
         array: {
-            start:  'array_start',
-            end:    'array_end'
+            start:  'Twig.expression.type.array.start',
+            end:    'Twig.expression.type.array.end'
         },
         object: {
-            start:  'object_start',
-            end:    'object_end'
+            start:  'Twig.expression.type.object.start',
+            end:    'Twig.expression.type.object.end'
         },
         key: {
-            period:   'key_period',
-            brackets: 'key_brackets'
+            period:   'Twig.expression.type.key.period',
+            brackets: 'Twig.expression.type.key.brackets'
         },
-        filter:     'filter',
-        variable:   'variable',
-        number:     'number',
-        setkey:     'setkey'
+        filter:     'Twig.expression.type.filter',
+        variable:   'Twig.expression.type.variable',
+        number:     'Twig.expression.type.number',
+        setkey:     'Twig.expression.type.setkey'
     };
 
     /**
@@ -332,7 +332,9 @@ var Twig = (function (Twig) {
                 Twig.expression.type.comma,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
-                Twig.expression.type.array.end
+                Twig.expression.type.array.end,
+                Twig.expression.type.key.period,
+                Twig.expression.type.key.brackets
             ],
             compile: function(token, stack, output) {
                 while(stack.length > 0) {
@@ -387,8 +389,13 @@ var Twig = (function (Twig) {
             // match a | then a letter or _, then any number of letters, numbers, _ or -
             regex: /(^\|[a-zA-Z_][a-zA-Z0-9_\-]*)/,
             next: [
+                Twig.expression.type.comma,
+                Twig.expression.type.filter,
                 Twig.expression.type.operator,
-                Twig.expression.type.array.end
+                Twig.expression.type.array.end,
+                Twig.expression.type.object.end,
+                Twig.expression.type.key.period,
+                Twig.expression.type.key.brackets
             ]
         },
         {
@@ -403,8 +410,10 @@ var Twig = (function (Twig) {
                 Twig.expression.type.operator,
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
+                Twig.expression.type.object.end,
                 Twig.expression.type.comma,
-                Twig.expression.type.key.period
+                Twig.expression.type.key.period,
+                Twig.expression.type.key.brackets
             ],
             compile: function(token, stack, output) {
                 output.push(token);
@@ -433,10 +442,12 @@ var Twig = (function (Twig) {
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
                 Twig.expression.type.comma,
-                Twig.expression.type.key.period
+                Twig.expression.type.key.period,
+                Twig.expression.type.key.brackets
             ],
             compile: function(token, stack, output) {
-                token.value = token.value.substr(1);
+                token.key = token.value.substr(1);
+                delete token.value;
 
                 output.push(token);
                 return {
@@ -445,17 +456,56 @@ var Twig = (function (Twig) {
                 };
             },
             parse: function(token, stack, context) {
-                Twig.log.debug("CONTEXT: ", context);
-                Twig.log.debug("STACK: ",   stack);
-                Twig.log.debug("TOKEN: ",   token);
+                var key = token.key,
+                    object = stack.pop();
 
-                var object = stack.pop();
-                Twig.log.debug("TOKEN: ", object);
                 // Get the variable from the context
-                if (!object.hasOwnProperty(token.value)) {
-                    throw "Model doesn't provide the key " + token.value;
+                if (!object.hasOwnProperty(key)) {
+                    throw "Model doesn't provide the key " + key;
                 }
-                stack.push(object[token.value]);
+                stack.push(object[key]);
+                return {
+                    stack: stack,
+                    context: context
+                };
+            }
+        },
+        {
+            type: Twig.expression.type.key.brackets,
+            regex: /^\[[^\]]*\]/,
+            next: [
+                Twig.expression.type.operator,
+                Twig.expression.type.filter,
+                Twig.expression.type.array.end,
+                Twig.expression.type.object.end,
+                Twig.expression.type.comma,
+                Twig.expression.type.key.period,
+                Twig.expression.type.key.brackets
+            ],
+            compile: function(token, stack, output) {
+                token.value = token.value.substring(1, token.value.length-1);
+
+                // The expression stack for the key
+                token.stack = Twig.expression.compile({
+                    value: token.value
+                }).stack;
+                delete token.value;
+                
+                output.push(token);
+                return {
+                    stack: stack,
+                    output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                // Evaluate key
+                var key = Twig.expression.parse(token.stack, context),
+                    object = stack.pop();
+                // Get the variable from the context
+                if (!object.hasOwnProperty(key)) {
+                    throw "Model doesn't provide the key " + key;
+                }
+                stack.push(object[key]);
                 return {
                     stack: stack,
                     context: context
@@ -473,6 +523,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.operator,
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
+                Twig.expression.type.object.end,
                 Twig.expression.type.comma
             ],
             compile: function(token, stack, output) {
@@ -541,6 +592,7 @@ var Twig = (function (Twig) {
             next,
             // Has a match been found from the definitions
             match_found,
+            invalid_matches = [],
             match_function = function (match) {
                 Twig.log.trace("Twig.expression.tokenize",
                                "Matched a ", type, " regular expression of ", match);
@@ -553,8 +605,13 @@ var Twig = (function (Twig) {
                 }
 
                 if (prev_next !== null && prev_next.indexOf(type) < 0) {
-                    throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
+                    invalid_matches.push(type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'");
+                    // Not a match, don't change the expression
+                    return match;
+                    
+                    //throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
                 }
+                invalid_matches = [];
 
                 var obj = {
                     type:  type,
@@ -595,7 +652,11 @@ var Twig = (function (Twig) {
                 }
             }
             if (!match_found) {
-                throw "Unable to parse '" + expression + "' at template position" + exp_offset;
+                if (invalid_matches.length > 0) {
+                    throw invalid_matches.join(" OR ");
+                } else {
+                    throw "Unable to parse '" + expression + "' at template position" + exp_offset;
+                }
             }
         }
 
