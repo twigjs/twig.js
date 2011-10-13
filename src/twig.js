@@ -7,7 +7,7 @@ var Twig = (function (Twig) {
     "use strict";
 
     Twig.trace = false;
-    Twig.debug = false;
+    Twig.debug = true;
 
     /**
      * Wrapper for logging to the console.
@@ -388,13 +388,73 @@ var Twig = (function (Twig) {
         });
         return output.join("");
     };
+    
+    Twig.prepare = function(data) {
+        var tokens, raw_tokens;
+        
+        Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
+        raw_tokens = Twig.tokenize(data);
+        Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
+        tokens = Twig.compile(raw_tokens);
+        Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
+    
+        return tokens;
+    };
+    
+    Twig.Templates = {
+        registry: {}
+    };
+    
+    Twig.Templates.save = function(template) {
+        Twig.Templates.registry[template.id] = template;
+    };
+    
+    Twig.Templates.load = function(id) {
+        if (!Twig.Templates.registry.hasOwnProperty(id)) {
+            throw "Unable to load unknown template " + id;
+        }
+        return Twig.Templates.registry[id];
+    };
+    
+    Twig.Templates.loadRemote = function(url, id, callback, async, precompiled) {
+        // Check for existing template
+        if (Twig.Templates.registry.hasOwnProperty(id)) {
+            return Twig.Templates.registry[id];
+        }
+        if (typeof XMLHttpRequest == "undefined") {
+            throw "Unsupported platform: Unable to do remote requests because there is no XMLHTTPRequest implementation";
+        }
+        
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            var tokens = null,
+                template = null;
+            
+            if(xmlhttp.readyState == 4) {
+                Twig.log.debug("Got template ", xmlhttp.responseText);
+                // Get the template
+                if (precompiled === true) {
+                    tokens = JSON.parse(xmlhttp.responseText);
+                } else {
+                    tokens = Twig.prepare(xmlhttp.responseText);
+                }
+                template = new Twig.Template(tokens, id);
+                if (callback) {
+                    callback(template);
+                }
+            }
+        };
+        xmlhttp.open("GET", url, async === true);
+        xmlhttp.send();
+    };
 
     /**
      * A Twig Template model.
      *
      * Holds a set of compiled tokens ready to be rendered.
      */
-    Twig.Template = function ( tokens ) {
+    Twig.Template = function ( tokens, id ) {
+        this.id = id;
         this.tokens = tokens;
         this.render = function (context) {
             Twig.log.debug("Twig.Template: ", "Rendering template with context: ", context);
@@ -405,6 +465,9 @@ var Twig = (function (Twig) {
 
             return output;
         };
+        if (id !== undefined) {
+            Twig.Templates.save(this);
+        }
     };
 
     return Twig;
@@ -419,21 +482,21 @@ var Twig = (function (Twig) {
 var twig = function (params) {
     'use strict';
     var raw_tokens,
-        tokens;
+        tokens,
+        id = params.id;
 
     if (params.debug !== undefined) {
         Twig.debug = params.debug;
     }
 
-    Twig.log.debug("twig(): ", "Tokenizing ", params.data);
-
-    raw_tokens = Twig.tokenize(params.data);
-
-    Twig.log.debug("twig(): ", "Compiling ", raw_tokens);
-
-    tokens = Twig.compile(raw_tokens);
-
-    Twig.log.debug("twig(): ", "Compiled ", tokens);
-
-    return new Twig.Template( tokens );
+    if (params.data !== undefined) {
+        tokens = Twig.prepare(params.data);
+        return new Twig.Template( tokens, id );
+        
+    } else if (params.ref !== undefined) {
+        return Twig.Templates.load(params.ref);
+        
+    } else if (params.href !== undefined) {
+        return Twig.Templates.loadRemote(params.href, id, params.load, params.async, params.precompiled);
+    }
 };

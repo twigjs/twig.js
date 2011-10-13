@@ -1,5 +1,18 @@
 // Twig.debug = true;
 
+module("Core");
+
+test("ref", function() {
+    // Define and save a template
+    twig({
+        id:   'test',
+        data: '{{ "test" }}'
+    });
+    
+    // Load and render the template
+    equal( twig({ref: 'test'}).render(), "test" );
+});
+
 var test_data = [
     {a: 10, b: 15},
     {a: 0, b: 0},
@@ -12,7 +25,7 @@ var test_data = [
 ];
 
 module("Tags");
-test("tags.output", function() {
+test("output", function() {
     // Really all we care about here is not throwing exceptions.
     equal( twig({data: '{{ "test" }}'}).render(), "test" );
     equal( twig({data: '{{ " }} " }}'}).render(), " }} " );
@@ -27,14 +40,14 @@ test("tags.output", function() {
 
 module("Expression Types");
 
-test("type.number", function() {
+test("number", function() {
     expect(3);
     equal( twig({data: '{{ 12 }}'}).render(), "12" );
     equal( twig({data: '{{ 12.64 }}'}).render(), "12.64" );
     equal( twig({data: '{{ .64 }}'}).render(), ".64" );
 });
 
-test("type.string", function() {
+test("string", function() {
     expect(6);
     equal( twig({data: '{{ "double" }}'}).render(), "double" );
     equal( twig({data: "{{ 'single' }}"}).render(), 'single' );
@@ -44,23 +57,23 @@ test("type.string", function() {
     equal( twig({data: "{{ 'sin\\'gle' }}"}).render(), "sin'gle" );
 });
 
-test("type.array", function() {
+test("array", function() {
     equal( twig({data: '{{ [1] }}'}).render(), "1" );
     equal( twig({data: '{{ [1,2 ,3 ] }}'}).render(), "1,2,3" );
     equal( twig({data: '{{ [1,2 ,3 , val ] }}'}).render({val: 4}), "1,2,3,4" );
     equal( twig({data: '{{ ["[to",\'the\' ,"string]" ] }}'}).render(), '[to,the,string]' );
     equal( twig({data: '{{ ["[to",\'the\' ,"str\\"ing]" ] }}'}).render(), '[to,the,str"ing]' );
 });
-test("type.array.complex", function() {
+test("array.complex", function() {
     equal( twig({data: '{{ [1,2 ,1+2 ] }}'}).render(), "1,2,3" );
     equal( twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}), "1,2,3,-,4,5,6" );
     equal( twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}), "1,2,3" );
 });
 
 // Expression tests
-module("Basic Expressions");
+module("Expressions");
 
-test("expression.key", function() {
+test("key", function() {
     var test_template = twig({data: '{{ key.value }} {{ key.sub.test }}'});
     var output = test_template.render({
         key: {
@@ -85,7 +98,7 @@ test("expression.key", function() {
     equal( output, "test value x" );
 });
 
-test("expression.add", function() {
+test("add", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a + b }}'});
     test_data.forEach(function(pair) {
@@ -94,7 +107,7 @@ test("expression.add", function() {
     });
 });
 
-test("expression.subtract", function() {
+test("subtract", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a - b }}'});
     test_data.forEach(function(pair) {
@@ -103,7 +116,7 @@ test("expression.subtract", function() {
     });
 });
 
-test("expression.multiply", function() {
+test("multiply", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a * b }}'});
     test_data.forEach(function(pair) {
@@ -112,7 +125,7 @@ test("expression.multiply", function() {
     });
 });
 
-test("expression.divide", function() {
+test("divide", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a / b }}'});
     test_data.forEach(function(pair) {
@@ -121,7 +134,7 @@ test("expression.divide", function() {
     });
 });
 
-test("expression.concat.number", function() {
+test("concat.number", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a ~ b }}'});
     test_data.forEach(function(pair) {
@@ -137,7 +150,7 @@ string_data = [
     {a: '', b: ''},
 ]
 
-test("expression.concat.string", function() {
+test("concat.string", function() {
     expect(string_data.length);
     var test_template = twig({data: '{{ a ~ b }}'});
     string_data.forEach(function(pair) {
@@ -148,20 +161,20 @@ test("expression.concat.string", function() {
 
 module("Combined Expressions");
 
-test("combined.concat", function() {
+test("concat", function() {
     equal( twig({data: '{{ "test" ~ a }}'}).render({a:1234}), "test1234" );
     equal( twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}), "1234test1234" );
     equal( twig({data: '{{ "this" ~ "test" }}'}).render({a:1234}), "thistest" );
 });
 
-test("combined.basic", function() {
+test("basic", function() {
     var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
     var test_template = twig({data: '{{a/b+c*d-e+f/g*h}}'});
     var output = test_template.render(data);
     var expected = data.a / data.b + data.c * data.d - data.e + data.f / data.g * data.h;
     equal( output, expected.toString() );
 });
-test("combined.parens", function() {
+test("parens", function() {
     var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
     var test_template = twig({data: '{{a   /(b+c )*d-(e+f)/(g*h)}}'});
     var output = test_template.render(data);
@@ -171,7 +184,7 @@ test("combined.parens", function() {
 
 module("Comparison Expressions");
 
-test("comparison.lessThen", function() {
+test("lessThen", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a < b }}'});
     test_data.forEach(function(pair) {
@@ -180,7 +193,7 @@ test("comparison.lessThen", function() {
     });
 });
 
-test("comparison.lessThenOrEqual", function() {
+test("lessThenOrEqual", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a <= b }}'});
     test_data.forEach(function(pair) {
@@ -189,7 +202,7 @@ test("comparison.lessThenOrEqual", function() {
     });
 });
 
-test("comparison.greaterThen", function() {
+test("greaterThen", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a > b }}'});
     test_data.forEach(function(pair) {
@@ -198,7 +211,7 @@ test("comparison.greaterThen", function() {
     });
 });
 
-test("comparison.greaterThenOrEqual", function() {
+test("greaterThenOrEqual", function() {
     expect(test_data.length);
     var test_template = twig({data: '{{ a >= b }}'});
     test_data.forEach(function(pair) {
@@ -214,7 +227,7 @@ var boolean_data = [
     {a: false, b: false}
 ];
 
-test("comparison.equals", function() {
+test("equals", function() {
     expect(boolean_data.length);
     var test_template = twig({data: '{{ a == b }}'});
     boolean_data.forEach(function(pair) {
@@ -223,7 +236,7 @@ test("comparison.equals", function() {
     });
 });
 
-test("comparison.notEquals", function() {
+test("notEquals", function() {
     expect(boolean_data.length);
     var test_template = twig({data: '{{ a != b }}'});
     boolean_data.forEach(function(pair) {
@@ -232,7 +245,7 @@ test("comparison.notEquals", function() {
     });
 });
 
-test("comparison.or", function() {
+test("or", function() {
     expect(boolean_data.length);
     var test_template = twig({data: '{{ a || b }}'});
     boolean_data.forEach(function(pair) {
@@ -241,7 +254,7 @@ test("comparison.or", function() {
     });
 });
 
-test("comparison.and", function() {
+test("and", function() {
     expect(boolean_data.length);
     var test_template = twig({data: '{{ a && b }}'});
     boolean_data.forEach(function(pair) {
@@ -250,7 +263,7 @@ test("comparison.and", function() {
     });
 });
 
-test("comparison.not", function() {
+test("not", function() {
     expect(2);
     var test_template = twig({data: '{{ !a }}'});
     equal( test_template.render({a:false}), true.toString() );
