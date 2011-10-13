@@ -73,7 +73,7 @@ var Twig = (function (Twig) {
             compile: function(token, stack, output) {
                 var key_token = output.pop();
                 if (key_token.type !== Twig.expression.type.string) {
-                    throw "Unexpected object key: " + key_token;
+                    throw new Twig.Error("Unexpected object key: " + key_token);
                 }
                 token.key = key_token.value;
                 output.push(token);
@@ -282,7 +282,7 @@ var Twig = (function (Twig) {
                     new_array.unshift(value);
                 }
                 if (!array_ended) {
-                    throw "Expected end of array.";
+                    throw new Twig.Error("Expected end of array.");
                 }
 
                 stack.push(new_array);
@@ -361,7 +361,7 @@ var Twig = (function (Twig) {
                     }
                     if (token.type && token.type === Twig.expression.type.setkey) {
                         if (value === null) {
-                            throw "Expected value for key " + token.key + " in object definition. Got " + token;
+                            throw new Twig.Error("Expected value for key " + token.key + " in object definition. Got " + token);
                         }
                         new_object[token.key] = value;
                         value = null;
@@ -371,7 +371,7 @@ var Twig = (function (Twig) {
                     }
                 }
                 if (!object_ended) {
-                    throw "Expected end of object.";
+                    throw new Twig.Error("Unexpected end of object.");
                 }
 
                 stack.push(new_object);
@@ -425,7 +425,7 @@ var Twig = (function (Twig) {
             parse: function(token, stack, context) {
                 // Get the variable from the context
                 if (!context.hasOwnProperty(token.value)) {
-                    throw "Model doesn't provide the property " + token.value;
+                    throw new Twig.Error("Model doesn't provide the property " + token.value);
                 }
                 stack.push(context[token.value]);
                 return {
@@ -461,7 +461,7 @@ var Twig = (function (Twig) {
 
                 // Get the variable from the context
                 if (!object.hasOwnProperty(key)) {
-                    throw "Model doesn't provide the key " + key;
+                    throw new Twig.Error("Model doesn't provide the key " + key);
                 }
                 stack.push(object[key]);
                 return {
@@ -503,7 +503,7 @@ var Twig = (function (Twig) {
                     object = stack.pop();
                 // Get the variable from the context
                 if (!object.hasOwnProperty(key)) {
-                    throw "Model doesn't provide the key " + key;
+                    throw new Twig.Error("Model doesn't provide the key " + key);
                 }
                 stack.push(object[key]);
                 return {
@@ -562,7 +562,7 @@ var Twig = (function (Twig) {
     Twig.expression.extend = function (definition) {
 
         if (!definition.type) {
-            throw "Unable to extend logic definition. No type provided for " + definition;
+            throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
         }
         Twig.expression.handler[definition.type] = definition;
     };
@@ -608,8 +608,6 @@ var Twig = (function (Twig) {
                     invalid_matches.push(type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'");
                     // Not a match, don't change the expression
                     return match;
-                    
-                    //throw type + " cannot follow a " + prev_token.type + " at template:" + exp_offset + " near '" + match.substring(0, 20) + "'";
                 }
                 invalid_matches = [];
 
@@ -653,9 +651,9 @@ var Twig = (function (Twig) {
             }
             if (!match_found) {
                 if (invalid_matches.length > 0) {
-                    throw invalid_matches.join(" OR ");
+                    throw new Twig.Error(invalid_matches.join(" OR "));
                 } else {
-                    throw "Unable to parse '" + expression + "' at template position" + exp_offset;
+                    throw new Twig.Error("Unable to parse '" + expression + "' at template position" + exp_offset);
                 }
             }
         }

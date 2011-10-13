@@ -10,6 +10,14 @@ var Twig = (function (Twig) {
     Twig.debug = true;
 
     /**
+     * Exception thrown by twig.js.
+     */
+    Twig.Error = function(message) {
+       this.message = message;
+       this.name = "Twig.Exception";
+    };
+
+    /**
      * Wrapper for logging to the console.
      */
     Twig.log = {
@@ -127,8 +135,8 @@ var Twig = (function (Twig) {
                 found = true;
             } else {
                 // throw an exception
-                throw "Unable to find closing bracket '" + token_def.close +
-                      "'" + " opened near template position " + start;
+                throw new Twig.Error("Unable to find closing bracket '" + token_def.close +
+                                "'" + " opened near template position " + start);
             }
 
             l = Twig.token.strings.length;
@@ -273,7 +281,7 @@ var Twig = (function (Twig) {
                         prev_template = Twig.logic.handler[prev_token.type];
 
                         if (prev_template.next.indexOf(type) < 0) {
-                            throw type + " not expected after a " + prev_token.type;
+                            throw new Error(type + " not expected after a " + prev_token.type);
                         }
 
                         prev_token.output = prev_token.output || [];
@@ -342,8 +350,8 @@ var Twig = (function (Twig) {
         }
         if (stack.length > 0) {
             unclosed_token = stack.pop();
-            throw "Unable to find an end tag for " + unclosed_token.type +
-                  ", expecting one of " + unclosed_token.next.join(", ");
+            throw new Error("Unable to find an end tag for " + unclosed_token.type +
+                            ", expecting one of " + unclosed_token.next.join(", "));
         }
         return output;
     };
@@ -411,7 +419,7 @@ var Twig = (function (Twig) {
     
     Twig.Templates.load = function(id) {
         if (!Twig.Templates.registry.hasOwnProperty(id)) {
-            throw "Unable to load unknown template " + id;
+            throw new Error("Unable to load unknown template " + id);
         }
         return Twig.Templates.registry[id];
     };
@@ -422,7 +430,8 @@ var Twig = (function (Twig) {
             return Twig.Templates.registry[id];
         }
         if (typeof XMLHttpRequest == "undefined") {
-            throw "Unsupported platform: Unable to do remote requests because there is no XMLHTTPRequest implementation";
+            throw new Error("Unsupported platform: Unable to do remote requests " +
+                            "because there is no XMLHTTPRequest implementation");
         }
         
         var xmlhttp = new XMLHttpRequest();
@@ -474,6 +483,7 @@ var Twig = (function (Twig) {
 
 }) (Twig || { });
 
+
 /**
  * Create and compile a Twig template.
  *
@@ -494,6 +504,9 @@ var twig = function (params) {
         return new Twig.Template( tokens, id );
         
     } else if (params.ref !== undefined) {
+        if (params.id !== undefined) {
+            throw new Error("Both ref and id cannot be set on a twig.js template.");
+        }
         return Twig.Templates.load(params.ref);
         
     } else if (params.href !== undefined) {

@@ -196,7 +196,7 @@ var Twig = (function (Twig) {
                         token.key_var = kv_split[0].trim();
                         token.value_var = kv_split[1].trim();
                     } else {
-                        throw "Invalid expression in for loop: " + key_value;
+                        throw new Twig.Error("Invalid expression in for loop: " + key_value);
                     }
                 } else {
                     token.value_var = key_value;
@@ -337,7 +337,7 @@ var Twig = (function (Twig) {
     Twig.logic.extend = function (definition) {
 
         if (!definition.type) {
-            throw "Unable to extend logic definition. No type provided for " + definition;
+            throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
         }
         Twig.logic.handler[definition.type] = definition;
     };
@@ -415,7 +415,7 @@ var Twig = (function (Twig) {
             }
         }
 
-        throw "Unable to parse '" + expression.trim() + "'";
+        throw new Twig.Error("Unable to parse '" + expression.trim() + "'");
     };
 
     Twig.logic.parse = function (token, context, chain) {

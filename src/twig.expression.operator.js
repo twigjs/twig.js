@@ -81,7 +81,7 @@ var Twig = (function (Twig) {
                 break;
 
             default:
-                throw operator + " is an unknown operator.";
+                throw new Twig.Error(operator + " is an unknown operator.");
         }
         token.operator = operator;
         return token;
