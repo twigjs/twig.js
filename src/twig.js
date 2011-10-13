@@ -409,22 +409,52 @@ var Twig = (function (Twig) {
         return tokens;
     };
     
+    // Namespace for template storage and retrieval
     Twig.Templates = {
         registry: {}
     };
     
+    /**
+     * Save a template object to the store.
+     * 
+     * @param {Twig.Template} template   The twig.js template to store.
+     */
     Twig.Templates.save = function(template) {
+        if (template.id === undefined) {
+            throw new Twig.Error("Unable to save template with no id");
+        }
         Twig.Templates.registry[template.id] = template;
     };
     
+    /**
+     * Load a previously saved template from the store.
+     * 
+     * @param {string} id   The ID of the template to load.
+     * 
+     * @return {Twig.Template} A twig.js template stored with the provided ID.
+     */
     Twig.Templates.load = function(id) {
         if (!Twig.Templates.registry.hasOwnProperty(id)) {
-            throw new Error("Unable to load unknown template " + id);
+            throw new Twig.Error("Unable to load unknown template " + id);
         }
         return Twig.Templates.registry[id];
     };
     
+    /**
+     * Load a template from a remote location using AJAX and saves in with the given ID.
+     * 
+     * @param {string} url  The remote URL to load as a template.
+     * @param {string} id   The ID to save the template with.
+     * @param {function} callback  A callback triggered when the template finishes loading.
+     * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
+     * @param {boolean} precompiled  Has the requested template already been compiled.
+     * 
+     */
     Twig.Templates.loadRemote = function(url, id, callback, async, precompiled) {
+        // Default to the URL so the template is cached.
+        if (id === undefined) {
+            id = url;
+        }
         // Check for existing template
         if (Twig.Templates.registry.hasOwnProperty(id)) {
             return Twig.Templates.registry[id];
@@ -458,7 +488,7 @@ var Twig = (function (Twig) {
     };
 
     /**
-     * A Twig Template model.
+     * Create a new twig.js template.
      *
      * Holds a set of compiled tokens ready to be rendered.
      */
@@ -485,7 +515,7 @@ var Twig = (function (Twig) {
 
 
 /**
- * Create and compile a Twig template.
+ * Create and compile a twig.js template.
  *
  * Returns a Twig.Template ready for rendering.
  */
