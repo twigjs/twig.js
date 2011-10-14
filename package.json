@@ -1,5 +1,5 @@
 {
-  "author": "John Roepke <john@foundryjs.com> (http://johnroepke.com/)",
+  "author": "John Roepke <john@justjohn.us> (http://johnroepke.com/)",
   "name": "twig",
   "description": "JS port of the Twig templating language.",
   "version": "0.1.0",
