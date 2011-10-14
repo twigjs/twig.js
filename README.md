@@ -19,7 +19,7 @@ Filters are not yet supported, but most of the expression syntax is implemented.
 
 # Usage
 
-Documentation is available on the [twig.js wiki on bitbucket](https://bitbucket.org/justjohn/twig.js/wiki/Home)
+Documentation is available in the [twig.js wiki on bitbucket](https://bitbucket.org/justjohn/twig.js/wiki/Home)
 
 # License
 
