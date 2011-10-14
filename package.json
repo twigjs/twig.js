@@ -1,0 +1,29 @@
+{
+  "author": "John Roepke <john@foundryjs.com> (http://johnroepke.com/)",
+  "name": "twig",
+  "description": "JS port of the Twig templating language.",
+  "version": "0.1.0",
+  "homepage": "https://bitbucket.org/justjohn/twig.js",
+  "licenses": [
+    {
+      "type": "BSD-2-Clause",
+      "url":  "https://bitbucket.org/justjohn/twig.js/raw/tip/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "hg",
+    "url": "https://bitbucket.org/justjohn/twig.js"
+  },
+  "main": "index.js",
+  "directories": {
+    "src": "./src"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "install": "tools/build.sh"
+  }
+}

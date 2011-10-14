@@ -3,11 +3,44 @@
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
+
+
+/**
+ * Create and compile a twig.js template.
+ *
+ * Returns a Twig.Template ready for rendering.
+ */
+var twig = function (params) {
+    'use strict';
+    var raw_tokens,
+        tokens,
+        id = params.id;
+
+    if (params.debug !== undefined) {
+        Twig.debug = params.debug;
+    }
+
+    if (params.data !== undefined) {
+        tokens = Twig.prepare(params.data);
+        return new Twig.Template( tokens, id );
+        
+    } else if (params.ref !== undefined) {
+        if (params.id !== undefined) {
+            throw new Error("Both ref and id cannot be set on a twig.js template.");
+        }
+        return Twig.Templates.load(params.ref);
+        
+    } else if (params.href !== undefined) {
+        return Twig.Templates.loadRemote(params.href, id, params.load, params.async, params.precompiled);
+    }
+};
+
+
 var Twig = (function (Twig) {
     "use strict";
 
     Twig.trace = false;
-    Twig.debug = true;
+    Twig.debug = false;
 
     /**
      * Exception thrown by twig.js.
@@ -513,33 +546,3 @@ var Twig = (function (Twig) {
 
 }) (Twig || { });
 
-
-/**
- * Create and compile a twig.js template.
- *
- * Returns a Twig.Template ready for rendering.
- */
-var twig = function (params) {
-    'use strict';
-    var raw_tokens,
-        tokens,
-        id = params.id;
-
-    if (params.debug !== undefined) {
-        Twig.debug = params.debug;
-    }
-
-    if (params.data !== undefined) {
-        tokens = Twig.prepare(params.data);
-        return new Twig.Template( tokens, id );
-        
-    } else if (params.ref !== undefined) {
-        if (params.id !== undefined) {
-            throw new Error("Both ref and id cannot be set on a twig.js template.");
-        }
-        return Twig.Templates.load(params.ref);
-        
-    } else if (params.href !== undefined) {
-        return Twig.Templates.loadRemote(params.href, id, params.load, params.async, params.precompiled);
-    }
-};
