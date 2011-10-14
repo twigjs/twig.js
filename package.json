@@ -22,8 +22,5 @@
     "node": "*"
   },
   "dependencies": {},
-  "devDependencies": {},
-  "scripts": {
-    "install": "tools/build.sh"
-  }
+  "devDependencies": {}
 }
