@@ -17,6 +17,10 @@ Supported tags:
 
 Filters are not yet supported, but most of the expression syntax is implemented.
 
+# Usage
+
+Documentation is available on the [twig.js wiki on bitbucket](https://bitbucket.org/justjohn/twig.js/wiki/Home)
+
 # License
 
 Twig.js is available under the BSD 2-clause license
