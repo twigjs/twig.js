@@ -36,6 +36,15 @@ var twig = function (params) {
     }
 };
 
+twig.compile = function(markup, options) {
+    console.log(options);
+    var id = options.filename,
+        tokens = Twig.prepare(markup),
+        template = new Twig.Template( tokens, id );
+    return function(context) {
+        return template.render(context);
+    }
+};
 
 var Twig = (function (Twig) {
     "use strict";
