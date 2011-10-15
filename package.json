@@ -14,7 +14,7 @@
     "type": "hg",
     "url": "https://bitbucket.org/justjohn/twig.js"
   },
-  "main": "index.js",
+  "main": "twig.js",
   "directories": {
     "src": "./src"
   },
