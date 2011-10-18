@@ -1,5 +1,5 @@
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
@@ -23,20 +23,19 @@ var twig = function (params) {
     if (params.data !== undefined) {
         tokens = Twig.prepare(params.data);
         return new Twig.Template( tokens, id );
-        
+
     } else if (params.ref !== undefined) {
         if (params.id !== undefined) {
             throw new Error("Both ref and id cannot be set on a twig.js template.");
         }
         return Twig.Templates.load(params.ref);
-        
+
     } else if (params.href !== undefined) {
         return Twig.Templates.loadRemote(params.href, id, params.load, params.async, params.precompiled);
     }
 };
 
 twig.compile = function(markup, options) {
-    console.log(options);
     var id = options.filename,
         tokens = Twig.prepare(markup),
         template = new Twig.Template( tokens, id );
@@ -154,7 +153,7 @@ var Twig = (function (Twig) {
         var end = null,
             found = false,
             offset = 0,
-            
+
             // String position variables
             str_pos = null,
             str_found = null,
@@ -231,7 +230,7 @@ var Twig = (function (Twig) {
         while (template.length > 0) {
             // Find the first occurance of any token type in the template
             found_token = Twig.token.findStart(template);
-            
+
             Twig.log.trace("Twig.tokenize: ", "Found token: ", found_token);
 
             if (found_token.position !== null) {
@@ -247,7 +246,7 @@ var Twig = (function (Twig) {
 
                 // Find the end of the token
                 end = Twig.token.findEnd(template, found_token.def, error_offset);
-                
+
                 Twig.log.trace("Twig.tokenize: ", "Token ends at ", end);
 
                 tokens.push({
@@ -256,7 +255,7 @@ var Twig = (function (Twig) {
                 });
 
                 template = template.substr(end + found_token.def.close.length);
-                
+
                 // Increment the position in the template
                 error_offset += end + found_token.def.close.length;
 
@@ -309,7 +308,7 @@ var Twig = (function (Twig) {
                 case Twig.token.type.logic:
                     // Compile the logic token
                     logic_token = Twig.logic.compile(token);
-                    
+
                     type = logic_token.type;
                     open = Twig.logic.handler[type].open;
                     next = Twig.logic.handler[type].next;
@@ -345,7 +344,7 @@ var Twig = (function (Twig) {
                     // This token requires additional tokens to complete the logic structure.
                     if (next !== undefined && next.length > 0) {
                         Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
-                        
+
                         if (stack.length > 0) {
                             // Put any currently held output into the output list of the logic operator
                             // currently at the head of the stack before we push a new one on.
@@ -438,27 +437,27 @@ var Twig = (function (Twig) {
         });
         return output.join("");
     };
-    
+
     Twig.prepare = function(data) {
         var tokens, raw_tokens;
-        
+
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
         raw_tokens = Twig.tokenize(data);
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
         tokens = Twig.compile(raw_tokens);
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
-    
+
         return tokens;
     };
-    
+
     // Namespace for template storage and retrieval
     Twig.Templates = {
         registry: {}
     };
-    
+
     /**
      * Save a template object to the store.
-     * 
+     *
      * @param {Twig.Template} template   The twig.js template to store.
      */
     Twig.Templates.save = function(template) {
@@ -467,12 +466,12 @@ var Twig = (function (Twig) {
         }
         Twig.Templates.registry[template.id] = template;
     };
-    
+
     /**
      * Load a previously saved template from the store.
-     * 
+     *
      * @param {string} id   The ID of the template to load.
-     * 
+     *
      * @return {Twig.Template} A twig.js template stored with the provided ID.
      */
     Twig.Templates.load = function(id) {
@@ -481,16 +480,16 @@ var Twig = (function (Twig) {
         }
         return Twig.Templates.registry[id];
     };
-    
+
     /**
      * Load a template from a remote location using AJAX and saves in with the given ID.
-     * 
+     *
      * @param {string} url  The remote URL to load as a template.
      * @param {string} id   The ID to save the template with.
      * @param {function} callback  A callback triggered when the template finishes loading.
      * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
      * @param {boolean} precompiled  Has the requested template already been compiled.
-     * 
+     *
      */
     Twig.Templates.loadRemote = function(url, id, callback, async, precompiled) {
         // Default to the URL so the template is cached.
@@ -505,12 +504,12 @@ var Twig = (function (Twig) {
             throw new Error("Unsupported platform: Unable to do remote requests " +
                             "because there is no XMLHTTPRequest implementation");
         }
-        
+
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
             var tokens = null,
                 template = null;
-            
+
             if(xmlhttp.readyState == 4) {
                 Twig.log.debug("Got template ", xmlhttp.responseText);
                 // Get the template
@@ -539,7 +538,7 @@ var Twig = (function (Twig) {
         this.tokens = tokens;
         this.render = function (context) {
             Twig.log.debug("Twig.Template: ", "Rendering template with context: ", context);
-            
+
             var output = Twig.parse(tokens, context);
 
             Twig.log.debug("Twig.Template: ", "Template rendered to: ", output);

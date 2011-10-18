@@ -15,7 +15,7 @@ Supported tags:
 * for / else / endfor
 * set
 
-Filters are not yet supported, but most of the expression syntax is implemented.
+A limited set of filters are supported (with more coming) and most of the expression syntax is implemented.
 
 # Usage
 
@@ -30,7 +30,7 @@ See the LICENSE file for details
 
 # Acknowledgments
 
-The fills for Array.forEach and Array.indexOf in src/twig.fills.js are from
+The fills for Object.keys, Array.forEach and Array.indexOf in src/twig.fills.js are from
 <https://developer.mozilla.org/> and used under a [Creative Commons
 Attribution-ShareAlike 2.5 License](http://creativecommons.org/licenses/by-sa/2.5/)
 
