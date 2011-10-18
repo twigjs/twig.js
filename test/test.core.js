@@ -8,7 +8,7 @@ test("ref", function() {
         id:   'test',
         data: '{{ "test" }}'
     });
-    
+
     // Load and render the template
     equal( twig({ref: 'test'}).render(), "test" );
 });
@@ -84,7 +84,7 @@ test("key", function() {
         }
     });
     equal( output, "test value" );
-    
+
     test_template = twig({data: '{{ key["value"] }} {{ key.sub[key.value] }} {{ s.t["u"].v["w"] }}'});
     output = test_template.render({
         key: {
@@ -352,6 +352,8 @@ test("set.loop", function() {
     var test_template = twig({data: '{% set key = 0 %}{% for val in [1,2,3,4] %}{% set key = key + val %}{% endfor %}{{ key }}' });
     equal( test_template.render(), "10" );
 });
+
+
 
 /* var example = twig({
     html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / (2 - 4) + 6.5}} == 14.<br /> 123 % 4 = {{ 123 % 4 }}'

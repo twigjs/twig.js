@@ -186,6 +186,7 @@ var Twig = (function (Twig) {
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
             regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
             next: [
+                Twig.expression.type.filter,
                 Twig.expression.type.operator,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
@@ -396,7 +397,25 @@ var Twig = (function (Twig) {
                 Twig.expression.type.object.end,
                 Twig.expression.type.key.period,
                 Twig.expression.type.key.brackets
-            ]
+            ],
+            compile: function(token, stack, output) {
+                token.value = token.value.substr(1);
+                output.push(token);
+                return {
+                    stack: stack,
+                    output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                if (Twig.filters[token.value] === undefined) {
+                    throw "Unable to find filter " + token.value;
+                }
+                stack.push(Twig.filters[token.value].parse(stack.pop()));
+                return {
+                    stack: stack,
+                    context: context
+                };
+            }
         },
         {
             /**
@@ -490,7 +509,7 @@ var Twig = (function (Twig) {
                     value: token.value
                 }).stack;
                 delete token.value;
-                
+
                 output.push(token);
                 return {
                     stack: stack,

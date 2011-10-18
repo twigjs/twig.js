@@ -2,16 +2,17 @@
  * The following methods are from MDN and are available under a
  * Creative Commons Attribution-ShareAlike 2.5 License.
  *     http://creativecommons.org/licenses/by-sa/2.5/
- * 
+ *
  * See:
  * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
  * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach
+ * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
  */
 
 (function() {
     "use strict";
     // Handle methods that don't yet exist in every browser
-    
+
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
             if (this === void 0 || this === null) {
@@ -101,4 +102,13 @@
         // 8. return undefined
       };
     };
+
+    if(!Object.keys) Object.keys = function(o){
+        if (o !== Object(o)) {
+            throw new TypeError('Object.keys called on non-object');
+        }
+        var ret = [], p;
+        for (p in o) if (Object.prototype.hasOwnProperty.call(o, p)) ret.push(p);
+        return ret;
+    }
 })();
