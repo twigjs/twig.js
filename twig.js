@@ -1,6 +1,6 @@
 
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
@@ -24,20 +24,19 @@ var twig = function (params) {
     if (params.data !== undefined) {
         tokens = Twig.prepare(params.data);
         return new Twig.Template( tokens, id );
-        
+
     } else if (params.ref !== undefined) {
         if (params.id !== undefined) {
             throw new Error("Both ref and id cannot be set on a twig.js template.");
         }
         return Twig.Templates.load(params.ref);
-        
+
     } else if (params.href !== undefined) {
         return Twig.Templates.loadRemote(params.href, id, params.load, params.async, params.precompiled);
     }
 };
 
 twig.compile = function(markup, options) {
-    console.log(options);
     var id = options.filename,
         tokens = Twig.prepare(markup),
         template = new Twig.Template( tokens, id );
@@ -155,7 +154,7 @@ var Twig = (function (Twig) {
         var end = null,
             found = false,
             offset = 0,
-            
+
             // String position variables
             str_pos = null,
             str_found = null,
@@ -232,7 +231,7 @@ var Twig = (function (Twig) {
         while (template.length > 0) {
             // Find the first occurance of any token type in the template
             found_token = Twig.token.findStart(template);
-            
+
             Twig.log.trace("Twig.tokenize: ", "Found token: ", found_token);
 
             if (found_token.position !== null) {
@@ -248,7 +247,7 @@ var Twig = (function (Twig) {
 
                 // Find the end of the token
                 end = Twig.token.findEnd(template, found_token.def, error_offset);
-                
+
                 Twig.log.trace("Twig.tokenize: ", "Token ends at ", end);
 
                 tokens.push({
@@ -257,7 +256,7 @@ var Twig = (function (Twig) {
                 });
 
                 template = template.substr(end + found_token.def.close.length);
-                
+
                 // Increment the position in the template
                 error_offset += end + found_token.def.close.length;
 
@@ -310,7 +309,7 @@ var Twig = (function (Twig) {
                 case Twig.token.type.logic:
                     // Compile the logic token
                     logic_token = Twig.logic.compile(token);
-                    
+
                     type = logic_token.type;
                     open = Twig.logic.handler[type].open;
                     next = Twig.logic.handler[type].next;
@@ -346,7 +345,7 @@ var Twig = (function (Twig) {
                     // This token requires additional tokens to complete the logic structure.
                     if (next !== undefined && next.length > 0) {
                         Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
-                        
+
                         if (stack.length > 0) {
                             // Put any currently held output into the output list of the logic operator
                             // currently at the head of the stack before we push a new one on.
@@ -439,27 +438,27 @@ var Twig = (function (Twig) {
         });
         return output.join("");
     };
-    
+
     Twig.prepare = function(data) {
         var tokens, raw_tokens;
-        
+
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
         raw_tokens = Twig.tokenize(data);
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
         tokens = Twig.compile(raw_tokens);
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
-    
+
         return tokens;
     };
-    
+
     // Namespace for template storage and retrieval
     Twig.Templates = {
         registry: {}
     };
-    
+
     /**
      * Save a template object to the store.
-     * 
+     *
      * @param {Twig.Template} template   The twig.js template to store.
      */
     Twig.Templates.save = function(template) {
@@ -468,12 +467,12 @@ var Twig = (function (Twig) {
         }
         Twig.Templates.registry[template.id] = template;
     };
-    
+
     /**
      * Load a previously saved template from the store.
-     * 
+     *
      * @param {string} id   The ID of the template to load.
-     * 
+     *
      * @return {Twig.Template} A twig.js template stored with the provided ID.
      */
     Twig.Templates.load = function(id) {
@@ -482,16 +481,16 @@ var Twig = (function (Twig) {
         }
         return Twig.Templates.registry[id];
     };
-    
+
     /**
      * Load a template from a remote location using AJAX and saves in with the given ID.
-     * 
+     *
      * @param {string} url  The remote URL to load as a template.
      * @param {string} id   The ID to save the template with.
      * @param {function} callback  A callback triggered when the template finishes loading.
      * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
      * @param {boolean} precompiled  Has the requested template already been compiled.
-     * 
+     *
      */
     Twig.Templates.loadRemote = function(url, id, callback, async, precompiled) {
         // Default to the URL so the template is cached.
@@ -506,12 +505,12 @@ var Twig = (function (Twig) {
             throw new Error("Unsupported platform: Unable to do remote requests " +
                             "because there is no XMLHTTPRequest implementation");
         }
-        
+
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
             var tokens = null,
                 template = null;
-            
+
             if(xmlhttp.readyState == 4) {
                 Twig.log.debug("Got template ", xmlhttp.responseText);
                 // Get the template
@@ -540,7 +539,7 @@ var Twig = (function (Twig) {
         this.tokens = tokens;
         this.render = function (context) {
             Twig.log.debug("Twig.Template: ", "Rendering template with context: ", context);
-            
+
             var output = Twig.parse(tokens, context);
 
             Twig.log.debug("Twig.Template: ", "Template rendered to: ", output);
@@ -561,16 +560,17 @@ var Twig = (function (Twig) {
  * The following methods are from MDN and are available under a
  * Creative Commons Attribution-ShareAlike 2.5 License.
  *     http://creativecommons.org/licenses/by-sa/2.5/
- * 
+ *
  * See:
  * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
  * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach
+ * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
  */
 
 (function() {
     "use strict";
     // Handle methods that don't yet exist in every browser
-    
+
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
             if (this === void 0 || this === null) {
@@ -660,6 +660,15 @@ var Twig = (function (Twig) {
         // 8. return undefined
       };
     };
+
+    if(!Object.keys) Object.keys = function(o){
+        if (o !== Object(o)) {
+            throw new TypeError('Object.keys called on non-object');
+        }
+        var ret = [], p;
+        for (p in o) if (Object.prototype.hasOwnProperty.call(o, p)) ret.push(p);
+        return ret;
+    }
 })();
 
 /**
@@ -1109,7 +1118,7 @@ var Twig = (function (Twig) {
 })(Twig || { });
 
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
@@ -1296,6 +1305,7 @@ var Twig = (function (Twig) {
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
             regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
             next: [
+                Twig.expression.type.filter,
                 Twig.expression.type.operator,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
@@ -1506,7 +1516,25 @@ var Twig = (function (Twig) {
                 Twig.expression.type.object.end,
                 Twig.expression.type.key.period,
                 Twig.expression.type.key.brackets
-            ]
+            ],
+            compile: function(token, stack, output) {
+                token.value = token.value.substr(1);
+                output.push(token);
+                return {
+                    stack: stack,
+                    output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                if (Twig.filters[token.value] === undefined) {
+                    throw "Unable to find filter " + token.value;
+                }
+                stack.push(Twig.filters[token.value].parse(stack.pop()));
+                return {
+                    stack: stack,
+                    context: context
+                };
+            }
         },
         {
             /**
@@ -1600,7 +1628,7 @@ var Twig = (function (Twig) {
                     value: token.value
                 }).stack;
                 delete token.value;
-                
+
                 output.push(token);
                 return {
                     stack: stack,
@@ -1846,7 +1874,7 @@ var Twig = (function (Twig) {
 })( Twig || { } );
 
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
