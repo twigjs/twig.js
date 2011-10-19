@@ -1,5 +1,5 @@
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
@@ -319,8 +319,8 @@ var Twig = (function (Twig) {
 
     /**
      * Extend the logic parsing functionality with a new token definition.
-     * 
-     * // Define a new tag 
+     *
+     * // Define a new tag
      * Twig.logic.extend({
      *     type: Twig.logic.type.{type},
      *     // The pattern to match for this token
@@ -328,7 +328,7 @@ var Twig = (function (Twig) {
      *     // What token types can follow this token, leave blank if any.
      *     next: [ ... ]
      *     // Create and return compiled version of the token
-     *     compile: function(token) { ... } 
+     *     compile: function(token) { ... }
      *     // Parse the compiled token with the context provided by the render call
      *     //   and whether this token chain is complete.
      *     parse: function(token, context, chain) { ... }
