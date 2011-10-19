@@ -44,3 +44,19 @@ test("filter.keys.mixed", function() {
     var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
     equal( test_template.render(), "2,1,0" );
 });
+
+test("filter.length.string", function() {
+    var test_template = twig({data: '{{ "test"|length }}' });
+    equal( test_template.render(), 4 );
+});
+
+test("filter.length.array", function() {
+    var test_template = twig({data: '{{ [1,2,4,76,"tesrt"]|length }}' });
+    equal( test_template.render(), 5 );
+});
+
+test("filter.length.object", function() {
+    var test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length }}' });
+    equal( test_template.render(), 3 );
+});
+

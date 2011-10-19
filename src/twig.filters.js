@@ -34,6 +34,16 @@ var Twig = (function (Twig) {
                 });
             }
         },
+        length: {
+            parse: function(value) {
+                console.log(value, typeof value === "string", value.length);
+                if (value instanceof Array || typeof value === "string") {
+                    return value.length;
+                } else if (value instanceof Object) {
+                    return Object.keys(value).length;
+                }
+            }
+        },
 
         // Array/Object Filters
         reverse: {
@@ -68,7 +78,6 @@ var Twig = (function (Twig) {
         join,
         json_encode,
         keys,
-        length,
         merge,
         raw,
         replace,
