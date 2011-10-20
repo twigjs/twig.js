@@ -36,11 +36,14 @@ var Twig = (function (Twig) {
         },
         length: {
             parse: function(value) {
-                console.log(value, typeof value === "string", value.length);
                 if (value instanceof Array || typeof value === "string") {
                     return value.length;
                 } else if (value instanceof Object) {
-                    return Object.keys(value).length;
+                    if (value._keys === undefined) {
+                        return Object.keys(value).length;
+                    } else {
+                        return value._keys.length;
+                    }
                 }
             }
         },
@@ -51,7 +54,9 @@ var Twig = (function (Twig) {
                 if (value instanceof Array) {
                     return value.reverse();
                 } else if (value instanceof Object) {
-                    // TODO
+                    var keys = value._keys || Object.keys(value).reverse();
+                    value._keys = keys;
+                    return value;
                 }
             }
         },
@@ -60,7 +65,20 @@ var Twig = (function (Twig) {
                 if (value instanceof Array) {
                     return value.sort();
                 } else if (value instanceof Object) {
-                    //  TODO
+                    // Sorting objects isn't obvious since the order of
+                    // returned keys isn't guaranteed
+                    // Because of this we use a "hidden" key called _order to
+                    // store the keys in the order we want to return them.
+
+                    var sorted_obj = { },
+                        sorted_keys = Object.keys(value).sort(function(a, b) {
+                            return value[a] > value[b];
+                        });
+                    sorted_keys.forEach(function(key) {
+                        sorted_obj[key] = value[key];
+                    });
+                    value._keys = sorted_keys;
+                    return value;
                 }
             }
         },

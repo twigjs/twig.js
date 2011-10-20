@@ -221,7 +221,8 @@ var Twig = (function (Twig) {
                 // Parse expression
                 var result = Twig.expression.parse(token.expression, context),
                     output = [],
-                    key;
+                    key,
+                    keyset;
 
                 if (result instanceof Array) {
                     key = 0;
@@ -235,7 +236,13 @@ var Twig = (function (Twig) {
                         key += 1;
                     });
                 } else if (result instanceof Object) {
-                    for (key in result) {
+                    if (result._keys !== undefined) {
+                        keyset = result._keys;
+                    } else {
+                        keyset = Object.keys(result);
+                    }
+                    keyset.forEach(function(key) {
+                        if (key === "_keys") return; // Ignore the _keys property
                         if (result.hasOwnProperty(key)) {
                             context[token.value_var] = result[key];
                             if (token.key_var) {
@@ -243,7 +250,7 @@ var Twig = (function (Twig) {
                             }
                             output.push(Twig.parse(token.output, context));
                         }
-                    }
+                    });
                 }
                 // Only allow else statements if no output was generated
                 continue_chain = (output.length === 0);

@@ -365,6 +365,13 @@ var Twig = (function (Twig) {
                             throw new Twig.Error("Expected value for key " + token.key + " in object definition. Got " + token);
                         }
                         new_object[token.key] = value;
+
+                        // Preserve the order that elements are added to the map
+                        // This is necessary since JavaScript objects don't
+                        // guarantee the order of keys
+                        if (new_object._keys === undefined) new_object._keys = [];
+                        new_object._keys.push(token.key);
+
                         value = null;
 
                     } else {

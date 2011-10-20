@@ -30,6 +30,14 @@ test("filter.sort.array", function() {
     equal( test_template.render(), "2,7,abc,test" );
 });
 
+test("filter.sort.object", function() {
+    var test_template = twig({data: "{% set obj =  {'c': 1,'d': 5,'t': 2,'e':7}|sort %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
+    equal( test_template.render(), "c:1 t:2 d:5 e:7 " );
+
+    test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
+    equal( test_template.render(), "a:2 y:7 z:abc m:test " );
+});
+
 test("filter.reverse.array", function() {
     var test_template = twig({data: '{{ ["a", "b", "c"]|reverse }}' });
     equal( test_template.render(), "c,b,a" );
