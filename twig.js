@@ -36,13 +36,23 @@ var twig = function (params) {
     }
 };
 
+/**
+ * Provide an extension for use with express.
+ *
+ * @param {string} markup The template markup.
+ * @oaram {array} options The express options.
+ */
 twig.compile = function(markup, options) {
     var id = options.filename,
         tokens = Twig.prepare(markup),
+        template = Twig.Templates.load(id);
+
+    if (template === null) {
         template = new Twig.Template( tokens, id );
+    }
     return function(context) {
         return template.render(context);
-    }
+    };
 };
 
 var Twig = (function (Twig) {
@@ -57,6 +67,12 @@ var Twig = (function (Twig) {
     Twig.Error = function(message) {
        this.message = message;
        this.name = "Twig.Exception";
+    };
+    /**
+     * Get the string representation of a Twig error.
+     */
+    Twig.Error.prototype.toString = function() {
+        return this.name + ": " + this.message;
     };
 
     /**
@@ -403,6 +419,9 @@ var Twig = (function (Twig) {
             // Track logic chains
             chain = true;
 
+        // Default to an empty object if none provided
+        context = context || { };
+
         tokens.forEach(function (token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
@@ -477,7 +496,7 @@ var Twig = (function (Twig) {
      */
     Twig.Templates.load = function(id) {
         if (!Twig.Templates.registry.hasOwnProperty(id)) {
-            throw new Twig.Error("Unable to load unknown template " + id);
+            return null;
         }
         return Twig.Templates.registry[id];
     };
@@ -672,7 +691,7 @@ var Twig = (function (Twig) {
 })();
 
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
@@ -894,7 +913,8 @@ var Twig = (function (Twig) {
                 // Parse expression
                 var result = Twig.expression.parse(token.expression, context),
                     output = [],
-                    key;
+                    key,
+                    keyset;
 
                 if (result instanceof Array) {
                     key = 0;
@@ -908,7 +928,13 @@ var Twig = (function (Twig) {
                         key += 1;
                     });
                 } else if (result instanceof Object) {
-                    for (key in result) {
+                    if (result._keys !== undefined) {
+                        keyset = result._keys;
+                    } else {
+                        keyset = Object.keys(result);
+                    }
+                    keyset.forEach(function(key) {
+                        if (key === "_keys") return; // Ignore the _keys property
                         if (result.hasOwnProperty(key)) {
                             context[token.value_var] = result[key];
                             if (token.key_var) {
@@ -916,7 +942,7 @@ var Twig = (function (Twig) {
                             }
                             output.push(Twig.parse(token.output, context));
                         }
-                    }
+                    });
                 }
                 // Only allow else statements if no output was generated
                 continue_chain = (output.length === 0);
@@ -992,8 +1018,8 @@ var Twig = (function (Twig) {
 
     /**
      * Extend the logic parsing functionality with a new token definition.
-     * 
-     * // Define a new tag 
+     *
+     * // Define a new tag
      * Twig.logic.extend({
      *     type: Twig.logic.type.{type},
      *     // The pattern to match for this token
@@ -1001,7 +1027,7 @@ var Twig = (function (Twig) {
      *     // What token types can follow this token, leave blank if any.
      *     next: [ ... ]
      *     // Create and return compiled version of the token
-     *     compile: function(token) { ... } 
+     *     compile: function(token) { ... }
      *     // Parse the compiled token with the context provided by the render call
      *     //   and whether this token chain is complete.
      *     parse: function(token, context, chain) { ... }
@@ -1149,6 +1175,10 @@ var Twig = (function (Twig) {
         object: {
             start:  'Twig.expression.type.object.start',
             end:    'Twig.expression.type.object.end'
+        },
+        parameter: {
+            start:  'Twig.expression.type.parameter.start',
+            end:    'Twig.expression.type.parameter.end'
         },
         key: {
             period:   'Twig.expression.type.key.period',
@@ -1309,6 +1339,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.operator,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.comma,
                 Twig.expression.type.setkey
             ],
@@ -1331,6 +1362,102 @@ var Twig = (function (Twig) {
             },
             parse: function(token, stack, context) {
                 stack.push(token.value);
+                return {
+                    stack: stack,
+                    context: context
+                };
+            }
+        },
+        {
+            /**
+             * Match a parameter set start.
+             */
+            type: Twig.expression.type.parameter.start,
+            regex: /^\(/,
+            next: [
+                Twig.expression.type.expression,
+                Twig.expression.type.string,
+                Twig.expression.type.variable,
+                Twig.expression.type.number,
+                Twig.expression.type.object.start,
+                Twig.expression.type.array.start,
+                Twig.expression.type.parameter.end
+            ],
+            compile: function(token, stack, output) {
+                output.push(token);
+                return {
+                    stack: stack,
+                    output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                stack.push(token);
+                return {
+                    stack: stack,
+                    context: context
+                };
+            }
+        },
+        {
+            /**
+             * Match a parameter set end.
+             */
+            type: Twig.expression.type.parameter.end,
+            regex: /^\)/,
+            next: [
+                Twig.expression.type.filter,
+                Twig.expression.type.operator,
+                Twig.expression.type.array.end,
+                Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
+                Twig.expression.type.comma,
+                Twig.expression.type.setkey
+            ],
+            compile: function(token, stack, output) {
+                while(stack.length > 0) {
+                    output.push(stack.pop());
+                }
+                // Move contents of parens into preceding filter
+                var param_stack = [],
+                    control_token = null;
+                while(token.type !== Twig.expression.type.parameter.start) {
+                    // Add token to arguments stack
+                    param_stack.unshift(token);
+                    token = output.pop();
+                }
+                param_stack.unshift(token);
+
+                // Get the token preceding the parameters
+                token = output.pop();
+                if (token.type !== Twig.expression.type.filter) {
+                    throw new Twig.Error("Expected filter before parameters, got " + token.type);
+                }
+                token.params = param_stack;
+                output.push(token);
+                return {
+                    stack: stack,
+                    output: output
+                };
+            },
+            parse: function(token, stack, context) {
+                var new_array = [],
+                    array_ended = false,
+                    value = null;
+
+                while (stack.length > 0) {
+                    value = stack.pop();
+                    // Push values into the array until the start of the array
+                    if (value.type && value.type == Twig.expression.type.parameter.start) {
+                        array_ended = true;
+                        break;
+                    }
+                    new_array.unshift(value);
+                }
+                if (!array_ended) {
+                    throw new Twig.Error("Expected end of parameter set.");
+                }
+
+                stack.push(new_array);
                 return {
                     stack: stack,
                     context: context
@@ -1374,6 +1501,7 @@ var Twig = (function (Twig) {
             next: [
                 Twig.expression.type.filter,
                 Twig.expression.type.comma,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end
             ],
@@ -1453,6 +1581,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
                 Twig.expression.type.array.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.key.period,
                 Twig.expression.type.key.brackets
             ],
@@ -1484,6 +1613,13 @@ var Twig = (function (Twig) {
                             throw new Twig.Error("Expected value for key " + token.key + " in object definition. Got " + token);
                         }
                         new_object[token.key] = value;
+
+                        // Preserve the order that elements are added to the map
+                        // This is necessary since JavaScript objects don't
+                        // guarantee the order of keys
+                        if (new_object._keys === undefined) new_object._keys = [];
+                        new_object._keys.push(token.key);
+
                         value = null;
 
                     } else {
@@ -1514,8 +1650,10 @@ var Twig = (function (Twig) {
                 Twig.expression.type.operator,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.key.period,
-                Twig.expression.type.key.brackets
+                Twig.expression.type.key.brackets,
+                Twig.expression.type.parameter.start
             ],
             compile: function(token, stack, output) {
                 token.value = token.value.substr(1);
@@ -1529,7 +1667,10 @@ var Twig = (function (Twig) {
                 if (Twig.filters[token.value] === undefined) {
                     throw "Unable to find filter " + token.value;
                 }
-                stack.push(Twig.filters[token.value].parse(stack.pop()));
+                var input = stack.pop(),
+                    params = token.params && Twig.expression.parse(token.params, context);
+
+                stack.push(Twig.filters[token.value].parse(input, params));
                 return {
                     stack: stack,
                     context: context
@@ -1549,6 +1690,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.comma,
                 Twig.expression.type.key.period,
                 Twig.expression.type.key.brackets
@@ -1563,7 +1705,7 @@ var Twig = (function (Twig) {
             parse: function(token, stack, context) {
                 // Get the variable from the context
                 if (!context.hasOwnProperty(token.value)) {
-                    throw new Twig.Error("Model doesn't provide the property " + token.value);
+                    // throw new Twig.Error("Model doesn't provide the property " + token.value);
                 }
                 stack.push(context[token.value]);
                 return {
@@ -1579,6 +1721,8 @@ var Twig = (function (Twig) {
                 Twig.expression.type.operator,
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
+                Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.comma,
                 Twig.expression.type.key.period,
                 Twig.expression.type.key.brackets
@@ -1597,9 +1741,13 @@ var Twig = (function (Twig) {
                 var key = token.key,
                     object = stack.pop();
 
+                if (object === null || object === undefined) {
+                    throw new Twig.Error("Can't access a key " + key + " on an undefined object.");
+                }
+
                 // Get the variable from the context
                 if (!object.hasOwnProperty(key)) {
-                    throw new Twig.Error("Model doesn't provide the key " + key);
+                    // throw new Twig.Error("Model doesn't provide the key " + key);
                 }
                 stack.push(object[key]);
                 return {
@@ -1616,6 +1764,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.comma,
                 Twig.expression.type.key.period,
                 Twig.expression.type.key.brackets
@@ -1662,6 +1811,7 @@ var Twig = (function (Twig) {
                 Twig.expression.type.filter,
                 Twig.expression.type.array.end,
                 Twig.expression.type.object.end,
+                Twig.expression.type.parameter.end,
                 Twig.expression.type.comma
             ],
             compile: function(token, stack, output) {
@@ -2068,13 +2218,13 @@ var Twig = (function (Twig) {
 })( Twig || { } );
 
 /**
- * Twig.js v0.1
+ * Twig.js v0.2
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
 
 // Provide a CommonJS module export.
-if (typeof module !== undefined && module.exports) {
+if (module && module.exports) {
     module.exports = twig;
 } else {
     window.twig = twig;
