@@ -5,7 +5,7 @@
  */
 
 // Provide a CommonJS module export.
-if (typeof module !== undefined && module.exports) {
+if (module && module.exports) {
     module.exports = twig;
 } else {
     window.twig = twig;
