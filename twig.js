@@ -2224,7 +2224,7 @@ var Twig = (function (Twig) {
  */
 
 // Provide a CommonJS module export.
-if (module && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
     module.exports = twig;
 } else {
     window.twig = twig;
