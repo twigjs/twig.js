@@ -35,13 +35,23 @@ var twig = function (params) {
     }
 };
 
+/**
+ * Provide an extension for use with express.
+ *
+ * @param {string} markup The template markup.
+ * @oaram {array} options The express options.
+ */
 twig.compile = function(markup, options) {
     var id = options.filename,
         tokens = Twig.prepare(markup),
+        template = Twig.Templates.load(id);
+
+    if (template === null) {
         template = new Twig.Template( tokens, id );
+    }
     return function(context) {
         return template.render(context);
-    }
+    };
 };
 
 var Twig = (function (Twig) {
@@ -56,6 +66,12 @@ var Twig = (function (Twig) {
     Twig.Error = function(message) {
        this.message = message;
        this.name = "Twig.Exception";
+    };
+    /**
+     * Get the string representation of a Twig error.
+     */
+    Twig.Error.prototype.toString = function() {
+        return this.name + ": " + this.message;
     };
 
     /**
@@ -402,6 +418,9 @@ var Twig = (function (Twig) {
             // Track logic chains
             chain = true;
 
+        // Default to an empty object if none provided
+        context = context || { };
+
         tokens.forEach(function (token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
@@ -476,7 +495,7 @@ var Twig = (function (Twig) {
      */
     Twig.Templates.load = function(id) {
         if (!Twig.Templates.registry.hasOwnProperty(id)) {
-            throw new Twig.Error("Unable to load unknown template " + id);
+            return null;
         }
         return Twig.Templates.registry[id];
     };

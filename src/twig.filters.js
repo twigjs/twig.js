@@ -86,6 +86,50 @@ var Twig = (function (Twig) {
             parse: function(value) {
                 return Object.keys(value);
             }
+        },
+        url_encode: {
+            parse: function(value) {
+                return encodeURIComponent(value);
+            }
+        },
+        join: {
+            parse: function(value, params) {
+                var join_str = "",
+                    output = [],
+                    keyset = null;
+
+                if (params && params[0]) {
+                    join_str = params[0];
+                }
+                if (value instanceof Array) {
+                    output = value;
+                } else {
+                    if (value._keys !== undefined) {
+                        keyset = value._keys;
+                    } else {
+                        keyset = Object.keys(value);
+                    }
+                    keyset.forEach(function(key) {
+                        if (key === "_keys") return; // Ignore the _keys property
+                        if (value.hasOwnProperty(key)) {
+                            output.unshift(value[key]);
+                        }
+                    });
+                }
+                return output.join(join_str);
+            }
+        },
+        "default": {
+            parse: function(value, params) {
+                if (params === undefined || params.length !== 1) {
+                    throw new Twig.Error("default filter expects one argument");
+                }
+                if (value === undefined || value === null || value === '' ) {
+                    return params[0];
+                } else {
+                    return value;
+                }
+            }
         }
 
         /*convert_encoding,
@@ -93,14 +137,12 @@ var Twig = (function (Twig) {
         default,
         escape,
         format,
-        join,
         json_encode,
         keys,
         merge,
         raw,
         replace,
-        striptags,
-        url_encode */
+        striptags */
     };
 
     return Twig;

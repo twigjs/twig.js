@@ -2,6 +2,11 @@
 
 module("Filters");
 
+test("filter.url_encode", function() {
+    var test_template = twig({data: '{{ "http://google.com/?q=twig.js"|url_encode() }}' });
+    equal( test_template.render(), "http%3A%2F%2Fgoogle.com%2F%3Fq%3Dtwig.js" );
+});
+
 test("filter.upper", function() {
     var test_template = twig({data: '{{ "hello"|upper }}' });
     equal( test_template.render(), "HELLO" );
@@ -67,4 +72,30 @@ test("filter.length.object", function() {
     var test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length }}' });
     equal( test_template.render(), 3 );
 });
+
+test("filter.join.object", function() {
+    test_template = twig({data: '{{ {"a":"1", "b": "b", "c":test}|join("-") }}' });
+    equal( test_template.render({"test": "t"}), "1-b-t" );
+});
+
+test("filter.join.array", function() {
+    var test_template = twig({data: '{{ [1,2,4,76]|join }}' });
+    equal( test_template.render(), "12476" );
+    test_template = twig({data: '{{ [1+ 5,2,4,76]|join("-" ~ ".") }}' });
+    equal( test_template.render(), "6-.2-.4-.76" );
+});
+
+
+test("filter.default", function() {
+    var test_template = twig({data: '{{ var|default("Not Defined") }}' });
+    equal( test_template.render(), "Not Defined" );
+
+    var test_template = twig({data: '{{ ""|default("Empty String") }}' });
+    equal( test_template.render(), "Empty String" );
+
+    var test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
+    equal( test_template.render({'var':{}}), "Empty Key" );
+});
+
+
 
