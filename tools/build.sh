@@ -27,4 +27,4 @@ done
 
 # Minimize with Google Closure Compiler
 echo "Minimizing"
-java -jar $BASE/tools/compiler.jar --js $BASE/$OUTPUT --js_output_file=$BASE/$OUTPUT_MIN
+java -jar $BASE/tools/closure/compiler.jar --js $BASE/$OUTPUT --js_output_file=$BASE/$OUTPUT_MIN
