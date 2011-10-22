@@ -450,7 +450,7 @@ var Twig = (function (Twig) {
                     output: output
                 };
             },
-            parse: function(tken, stack, context) {
+            parse: function(obj_end_token, stack, context) {
                 var new_object = {},
                     object_ended = false,
                     token = null,
@@ -473,7 +473,7 @@ var Twig = (function (Twig) {
                         // This is necessary since JavaScript objects don't
                         // guarantee the order of keys
                         if (new_object._keys === undefined) new_object._keys = [];
-                        new_object._keys.push(token.key);
+                        new_object._keys.unshift(token.key);
 
                         value = null;
 

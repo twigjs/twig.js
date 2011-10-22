@@ -84,7 +84,16 @@ var Twig = (function (Twig) {
         },
         keys: {
             parse: function(value) {
-                return Object.keys(value);
+                var keyset = value._keys || Object.keys(value),
+                    output = [];
+
+                keyset.forEach(function(key) {
+                    if (key === "_keys") return; // Ignore the _keys property
+                    if (value.hasOwnProperty(key)) {
+                        output.push(key);
+                    }
+                });
+                return output;
             }
         },
         url_encode: {
@@ -104,15 +113,11 @@ var Twig = (function (Twig) {
                 if (value instanceof Array) {
                     output = value;
                 } else {
-                    if (value._keys !== undefined) {
-                        keyset = value._keys;
-                    } else {
-                        keyset = Object.keys(value);
-                    }
+                    keyset = value._keys || Object.keys(value);
                     keyset.forEach(function(key) {
                         if (key === "_keys") return; // Ignore the _keys property
                         if (value.hasOwnProperty(key)) {
-                            output.unshift(value[key]);
+                            output.push(value[key]);
                         }
                     });
                 }
@@ -130,16 +135,94 @@ var Twig = (function (Twig) {
                     return value;
                 }
             }
+        },
+        json_encode: {
+            parse: function(value) {
+                delete value._keys;
+                return JSON.stringify(value);
+            }
+        },
+        merge: {
+            parse: function(value, params) {
+                var obj = [],
+                    arr_index = 0,
+                    keyset = [];
+
+                // Check to see if all the objects being merged are arrays
+                if (!(value instanceof Array)) {
+                    // Create obj as an Object
+                    obj = { };
+                } else {
+                    params.forEach(function(param) {
+                        if (!(param instanceof Array)) {
+                            obj = { };
+                        }
+                    });
+                }
+                if (!(obj instanceof Array)) {
+                    obj._keys = [];
+                }
+
+                if (value instanceof Array) {
+                    value.forEach(function(val) {
+                        if (obj._keys) obj._keys.unshift(arr_index);
+                        obj[arr_index] = val;
+                        arr_index++;
+                    });
+                } else {
+                    keyset = value._keys || Object.keys(value);
+                    keyset.forEach(function(key) {
+                        obj[key] = value[key];
+                        obj._keys.push(key);
+
+                        // Handle edge case where a number index in an object is greater than
+                        //   the array counter. In such a case, the array counter is increased
+                        //   one past the index.
+                        //
+                        // Example {{ ["a", "b"]|merge({"4":"value"}, ["c", "d"])
+                        // Without this, d would have an index of "4" and overwrite the value
+                        //   of "value"
+                        var int_key = parseInt(key, 10);
+                        if (!isNaN(int_key) && int_key >= arr_index) {
+                            arr_index = int_key + 1;
+                        }
+                    });
+                }
+
+                // mixin the merge arrays
+                params.forEach(function(param) {
+                    if (param instanceof Array) {
+                        param.forEach(function(val) {
+                            if (obj._keys) obj._keys.push(arr_index);
+                            obj[arr_index] = val;
+                            arr_index++;
+                        });
+                    } else {
+                        keyset = param._keys || Object.keys(param);
+                        keyset.forEach(function(key) {
+                            if (!obj[key]) obj._keys.unshift(key);
+                            obj[key] = param[key];
+
+                            var int_key = parseInt(key, 10);
+                            if (!isNaN(int_key) && int_key >= arr_index) {
+                                arr_index = int_key + 1;
+                            }
+                        });
+                    }
+                })
+                if (params.length === 0) {
+                    throw new Twig.Error("Filter merge expects at least one parameter");
+                }
+
+                return obj;
+            }
         }
+
 
         /*convert_encoding,
         date,
-        default,
         escape,
         format,
-        json_encode,
-        keys,
-        merge,
         raw,
         replace,
         striptags */

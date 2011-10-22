@@ -53,28 +53,32 @@ test("filter.keys.array", function() {
     equal( test_template.render(), "0,1,2" );
 });
 
-test("filter.keys.mixed", function() {
+test("filter.keys.reverse", function() {
     var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
     equal( test_template.render(), "2,1,0" );
 });
 
-test("filter.length.string", function() {
+test("filter.keys.object", function() {
+    var test_template = twig({data: '{{ {"0":"a", "1":"b", "2":"c"}|keys }}' });
+    equal( test_template.render(), "0,1,2" );
+});
+
+test("filter.length", function() {
+    // Test string length
     var test_template = twig({data: '{{ "test"|length }}' });
     equal( test_template.render(), 4 );
-});
 
-test("filter.length.array", function() {
-    var test_template = twig({data: '{{ [1,2,4,76,"tesrt"]|length }}' });
+    // Test array length
+    test_template = twig({data: '{{ [1,2,4,76,"tesrt"]|length }}' });
     equal( test_template.render(), 5 );
-});
 
-test("filter.length.object", function() {
-    var test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length }}' });
+    // Test object length
+    test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length }}' });
     equal( test_template.render(), 3 );
 });
 
 test("filter.join.object", function() {
-    test_template = twig({data: '{{ {"a":"1", "b": "b", "c":test}|join("-") }}' });
+    var test_template = twig({data: '{{ {"a":"1", "b": "b", "c":test}|join("-") }}' });
     equal( test_template.render({"test": "t"}), "1-b-t" );
 });
 
@@ -90,12 +94,37 @@ test("filter.default", function() {
     var test_template = twig({data: '{{ var|default("Not Defined") }}' });
     equal( test_template.render(), "Not Defined" );
 
-    var test_template = twig({data: '{{ ""|default("Empty String") }}' });
+    test_template = twig({data: '{{ ""|default("Empty String") }}' });
     equal( test_template.render(), "Empty String" );
 
-    var test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
+    test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
     equal( test_template.render({'var':{}}), "Empty Key" );
 });
 
+test("filter.json_encode", function() {
+    var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
+    equal( test_template.render(), '{"a":["1","b","3"]}' );
+
+    test_template = twig({data: '{{ test|json_encode }}' });
+    equal( test_template.render({test:'value'}), '"value"' );
+});
+
+test("filter.merge", function() {
+    // Object merging
+    var test_template = twig({data: '{% set obj= {"a":"test", "b":"1"}|merge({"b":2,"c":3}) %}{% for key in obj|keys|sort %}{{key}}:{{obj[key]}} {%endfor %}' });
+    equal( test_template.render(), 'a:test b:2 c:3 ' );
+
+    // Array merging
+    test_template = twig({data: '{% set obj= ["a", "b"]|merge(["c", "d"]) %}{% for key in obj|keys|sort %}{{key}}:{{obj[key]}} {%endfor %}' });
+    equal( test_template.render(), '0:a 1:b 2:c 3:d ' );
+
+    // Mixed merging
+    test_template = twig({data: '{% set obj= ["a", "b"]|merge({"a": "c", "3":4}, ["c", "d"]) %}{% for key in obj|keys|sort %}{{key}}:{{obj[key]}} {%endfor %}' });
+    equal( test_template.render(), '0:a 1:b 3:4 4:c 5:d a:c ' );
+
+    // Mixed merging(2)
+    test_template = twig({data: '{% set obj= {"1":"a", "a":"b"}|merge(["c", "d"]) %}{% for key in obj|keys %}{{key}}:{{obj[key]}} {%endfor %}' });
+    equal( test_template.render(), '1:a a:b 2:c 3:d ' );
+});
 
 
