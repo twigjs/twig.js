@@ -55,7 +55,7 @@ app.get('/', function(req, res){
 app.listen(9999);
 ```
 
-##views/index.twig
+## views/index.twig
 
 ```html
 Message of the moment: <b>{{ message }}</b>
