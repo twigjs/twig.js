@@ -1,5 +1,5 @@
 /**
- * Twig.js v0.2
+ * Twig.js v0.3
  * Copyright (c) 2011 John Roepke
  * Available under the BSD 2-Clause License
  */
