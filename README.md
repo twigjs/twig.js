@@ -76,7 +76,7 @@ console.log(
 // outputs: "The cupcake is a lie."
 ```
 
-Documentation is available in the [twig.js wiki](https://bitbucket.org/justjohn/twig.js/wiki/Home)
+Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki)
 
 # License
 
