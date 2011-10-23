@@ -20,7 +20,46 @@ Supported filters:
 
 upper, lower, capitalize, title, length, reverse, sort, keys, url_encode, join, default, json_encode, merge
 
-# Usage
+# Node Usage
+
+Twig.js can be installed with NPM
+
+    npm install twig
+
+You can include twig in your app with
+
+    var twig = require('twig');
+
+Twig is also compatable with express. You can create an express app using
+the twig templating language by setting the view engine to twig.
+
+app.js
+```js
+    var twig = require("twig"),
+        app = require('express').createServer();
+
+    app.configure(function () {
+        app.set('view engine', 'twig');
+        app.set("view options", { layout: false });
+    });
+
+    app.register('twig', twig);
+
+    app.get('/', function(req, res){
+      res.render('index', {
+        message : "Hello World"
+      });
+    });
+
+    app.listen(9999);
+```
+
+views/index.twig
+```html
+    Message of the moment: <b>{{ message }}</b>
+```
+
+# Browser Usage
 
 Include twig.js or twig.min.js in your page, then:
 
