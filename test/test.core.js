@@ -355,7 +355,10 @@ test("set.loop", function() {
 
 
 
-/* var example = twig({
-    html: 'The {{ baked_good }} is a lie. {{ 12.5 + 10 / (2 - 4) + 6.5}} == 14.<br /> 123 % 4 = {{ 123 % 4 }}'
+/* var template = twig({
+    data: 'The {{ baked_good }} is a lie.'
 });
-console.log(example); */
+
+console.log(
+    template.render({baked_good: 'cupcake'})
+); */

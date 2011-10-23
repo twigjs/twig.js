@@ -40,15 +40,15 @@ var twig = function (params) {
  *
  * @param {string} markup The template markup.
  * @oaram {array} options The express options.
+ *
+ * @return {string} The rendered template.
  */
 twig.compile = function(markup, options) {
     var id = options.filename,
         tokens = Twig.prepare(markup),
-        template = Twig.Templates.load(id);
+        // Try to load the template from the cache
+        template = Twig.Templates.load(id) || new Twig.Template( tokens, id );
 
-    if (template === null) {
-        template = new Twig.Template( tokens, id );
-    }
     return function(context) {
         return template.render(context);
     };
