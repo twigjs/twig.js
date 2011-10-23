@@ -89,7 +89,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.test,
             regex: /^is\s+(not)?\s*([a-zA-Z_][a-zA-Z0-9_]*)/,
-            next: Twig.expression.set.operations,
+            next: Twig.expression.set.operations.concat([Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 token.filter   = token.match[2];
                 token.modifier = token.match[1];
@@ -102,7 +102,8 @@ var Twig = (function (Twig) {
             },
             parse: function(token, stack, context) {
                 var value = stack.pop(),
-                    result = Twig.test(token.filter, value);
+                    params = token.params && Twig.expression.parse(token.params, context),
+                    result = Twig.test(token.filter, value, params);
 
                 if (token.modifier == 'not') {
                     stack.push(!result);
@@ -287,7 +288,8 @@ var Twig = (function (Twig) {
 
                 // Get the token preceding the parameters
                 token = output.pop();
-                if (token.type !== Twig.expression.type.filter) {
+                if (token.type !== Twig.expression.type.filter &&
+                    token.type !== Twig.expression.type.test) {
                     throw new Twig.Error("Expected filter before parameters, got " + token.type);
                 }
                 token.params = param_stack;

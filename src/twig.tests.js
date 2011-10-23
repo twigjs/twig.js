@@ -40,11 +40,11 @@ var Twig = (function (Twig) {
          */
     };
 
-    Twig.test = function(test, value) {
+    Twig.test = function(test, value, params) {
         if (!Twig.tests[test]) {
             throw "Test " + test + " is not defined.";
         }
-        return Twig.tests[test](value);
+        return Twig.tests[test](value, params);
     };
 
     return Twig;

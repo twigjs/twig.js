@@ -29,6 +29,12 @@ test("even", function() {
     equal( twig({data: '{{ 6 is even }}'}).render(), "true" );
 });
 
+test("divisibleby", function() {
+    // String
+    equal( twig({data: '{{ 5 is divisibleby(3) }}'}).render(), "false" );
+    equal( twig({data: '{{ 6 is divisibleby(3) }}'}).render(), "true" );
+});
+
 test("defined", function() {
     // String
     equal( twig({data: '{{ key is defined }}'}).render(), "false" );
