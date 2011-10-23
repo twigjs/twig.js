@@ -33,30 +33,32 @@ You can include twig in your app with
 Twig is also compatable with express. You can create an express app using
 the twig templating language by setting the view engine to twig.
 
-app.js
+## app.js
+
 ```js
-    var twig = require("twig"),
-        app = require('express').createServer();
+var twig = require("twig"),
+    app = require('express').createServer();
 
-    app.configure(function () {
-        app.set('view engine', 'twig');
-        app.set("view options", { layout: false });
-    });
+app.configure(function () {
+    app.set('view engine', 'twig');
+    app.set("view options", { layout: false });
+});
 
-    app.register('twig', twig);
+app.register('twig', twig);
 
-    app.get('/', function(req, res){
-      res.render('index', {
-        message : "Hello World"
-      });
-    });
+app.get('/', function(req, res){
+  res.render('index', {
+    message : "Hello World"
+  });
+});
 
-    app.listen(9999);
+app.listen(9999);
 ```
 
-views/index.twig
+##views/index.twig
+
 ```html
-    Message of the moment: <b>{{ message }}</b>
+Message of the moment: <b>{{ message }}</b>
 ```
 
 # Browser Usage
