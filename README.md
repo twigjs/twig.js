@@ -8,6 +8,8 @@ The goal is to provide a library that is compatible with both browsers and serve
 Twig.js is currently a work in progress and supports a limited subset
 of the Twig templating language (with more coming).
 
+Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki) on Github.
+
 Supported tags:
 
 * if / elseif / else / endif
@@ -75,8 +77,6 @@ console.log(
 );
 // outputs: "The cupcake is a lie."
 ```
-
-Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki)
 
 # License
 
