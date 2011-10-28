@@ -46,5 +46,9 @@ var Twig = (function (Twig) {
         return Twig.tests[test](value, params);
     };
 
+    Twig.extendTest = function(test, definition) {
+        Twig.tests[test] = definition;
+    };
+
     return Twig;
 })( Twig || { } );

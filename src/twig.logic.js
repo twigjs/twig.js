@@ -24,7 +24,9 @@ var Twig = (function (Twig) {
         endfor: 'Twig.logic.type.endfor',
         else_:  'Twig.logic.type.else',
         elseif: 'Twig.logic.type.elseif',
-        set:    'Twig.logic.type.set'
+        set:    'Twig.logic.type.set',
+        filter:   'Twig.logic.type.filter',
+        endfilter: 'Twig.logic.type.endfilter'
     };
 
 
@@ -306,6 +308,54 @@ var Twig = (function (Twig) {
                     context: context
                 };
             }
+        },
+        {
+            /**
+             * Filter logic tokens.
+             *
+             *  Format: {% filter upper %} or {% filter lower|escape %}
+             */
+            type: Twig.logic.type.filter,
+            regex: /^filter\s+(.+)$/,
+            next: [
+                Twig.logic.type.endfilter
+            ],
+            open: true,
+            compile: function (token) {
+                var expression = "|" + token.match[1].trim();
+                // Compile the expression.
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var unfiltered = Twig.parse.apply(this, [token.output, context]),
+                    stack = [{
+                        type: Twig.expression.type.string,
+                        value: unfiltered
+                    }].concat(token.stack);
+
+                var output = Twig.expression.parse.apply(this, [stack, context]);
+
+                return {
+                    chain: chain,
+                    output: output
+                };
+            }
+        },
+        {
+            /**
+             * End filter logic tokens.
+             *
+             *  Format: {% endfilter %}
+             */
+            type: Twig.logic.type.endfilter,
+            regex: /^endfilter$/,
+            next: [ ],
+            open: false
         }
     ];
 
@@ -345,6 +395,12 @@ var Twig = (function (Twig) {
 
         if (!definition.type) {
             throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
+        }
+        if (Twig.logic.type[definition.type]) {
+            throw new Twig.Error("Unable to extend logic definitions. Type " +
+                                 definition.type + " is already defined.");
+        } else {
+            Twig.logic.extendType(definition.type);
         }
         Twig.logic.handler[definition.type] = definition;
     };

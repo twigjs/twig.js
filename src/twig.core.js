@@ -32,6 +32,22 @@ var twig = function (params) {
     }
 };
 
+// Extend Twig with a new filter.
+twig.extendFilter = function(filter, definition) {
+    Twig.extendFilter(filter, definition);
+};
+
+// Extend Twig with a new test.
+twig.extendTest = function(test, definition) {
+    Twig.extendFilter(test, definition);
+};
+
+// Extend Twig with a new definition.
+twig.extendTag = function(definition) {
+    Twig.logic.extend(definition);
+};
+
+
 /**
  * Provide an extension for use with express.
  *

@@ -69,6 +69,12 @@ test("array.complex", function() {
     equal( twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}), "1,2,3,-,4,5,6" );
     equal( twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}), "1,2,3" );
 });
+test("variable", function() {
+    equal( twig({data: '{{ val }}'}).render({ val: "test"}), "test" );
+    equal( twig({data: '{{ val }}'}).render({ val: function() {
+                                                       return "test"
+                                                   }}), "test" );
+});
 
 // Expression tests
 module("Expressions");
@@ -353,6 +359,13 @@ test("set.loop", function() {
     equal( test_template.render(), "10" );
 });
 
+test("filter", function() {
+    var test_template = twig({data: '{% filter lower %}TEST{% endfilter %}' });
+    equal( test_template.render(), "test" )
+
+    test_template = twig({data: '{% filter lower|reverse %}TEST{% endfilter %}' });
+    equal( test_template.render(), "tset" );
+});
 
 
 /* var template = twig({

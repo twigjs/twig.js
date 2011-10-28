@@ -7,6 +7,13 @@
 //
 // This file handles parsing filters.
 var Twig = (function (Twig) {
+
+    // Determine object type
+    function is(type, obj) {
+        var clas = Object.prototype.toString.call(obj).slice(8, -1);
+        return obj !== undefined && obj !== null && clas === type;
+    }
+
     Twig.filters = {
         // String Filters
         upper:  function(value) {
@@ -37,16 +44,18 @@ var Twig = (function (Twig) {
 
         // Array/Object Filters
         reverse: function(value) {
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 return value.reverse();
-            } else if (value instanceof Object) {
+            } else if (is("String", value)) {
+                return value.split("").reverse().join("");
+            } else {
                 var keys = value._keys || Object.keys(value).reverse();
                 value._keys = keys;
                 return value;
             }
         },
         sort: function(value) {
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 return value.sort();
             } else if (value instanceof Object) {
                 // Sorting objects isn't obvious since the order of
@@ -205,6 +214,10 @@ var Twig = (function (Twig) {
         }
         return Twig.filters[filter](value, params);
     }
+
+    Twig.extendFilter = function(filter, definition) {
+        Twig.filters[filter] = definition;
+    };
 
     return Twig;
 })(Twig || { });

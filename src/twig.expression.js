@@ -432,7 +432,7 @@ var Twig = (function (Twig) {
             compile: Twig.expression.fn.compile.push,
             parse: function(token, stack, context) {
                 // Get the variable from the context
-                var value = context[token.value];
+                var value = Twig.expression.resolve(token.value, context);
                 stack.push(value);
             }
         },
@@ -502,6 +502,23 @@ var Twig = (function (Twig) {
             parse: Twig.expression.fn.parse.push_value
         }
     ];
+
+    /**
+     * Resolve a context value.
+     *
+     * If the value is a function, it is executed with a context parameter.
+     *
+     * @param {string} key The context object key.
+     * @param {Object} context The render context.
+     */
+    Twig.expression.resolve = function(key, context) {
+        var value = context[key];
+        if (typeof value == 'function') {
+            return value.apply(context, [context]);
+        } else {
+            return value;
+        }
+    };
 
     /**
      * Registry for logic handlers.
