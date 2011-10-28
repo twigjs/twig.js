@@ -32,6 +32,22 @@ var twig = function (params) {
     }
 };
 
+// Extend Twig with a new filter.
+twig.extendFilter = function(filter, definition) {
+    Twig.extendFilter(filter, definition);
+};
+
+// Extend Twig with a new test.
+twig.extendTest = function(test, definition) {
+    Twig.extendFilter(test, definition);
+};
+
+// Extend Twig with a new definition.
+twig.extendTag = function(definition) {
+    Twig.logic.extend(definition);
+};
+
+
 /**
  * Provide an extension for use with express.
  *
@@ -737,7 +753,9 @@ var Twig = (function (Twig) {
         endfor: 'Twig.logic.type.endfor',
         else_:  'Twig.logic.type.else',
         elseif: 'Twig.logic.type.elseif',
-        set:    'Twig.logic.type.set'
+        set:    'Twig.logic.type.set',
+        filter:   'Twig.logic.type.filter',
+        endfilter: 'Twig.logic.type.endfilter'
     };
 
 
@@ -1019,6 +1037,54 @@ var Twig = (function (Twig) {
                     context: context
                 };
             }
+        },
+        {
+            /**
+             * Filter logic tokens.
+             *
+             *  Format: {% filter upper %} or {% filter lower|escape %}
+             */
+            type: Twig.logic.type.filter,
+            regex: /^filter\s+(.+)$/,
+            next: [
+                Twig.logic.type.endfilter
+            ],
+            open: true,
+            compile: function (token) {
+                var expression = "|" + token.match[1].trim();
+                // Compile the expression.
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var unfiltered = Twig.parse.apply(this, [token.output, context]),
+                    stack = [{
+                        type: Twig.expression.type.string,
+                        value: unfiltered
+                    }].concat(token.stack);
+
+                var output = Twig.expression.parse.apply(this, [stack, context]);
+
+                return {
+                    chain: chain,
+                    output: output
+                };
+            }
+        },
+        {
+            /**
+             * End filter logic tokens.
+             *
+             *  Format: {% endfilter %}
+             */
+            type: Twig.logic.type.endfilter,
+            regex: /^endfilter$/,
+            next: [ ],
+            open: false
         }
     ];
 
@@ -1058,6 +1124,12 @@ var Twig = (function (Twig) {
 
         if (!definition.type) {
             throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
+        }
+        if (Twig.logic.type[definition.type]) {
+            throw new Twig.Error("Unable to extend logic definitions. Type " +
+                                 definition.type + " is already defined.");
+        } else {
+            Twig.logic.extendType(definition.type);
         }
         Twig.logic.handler[definition.type] = definition;
     };
@@ -1615,7 +1687,7 @@ var Twig = (function (Twig) {
             compile: Twig.expression.fn.compile.push,
             parse: function(token, stack, context) {
                 // Get the variable from the context
-                var value = context[token.value];
+                var value = Twig.expression.resolve(token.value, context);
                 stack.push(value);
             }
         },
@@ -1685,6 +1757,23 @@ var Twig = (function (Twig) {
             parse: Twig.expression.fn.parse.push_value
         }
     ];
+
+    /**
+     * Resolve a context value.
+     *
+     * If the value is a function, it is executed with a context parameter.
+     *
+     * @param {string} key The context object key.
+     * @param {Object} context The render context.
+     */
+    Twig.expression.resolve = function(key, context) {
+        var value = context[key];
+        if (typeof value == 'function') {
+            return value.apply(context, [context]);
+        } else {
+            return value;
+        }
+    };
 
     /**
      * Registry for logic handlers.
@@ -2101,6 +2190,13 @@ var Twig = (function (Twig) {
 //
 // This file handles parsing filters.
 var Twig = (function (Twig) {
+
+    // Determine object type
+    function is(type, obj) {
+        var clas = Object.prototype.toString.call(obj).slice(8, -1);
+        return obj !== undefined && obj !== null && clas === type;
+    }
+
     Twig.filters = {
         // String Filters
         upper:  function(value) {
@@ -2131,16 +2227,18 @@ var Twig = (function (Twig) {
 
         // Array/Object Filters
         reverse: function(value) {
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 return value.reverse();
-            } else if (value instanceof Object) {
+            } else if (is("String", value)) {
+                return value.split("").reverse().join("");
+            } else {
                 var keys = value._keys || Object.keys(value).reverse();
                 value._keys = keys;
                 return value;
             }
         },
         sort: function(value) {
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 return value.sort();
             } else if (value instanceof Object) {
                 // Sorting objects isn't obvious since the order of
@@ -2300,6 +2398,10 @@ var Twig = (function (Twig) {
         return Twig.filters[filter](value, params);
     }
 
+    Twig.extendFilter = function(filter, definition) {
+        Twig.filters[filter] = definition;
+    };
+
     return Twig;
 })(Twig || { });
 
@@ -2349,6 +2451,10 @@ var Twig = (function (Twig) {
             throw "Test " + test + " is not defined.";
         }
         return Twig.tests[test](value, params);
+    };
+
+    Twig.extendTest = function(test, definition) {
+        Twig.tests[test] = definition;
     };
 
     return Twig;
