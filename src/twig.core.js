@@ -12,17 +12,14 @@
  */
 var twig = function (params) {
     'use strict';
-    var raw_tokens,
-        tokens,
-        id = params.id;
+    var id = params.id;
 
     if (params.debug !== undefined) {
         Twig.debug = params.debug;
     }
 
     if (params.data !== undefined) {
-        tokens = Twig.prepare(params.data);
-        return new Twig.Template( tokens, id );
+        return new Twig.Template( params.data, id );
 
     } else if (params.ref !== undefined) {
         if (params.id !== undefined) {
@@ -39,7 +36,7 @@ var twig = function (params) {
  * Provide an extension for use with express.
  *
  * @param {string} markup The template markup.
- * @oaram {array} options The express options.
+ * @param {array} options The express options.
  *
  * @return {string} The rendered template.
  */
@@ -78,8 +75,8 @@ var Twig = (function (Twig) {
      * Wrapper for logging to the console.
      */
     Twig.log = {
-        trace: function() { if (Twig.trace) { console.log(Array.prototype.slice.call(arguments)); } },
-        debug: function() { if (Twig.debug) { console.log(Array.prototype.slice.call(arguments)); } }
+        trace: function() {if (Twig.trace) {console.log(Array.prototype.slice.call(arguments));}},
+        debug: function() {if (Twig.debug) {console.log(Array.prototype.slice.call(arguments));}}
     };
 
     /**
@@ -323,7 +320,7 @@ var Twig = (function (Twig) {
 
                 case Twig.token.type.logic:
                     // Compile the logic token
-                    logic_token = Twig.logic.compile(token);
+                    logic_token = Twig.logic.compile.apply(this, [token]);
 
                     type = logic_token.type;
                     open = Twig.logic.handler[type].open;
@@ -392,11 +389,11 @@ var Twig = (function (Twig) {
                     break;
 
                 case Twig.token.type.output:
-                    expression_token = Twig.expression.compile(token);
+                    Twig.expression.compile.apply(this, [token]);
                     if (stack.length > 0) {
-                        intermediate_output.push(expression_token);
+                        intermediate_output.push(token);
                     } else {
-                        output.push(expression_token);
+                        output.push(token);
                     }
                     break;
             }
@@ -431,7 +428,7 @@ var Twig = (function (Twig) {
 
                 case Twig.token.type.logic:
                     var logic_token = token.token,
-                        logic = Twig.logic.parse(logic_token, context, chain);
+                        logic = Twig.logic.parse.apply(this, [logic_token, context, chain]);
 
                     if (logic.chain !== undefined) {
                         chain = logic.chain;
@@ -450,7 +447,7 @@ var Twig = (function (Twig) {
 
                 case Twig.token.type.output:
                     // Parse the given expression in the given context
-                    output.push(Twig.expression.parse(token.stack, context));
+                    output.push(Twig.expression.parse.apply(this, [token.stack, context]));
                     break;
             }
         });
@@ -547,22 +544,27 @@ var Twig = (function (Twig) {
         xmlhttp.send();
     };
 
+    // Determine object type
+    function is(type, obj) {
+        var clas = Object.prototype.toString.call(obj).slice(8, -1);
+        return obj !== undefined && obj !== null && clas === type;
+    }
+
+
     /**
      * Create a new twig.js template.
      *
      * Holds a set of compiled tokens ready to be rendered.
      */
-    Twig.Template = function ( tokens, id ) {
+    Twig.Template = function ( data, id ) {
+        if (is('String', data)) {
+            this.tokens = Twig.prepare.apply(this, [data]);
+        } else {
+            this.tokens = data;
+        }
         this.id = id;
-        this.tokens = tokens;
         this.render = function (context) {
-            Twig.log.debug("Twig.Template: ", "Rendering template with context: ", context);
-
-            var output = Twig.parse(tokens, context);
-
-            Twig.log.debug("Twig.Template: ", "Template rendered to: ", output);
-
-            return output;
+            return Twig.parse.apply(this, [this.tokens, context]);
         };
         if (id !== undefined) {
             Twig.Templates.save(this);

@@ -17,8 +17,12 @@ else
         exit;
 fi
 
-echo "" > $BASE/$OUTPUT
+# remove the file if it already exists
+if [ -f $BASE/$OUTPUT ]; then
+    rm $BASE/$OUTPUT
+fi
 
+touch $BASE/$OUTPUT
 for file in $INPUT; do
     echo "Adding $file"
     cat $BASE/src/$file >> $BASE/$OUTPUT

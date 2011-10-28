@@ -184,8 +184,6 @@ var Twig = (function (Twig) {
                 stack.push(a && b);
                 break;
         }
-
-        return stack;
     };
 
     return Twig;

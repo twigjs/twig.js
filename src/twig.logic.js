@@ -69,17 +69,17 @@ var Twig = (function (Twig) {
             compile: function (token) {
                 var expression = token.match[1];
                 // Compile the expression.
-                token.stack = Twig.expression.compile({
+                token.stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
                     value: expression
-                }).stack;
+                }]).stack;
                 delete token.match;
                 return token;
             },
             parse: function (token, context, chain) {
                 var output = '',
                     // Parse the expression
-                    result = Twig.expression.parse(token.stack, context);
+                    result = Twig.expression.parse.apply(this, [token.stack, context]);
 
                 // Start a new logic chain
                 chain = true;
@@ -87,7 +87,7 @@ var Twig = (function (Twig) {
                 if (result === true) {
                     chain = false;
                     // parse if output
-                    output = Twig.parse(token.output, context);
+                    output = Twig.parse.apply(this, [token.output, context]);
                 }
                 return {
                     chain: chain,
@@ -111,20 +111,20 @@ var Twig = (function (Twig) {
             compile: function (token) {
                 var expression = token.match[1];
                 // Compile the expression.
-                token.stack = Twig.expression.compile({
+                token.stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
                     value: expression
-                }).stack;
+                }]).stack;
                 delete token.match;
                 return token;
             },
             parse: function (token, context, chain) {
                 var output = '';
 
-                if (chain && Twig.expression.parse(token.stack, context) === true) {
+                if (chain && Twig.expression.parse.apply(this, [token.stack, context]) === true) {
                     chain = false;
                     // parse if output
-                    output = Twig.parse(token.output, context);
+                    output = Twig.parse.apply(this, [token.output, context]);
                 }
 
                 return {
@@ -149,7 +149,7 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 var output = '';
                 if (chain) {
-                    output = Twig.parse(token.output, context);
+                    output = Twig.parse.apply(this, [token.output, context]);
                 }
                 return {
                     chain: chain,
@@ -207,10 +207,10 @@ var Twig = (function (Twig) {
                 //   for key,item in expression
 
                 // Compile the expression.
-                expression_stack = Twig.expression.compile({
+                expression_stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
                     value: expression
-                }).stack;
+                }]).stack;
 
                 token.expression = expression_stack;
 
@@ -219,7 +219,7 @@ var Twig = (function (Twig) {
             },
             parse: function (token, context, continue_chain) {
                 // Parse expression
-                var result = Twig.expression.parse(token.expression, context),
+                var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
                     key,
                     keyset;
@@ -231,7 +231,7 @@ var Twig = (function (Twig) {
                         if (token.key_var) {
                             context[token.key_var] = key;
                         }
-                        output.push(Twig.parse(token.output, context));
+                        output.push(Twig.parse.apply(this, [token.output, context]));
 
                         key += 1;
                     });
@@ -248,7 +248,7 @@ var Twig = (function (Twig) {
                             if (token.key_var) {
                                 context[token.key_var] = key;
                             }
-                            output.push(Twig.parse(token.output, context));
+                            output.push(Twig.parse.apply(this, [token.output, context]));
                         }
                     });
                 }
@@ -286,10 +286,10 @@ var Twig = (function (Twig) {
                 var key = token.match[1].trim(),
                     expression = token.match[2],
                     // Compile the expression.
-                    expression_stack  = Twig.expression.compile({
+                    expression_stack  = Twig.expression.compile.apply(this, [{
                         type:  Twig.expression.type.expression,
                         value: expression
-                    }).stack;
+                    }]).stack;
 
                 token.key = key;
                 token.expression = expression_stack;
@@ -298,7 +298,7 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, continue_chain) {
-                var value = Twig.expression.parse(token.expression, context),
+                var value = Twig.expression.parse.apply(this, [token.expression, context]),
                     key = token.key;
 
                 context[key] = value;
@@ -320,7 +320,7 @@ var Twig = (function (Twig) {
      * Define a new token type, available at Twig.logic.type.{type}
      */
     Twig.logic.extendType = function (type, value) {
-        value = value || type;
+        value = value || ("Twig.logic.type" + type);
         Twig.logic.type[type] = value;
     };
 
@@ -340,6 +340,8 @@ var Twig = (function (Twig) {
      *     //   and whether this token chain is complete.
      *     parse: function(token, context, chain) { ... }
      * });
+     *
+     * @param {Object} definition The new logic expression.
      */
     Twig.logic.extend = function (definition) {
 
@@ -355,14 +357,16 @@ var Twig = (function (Twig) {
     }
 
     /**
-     * Compile logic tokens into JSON form ready for parsing.
+     * Compile a logic token into an object ready for parsing.
+     *
+     * @param {Object} raw_token An uncompiled logic token.
+     *
+     * @return {Object} A compiled logic token, ready for parsing.
      */
     Twig.logic.compile = function (raw_token) {
         var expression = raw_token.value.trim(),
             token = Twig.logic.tokenize(expression),
             token_template = Twig.logic.handler[token.type];
-
-        Twig.log.trace("Twig.logic.compile: ", "Compiling logic token ", token);
 
         // Check if the token needs compiling
         if (token_template.compile) {
@@ -422,22 +426,37 @@ var Twig = (function (Twig) {
             }
         }
 
+        // No regex matches
         throw new Twig.Error("Unable to parse '" + expression.trim() + "'");
     };
 
+    /**
+     * Parse a logic token within a given context.
+     *
+     * What are logic chains?
+     *      Logic chains represent a series of tokens that are connected,
+     *          for example:
+     *          {% if ... %} {% else %} {% endif %}
+     *
+     *      The chain parameter is used to signify if a chain is open of closed.
+     *      open:
+     *          More tokens in this chain should be parsed.
+     *      closed:
+     *          This token chain has completed parsing and any additional
+     *          tokens (else, elseif, etc...) should be ignored.
+     *
+     * @param {Object} token The compiled token.
+     * @param {Object} context The render context.
+     * @param {boolean} chain Is this an open logic chain. If false, that means a
+     *                        chain is closed and no further cases should be parsed.
+     */
     Twig.logic.parse = function (token, context, chain) {
         var output = '',
             token_template;
 
         context = context || { };
 
-        // What does chain mean:
-        //   Should we continue a chain of expressions?
-        //   If false, no logic token with an open: false should be evaluated
-        //     e.g. If an {% if ... %} evaluates true, then sets chain = false, any
-        //          following tokens with open=false (else, elseif) should be ignored.
-
-        Twig.log.trace("Twig.logic.parse: " ,"Parsing logic token ", token);
+        Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
 
         token_template = Twig.logic.handler[token.type];
 
