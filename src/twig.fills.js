@@ -1,14 +1,15 @@
-/**
- * The following methods are from MDN and are available under a
- * Creative Commons Attribution-ShareAlike 2.5 License.
- *     http://creativecommons.org/licenses/by-sa/2.5/
- *
- * See:
- * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
- * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach
- * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
- */
+// The following methods are from MDN and are available under a
+// [Creative Commons Attribution-ShareAlike 2.5 License.](http://creativecommons.org/licenses/by-sa/2.5/)
+//
+// See:
+//
+// * [Array.indexOf - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf)
+// * [Array.forEach - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach)
+// * [Object.keys - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
 
+// ## twig.fills.js
+//
+// This file contains fills for backwards compatability.
 (function() {
     "use strict";
     // Handle methods that don't yet exist in every browser

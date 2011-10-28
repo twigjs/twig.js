@@ -1,14 +1,14 @@
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
-
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
 /**
  * Create and compile a twig.js template.
  *
- * Returns a Twig.Template ready for rendering.
+ * @param {Object} param Paramteres for creating a Twig template.
+ *
+ * @return {Twig.Template} A Twig template ready for rendering.
  */
 var twig = function (params) {
     'use strict';
@@ -42,15 +42,17 @@ var twig = function (params) {
  */
 twig.compile = function(markup, options) {
     var id = options.filename,
-        tokens = Twig.prepare(markup),
         // Try to load the template from the cache
-        template = Twig.Templates.load(id) || new Twig.Template( tokens, id );
+        template = Twig.Templates.load(id) || new Twig.Template( markup, id );
 
     return function(context) {
         return template.render(context);
     };
 };
 
+// ## twig.core.js
+//
+// This file handles template level tokenizing, compiling and parsing.
 var Twig = (function (Twig) {
     "use strict";
 
@@ -62,8 +64,10 @@ var Twig = (function (Twig) {
      */
     Twig.Error = function(message) {
        this.message = message;
-       this.name = "Twig.Exception";
+       this.name = "TwigException";
+       this.type = "TwigException";
     };
+
     /**
      * Get the string representation of a Twig error.
      */
@@ -75,8 +79,8 @@ var Twig = (function (Twig) {
      * Wrapper for logging to the console.
      */
     Twig.log = {
-        trace: function() {if (Twig.trace) {console.log(Array.prototype.slice.call(arguments));}},
-        debug: function() {if (Twig.debug) {console.log(Array.prototype.slice.call(arguments));}}
+        trace: function() {if (Twig.trace && console) {console.log(Array.prototype.slice.call(arguments));}},
+        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
     };
 
     /**
@@ -99,28 +103,25 @@ var Twig = (function (Twig) {
      * Token syntax definitions.
      */
     Twig.token.definitions = {
-        /**
-         * Output type tokens.
-         *  These typically take the form {{ expression }}.
-         */
+        // Output type tokens.
+        //
+        // These typically take the form `{{ expression }}`.
         output: {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
         },
-        /**
-         * Logic type tokens.
-         *  These typically take a form like {% if expression %} or {% endif %}
-         */
+        // Logic type tokens.
+        //
+        // These typically take a form like `{% if expression %}` or `{% endif %}`
         logic: {
             type: Twig.token.type.logic,
             open: '{%',
             close: '%}'
         },
-        /**
-         * Comment type tokens.
-         *  These take the form {# anything #}
-         */
+        // Comment type tokens.
+        //
+        // These take the form `{# anything #}`
         comment: {
             type: Twig.token.type.comment,
             open: '{#',
@@ -293,7 +294,6 @@ var Twig = (function (Twig) {
             intermediate_output = [],
             token = null,
             logic_token = null,
-            expression_token = null,
             unclosed_token = null,
             // Temporary previous token.
             prev_token = null,
@@ -384,8 +384,8 @@ var Twig = (function (Twig) {
                     }
                     break;
 
+                // Do nothing, comments should be ignored
                 case Twig.token.type.comment:
-                    // Do nothing, comments should be ignored
                     break;
 
                 case Twig.token.type.output:
@@ -402,6 +402,8 @@ var Twig = (function (Twig) {
                                              " Logic Stack: ", stack,
                                              " Pending Output: ", intermediate_output );
         }
+
+        // Verify that there are no logic tokens left in the stack.
         if (stack.length > 0) {
             unclosed_token = stack.pop();
             throw new Error("Unable to find an end tag for " + unclosed_token.type +
@@ -410,6 +412,14 @@ var Twig = (function (Twig) {
         return output;
     };
 
+    /**
+     * Parse a compiled template.
+     *
+     * @param {Array} tokens The compiled tokens.
+     * @param {Object} context The render context.
+     *
+     * @return {string} The parsed template.
+     */
     Twig.parse = function (tokens, context) {
         var output = [],
             // Track logic chains
@@ -454,13 +464,20 @@ var Twig = (function (Twig) {
         return output.join("");
     };
 
+    /**
+     * Tokenize and compile a string template.
+     *
+     * @param {string} data The template.
+     *
+     * @return {Array} The compiled tokens.
+     */
     Twig.prepare = function(data) {
         var tokens, raw_tokens;
 
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
-        raw_tokens = Twig.tokenize(data);
+        raw_tokens = Twig.tokenize.apply(this, [data]);
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
-        tokens = Twig.compile(raw_tokens);
+        tokens = Twig.compile.apply(this, [raw_tokens]);
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
 
         return tokens;
@@ -550,11 +567,13 @@ var Twig = (function (Twig) {
         return obj !== undefined && obj !== null && clas === type;
     }
 
-
     /**
      * Create a new twig.js template.
      *
      * Holds a set of compiled tokens ready to be rendered.
+     *
+     * @param {string|Array} data The template data, either pre-compiled tokens or a string template.
+     * @param {string} id An optional id to save the template with.
      */
     Twig.Template = function ( data, id ) {
         if (is('String', data)) {

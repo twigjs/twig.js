@@ -1,12 +1,11 @@
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
- /**
-  * This file handles expression tests.
-  */
+// ## twig.tests.js
+//
+// This file handles expression tests. (is empty, is not defined, etc...)
 var Twig = (function (Twig) {
     "use strict";
     Twig.tests = {

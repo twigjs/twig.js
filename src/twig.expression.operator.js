@@ -1,12 +1,11 @@
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
- /**
-  * This file handles operator lookups and parsing.
-  */
+// ## twig.expression.operator.js
+//
+// This file handles operator lookups and parsing.
 var Twig = (function (Twig) {
     "use strict";
 

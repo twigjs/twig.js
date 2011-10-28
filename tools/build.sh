@@ -17,18 +17,26 @@ else
         exit;
 fi
 
+cd $BASE
+
 # remove the file if it already exists
-if [ -f $BASE/$OUTPUT ]; then
-    rm $BASE/$OUTPUT
+if [ -f $OUTPUT ]; then
+    rm $OUTPUT
 fi
 
-touch $BASE/$OUTPUT
+touch $OUTPUT
 for file in $INPUT; do
     echo "Adding $file"
-    cat $BASE/src/$file >> $BASE/$OUTPUT
-    echo >> $BASE/$OUTPUT
+    cat src/$file >> $OUTPUT
+    echo >> $OUTPUT
 done
+
+# Generate annotated docs with docco
+echo "Generating annotated source"
+docco twig.js
 
 # Minimize with Google Closure Compiler
 echo "Minimizing"
-java -jar $BASE/tools/closure/compiler.jar --js $BASE/$OUTPUT --js_output_file=$BASE/$OUTPUT_MIN
+java -jar tools/closure/compiler.jar --js $OUTPUT --js_output_file=$OUTPUT_MIN
+
+

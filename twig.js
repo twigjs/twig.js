@@ -1,14 +1,14 @@
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
-
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
 /**
  * Create and compile a twig.js template.
  *
- * Returns a Twig.Template ready for rendering.
+ * @param {Object} param Paramteres for creating a Twig template.
+ *
+ * @return {Twig.Template} A Twig template ready for rendering.
  */
 var twig = function (params) {
     'use strict';
@@ -42,15 +42,17 @@ var twig = function (params) {
  */
 twig.compile = function(markup, options) {
     var id = options.filename,
-        tokens = Twig.prepare(markup),
         // Try to load the template from the cache
-        template = Twig.Templates.load(id) || new Twig.Template( tokens, id );
+        template = Twig.Templates.load(id) || new Twig.Template( markup, id );
 
     return function(context) {
         return template.render(context);
     };
 };
 
+// ## twig.core.js
+//
+// This file handles template level tokenizing, compiling and parsing.
 var Twig = (function (Twig) {
     "use strict";
 
@@ -62,8 +64,10 @@ var Twig = (function (Twig) {
      */
     Twig.Error = function(message) {
        this.message = message;
-       this.name = "Twig.Exception";
+       this.name = "TwigException";
+       this.type = "TwigException";
     };
+
     /**
      * Get the string representation of a Twig error.
      */
@@ -75,8 +79,8 @@ var Twig = (function (Twig) {
      * Wrapper for logging to the console.
      */
     Twig.log = {
-        trace: function() {if (Twig.trace) {console.log(Array.prototype.slice.call(arguments));}},
-        debug: function() {if (Twig.debug) {console.log(Array.prototype.slice.call(arguments));}}
+        trace: function() {if (Twig.trace && console) {console.log(Array.prototype.slice.call(arguments));}},
+        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
     };
 
     /**
@@ -99,28 +103,25 @@ var Twig = (function (Twig) {
      * Token syntax definitions.
      */
     Twig.token.definitions = {
-        /**
-         * Output type tokens.
-         *  These typically take the form {{ expression }}.
-         */
+        // Output type tokens.
+        //
+        // These typically take the form `{{ expression }}`.
         output: {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
         },
-        /**
-         * Logic type tokens.
-         *  These typically take a form like {% if expression %} or {% endif %}
-         */
+        // Logic type tokens.
+        //
+        // These typically take a form like `{% if expression %}` or `{% endif %}`
         logic: {
             type: Twig.token.type.logic,
             open: '{%',
             close: '%}'
         },
-        /**
-         * Comment type tokens.
-         *  These take the form {# anything #}
-         */
+        // Comment type tokens.
+        //
+        // These take the form `{# anything #}`
         comment: {
             type: Twig.token.type.comment,
             open: '{#',
@@ -293,7 +294,6 @@ var Twig = (function (Twig) {
             intermediate_output = [],
             token = null,
             logic_token = null,
-            expression_token = null,
             unclosed_token = null,
             // Temporary previous token.
             prev_token = null,
@@ -384,8 +384,8 @@ var Twig = (function (Twig) {
                     }
                     break;
 
+                // Do nothing, comments should be ignored
                 case Twig.token.type.comment:
-                    // Do nothing, comments should be ignored
                     break;
 
                 case Twig.token.type.output:
@@ -402,6 +402,8 @@ var Twig = (function (Twig) {
                                              " Logic Stack: ", stack,
                                              " Pending Output: ", intermediate_output );
         }
+
+        // Verify that there are no logic tokens left in the stack.
         if (stack.length > 0) {
             unclosed_token = stack.pop();
             throw new Error("Unable to find an end tag for " + unclosed_token.type +
@@ -410,6 +412,14 @@ var Twig = (function (Twig) {
         return output;
     };
 
+    /**
+     * Parse a compiled template.
+     *
+     * @param {Array} tokens The compiled tokens.
+     * @param {Object} context The render context.
+     *
+     * @return {string} The parsed template.
+     */
     Twig.parse = function (tokens, context) {
         var output = [],
             // Track logic chains
@@ -454,13 +464,20 @@ var Twig = (function (Twig) {
         return output.join("");
     };
 
+    /**
+     * Tokenize and compile a string template.
+     *
+     * @param {string} data The template.
+     *
+     * @return {Array} The compiled tokens.
+     */
     Twig.prepare = function(data) {
         var tokens, raw_tokens;
 
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
-        raw_tokens = Twig.tokenize(data);
+        raw_tokens = Twig.tokenize.apply(this, [data]);
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
-        tokens = Twig.compile(raw_tokens);
+        tokens = Twig.compile.apply(this, [raw_tokens]);
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
 
         return tokens;
@@ -550,11 +567,13 @@ var Twig = (function (Twig) {
         return obj !== undefined && obj !== null && clas === type;
     }
 
-
     /**
      * Create a new twig.js template.
      *
      * Holds a set of compiled tokens ready to be rendered.
+     *
+     * @param {string|Array} data The template data, either pre-compiled tokens or a string template.
+     * @param {string} id An optional id to save the template with.
      */
     Twig.Template = function ( data, id ) {
         if (is('String', data)) {
@@ -576,17 +595,18 @@ var Twig = (function (Twig) {
 }) (Twig || { });
 
 
-/**
- * The following methods are from MDN and are available under a
- * Creative Commons Attribution-ShareAlike 2.5 License.
- *     http://creativecommons.org/licenses/by-sa/2.5/
- *
- * See:
- * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
- * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach
- * https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
- */
+// The following methods are from MDN and are available under a
+// [Creative Commons Attribution-ShareAlike 2.5 License.](http://creativecommons.org/licenses/by-sa/2.5/)
+//
+// See:
+//
+// * [Array.indexOf - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf)
+// * [Array.forEach - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach)
+// * [Object.keys - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
 
+// ## twig.fills.js
+//
+// This file contains fills for backwards compatability.
 (function() {
     "use strict";
     // Handle methods that don't yet exist in every browser
@@ -691,15 +711,14 @@ var Twig = (function (Twig) {
     }
 })();
 
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
-/**
- * This file handles tokenizing, compiling and parsing logic (tags).
- */
+// ## twig.logic.js
+//
+// This file handles tokenizing, compiling and parsing logic tokens. {% ... %}
 var Twig = (function (Twig) {
     "use strict";
 
@@ -712,38 +731,37 @@ var Twig = (function (Twig) {
      * Logic token types.
      */
     Twig.logic.type = {
-        if_:    'if',
-        endif:  'endif',
-        for_:   'for',
-        endfor: 'endfor',
-        else_:  'else',
-        elseif: 'elseif',
-        set:    'set'
+        if_:    'Twig.logic.type.if',
+        endif:  'Twig.logic.type.endif',
+        for_:   'Twig.logic.type.for',
+        endfor: 'Twig.logic.type.endfor',
+        else_:  'Twig.logic.type.else',
+        elseif: 'Twig.logic.type.elseif',
+        set:    'Twig.logic.type.set'
     };
 
-    /**
-     * Regular expressions to match templates to.
-     *
-     * Properties:
-     *
-     *      type:  The type of expression this matches
-     *
-     *      regex: A regular expression that matches the format of the token
-     *
-     *      next:  What logic tokens (if any) pop this token off the logic stack. If empty, the
-     *             logic token is assumed to not require an end tag and isn't push onto the stack.
-     *
-     *      open:  Does this tag open a logic expression or is it standalone. For example,
-     *             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
-     *
-     *  Functions:
-     *
-     *      compile: A function that handles compiling the token into an output token ready for
-     *               parsing with the parse function.
-     *
-     *      parse:   A function that parses the compiled token into output (HTML / whatever the
-     *               template represents).
-     */
+
+    // Regular expressions for handling logic tokens.
+    //
+    // Properties:
+    //
+    //      type:  The type of expression this matches
+    //
+    //      regex: A regular expression that matches the format of the token
+    //
+    //      next:  What logic tokens (if any) pop this token off the logic stack. If empty, the
+    //             logic token is assumed to not require an end tag and isn't push onto the stack.
+    //
+    //      open:  Does this tag open a logic expression or is it standalone. For example,
+    //             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
+    //
+    //  Functions:
+    //
+    //      compile: A function that handles compiling the token into an output token ready for
+    //               parsing with the parse function.
+    //
+    //      parse:   A function that parses the compiled token into output (HTML / whatever the
+    //               template represents).
     Twig.logic.definitions = [
         {
             /**
@@ -1163,15 +1181,14 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
- /**
-  * This file handles tokenizing, compiling and parsing expression.
-  */
+// ## twig.expression.js
+//
+// This file handles tokenizing, compiling and parsing expressions.
 var Twig = (function (Twig) {
     "use strict";
 
@@ -1884,15 +1901,14 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
- /**
-  * This file handles operator lookups and parsing.
-  */
+// ## twig.expression.operator.js
+//
+// This file handles operator lookups and parsing.
 var Twig = (function (Twig) {
     "use strict";
 
@@ -2076,15 +2092,14 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
-/**
- * This file handles parsing filters.
- */
+// ## twig.filters.js
+//
+// This file handles parsing filters.
 var Twig = (function (Twig) {
     Twig.filters = {
         // String Filters
@@ -2288,15 +2303,14 @@ var Twig = (function (Twig) {
     return Twig;
 })(Twig || { });
 
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
- /**
-  * This file handles expression tests.
-  */
+// ## twig.tests.js
+//
+// This file handles expression tests. (is empty, is not defined, etc...)
 var Twig = (function (Twig) {
     "use strict";
     Twig.tests = {
@@ -2340,13 +2354,14 @@ var Twig = (function (Twig) {
     return Twig;
 })( Twig || { } );
 
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
-// Provide a CommonJS module export.
+// ## twig.module.js
+//
+// Provide a module export.
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = twig;
 } else {

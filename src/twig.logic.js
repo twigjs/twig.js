@@ -1,12 +1,11 @@
-/**
- * Twig.js v0.3
- * Copyright (c) 2011 John Roepke
- * Available under the BSD 2-Clause License
- */
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
 
-/**
- * This file handles tokenizing, compiling and parsing logic (tags).
- */
+// ## twig.logic.js
+//
+// This file handles tokenizing, compiling and parsing logic tokens. {% ... %}
 var Twig = (function (Twig) {
     "use strict";
 
@@ -19,38 +18,37 @@ var Twig = (function (Twig) {
      * Logic token types.
      */
     Twig.logic.type = {
-        if_:    'if',
-        endif:  'endif',
-        for_:   'for',
-        endfor: 'endfor',
-        else_:  'else',
-        elseif: 'elseif',
-        set:    'set'
+        if_:    'Twig.logic.type.if',
+        endif:  'Twig.logic.type.endif',
+        for_:   'Twig.logic.type.for',
+        endfor: 'Twig.logic.type.endfor',
+        else_:  'Twig.logic.type.else',
+        elseif: 'Twig.logic.type.elseif',
+        set:    'Twig.logic.type.set'
     };
 
-    /**
-     * Regular expressions to match templates to.
-     *
-     * Properties:
-     *
-     *      type:  The type of expression this matches
-     *
-     *      regex: A regular expression that matches the format of the token
-     *
-     *      next:  What logic tokens (if any) pop this token off the logic stack. If empty, the
-     *             logic token is assumed to not require an end tag and isn't push onto the stack.
-     *
-     *      open:  Does this tag open a logic expression or is it standalone. For example,
-     *             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
-     *
-     *  Functions:
-     *
-     *      compile: A function that handles compiling the token into an output token ready for
-     *               parsing with the parse function.
-     *
-     *      parse:   A function that parses the compiled token into output (HTML / whatever the
-     *               template represents).
-     */
+
+    // Regular expressions for handling logic tokens.
+    //
+    // Properties:
+    //
+    //      type:  The type of expression this matches
+    //
+    //      regex: A regular expression that matches the format of the token
+    //
+    //      next:  What logic tokens (if any) pop this token off the logic stack. If empty, the
+    //             logic token is assumed to not require an end tag and isn't push onto the stack.
+    //
+    //      open:  Does this tag open a logic expression or is it standalone. For example,
+    //             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
+    //
+    //  Functions:
+    //
+    //      compile: A function that handles compiling the token into an output token ready for
+    //               parsing with the parse function.
+    //
+    //      parse:   A function that parses the compiled token into output (HTML / whatever the
+    //               template represents).
     Twig.logic.definitions = [
         {
             /**
