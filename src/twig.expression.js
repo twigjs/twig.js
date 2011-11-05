@@ -712,6 +712,8 @@ var Twig = (function (Twig) {
      *                  the given expression.
      */
     Twig.expression.parse = function (tokens, context) {
+        var that = this;
+
         // If the token isn't an array, make it one.
         if (!(tokens instanceof Array)) {
             tokens = [tokens];
@@ -724,7 +726,7 @@ var Twig = (function (Twig) {
         tokens.forEach(function (token) {
             token_template = Twig.expression.handler[token.type];
 
-            token_template.parse && token_template.parse.apply(this, [token, stack, context]);
+            token_template.parse && token_template.parse.apply(that, [token, stack, context]);
         });
 
         // Pop the final value off the stack

@@ -18,15 +18,18 @@ var Twig = (function (Twig) {
      * Logic token types.
      */
     Twig.logic.type = {
-        if_:    'Twig.logic.type.if',
-        endif:  'Twig.logic.type.endif',
-        for_:   'Twig.logic.type.for',
-        endfor: 'Twig.logic.type.endfor',
-        else_:  'Twig.logic.type.else',
-        elseif: 'Twig.logic.type.elseif',
-        set:    'Twig.logic.type.set',
-        filter:   'Twig.logic.type.filter',
-        endfilter: 'Twig.logic.type.endfilter'
+        if_:       'Twig.logic.type.if',
+        endif:     'Twig.logic.type.endif',
+        for_:      'Twig.logic.type.for',
+        endfor:    'Twig.logic.type.endfor',
+        else_:     'Twig.logic.type.else',
+        elseif:    'Twig.logic.type.elseif',
+        set:       'Twig.logic.type.set',
+        filter:    'Twig.logic.type.filter',
+        endfilter: 'Twig.logic.type.endfilter',
+        block:     'Twig.logic.type.block',
+        endblock:  'Twig.logic.type.endblock',
+        extends_:     'Twig.logic.type.extends'
     };
 
 
@@ -356,6 +359,93 @@ var Twig = (function (Twig) {
             regex: /^endfilter$/,
             next: [ ],
             open: false
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% block title %}
+             */
+            type: Twig.logic.type.block,
+            regex: /^block\s+([a-zA-Z0-9_]+)$/,
+            next: [
+                Twig.logic.type.endblock
+            ],
+            open: true,
+            compile: function (token) {
+                token.block = token.match[1].trim();
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var block_output = "",
+                    output = "";
+
+                // Don't ovverride previous blocks
+                if (this.blocks[token.block] === undefined) {
+                    block_output = Twig.expression.parse.apply(this, [{
+                        type: Twig.expression.type.string,
+                        value: Twig.parse.apply(this, [token.output, context])
+                    }, context]);
+
+                    this.blocks[token.block] = block_output;
+                }
+
+                // This is the base template -> append to output
+                if ( this.extend === null ) {
+                    output = this.blocks[token.block];
+                }
+
+                return {
+                    chain: chain,
+                    output: output
+                };
+            }
+        },
+        {
+            /**
+             * End filter logic tokens.
+             *
+             *  Format: {% endfilter %}
+             */
+            type: Twig.logic.type.endblock,
+            regex: /^endblock$/,
+            next: [ ],
+            open: false
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% extends "template.twig" %}
+             */
+            type: Twig.logic.type.extends_,
+            regex: /^extends\s+(.+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim();
+                delete token.match;
+
+                token.stack   = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                // Resolve filename
+                var file = Twig.expression.parse.apply(this, [token.stack, context]);
+
+                // Set parent template
+                this.extend = file;
+
+                return {
+                    chain: chain,
+                    output: ''
+                };
+            }
         }
     ];
 
@@ -419,12 +509,12 @@ var Twig = (function (Twig) {
      */
     Twig.logic.compile = function (raw_token) {
         var expression = raw_token.value.trim(),
-            token = Twig.logic.tokenize(expression),
+            token = Twig.logic.tokenize.apply(this, [expression]),
             token_template = Twig.logic.handler[token.type];
 
         // Check if the token needs compiling
         if (token_template.compile) {
-            token = token_template.compile(token);
+            token = token_template.compile.apply(this, [token]);
             Twig.log.trace("Twig.logic.compile: ", "Compiled logic token to ", token);
         }
 
@@ -515,7 +605,7 @@ var Twig = (function (Twig) {
         token_template = Twig.logic.handler[token.type];
 
         if (token_template.parse) {
-            output = token_template.parse(token, context, chain);
+            output = token_template.parse.apply(this, [token, context, chain]);
         }
         return output;
     };

@@ -10,7 +10,7 @@
  *
  * @return {Twig.Template} A Twig template ready for rendering.
  */
-var twig = function (params) {
+var twig = function twig(params) {
     'use strict';
     var id = params.id;
 
@@ -19,7 +19,10 @@ var twig = function (params) {
     }
 
     if (params.data !== undefined) {
-        return new Twig.Template( params.data, id );
+        return new Twig.Template({
+            data: params.data,
+            id:   id
+        });
 
     } else if (params.ref !== undefined) {
         if (params.id !== undefined) {
@@ -28,7 +31,11 @@ var twig = function (params) {
         return Twig.Templates.load(params.ref);
 
     } else if (params.href !== undefined) {
-        return Twig.Templates.loadRemote(params.href, id, params.load, params.async, params.precompiled);
+        return Twig.Templates.loadRemote(params.href, {
+            id: id,
+            precompiled: params.precompiled
+
+        }, params.async, params.load);
     }
 };
 
@@ -59,7 +66,10 @@ twig.extendTag = function(definition) {
 twig.compile = function(markup, options) {
     var id = options.filename,
         // Try to load the template from the cache
-        template = Twig.Templates.load(id) || new Twig.Template( markup, id );
+        template = new Twig.Template({
+            data: markup,
+            id: id
+        }); // Twig.Templates.load(id) ||
 
     return function(context) {
         return template.render(context);
@@ -119,7 +129,7 @@ var Twig = (function (Twig) {
      * Token syntax definitions.
      */
     Twig.token.definitions = {
-        // Output type tokens.
+        // *Output type tokens*
         //
         // These typically take the form `{{ expression }}`.
         output: {
@@ -127,7 +137,7 @@ var Twig = (function (Twig) {
             open: '{{',
             close: '}}'
         },
-        // Logic type tokens.
+        // *Logic type tokens*
         //
         // These typically take a form like `{% if expression %}` or `{% endif %}`
         logic: {
@@ -135,7 +145,7 @@ var Twig = (function (Twig) {
             open: '{%',
             close: '%}'
         },
-        // Comment type tokens.
+        // *Comment type tokens*
         //
         // These take the form `{# anything #}`
         comment: {
@@ -325,6 +335,7 @@ var Twig = (function (Twig) {
 
         while (tokens.length > 0) {
             token = tokens.shift();
+            Twig.log.trace("Compiling token ", token);
             switch (token.type) {
                 case Twig.token.type.raw:
                     if (stack.length > 0) {
@@ -439,7 +450,8 @@ var Twig = (function (Twig) {
     Twig.parse = function (tokens, context) {
         var output = [],
             // Track logic chains
-            chain = true;
+            chain = true,
+            that = this;
 
         // Default to an empty object if none provided
         context = context || { };
@@ -454,7 +466,7 @@ var Twig = (function (Twig) {
 
                 case Twig.token.type.logic:
                     var logic_token = token.token,
-                        logic = Twig.logic.parse.apply(this, [logic_token, context, chain]);
+                        logic = Twig.logic.parse.apply(that, [logic_token, context, chain]);
 
                     if (logic.chain !== undefined) {
                         chain = logic.chain;
@@ -473,7 +485,7 @@ var Twig = (function (Twig) {
 
                 case Twig.token.type.output:
                     // Parse the given expression in the given context
-                    output.push(Twig.expression.parse.apply(this, [token.stack, context]));
+                    output.push(Twig.expression.parse.apply(that, [token.stack, context]));
                     break;
             }
         });
@@ -490,10 +502,14 @@ var Twig = (function (Twig) {
     Twig.prepare = function(data) {
         var tokens, raw_tokens;
 
+        // Tokenize
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
         raw_tokens = Twig.tokenize.apply(this, [data]);
+
+        // Compile
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
         tokens = Twig.compile.apply(this, [raw_tokens]);
+
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
 
         return tokens;
@@ -534,20 +550,26 @@ var Twig = (function (Twig) {
      * Load a template from a remote location using AJAX and saves in with the given ID.
      *
      * @param {string} url  The remote URL to load as a template.
-     * @param {string} id   The ID to save the template with.
+     * @param {Object} params The template parameters.
      * @param {function} callback  A callback triggered when the template finishes loading.
      * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
-     * @param {boolean} precompiled  Has the requested template already been compiled.
+     *
      *
      */
-    Twig.Templates.loadRemote = function(url, id, callback, async, precompiled) {
+    Twig.Templates.loadRemote = function(url, params, async, callback) {
+        var id          = params.id,
+            blocks      = params.blocks,
+            precompiled = params.precompiled,
+            template    = null;
+
         // Default to the URL so the template is cached.
         if (id === undefined) {
             id = url;
         }
         // Check for existing template
         if (Twig.Templates.registry.hasOwnProperty(id)) {
-            return Twig.Templates.registry[id];
+            // A template is already saved with the given id.
+            return Twig.Templates.registry.hasOwnProperty(id);
         }
         if (typeof XMLHttpRequest == "undefined") {
             throw new Error("Unsupported platform: Unable to do remote requests " +
@@ -556,18 +578,26 @@ var Twig = (function (Twig) {
 
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
-            var tokens = null,
-                template = null;
+            var tokens = null;
 
             if(xmlhttp.readyState == 4) {
                 Twig.log.debug("Got template ", xmlhttp.responseText);
                 // Get the template
                 if (precompiled === true) {
                     tokens = JSON.parse(xmlhttp.responseText);
+                    template = new Twig.Template({
+                        data: tokens,
+                        blocks: blocks,
+                        id:   id
+                    });
                 } else {
-                    tokens = Twig.prepare(xmlhttp.responseText);
+                    template = new Twig.Template({
+                        data: xmlhttp.responseText,
+                        blocks: blocks,
+                        id: id
+                    });
+                    template.url = url;
                 }
-                template = new Twig.Template(tokens, id);
                 if (callback) {
                     callback(template);
                 }
@@ -575,6 +605,10 @@ var Twig = (function (Twig) {
         };
         xmlhttp.open("GET", url, async === true);
         xmlhttp.send();
+
+        if (async === false) {
+            return template;
+        }
     };
 
     // Determine object type
@@ -586,25 +620,102 @@ var Twig = (function (Twig) {
     /**
      * Create a new twig.js template.
      *
-     * Holds a set of compiled tokens ready to be rendered.
+     * Parameters: {
+     *      data:   The template, either pre-compiled tokens or a string template
+     *      id:     The name of this template
+     *      blocks: Any pre-existing block from a child template
+     * }
      *
-     * @param {string|Array} data The template data, either pre-compiled tokens or a string template.
-     * @param {string} id An optional id to save the template with.
+     * @param {Object} params The template parameters.
      */
-    Twig.Template = function ( data, id ) {
+    Twig.Template = function ( params ) {
+        var data = params.data,
+            id = params.id,
+            blocks = params.blocks,
+            url;
+
+        // # What is stored in a Twig.Template
+        //
+        // The Twig Template hold several chucks of data.
+        //
+        //     {
+        //          id:     The token ID (if any)
+        //          tokens: The list of tokens that makes up this template.
+        //          blocks: The list of block this template contains.
+        //          base:   The base template (if any)
+        //     }
+        //
+
+        this.id     = id;
+        this.blocks = blocks || {};
+        this.extend   = null;
+
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
         } else {
             this.tokens = data;
         }
-        this.id = id;
+
         this.render = function (context) {
-            return Twig.parse.apply(this, [this.tokens, context]);
+            var output = Twig.parse.apply(this, [this.tokens, context]);
+
+            console.log(this);
+
+            // Does this template extend another
+            if (this.extend) {
+                url = relativePath(this.url, this.extend);
+                console.log("Loading ", url);
+                // This template extends another, load it with this template's blocks
+                this.parent = Twig.Templates.loadRemote(url, {
+                    id:     url,
+                    blocks: this.blocks
+                }, false)
+
+                // Pass the parsed blocks to the parent.
+                this.parent.blocks = this.blocks;
+
+                return this.parent.render(context);
+            }
+
+            return output
         };
+
         if (id !== undefined) {
             Twig.Templates.save(this);
         }
     };
+
+    /**
+     * Generate the relative canonical version of a url based on the given base path and file path.
+     *
+     * @param {string} base The base path.
+     * @param {string} file The file path, relative to the base path.
+     *
+     * @return {string} The canonical version of the path.
+     */
+    function relativePath(base, file) {
+        var sep_chr = '/',
+            base_path = base.split(sep_chr),
+            new_path = [],
+            val;
+
+        // Remove file from url
+        base_path.pop();
+        base_path = base_path.concat(file.split(sep_chr));
+
+        while (base_path.length > 0) {
+            val = base_path.shift();
+            if (val == ".") {
+                // Ignore
+            } else if (val == ".." && new_path.length > 0 && new_path[new_path.length-1] != "..") {
+                new_path.pop();
+            } else {
+                new_path.push(val);
+            }
+        }
+
+        return new_path.join(sep_chr);
+    }
 
     return Twig;
 
@@ -747,15 +858,18 @@ var Twig = (function (Twig) {
      * Logic token types.
      */
     Twig.logic.type = {
-        if_:    'Twig.logic.type.if',
-        endif:  'Twig.logic.type.endif',
-        for_:   'Twig.logic.type.for',
-        endfor: 'Twig.logic.type.endfor',
-        else_:  'Twig.logic.type.else',
-        elseif: 'Twig.logic.type.elseif',
-        set:    'Twig.logic.type.set',
-        filter:   'Twig.logic.type.filter',
-        endfilter: 'Twig.logic.type.endfilter'
+        if_:       'Twig.logic.type.if',
+        endif:     'Twig.logic.type.endif',
+        for_:      'Twig.logic.type.for',
+        endfor:    'Twig.logic.type.endfor',
+        else_:     'Twig.logic.type.else',
+        elseif:    'Twig.logic.type.elseif',
+        set:       'Twig.logic.type.set',
+        filter:    'Twig.logic.type.filter',
+        endfilter: 'Twig.logic.type.endfilter',
+        block:     'Twig.logic.type.block',
+        endblock:  'Twig.logic.type.endblock',
+        extends_:     'Twig.logic.type.extends'
     };
 
 
@@ -1085,6 +1199,93 @@ var Twig = (function (Twig) {
             regex: /^endfilter$/,
             next: [ ],
             open: false
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% block title %}
+             */
+            type: Twig.logic.type.block,
+            regex: /^block\s+([a-zA-Z0-9_]+)$/,
+            next: [
+                Twig.logic.type.endblock
+            ],
+            open: true,
+            compile: function (token) {
+                token.block = token.match[1].trim();
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var block_output = "",
+                    output = "";
+
+                // Don't ovverride previous blocks
+                if (this.blocks[token.block] === undefined) {
+                    block_output = Twig.expression.parse.apply(this, [{
+                        type: Twig.expression.type.string,
+                        value: Twig.parse.apply(this, [token.output, context])
+                    }, context]);
+
+                    this.blocks[token.block] = block_output;
+                }
+
+                // This is the base template -> append to output
+                if ( this.extend === null ) {
+                    output = this.blocks[token.block];
+                }
+
+                return {
+                    chain: chain,
+                    output: output
+                };
+            }
+        },
+        {
+            /**
+             * End filter logic tokens.
+             *
+             *  Format: {% endfilter %}
+             */
+            type: Twig.logic.type.endblock,
+            regex: /^endblock$/,
+            next: [ ],
+            open: false
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% extends "template.twig" %}
+             */
+            type: Twig.logic.type.extends_,
+            regex: /^extends\s+(.+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim();
+                delete token.match;
+
+                token.stack   = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                // Resolve filename
+                var file = Twig.expression.parse.apply(this, [token.stack, context]);
+
+                // Set parent template
+                this.extend = file;
+
+                return {
+                    chain: chain,
+                    output: ''
+                };
+            }
         }
     ];
 
@@ -1148,12 +1349,12 @@ var Twig = (function (Twig) {
      */
     Twig.logic.compile = function (raw_token) {
         var expression = raw_token.value.trim(),
-            token = Twig.logic.tokenize(expression),
+            token = Twig.logic.tokenize.apply(this, [expression]),
             token_template = Twig.logic.handler[token.type];
 
         // Check if the token needs compiling
         if (token_template.compile) {
-            token = token_template.compile(token);
+            token = token_template.compile.apply(this, [token]);
             Twig.log.trace("Twig.logic.compile: ", "Compiled logic token to ", token);
         }
 
@@ -1244,7 +1445,7 @@ var Twig = (function (Twig) {
         token_template = Twig.logic.handler[token.type];
 
         if (token_template.parse) {
-            output = token_template.parse(token, context, chain);
+            output = token_template.parse.apply(this, [token, context, chain]);
         }
         return output;
     };
@@ -1967,6 +2168,8 @@ var Twig = (function (Twig) {
      *                  the given expression.
      */
     Twig.expression.parse = function (tokens, context) {
+        var that = this;
+
         // If the token isn't an array, make it one.
         if (!(tokens instanceof Array)) {
             tokens = [tokens];
@@ -1979,7 +2182,7 @@ var Twig = (function (Twig) {
         tokens.forEach(function (token) {
             token_template = Twig.expression.handler[token.type];
 
-            token_template.parse && token_template.parse.apply(this, [token, stack, context]);
+            token_template.parse && token_template.parse.apply(that, [token, stack, context]);
         });
 
         // Pop the final value off the stack
