@@ -659,12 +659,9 @@ var Twig = (function (Twig) {
         this.render = function (context) {
             var output = Twig.parse.apply(this, [this.tokens, context]);
 
-            console.log(this);
-
             // Does this template extend another
             if (this.extend) {
                 url = relativePath(this.url, this.extend);
-                console.log("Loading ", url);
                 // This template extends another, load it with this template's blocks
                 this.parent = Twig.Templates.loadRemote(url, {
                     id:     url,
