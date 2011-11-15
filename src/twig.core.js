@@ -648,7 +648,7 @@ var Twig = (function (Twig) {
 
         this.id     = id;
         this.blocks = blocks || {};
-        this.extend   = null;
+        this.extend = null;
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
@@ -657,7 +657,29 @@ var Twig = (function (Twig) {
         }
 
         this.render = function (context) {
-            var output = Twig.parse.apply(this, [this.tokens, context]);
+            var that = this,
+                output;
+
+            this.importBlocks = function(file, override) {
+                var url = relativePath(this.url, file),
+                    // Load blocks from an external file
+                    sub_template = Twig.Templates.loadRemote(url, {
+                        id: url
+                    }, false),
+                    key;
+
+                override = override || false;
+
+                sub_template.render(context);
+                // Mixin blocks
+                Object.keys(sub_template.blocks).forEach(function(key) {
+                    if (override || that.blocks[key] === undefined) {
+                        that.blocks[key] = sub_template.blocks[key];
+                    }
+                });
+            };
+
+            output = Twig.parse.apply(this, [this.tokens, context]);
 
             // Does this template extend another
             if (this.extend) {

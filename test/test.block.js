@@ -27,3 +27,17 @@ twig({
         });
     }
 });
+
+// Test horizontal reuse
+twig({
+    id:   'use',
+    href: 'templates/use.twig',
+    async: true,
+
+    load: function(template) {
+        test("use", function() {
+            // Load the template
+            equal( template.render({ place: "diner" }), "Coming soon to a diner near you!" );
+        });
+    }
+});

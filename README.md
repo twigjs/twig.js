@@ -12,6 +12,7 @@ Documentation is available in the [twig.js wiki](https://github.com/justjohn/twi
 
 Supported tags:
 
+* extends / use / block (with browser based ajax loading)
 * if / elseif / else / endif
 * for / else / endfor
 * set

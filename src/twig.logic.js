@@ -29,7 +29,8 @@ var Twig = (function (Twig) {
         endfilter: 'Twig.logic.type.endfilter',
         block:     'Twig.logic.type.block',
         endblock:  'Twig.logic.type.endblock',
-        extends_:     'Twig.logic.type.extends'
+        extends_:  'Twig.logic.type.extends',
+        use:       'Twig.logic.type.use'
     };
 
 
@@ -440,6 +441,40 @@ var Twig = (function (Twig) {
 
                 // Set parent template
                 this.extend = file;
+
+                return {
+                    chain: chain,
+                    output: ''
+                };
+            }
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% extends "template.twig" %}
+             */
+            type: Twig.logic.type.use,
+            regex: /^use\s+(.+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim();
+                delete token.match;
+
+                token.stack   = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                // Resolve filename
+                var file = Twig.expression.parse.apply(this, [token.stack, context]);
+
+                // Import blocks
+                this.importBlocks(file);
 
                 return {
                     chain: chain,
