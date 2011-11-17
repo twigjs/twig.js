@@ -41,3 +41,21 @@ twig({
         });
     }
 });
+
+// Test rendering and loading one block
+twig({
+    id:   'blocks',
+    href: 'templates/blocks.twig',
+    async: true,
+    
+    // Set output of template to blocks
+    output: 'blocks',
+
+    load: function(template) {
+        test("blocks", function() {
+            // Load the template with the blocks parameter
+            equal( template.render({ place: "block" }).msg, "Coming soon to a block near you!" );
+        });
+    }
+});
+

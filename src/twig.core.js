@@ -632,6 +632,7 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
+            outputType = params.output,
             url;
 
         // # What is stored in a Twig.Template
@@ -656,12 +657,12 @@ var Twig = (function (Twig) {
             this.tokens = data;
         }
 
-        this.render = function (context) {
+        this.render = function (context, params) {
             var that = this,
                 output;
 
             this.importBlocks = function(file, override) {
-                var url = relativePath(this.url, file),
+                var url = relativePath(that.url, file),
                     // Load blocks from an external file
                     sub_template = Twig.Templates.loadRemote(url, {
                         id: url
@@ -688,7 +689,7 @@ var Twig = (function (Twig) {
                 this.parent = Twig.Templates.loadRemote(url, {
                     id:     url,
                     blocks: this.blocks
-                }, false)
+                }, false);
 
                 // Pass the parsed blocks to the parent.
                 this.parent.blocks = this.blocks;
@@ -696,7 +697,11 @@ var Twig = (function (Twig) {
                 return this.parent.render(context);
             }
 
-            return output
+            if (outputType == 'blocks') {
+                return this.blocks;
+            } else {
+                return output;
+            }
         };
 
         if (id !== undefined) {
