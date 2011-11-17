@@ -632,7 +632,6 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
-            outputType = params.output,
             url;
 
         // # What is stored in a Twig.Template
@@ -659,7 +658,9 @@ var Twig = (function (Twig) {
 
         this.render = function (context, params) {
             var that = this,
-                output;
+                output,
+                // Should the output be an object with the blocks
+                blocks = params && params.output == 'blocks';
 
             this.importBlocks = function(file, override) {
                 var url = relativePath(that.url, file),
@@ -689,7 +690,7 @@ var Twig = (function (Twig) {
                 this.parent = Twig.Templates.loadRemote(url, {
                     id:     url,
                     blocks: this.blocks
-                }, false);
+                }, false)
 
                 // Pass the parsed blocks to the parent.
                 this.parent.blocks = this.blocks;
@@ -697,7 +698,7 @@ var Twig = (function (Twig) {
                 return this.parent.render(context);
             }
 
-            if (outputType == 'blocks') {
+            if (blocks === true) {
                 return this.blocks;
             } else {
                 return output;
