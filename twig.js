@@ -648,7 +648,7 @@ var Twig = (function (Twig) {
 
         this.id     = id;
         this.blocks = blocks || {};
-        this.extend   = null;
+        this.extend = null;
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
@@ -656,8 +656,32 @@ var Twig = (function (Twig) {
             this.tokens = data;
         }
 
-        this.render = function (context) {
-            var output = Twig.parse.apply(this, [this.tokens, context]);
+        this.render = function (context, params) {
+            var that = this,
+                output,
+                // Should the output be an object with the blocks
+                blocks = params && params.output == 'blocks';
+
+            this.importBlocks = function(file, override) {
+                var url = relativePath(that.url, file),
+                    // Load blocks from an external file
+                    sub_template = Twig.Templates.loadRemote(url, {
+                        id: url
+                    }, false),
+                    key;
+
+                override = override || false;
+
+                sub_template.render(context);
+                // Mixin blocks
+                Object.keys(sub_template.blocks).forEach(function(key) {
+                    if (override || that.blocks[key] === undefined) {
+                        that.blocks[key] = sub_template.blocks[key];
+                    }
+                });
+            };
+
+            output = Twig.parse.apply(this, [this.tokens, context]);
 
             // Does this template extend another
             if (this.extend) {
@@ -674,7 +698,11 @@ var Twig = (function (Twig) {
                 return this.parent.render(context);
             }
 
-            return output
+            if (blocks === true) {
+                return this.blocks;
+            } else {
+                return output;
+            }
         };
 
         if (id !== undefined) {
@@ -866,7 +894,8 @@ var Twig = (function (Twig) {
         endfilter: 'Twig.logic.type.endfilter',
         block:     'Twig.logic.type.block',
         endblock:  'Twig.logic.type.endblock',
-        extends_:     'Twig.logic.type.extends'
+        extends_:  'Twig.logic.type.extends',
+        use:       'Twig.logic.type.use'
     };
 
 
@@ -1277,6 +1306,40 @@ var Twig = (function (Twig) {
 
                 // Set parent template
                 this.extend = file;
+
+                return {
+                    chain: chain,
+                    output: ''
+                };
+            }
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% extends "template.twig" %}
+             */
+            type: Twig.logic.type.use,
+            regex: /^use\s+(.+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim();
+                delete token.match;
+
+                token.stack   = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                // Resolve filename
+                var file = Twig.expression.parse.apply(this, [token.stack, context]);
+
+                // Import blocks
+                this.importBlocks(file);
 
                 return {
                     chain: chain,
