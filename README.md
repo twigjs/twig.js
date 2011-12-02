@@ -79,6 +79,10 @@ console.log(
 // outputs: "The cupcake is a lie."
 ```
 
+# Tests
+
+There are two sets of tests available for Twig.js. The node tests are written in [Mocha][mocha] and can be invoked with `make test`. There are also browser tests written in [QUnit][qunit] that are in the `qtests` directory. These will eventually be replaced with the Mocha tests, but for now are still the best way to test browser compatability.
+
 # License
 
 Twig.js is available under a [BSD 2-Clause license][bsd-2], see the LICENSE file for more information.
@@ -94,4 +98,5 @@ which is used under an [Apache License Version 2.0][apache-2.0]
 [bsd-2]:        http://www.opensource.org/licenses/BSD-2-Clause
 [cc-by-sa-2.5]: http://creativecommons.org/licenses/by-sa/2.5/ "Creative Commons Attribution-ShareAlike 2.5 License"
 [apache-2.0]:   http://www.apache.org/licenses/ "Apache License Version 2.0"
-
+[mocha]:        http://visionmedia.github.com/mocha/
+[qunit]:        http://docs.jquery.com/QUnit
