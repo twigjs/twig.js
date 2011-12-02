@@ -1,377 +1,255 @@
-// Twig.debug = true;
+var twig   = require("../twig"),
+    should = require('should');
 
-module("Core");
+describe("Twig.js Core ->", function() {
+    it("should save and load a template by reference", function() {
 
-test("ref", function() {
-    // Define and save a template
-    twig({
-        id:   'test',
-        data: '{{ "test" }}'
+        // Define and save a template
+        twig({
+            id:   'test',
+            data: '{{ "test" }}'
+        });
+
+        // Load and render the template
+        twig({ref: 'test'}).render()
+                .should.equal("test");
     });
 
-    // Load and render the template
-    equal( twig({ref: 'test'}).render(), "test" );
-});
+    it("should be able to parse output tags with tag ends in strings", function() {
+        // Really all we care about here is not throwing exceptions.
+        twig({data: '{{ "test" }}'}).render().should.equal("test");
+        twig({data: '{{ " }} " }}'}).render().should.equal(" }} ");
+        twig({data: '{{ " \\"}} " }}'}).render().should.equal(' "}} ');
+        twig({data: "{{ ' }} ' }}"}).render().should.equal(" }} ");
+        twig({data: "{{ ' \\'}} ' }}"}).render().should.equal(" '}} ");
 
-var test_data = [
-    {a: 10, b: 15},
-    {a: 0, b: 0},
-    {a: 1, b: 11},
-    {a: 10444, b: 0.5},
-    {a: 1034, b: -53},
-    {a: -56, b: -1.7},
-    {a: 34, b: 0},
-    {a: 14, b: 14}
-];
+        twig({data: '{{ " \'}} " }}'}).render().should.equal(" '}} ");
+        twig({data: "{{ ' \"}} ' }}"}).render().should.equal(' "}} ');
+    });
 
-module("Tags");
-test("output", function() {
-    // Really all we care about here is not throwing exceptions.
-    equal( twig({data: '{{ "test" }}'}).render(), "test" );
-    equal( twig({data: '{{ " }} " }}'}).render(), " }} " );
-    equal( twig({data: '{{ " \\"}} " }}'}).render(), ' "}} ' );
-    equal( twig({data: "{{ ' }} ' }}"}).render(), " }} " );
-    equal( twig({data: "{{ ' \\'}} ' }}"}).render(), " '}} " );
+    it("should be able to output numbers", function() {
+        twig({data: '{{ 12 }}'}).render().should.equal( "12" );
+        twig({data: '{{ 12.64 }}'}).render().should.equal( "12.64" );
+        twig({data: '{{ .64 }}'}).render().should.equal(".64" );
+    });
 
-    equal( twig({data: '{{ " \'}} " }}'}).render(), " '}} " );
-    equal( twig({data: "{{ ' \"}} ' }}"}).render(), ' "}} ' );
-});
-
-
-module("Expression Types");
-
-test("number", function() {
-    expect(3);
-    equal( twig({data: '{{ 12 }}'}).render(), "12" );
-    equal( twig({data: '{{ 12.64 }}'}).render(), "12.64" );
-    equal( twig({data: '{{ .64 }}'}).render(), ".64" );
-});
-
-test("string", function() {
-    expect(6);
-    equal( twig({data: '{{ "double" }}'}).render(), "double" );
-    equal( twig({data: "{{ 'single' }}"}).render(), 'single' );
-    equal( twig({data: '{{ "dou\'ble" }}'}).render(), "dou'ble" );
-    equal( twig({data: "{{ 'sin\"gle' }}"}).render(), 'sin"gle' );
-    equal( twig({data: '{{ "dou\\"ble" }}'}).render(), "dou\"ble" );
-    equal( twig({data: "{{ 'sin\\'gle' }}"}).render(), "sin'gle" );
-});
-
-test("array", function() {
-    equal( twig({data: '{{ [1] }}'}).render(), "1" );
-    equal( twig({data: '{{ [1,2 ,3 ] }}'}).render(), "1,2,3" );
-    equal( twig({data: '{{ [1,2 ,3 , val ] }}'}).render({val: 4}), "1,2,3,4" );
-    equal( twig({data: '{{ ["[to",\'the\' ,"string]" ] }}'}).render(), '[to,the,string]' );
-    equal( twig({data: '{{ ["[to",\'the\' ,"str\\"ing]" ] }}'}).render(), '[to,the,str"ing]' );
-});
-test("array.complex", function() {
-    equal( twig({data: '{{ [1,2 ,1+2 ] }}'}).render(), "1,2,3" );
-    equal( twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}), "1,2,3,-,4,5,6" );
-    equal( twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}), "1,2,3" );
-});
-test("variable", function() {
-    equal( twig({data: '{{ val }}'}).render({ val: "test"}), "test" );
-    equal( twig({data: '{{ val }}'}).render({ val: function() {
+    it("should be able to output strings", function() {
+        twig({data: '{{ "double" }}'}).render().should.equal("double");
+        twig({data: "{{ 'single' }}"}).render().should.equal('single');
+        twig({data: '{{ "dou\'ble" }}'}).render().should.equal("dou'ble");
+        twig({data: "{{ 'sin\"gle' }}"}).render().should.equal('sin"gle');
+        twig({data: '{{ "dou\\"ble" }}'}).render().should.equal("dou\"ble");
+        twig({data: "{{ 'sin\\'gle' }}"}).render().should.equal("sin'gle");
+    });
+    it("should be able to output arrays", function() {
+         twig({data: '{{ [1] }}'}).render().should.equal("1" );
+         twig({data: '{{ [1,2 ,3 ] }}'}).render().should.equal("1,2,3" );
+         twig({data: '{{ [1,2 ,3 , val ] }}'}).render({val: 4}).should.equal("1,2,3,4" );
+         twig({data: '{{ ["[to",\'the\' ,"string]" ] }}'}).render().should.equal('[to,the,string]' );
+         twig({data: '{{ ["[to",\'the\' ,"str\\"ing]" ] }}'}).render().should.equal('[to,the,str"ing]' );
+    });
+    it("should be able to output parse expressions in an array", function() {
+         twig({data: '{{ [1,2 ,1+2 ] }}'}).render().should.equal("1,2,3" );
+         twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}).should.equal("1,2,3,-,4,5,6" );
+         twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}).should.equal("1,2,3" );
+    });
+    it("should be able to output variables", function() {
+         twig({data: '{{ val }}'}).render({ val: "test"}).should.equal("test");
+         twig({data: '{{ val }}'}).render({ val: function() {
                                                        return "test"
-                                                   }}), "test" );
-});
-
-// Expression tests
-module("Expressions");
-
-test("key", function() {
-    var test_template = twig({data: '{{ key.value }} {{ key.sub.test }}'});
-    var output = test_template.render({
-        key: {
-            value: "test",
-            sub: {
-                test: "value"
-            }
-        }
+                                                   }}).should.equal("test");
     });
-    equal( output, "test value" );
+    
+});
 
-    test_template = twig({data: '{{ key["value"] }} {{ key.sub[key.value] }} {{ s.t["u"].v["w"] }}'});
-    output = test_template.render({
-        key: {
-            value: "test",
-            sub: {
-                test: "value"
-            }
-        },
-        s: { t: { u: { v: { w: 'x' } } } }
+describe("Twig.js Expressions ->", function() {
+    var numeric_test_data = [
+        {a: 10, b: 15},
+        {a: 0, b: 0},
+        {a: 1, b: 11},
+        {a: 10444, b: 0.5},
+        {a: 1034, b: -53},
+        {a: -56, b: -1.7},
+        {a: 34, b: 0},
+        {a: 14, b: 14}
+    ];
+
+    describe("Basic Operators ->", function() {
+        it("should support dot key notation", function() {
+            var test_template = twig({data: '{{ key.value }} {{ key.sub.test }}'});
+            var output = test_template.render({
+                key: {
+                    value: "test",
+                    sub: {
+                        test: "value"
+                    }
+                }
+            });
+            output.should.equal("test value");
+        });
+        it("should support square bracket key notation", function() {
+            var test_template = twig({data: '{{ key["value"] }} {{ key[\'sub\']["test"] }}'});
+            var output = test_template.render({
+                key: {
+                    value: "test",
+                    sub: {
+                        test: "value"
+                    }
+                }
+            });
+            output.should.equal("test value");
+        });
+        it("should support mixed dot and bracket key notation", function() {
+            var test_template = twig({data: '{{ key["value"] }} {{ key.sub[key.value] }} {{ s.t["u"].v["w"] }}'});
+            var output = test_template.render({
+                key: {
+                    value: "test",
+                    sub: {
+                        test: "value"
+                    }
+                },
+                s: { t: { u: { v: { w: 'x' } } } }
+            });
+            output.should.equal("test value x" );
+        });
+
+        var string_data = [
+            {a: 'test', b: 'string'},
+            {a: 'test', b: ''},
+            {a: '', b: 'string'},
+            {a: '', b: ''},
+        ];
+
+        it("should add numbers", function() {
+            var test_template = twig({data: '{{ a + b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                     output.should.equal( (pair.a + pair.b).toString() );
+            });
+        });
+        it("should subtract numbers", function() {
+            var test_template = twig({data: '{{ a - b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                     output.should.equal( (pair.a - pair.b).toString() );
+            });
+        });
+        it("should multiply numbers", function() {
+            var test_template = twig({data: '{{ a * b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                     output.should.equal((pair.a * pair.b).toString() );
+            });
+        });
+        it("should divide numbers", function() {
+            var test_template = twig({data: '{{ a / b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                     output.should.equal((pair.a / pair.b).toString() );
+            });
+        });
+        it("should concatanate values", function() {
+            twig({data: '{{ "test" ~ a }}'}).render({a:1234}).should.equal("test1234");
+            twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}).should.equal("1234test1234");
+            twig({data: '{{ "this" ~ "test" }}'}).render({a:1234}).should.equal("thistest");
+
+            // Test numbers
+            var test_template = twig({data: '{{ a ~ b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal(pair.a.toString() + pair.b.toString());
+            });
+            // Test strings
+            test_template = twig({data: '{{ a ~ b }}'});
+            string_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal(pair.a.toString() + pair.b.toString());
+            });
+        });
+        it("should handle multiple chained operations", function() {
+            var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
+            var test_template = twig({data: '{{a/b+c*d-e+f/g*h}}'});
+            var output = test_template.render(data);
+            var expected = data.a / data.b + data.c * data.d - data.e + data.f / data.g * data.h;
+            output.should.equal(expected.toString());
+        });
+        it("should handle parenthesis in chained operations", function() {
+            var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
+            var test_template = twig({data: '{{a   /(b+c )*d-(e+f)/(g*h)}}'});
+            var output = test_template.render(data);
+            var expected = data.a / (data.b + data.c) * data.d - (data.e + data.f) / (data.g * data.h);
+            output.should.equal(expected.toString());
+        });
     });
-    equal( output, "test value x" );
-});
 
-test("add", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a + b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a + pair.b).toString() );
+    describe("Comparison Operators ->", function() {
+        var boolean_data = [
+            {a: true, b: true},
+            {a: true, b: false},
+            {a: false, b: true},
+            {a: false, b: false}
+        ];
+        it("should support less then", function() {
+            var test_template = twig({data: '{{ a < b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a < pair.b).toString() );
+            });
+        });
+        it("should support less then or equal", function() {
+            var test_template = twig({data: '{{ a <= b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a <= pair.b).toString() );
+            });
+        });
+        it("should support greater then", function() {
+            var test_template = twig({data: '{{ a > b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a > pair.b).toString() );
+            });
+        });
+        it("should support greater then or equal", function() {
+            var test_template = twig({data: '{{ a >= b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a >= pair.b).toString() );
+            });
+        });
+        it("should support equals", function() {
+            var test_template = twig({data: '{{ a == b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a == pair.b).toString() );
+            });
+        });
+        it("should support not equals", function() {
+            var test_template = twig({data: '{{ a != b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a != pair.b).toString() );
+            });
+        });
+        it("should support boolean or", function() {
+            var test_template = twig({data: '{{ a || b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a || pair.b).toString() );
+            });
+        });
+        it("should support boolean and", function() {
+            var test_template = twig({data: '{{ a && b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a && pair.b).toString() );
+            });
+        });
+        it("should support boolean not", function() {
+            var test_template = twig({data: '{{ !a }}'});
+            test_template.render({a:false}).should.equal(true.toString());
+            test_template.render({a:true}).should.equal(false.toString());
+        });
     });
 });
 
-test("subtract", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a - b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a - pair.b).toString() );
-    });
-});
-
-test("multiply", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a * b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a * pair.b).toString() );
-    });
-});
-
-test("divide", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a / b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a / pair.b).toString() );
-    });
-});
-
-test("concat.number", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a ~ b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, pair.a.toString() + pair.b.toString() );
-    });
-});
-
-string_data = [
-    {a: 'test', b: 'string'},
-    {a: 'test', b: ''},
-    {a: '', b: 'string'},
-    {a: '', b: ''},
-]
-
-test("concat.string", function() {
-    expect(string_data.length);
-    var test_template = twig({data: '{{ a ~ b }}'});
-    string_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, pair.a.toString() + pair.b.toString() );
-    });
-});
-
-module("Combined Expressions");
-
-test("concat", function() {
-    equal( twig({data: '{{ "test" ~ a }}'}).render({a:1234}), "test1234" );
-    equal( twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}), "1234test1234" );
-    equal( twig({data: '{{ "this" ~ "test" }}'}).render({a:1234}), "thistest" );
-});
-
-test("basic", function() {
-    var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
-    var test_template = twig({data: '{{a/b+c*d-e+f/g*h}}'});
-    var output = test_template.render(data);
-    var expected = data.a / data.b + data.c * data.d - data.e + data.f / data.g * data.h;
-    equal( output, expected.toString() );
-});
-test("parens", function() {
-    var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
-    var test_template = twig({data: '{{a   /(b+c )*d-(e+f)/(g*h)}}'});
-    var output = test_template.render(data);
-    var expected = data.a / (data.b + data.c) * data.d - (data.e + data.f) / (data.g * data.h);
-    equal( output, expected.toString() );
-});
-
-module("Comparison Expressions");
-
-test("lessThen", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a < b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a < pair.b).toString() );
-    });
-});
-
-test("lessThenOrEqual", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a <= b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a <= pair.b).toString() );
-    });
-});
-
-test("greaterThen", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a > b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a > pair.b).toString() );
-    });
-});
-
-test("greaterThenOrEqual", function() {
-    expect(test_data.length);
-    var test_template = twig({data: '{{ a >= b }}'});
-    test_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a >= pair.b).toString() );
-    });
-});
-
-var boolean_data = [
-    {a: true, b: true},
-    {a: true, b: false},
-    {a: false, b: true},
-    {a: false, b: false}
-];
-
-test("equals", function() {
-    expect(boolean_data.length);
-    var test_template = twig({data: '{{ a == b }}'});
-    boolean_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a == pair.b).toString() );
-    });
-});
-
-test("notEquals", function() {
-    expect(boolean_data.length);
-    var test_template = twig({data: '{{ a != b }}'});
-    boolean_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a != pair.b).toString() );
-    });
-});
-
-test("or", function() {
-    expect(boolean_data.length);
-    var test_template = twig({data: '{{ a || b }}'});
-    boolean_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a || pair.b).toString() );
-    });
-});
-
-test("and", function() {
-    expect(boolean_data.length);
-    var test_template = twig({data: '{{ a && b }}'});
-    boolean_data.forEach(function(pair) {
-        var output = test_template.render(pair);
-        equal( output, (pair.a && pair.b).toString() );
-    });
-});
-
-test("not", function() {
-    expect(2);
-    var test_template = twig({data: '{{ !a }}'});
-    equal( test_template.render({a:false}), true.toString() );
-    equal( test_template.render({a:true}), false.toString() );
-});
-
-module("Logic");
-
-test("if.basic", function() {
-    expect(2);
-    var test_template = twig({data: '{% if test %}true{% endif%}'});
-    equal( test_template.render({test: true}), "true" );
-    equal( test_template.render({test: false}), "" );
-});
-
-test("if.else", function() {
-    expect(2);
-    var test_template = twig({data: '{% if test %}true{%else%}false{% endif%}'});
-    equal( test_template.render({test: true}), "true" );
-    equal( test_template.render({test: false}), "false" );
-});
-
-test("if.elseif", function() {
-    expect(4);
-    var test_template = twig({data: '{% if test %}1{% elseif other %}2{%else%}3{% endif%}'});
-    equal( test_template.render({test: true, other:false}), "1" );
-    equal( test_template.render({test: true, other:true}), "1" );
-    equal( test_template.render({test: false, other:true}), "2" );
-    equal( test_template.render({test: false, other:false}), "3" );
-});
-
-test("if.nested", function() {
-    expect(4);
-    var test_template = twig({data: '{% if test %}{% if test2 %}true{% else %}false{% endif%}{% else %}not{% endif%}'});
-    equal( test_template.render({test: true, test2: true}), "true" );
-    equal( test_template.render({test: true, test2: false}), "false" );
-    equal( test_template.render({test: false, test2: true}), "not" );
-    equal( test_template.render({test: false, test2: false}), "not" );
-});
-
-test("for.basic.array", function() {
-    var test_template = twig({data: '{% for value in test %}{{ value }}{% endfor %}'});
-    equal( test_template.render({test: [1,2,3,4]}), "1234" );
-    equal( test_template.render({test: []}), "" );
-});
-test("for.key.array", function() {
-    var test_template = twig({data: '{% for key,value in test %}{{key}}:{{ value }}{% endfor %}'});
-    equal( test_template.render({test: [1,2,3,4]}), "0:11:22:33:4" );
-    equal( test_template.render({test: []}), "" );
-});
-
-test("for.basic.object", function() {
-    var test_template = twig({data: '{% for value in test %}{{ value }}{% endfor %}'});
-    equal( test_template.render({test: {one: 1, two: 2, three: 3}}), "123" );
-    equal( test_template.render({test: {}}), "" );
-});
-test("for.key.object", function() {
-    var test_template = twig({data: '{% for key, value in test %}{{key}}:{{ value }}{% endfor %}'});
-    equal( test_template.render({test: {one: 1, two: 2, three: 3}}), "one:1two:2three:3" );
-    equal( test_template.render({test: {}}), "" );
-});
-
-test("for.else", function() {
-    var test_template = twig({data: '{% for key,value in test %}{{ value }}{% else %}else{% endfor %}'});
-    equal( test_template.render({test: [1,2,3,4]}), "1234" );
-    equal( test_template.render({test: []}), "else" );
-});
-
-test("for.nested", function() {
-    var test_template = twig({data: '{% for key,list in test %}{% for val in list %}{{ val }}{%endfor %}.{% else %}else{% endfor %}'});
-    equal( test_template.render({test: [[1,2],[3,4],[5,6]]}), "12.34.56." );
-    equal( test_template.render({test: []}), "else" );
-});
-
-test("set.basic", function() {
-    var test_template = twig({data: '{% set key = "chaos" %}{{ key }}' });
-    equal( test_template.render(), "chaos" );
-});
-
-test("set.complex", function() {
-    var test_template = twig({data: '{% set key = "key" %}{% set val = key %}{{ val }}' });
-    equal( test_template.render(), "key" );
-});
-
-test("set.loop", function() {
-    var test_template = twig({data: '{% set key = 0 %}{% for val in [1,2,3,4] %}{% set key = key + val %}{% endfor %}{{ key }}' });
-    equal( test_template.render(), "10" );
-});
-
-test("filter", function() {
-    var test_template = twig({data: '{% filter lower %}TEST{% endfilter %}' });
-    equal( test_template.render(), "test" )
-
-    test_template = twig({data: '{% filter lower|reverse %}TEST{% endfilter %}' });
-    equal( test_template.render(), "tset" );
-});
-
-
-/* var template = twig({
-    data: 'The {{ baked_good }} is a lie.'
-});
-
-console.log(
-    template.render({baked_good: 'cupcake'})
-); */
