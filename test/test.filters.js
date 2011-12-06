@@ -1,4 +1,4 @@
-var twig   = require("../twig"),
+var twig   = require("../twig").twig,
     should = require('should');
 
 describe("Twig.js Filters ->", function() {

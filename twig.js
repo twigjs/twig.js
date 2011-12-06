@@ -3,79 +3,6 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-/**
- * Create and compile a twig.js template.
- *
- * @param {Object} param Paramteres for creating a Twig template.
- *
- * @return {Twig.Template} A Twig template ready for rendering.
- */
-var twig = function twig(params) {
-    'use strict';
-    var id = params.id;
-
-    if (params.debug !== undefined) {
-        Twig.debug = params.debug;
-    }
-
-    if (params.data !== undefined) {
-        return new Twig.Template({
-            data: params.data,
-            id:   id
-        });
-
-    } else if (params.ref !== undefined) {
-        if (params.id !== undefined) {
-            throw new Error("Both ref and id cannot be set on a twig.js template.");
-        }
-        return Twig.Templates.load(params.ref);
-
-    } else if (params.href !== undefined) {
-        return Twig.Templates.loadRemote(params.href, {
-            id: id,
-            precompiled: params.precompiled
-
-        }, params.async, params.load);
-    }
-};
-
-// Extend Twig with a new filter.
-twig.extendFilter = function(filter, definition) {
-    Twig.extendFilter(filter, definition);
-};
-
-// Extend Twig with a new test.
-twig.extendTest = function(test, definition) {
-    Twig.extendFilter(test, definition);
-};
-
-// Extend Twig with a new definition.
-twig.extendTag = function(definition) {
-    Twig.logic.extend(definition);
-};
-
-
-/**
- * Provide an extension for use with express.
- *
- * @param {string} markup The template markup.
- * @param {array} options The express options.
- *
- * @return {string} The rendered template.
- */
-twig.compile = function(markup, options) {
-    var id = options.filename,
-        // Try to load the template from the cache
-        template = new Twig.Template({
-            data: markup,
-            id: id
-        }); // Twig.Templates.load(id) ||
-
-    return function(context) {
-        return template.render(context);
-    };
-};
-
 // ## twig.core.js
 //
 // This file handles template level tokenizing, compiling and parsing.
@@ -2661,7 +2588,7 @@ var Twig = (function (Twig) {
         return Twig.filters[filter](value, params);
     }
 
-    Twig.extendFilter = function(filter, definition) {
+    Twig.filter.extend = function(filter, definition) {
         Twig.filters[filter] = definition;
     };
 
@@ -2716,7 +2643,7 @@ var Twig = (function (Twig) {
         return Twig.tests[test](value, params);
     };
 
-    Twig.extendTest = function(test, definition) {
+    Twig.test.extend = function(test, definition) {
         Twig.tests[test] = definition;
     };
 
@@ -2728,13 +2655,111 @@ var Twig = (function (Twig) {
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.module.js
+// ## twig.function.js
 //
-// Provide a module export.
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = twig;
+// This file provides extension points and other hooks into the twig functionality.
+
+var Twig = (function (Twig) {
+    "use strict";
+    Twig.exports = {};
+
+    /**
+     * Create and compile a twig.js template.
+     *
+     * @param {Object} param Paramteres for creating a Twig template.
+     *
+     * @return {Twig.Template} A Twig template ready for rendering.
+     */
+    Twig.exports.twig = function twig(params) {
+        'use strict';
+        var id = params.id;
+
+        if (params.debug !== undefined) {
+            Twig.debug = params.debug;
+        }
+
+        if (params.data !== undefined) {
+            return new Twig.Template({
+                data: params.data,
+                id:   id
+            });
+
+        } else if (params.ref !== undefined) {
+            if (params.id !== undefined) {
+                throw new Error("Both ref and id cannot be set on a twig.js template.");
+            }
+            return Twig.Templates.load(params.ref);
+
+        } else if (params.href !== undefined) {
+            return Twig.Templates.loadRemote(params.href, {
+                id: id,
+                precompiled: params.precompiled
+
+            }, params.async, params.load);
+        }
+    };
+
+    // Extend Twig with a new filter.
+    Twig.exports.extendFilter = function(filter, definition) {
+        Twig.filter.extend(filter, definition);
+    };
+
+    // Extend Twig with a new test.
+    Twig.exports.extendTest = function(test, definition) {
+        Twig.test.extend(test, definition);
+    };
+
+    // Extend Twig with a new definition.
+    Twig.exports.extendTag = function(definition) {
+        Twig.logic.extend(definition);
+    };
+
+
+    /**
+     * Provide an extension for use with express.
+     *
+     * @param {string} markup The template markup.
+     * @param {array} options The express options.
+     *
+     * @return {string} The rendered template.
+     */
+    Twig.exports.compile = function(markup, options) {
+        var id = options.filename,
+            // Try to load the template from the cache
+            template = new Twig.Template({
+                data: markup,
+                id: id
+            }); // Twig.Templates.load(id) ||
+
+        return function(context) {
+            return template.render(context);
+        };
+    };
+
+    return Twig;
+}) (Twig || { });
+
+
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
+
+// ## twig.module.js
+// Provide a CommonJS module export.
+
+if (typeof module !== 'undefined' && module.declare) {
+    // Provide a CommonJS Modules/2.0 draft 8 module
+    module.declare(function(require, exports, module) {
+        exports = Twig.exports;
+    });
+} else if (typeof module !== 'undefined' && module.exports) {
+    // Provide a CommonJS Modules/1.1 module
+    module.exports = Twig.exports;
 } else {
-    window.twig = twig;
+    // Export for browser use
+    window.twig = Twig.exports.twig;
+    window.Twig = Twig;
 }
 
 

@@ -215,7 +215,7 @@ var Twig = (function (Twig) {
         return Twig.filters[filter](value, params);
     }
 
-    Twig.extendFilter = function(filter, definition) {
+    Twig.filter.extend = function(filter, definition) {
         Twig.filters[filter] = definition;
     };
 

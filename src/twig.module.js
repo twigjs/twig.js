@@ -4,11 +4,19 @@
 //     https://github.com/justjohn/twig.js
 
 // ## twig.module.js
-//
-// Provide a module export.
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = twig;
+// Provide a CommonJS module export.
+
+if (typeof module !== 'undefined' && module.declare) {
+    // Provide a CommonJS Modules/2.0 draft 8 module
+    module.declare(function(require, exports, module) {
+        exports = Twig.exports;
+    });
+} else if (typeof module !== 'undefined' && module.exports) {
+    // Provide a CommonJS Modules/1.1 module
+    module.exports = Twig.exports;
 } else {
-    window.twig = twig;
+    // Export for browser use
+    window.twig = Twig.exports.twig;
+    window.Twig = Twig;
 }
 
