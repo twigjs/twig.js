@@ -448,6 +448,23 @@ var Twig = (function (Twig) {
     };
 
     /**
+     * Is this id valid for a twig template?
+     *
+     * @param {string} id The ID to check.
+     *
+     * @throws {Twig.Error} If the ID is invalid or used.
+     * @return {boolean} True if the ID is valid.
+     */
+    Twig.validateId = function(id) {
+        if (id === "prototype") {
+            throw new Twig.Error(id + " is not a valid twig identifier");
+        } else if (Twig.Templates.registry.hasOwnProperty(id)) {
+            throw new Twig.Error("There is already a template with the ID " + id);
+        }
+        return true;
+    }
+
+    /**
      * Save a template object to the store.
      *
      * @param {Twig.Template} template   The twig.js template to store.

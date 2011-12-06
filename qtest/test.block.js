@@ -5,18 +5,18 @@ module("Blocks");
 // Test loading a template from a remote endpoint
 test("no-extends", function() {
     twig({
-        id:   'remote',
+        id:   'remote-no-extends',
         href: 'templates/template.twig',
         async: false
     });
 
     // Load the template
-    equal( twig({ref: 'remote'}).render({ }), "Default Title - body" );
+    equal( twig({ref: 'remote-no-extends'}).render({ }), "Default Title - body" );
 });
 
 // Test loading a template from a remote endpoint
 twig({
-    id:   'child',
+    id:   'child-extends',
     href: 'templates/child.twig',
     async: true,
 

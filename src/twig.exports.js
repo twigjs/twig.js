@@ -21,6 +21,9 @@ var Twig = (function (Twig) {
     Twig.exports.twig = function twig(params) {
         'use strict';
         var id = params.id;
+        if (id) {
+            Twig.validateId(id);
+        }
 
         if (params.debug !== undefined) {
             Twig.debug = params.debug;

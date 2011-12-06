@@ -355,6 +355,23 @@ currently at the head of the stack before we push a new one on.</p>             
     <span class="p">};</span>
 
     <span class="cm">/**</span>
+<span class="cm">     * Is this id valid for a twig template?</span>
+<span class="cm">     *</span>
+<span class="cm">     * @param {string} id The ID to check.</span>
+<span class="cm">     *</span>
+<span class="cm">     * @throws {Twig.Error} If the ID is invalid or used.</span>
+<span class="cm">     * @return {boolean} True if the ID is valid.</span>
+<span class="cm">     */</span>
+    <span class="nx">Twig</span><span class="p">.</span><span class="nx">validateId</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">id</span> <span class="o">===</span> <span class="s2">&quot;prototype&quot;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nb">Error</span><span class="p">(</span><span class="nx">id</span> <span class="o">+</span> <span class="s2">&quot; is not a valid twig identifier&quot;</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">.</span><span class="nx">Templates</span><span class="p">.</span><span class="nx">registry</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;There is already a template with the ID &quot;</span> <span class="o">+</span> <span class="nx">id</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span>
 <span class="cm">     * Save a template object to the store.</span>
 <span class="cm">     *</span>
 <span class="cm">     * @param {Twig.Template} template   The twig.js template to store.</span>
@@ -2302,6 +2319,9 @@ https://github.com/justjohn/twig.js
     <span class="nx">Twig</span><span class="p">.</span><span class="nx">exports</span><span class="p">.</span><span class="nx">twig</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">twig</span><span class="p">(</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
         <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
         <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">Twig</span><span class="p">.</span><span class="nx">validateId</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+        <span class="p">}</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">debug</span> <span class="o">!==</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">Twig</span><span class="p">.</span><span class="nx">debug</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">debug</span><span class="p">;</span>

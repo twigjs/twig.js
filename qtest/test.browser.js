@@ -5,12 +5,12 @@ module("Remote");
 // Test loading a template from a remote endpoint
 test("blocking", function() {
     twig({
-        id:   'remote',
+        id:   'remote-browser',
         href: 'templates/test.twig',
         async: false
     });
     // Verify the template was saved
-    equal( twig({ref: 'remote'}).render({
+    equal( twig({ref: 'remote-browser'}).render({
         test: "reload",
         flag: false
     }), "Test template = reload\n\n" );
@@ -18,7 +18,7 @@ test("blocking", function() {
 
 // Test loading a template from a remote endpoint asynchronously
 twig({
-    id:   'remote',
+    id:   'remote-browser-async',
     href: 'templates/test.twig',
     async: true,
 
@@ -33,7 +33,7 @@ twig({
             }), "Test template = yes\n\nFlag set!" );
 
             // Verify the template was saved
-            equal( twig({ref: 'remote'}).render({
+            equal( twig({ref: 'remote-browser-async'}).render({
                 test: "reload",
                 flag: false
             }), "Test template = reload\n\n" );
