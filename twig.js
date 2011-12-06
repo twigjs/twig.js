@@ -2770,8 +2770,13 @@ var Twig = (function (Twig) {
 
 if (typeof module !== 'undefined' && module.declare) {
     // Provide a CommonJS Modules/2.0 draft 8 module
-    module.declare(function(require, exports, module) {
-        exports = Twig.exports;
+    module.declare([], function(require, exports, module) {
+        // Add exports from the Twig exports
+        for (key in Twig.exports) {
+            if (Twig.exports.hasOwnProperty(key)) {
+                exports[key] = Twig.exports[key];
+            }   
+        }
     });
 } else if (typeof module !== 'undefined' && module.exports) {
     // Provide a CommonJS Modules/1.1 module
