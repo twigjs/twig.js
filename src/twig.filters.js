@@ -196,6 +196,10 @@ var Twig = (function (Twig) {
             }
 
             return obj;
+        },
+        date: function(value, params) {
+            var date = new Date(value);
+            return date.format(params[0]);
         }
 
 

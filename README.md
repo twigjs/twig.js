@@ -89,12 +89,16 @@ Twig.js is available under a [BSD 2-Clause license][bsd-2], see the LICENSE file
 
 # Acknowledgments
 
-1. The JavaScript fills in src/twig.fills.js are from <https://developer.mozilla.org/> and
+1. The JavaScript Array fills in src/twig.fills.js are from <https://developer.mozilla.org/> and
 used under a [Creative Commons Attribution-ShareAlike 2.5 License][cc-by-sa-2.5]
 
-2. The build script makes use of [Google's Closure Compiler](http://code.google.com/closure/compiler/)
+2. The Date.format function in src/twig.fills.js is from <http://jpaq.org/> and used under a [MIT license][mit].
+
+3. The build script makes use of [Google's Closure Compiler](http://code.google.com/closure/compiler/)
 which is used under an [Apache License Version 2.0][apache-2.0]
 
+
+[mit]:          http://www.opensource.org/licenses/mit-license.php
 [bsd-2]:        http://www.opensource.org/licenses/BSD-2-Clause
 [cc-by-sa-2.5]: http://creativecommons.org/licenses/by-sa/2.5/ "Creative Commons Attribution-ShareAlike 2.5 License"
 [apache-2.0]:   http://www.apache.org/licenses/ "Apache License Version 2.0"
