@@ -496,9 +496,12 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.number,
             // match a number
-            regex: /^\-?\d*\.?\d+/,
+            regex: /^\-?\d+(\.\d+)?/,
             next: Twig.expression.set.operations,
-            compile: Twig.expression.fn.compile.push,
+            compile: function(token, stack, output) {
+                token.value = Number(token.value);
+                output.push(token);
+            },
             parse: Twig.expression.fn.parse.push_value
         }
     ];

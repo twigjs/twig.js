@@ -44,7 +44,7 @@ test("number", function() {
     expect(3);
     equal( twig({data: '{{ 12 }}'}).render(), "12" );
     equal( twig({data: '{{ 12.64 }}'}).render(), "12.64" );
-    equal( twig({data: '{{ .64 }}'}).render(), ".64" );
+    equal( twig({data: '{{ 0.64 }}'}).render(), "0.64" );
 });
 
 test("string", function() {

@@ -20,11 +20,11 @@ describe("Twig.js Filters ->", function() {
         });
         it("should encode arrays to json", function() {
             var test_template = twig({data: '{{ [1,"b",3]|json_encode }}' });
-            test_template.render().should.equal('["1","b","3"]' );
+            test_template.render().should.equal('[1,"b",3]' );
         });
         it("should encode objects to json", function() {
             var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
-            test_template.render().should.equal('{"a":["1","b","3"]}' );
+            test_template.render().should.equal('{"a":[1,"b",3]}' );
         });
     });
     
@@ -160,6 +160,18 @@ describe("Twig.js Filters ->", function() {
         
             test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
             test_template.render({'var':{}}).should.equal("Empty Key" );
+        });
+    });
+
+    describe("date ->", function() {
+        // NOTE: these tests are currently timezone dependent
+        it("should recognize timestamps", function() { 
+            var template = twig({data: '{{ 27571323556134|date("d/m/Y @ H:i:s") }}'});
+            template.render().should.equal("13/09/2843 @ 08:59:16" );
+        });
+        it("should recognize string date formats", function() { 
+            var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'});
+            template.render().should.equal("14/08/2007 @ 04:52:15" );
         });
     });
     

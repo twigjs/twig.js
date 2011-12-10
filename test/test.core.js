@@ -30,7 +30,7 @@ describe("Twig.js Core ->", function() {
     it("should be able to output numbers", function() {
         twig({data: '{{ 12 }}'}).render().should.equal( "12" );
         twig({data: '{{ 12.64 }}'}).render().should.equal( "12.64" );
-        twig({data: '{{ .64 }}'}).render().should.equal(".64" );
+        twig({data: '{{ 0.64 }}'}).render().should.equal("0.64" );
     });
 
     it("should be able to output strings", function() {

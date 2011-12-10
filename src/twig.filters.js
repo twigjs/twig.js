@@ -63,13 +63,11 @@ var Twig = (function (Twig) {
                 // Because of this we use a "hidden" key called _keys to
                 // store the keys in the order we want to return them.
 
-                var sorted_obj = { },
-                    sorted_keys = Object.keys(value).sort(function(a, b) {
+                delete value._keys;
+                var keys = Object.keys(value),
+                    sorted_keys = keys.sort(function(a, b) {
                         return value[a] > value[b];
                     });
-                sorted_keys.forEach(function(key) {
-                    sorted_obj[key] = value[key];
-                });
                 value._keys = sorted_keys;
                 return value;
             }

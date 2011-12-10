@@ -103,7 +103,7 @@ test("filter.default", function() {
 
 test("filter.json_encode", function() {
     var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
-    equal( test_template.render(), '{"a":["1","b","3"]}' );
+    equal( test_template.render(), '{"a":[1,"b",3]}' );
 
     test_template = twig({data: '{{ test|json_encode }}' });
     equal( test_template.render({test:'value'}), '"value"' );
@@ -125,6 +125,11 @@ test("filter.merge", function() {
     // Mixed merging(2)
     test_template = twig({data: '{% set obj= {"1":"a", "a":"b"}|merge(["c", "d"]) %}{% for key in obj|keys %}{{key}}:{{obj[key]}} {%endfor %}' });
     equal( test_template.render(), '1:a a:b 2:c 3:d ' );
+});
+
+test("filter.date", function() {
+    var template = twig({data: '{{ 27571323556134|date("d/m/Y @ H:i:s") }}'});
+    equal( template.render(), "13/09/2843 @ 08:59:16" );
 });
 
 
