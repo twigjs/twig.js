@@ -1,0 +1,9 @@
+<div class="userPicture"><a href="http://twitter.com/{{ user.screen_name }}"><img src="{{ user.profile_image_url }}" alt="" /></a></div>
+<div class="content">
+    <div class="date">{{ created_at|date("M j, Y @ g:i a") }}</div>
+    <div class="user">
+        <span class="name"><a href="{{ user.url }}">{{ user.name }}</a></span>
+        <span class="handle"><a href="http://twitter.com/{{ user.screen_name }}">{{ user.screen_name }}</a></span>
+    </div>
+    <div class="text">{{ text }}</div>
+</div>

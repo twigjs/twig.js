@@ -1,0 +1,25 @@
+{#
+ # This template displays a twitter feed or error message based on the
+ # value of the username in the model.
+ #}
+ 
+<header class="userInfo">
+    <a class="changeUser" href="javascript:;"><img src="images/user.png" alt="Change User" /></a>
+    {% if username is not empty %}
+        <a class="reloadTweets" href="javascript:;"><img src="images/reload.png" alt="Reload Tweets" /></a>
+        <div class="username">
+            Twitter feed for {{ username }}
+        </div>
+    {% else %}
+        Error
+    {% endif %}
+</header>
+
+{% if username is not empty %}
+    {# The container for the feed (a FeedView) will be inserted here with JQuery. #}
+    <div class="feedContainer"></div>
+{% else %}
+    <div class="errorContainer">
+        No username provided. Can't load Twitter feed.
+    </div>
+{% endif %}

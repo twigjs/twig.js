@@ -1,0 +1,102 @@
+@import "css3.less";
+body {
+    padding:0;
+    margin:0;
+    overflow: hidden;
+}
+.app {
+    width: 500px;
+    margin: 10px auto;
+
+    .userInfo {
+        top: 10px;
+        height: 40px;
+        line-height: 40px;
+
+        position: absolute;
+        text-align: center;
+        color: #eee;
+        .background-gradient(#777, #222);
+        .border-radius(5px);
+        .box-shadow(0, 2px, 3px, 2px, #eee);
+
+        margin: auto;
+        width: 500px;
+
+        .reloadTweets {
+            float: right;
+            margin-right: 10px;
+            margin-top: 3px;
+        }
+        .changeUser {
+            float: left;
+            margin-left: 10px;
+            margin-top: 3px;
+        }
+    }
+
+    .feedContainer, .errorContainer {
+        position: absolute;
+        top: 60px;
+        bottom: 10px;
+        overflow:auto;
+        margin: auto;
+        width: 500px;
+    }
+
+    .errorContainer {
+        color: #ff0000;
+        font-weight: bold;
+        text-align:center;
+        padding-top: 10px;
+    }
+    
+    .feed {
+        margin:0;
+        padding:0;
+
+        .tweet {
+            padding:0;
+            margin: 10px 0;
+            list-style-type: none;
+
+            .userPicture {
+                float:left;
+                margin: 0 10px;
+            }
+
+            .content {
+                margin-left: 70px;
+                padding-bottom: 5px;
+                border-bottom: 1px solid #eee;
+                margin-right: 10px;
+            }
+
+            .user {
+                margin-bottom: 3px;
+
+                .name a {
+                    color: #111;
+                    font-weight: bold;
+                    text-decoration: none;
+                }
+                .handle a {
+                    font-size: 90%;
+                    color: #555;
+                    text-decoration: none;
+                }
+            }
+
+            .date {
+                float: right;
+                color: #555;
+                font-size: 80%;
+                margin-right: 5px;
+            }
+
+            &:after {
+                clear:both;
+            }
+        }
+    }
+}
