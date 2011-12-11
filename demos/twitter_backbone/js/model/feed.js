@@ -1,11 +1,15 @@
 module.declare(
-    [   
-        { tweet: "js/model/tweet" }
+    [
+        { backbone: 'vendor/backbone' } 
+        , { underscore: 'vendor/underscore' } 
+        , { tweet: "js/model/tweet" }
     ],
     function(require, exports, module) {
-        var Tweet = require("tweet").Tweet,
-            Feed = Backbone.Collection.extend({
-                localStorage: new Store("tweets")
+        var Backbone = require("backbone")
+            , _ = require("underscore")._
+            , Tweet = require("tweet").Tweet
+            , Feed = Backbone.Collection.extend({
+                localStorage: new Backbone.Store("tweets")
                 , model: Tweet
 
                 , loadUser: function(username) {

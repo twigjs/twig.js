@@ -1,13 +1,17 @@
 // Settings model and collection
-module.declare(function(require, exports, module) {
-    var Setting = Backbone.Model.extend({
-    });
+module.declare(
+    [
+        { backbone: 'vendor/backbone' } 
+    ]
+    , function(require, exports, module) {
+        var Backbone = require("backbone")
+            , Setting = Backbone.Model.extend({ })
+            , Settings = Backbone.Collection.extend({
+                model: Setting
+                , localStorage: new Backbone.Store("settings")
+            });
 
-    var Settings = Backbone.Collection.extend({
-        model: Setting
-        , localStorage: new Store("settings")
-    })
-
-    exports.Setting = Setting;
-    exports.Settings = Settings;
-});
+        exports.Setting = Setting;
+        exports.Settings = Settings;
+    }
+);

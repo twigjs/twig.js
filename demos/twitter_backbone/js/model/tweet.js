@@ -1,7 +1,12 @@
 // Tweet Model
-module.declare(function(require, exports, module) {
-    var Tweet = Backbone.Model.extend({
-    });
+module.declare(
+    [
+        { backbone: 'vendor/backbone' } 
+    ]
+    , function(require, exports, module) {
+        var Backbone = require("backbone")
+            , Tweet = Backbone.Model.extend({ });
 
-    exports.Tweet = Tweet;
-});
+        exports.Tweet = Tweet;
+    }
+);

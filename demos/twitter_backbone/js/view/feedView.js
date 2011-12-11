@@ -5,11 +5,13 @@
 
 module.declare(
     [
-        { feed: "js/model/feed" }
+        { backbone: 'vendor/backbone' } 
+        , { feed: "js/model/feed" }
         , { tweetView: "js/view/tweetView" }
     ]
     , function (require, exports, module) {
         var feed = require("feed").feed
+            , Backbone = require("backbone")
             , TweetView = require("tweetView").TweetView
 
             // The FeedView is a simple container of TweetViews and therefore

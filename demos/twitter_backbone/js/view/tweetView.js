@@ -5,11 +5,13 @@
 
 module.declare(
     [
-        { twig: "vendor/twig" }
+        { backbone: 'vendor/backbone' } 
+        , { twig: "vendor/twig" }
         , { tweet: "js/model/tweet" }
     ]
     , function (require, exports, module) {
-        var twig = require("twig").twig
+        var Backbone = require("backbone")
+            , twig = require("twig").twig
         
             // Load the template for a "Tweet"
             //     This template only needs to be loaded once. It will be compiled at

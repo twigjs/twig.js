@@ -8,12 +8,14 @@
 
 module.declare(
     [
-        { twig: "vendor/twig" }
+        { backbone: 'vendor/backbone' } 
+        , { twig: "vendor/twig" }
         , { feed: "js/model/feed" }
         , { feedView: "js/view/feedView" }
     ]
     , function (require, exports, module) {
         var twig = require("twig").twig
+            , Backbone = require("backbone")
             , feed = require("feed").feed
 
             // The application template
