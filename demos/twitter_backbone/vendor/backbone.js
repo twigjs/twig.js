@@ -53,6 +53,4 @@ a(b,d,c):b.trigger("error",b,d,c)}}}).call(this);
     exports.Store = Store;
 })();
 
-console.log(exports);
-
 });
