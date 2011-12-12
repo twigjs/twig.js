@@ -35,6 +35,7 @@ module.declare(
                 , events: {
                     "click .reloadTweets": "reload"
                     , "click .changeUser": "changeUser"
+                    , "click .twitter_user": "twitterLink"
                 }
 
                 // Initialize the Application
@@ -65,6 +66,18 @@ module.declare(
                         username: username
                     });
                     this.model.save();
+                }
+                
+                , twitterLink: function(e) {
+                    var username = $(e.target).attr("user");
+                    if (username) {
+                        this.model.set({
+                            username: username
+                        });
+                        this.model.save();
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
 
                 // Handle change events from the Setting model
