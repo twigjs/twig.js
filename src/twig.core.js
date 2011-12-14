@@ -563,7 +563,6 @@ var Twig = (function (Twig) {
                     data = null;
                 
                 if (async === true) {
-                    console.log("Loading async from ", location);
                     // async with callback
                     fs.readFile(location, 'utf8', function(err, data) {
                     
@@ -584,7 +583,6 @@ var Twig = (function (Twig) {
                         }
                     });
                 } else {
-                    console.log("Loading sync from ", location);
                     data = fs.readFileSync(location, 'utf8');
                     
                     if (precompiled === true) {
