@@ -44,9 +44,20 @@ var Twig = (function (Twig) {
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
-                precompiled: params.precompiled
+                precompiled: params.precompiled,
+                method: 'ajax',
+                async: params.async
 
-            }, params.async, params.load);
+            }, params.load);
+            
+        } else if (params.path !== undefined) {
+            return Twig.Templates.loadRemote(params.path, {
+                id: id,
+                precompiled: params.precompiled,
+                method: 'fs',
+                async: params.async
+
+            }, params.load);
         }
     };
 
@@ -76,11 +87,16 @@ var Twig = (function (Twig) {
      */
     Twig.exports.compile = function(markup, options) {
         var id = options.filename,
-            // Try to load the template from the cache
-            template = new Twig.Template({
-                data: markup,
-                id: id
-            }); // Twig.Templates.load(id) ||
+            sep_chr = '/',
+            path = options.filename,
+            template;
+
+        // Try to load the template from the cache
+        template = new Twig.Template({
+            data: markup,
+            path: path,
+            id: id
+        }); // Twig.Templates.load(id) ||
 
         return function(context) {
             return template.render(context);

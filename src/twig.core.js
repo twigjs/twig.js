@@ -493,63 +493,118 @@ var Twig = (function (Twig) {
     /**
      * Load a template from a remote location using AJAX and saves in with the given ID.
      *
-     * @param {string} url  The remote URL to load as a template.
+     * @param {string} location  The remote URL to load as a template.
      * @param {Object} params The template parameters.
      * @param {function} callback  A callback triggered when the template finishes loading.
      * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
      *
      *
      */
-    Twig.Templates.loadRemote = function(url, params, async, callback) {
+    Twig.Templates.loadRemote = function(location, params, callback) {
         var id          = params.id,
+            method      = params.method,
+            async       = params.async,
             blocks      = params.blocks,
             precompiled = params.precompiled,
             template    = null;
+            
+        // Default to async
+        if (async === undefined) async = true;
 
         // Default to the URL so the template is cached.
         if (id === undefined) {
-            id = url;
+            id = location;
         }
         // Check for existing template
         if (Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
             return Twig.Templates.registry.hasOwnProperty(id);
         }
-        if (typeof XMLHttpRequest == "undefined") {
-            throw new Error("Unsupported platform: Unable to do remote requests " +
-                            "because there is no XMLHTTPRequest implementation");
-        }
 
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-            var tokens = null;
+        if (method == 'ajax') {
 
-            if(xmlhttp.readyState == 4) {
-                Twig.log.debug("Got template ", xmlhttp.responseText);
-                // Get the template
-                if (precompiled === true) {
-                    tokens = JSON.parse(xmlhttp.responseText);
+            if (typeof XMLHttpRequest == "undefined") {
+                throw new Error("Unsupported platform: Unable to do remote requests " +
+                                "because there is no XMLHTTPRequest implementation");
+            }
+
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+                var data = null;
+
+                if(xmlhttp.readyState == 4) {
+                    Twig.log.debug("Got template ", xmlhttp.responseText);
+
+                    if (precompiled === true) {
+                        data = JSON.parse(xmlhttp.responseText);
+                    } else {
+                        data = xmlhttp.responseText;
+                    }
+                    
                     template = new Twig.Template({
-                        data: tokens,
+                        data:   data,
                         blocks: blocks,
-                        id:   id
+                        id:     id,
+                        url:    location
+                    });
+
+                    if (callback) {
+                        callback(template);
+                    }
+                }
+            };
+            xmlhttp.open("GET", location, async);
+            xmlhttp.send();
+
+        } else { // if method = 'fs'
+            // Create local scope
+            (function() {
+                var fs = require('fs'),
+                    data = null;
+                
+                if (async === true) {
+                    console.log("Loading async from ", location);
+                    // async with callback
+                    fs.readFile(location, 'utf8', function(err, data) {
+                    
+                        if (precompiled === true) {
+                            data = JSON.parse(data);
+                        }
+                        
+                        // template is in data
+                        template = new Twig.Template({
+                            data:   data,
+                            blocks: blocks,
+                            id:     id,
+                            path:   location
+                        });
+    
+                        if (callback) {
+                            callback(template);
+                        }
                     });
                 } else {
+                    console.log("Loading sync from ", location);
+                    data = fs.readFileSync(location, 'utf8');
+                    
+                    if (precompiled === true) {
+                        data = JSON.parse(data);
+                    }
+                        
+                    // sync
                     template = new Twig.Template({
-                        data: xmlhttp.responseText,
+                        data:   data,
                         blocks: blocks,
-                        id: id
+                        id:     id,
+                        path:   location
                     });
-                    template.url = url;
+                    
+                    if (callback) {
+                        callback(template);
+                    }
                 }
-                if (callback) {
-                    callback(template);
-                }
-            }
-        };
-        xmlhttp.open("GET", url, async === true);
-        xmlhttp.send();
-
+            })();
+        }
         if (async === false) {
             return template;
         }
@@ -576,7 +631,8 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
-            url;
+            path = params.path,
+            url = params.url;
 
         // # What is stored in a Twig.Template
         //
@@ -593,6 +649,9 @@ var Twig = (function (Twig) {
         this.id     = id;
         this.blocks = blocks || {};
         this.extend = null;
+        
+        this.path   = path;
+        this.url    = url;
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
@@ -607,16 +666,19 @@ var Twig = (function (Twig) {
                 blocks = params && params.output == 'blocks';
 
             this.importBlocks = function(file, override) {
-                var url = relativePath(that.url, file),
+                var url = relativePath(that, file),
                     // Load blocks from an external file
                     sub_template = Twig.Templates.loadRemote(url, {
+                        method: that.url?'ajax':'fs',
+                        async: false,
                         id: url
-                    }, false),
+                    }),
                     key;
 
                 override = override || false;
 
                 sub_template.render(context);
+
                 // Mixin blocks
                 Object.keys(sub_template.blocks).forEach(function(key) {
                     if (override || that.blocks[key] === undefined) {
@@ -629,12 +691,15 @@ var Twig = (function (Twig) {
 
             // Does this template extend another
             if (this.extend) {
-                url = relativePath(this.url, this.extend);
+                url = relativePath(this, this.extend);
+
                 // This template extends another, load it with this template's blocks
                 this.parent = Twig.Templates.loadRemote(url, {
+                    method: this.url?'ajax':'fs',
+                    async: false,
                     id:     url,
                     blocks: this.blocks
-                }, false)
+                });
 
                 // Pass the parsed blocks to the parent.
                 this.parent.blocks = this.blocks;
@@ -657,16 +722,26 @@ var Twig = (function (Twig) {
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
      *
-     * @param {string} base The base path.
+     * @param {string} template The Twig.Template.
      * @param {string} file The file path, relative to the base path.
      *
      * @return {string} The canonical version of the path.
      */
-    function relativePath(base, file) {
-        var sep_chr = '/',
-            base_path = base.split(sep_chr),
+    function relativePath(template, file) {
+        var base,
+            base_path,
+            sep_chr = '/',
             new_path = [],
             val;
+        if (template.url) {
+            base = template.url;
+        } else if (template.path) {
+            base = template.path;
+        } else {
+            throw new Twig.Error("Cannot extend an inline template.");
+        }
+
+        base_path = base.split(sep_chr),
 
         // Remove file from url
         base_path.pop();
