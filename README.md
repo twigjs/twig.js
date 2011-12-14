@@ -1,3 +1,5 @@
+[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.png)](http://travis-ci.org/justjohn/twig.js)
+
 # About
 
 Twig.js is a pure JavaScript implementation of the Twig PHP templating language
