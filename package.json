@@ -22,6 +22,8 @@
   "dependencies": {},
   "devDependencies": {
     "should": "0.3.x",
-    "mocha": "0.3.x"
+    "mocha": "0.3.x",
+    "docco": "0.3.x",
+    "uglify-js": "*"
   }
 }

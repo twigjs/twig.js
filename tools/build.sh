@@ -33,10 +33,9 @@ done
 
 # Generate annotated docs with docco
 echo "Generating annotated source"
-docco twig.js
+node_modules/.bin/docco twig.js
 
 # Minimize with Google Closure Compiler
 echo "Minimizing"
-java -jar tools/closure/compiler.jar --js $OUTPUT --js_output_file=$OUTPUT_MIN
-
+node_modules/.bin/uglifyjs twig.js > twig.min.js
 

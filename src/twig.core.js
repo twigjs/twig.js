@@ -3,11 +3,11 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.core.js
-//
-// This file handles template level tokenizing, compiling and parsing.
 var Twig = (function (Twig) {
     "use strict";
+    // ## twig.core.js
+    //
+    // This file handles template level tokenizing, compiling and parsing.
 
     Twig.trace = false;
     Twig.debug = false;

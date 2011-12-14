@@ -2,12 +2,10 @@
 Copyright (c) 2011 John Roepke
 Available under the BSD 2-Clause License
 https://github.com/justjohn/twig.js
-</code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>twig.core.js</h2>
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">var</span> <span class="nx">Twig</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">)</span> <span class="p">{</span>
+    <span class="s2">&quot;use strict&quot;</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>twig.core.js</h2>
 
-<p>This file handles template level tokenizing, compiling and parsing.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">var</span> <span class="nx">Twig</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">)</span> <span class="p">{</span>
-    <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
-
-    <span class="nx">Twig</span><span class="p">.</span><span class="nx">trace</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<p>This file handles template level tokenizing, compiling and parsing.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Twig</span><span class="p">.</span><span class="nx">trace</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
     <span class="nx">Twig</span><span class="p">.</span><span class="nx">debug</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
 
     <span class="cm">/**</span>
