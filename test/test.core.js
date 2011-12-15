@@ -208,6 +208,14 @@ describe("Twig.js Expressions ->", function() {
     });
 
     describe("Comparison Operators ->", function() {
+        var equality_data = [
+            {a: true, b: "true"},
+            {a: 1, b: "1"},
+            {a: 1, b: 1},
+            {a: 1, b: 1.0},
+            {a: "str", b: "str"},
+            {a: false, b: "false"}
+        ];
         var boolean_data = [
             {a: true, b: true},
             {a: true, b: false},
@@ -248,10 +256,18 @@ describe("Twig.js Expressions ->", function() {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a == pair.b).toString() );
             });
+            equality_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a == pair.b).toString() );
+            });
         });
         it("should support not equals", function() {
             var test_template = twig({data: '{{ a != b }}'});
             boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a != pair.b).toString() );
+            });
+            equality_data.forEach(function(pair) {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a != pair.b).toString() );
             });
@@ -284,9 +300,34 @@ describe("Twig.js Expressions ->", function() {
             var test_template = twig({data: '{{ !a }}'});
             test_template.render({a:false}).should.equal(true.toString());
             test_template.render({a:true}).should.equal(false.toString());
+
             test_template = twig({data: '{{ not a }}'});
             test_template.render({a:false}).should.equal(true.toString());
             test_template.render({a:true}).should.equal(false.toString());
+        });
+
+        it("should support exact equals", function() {
+            var test_template = twig({data: '{{ a === b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a === pair.b).toString() );
+            });
+            equality_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a === pair.b).toString() );
+            });
+        });
+
+        it("should support exact not equals", function() {
+            var test_template = twig({data: '{{ a !== b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a !== pair.b).toString() );
+            });
+            equality_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a !== pair.b).toString() );
+            });
         });
     });
 });

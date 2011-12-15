@@ -47,7 +47,9 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case '===':
             case '==':
+            case '!==':
             case '!=':
                 token.precidence = 9;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -171,10 +173,22 @@ var Twig = (function (Twig) {
                 stack.push(a >= b);
                 break;
 
+            case '===':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a === b);
+                break;
+
             case '==':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a == b);
+                break;
+
+            case '!==':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a !== b);
                 break;
 
             case '!=':

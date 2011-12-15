@@ -1733,7 +1733,7 @@ https://github.com/justjohn/twig.js
             <span class="p">}</span>
         <span class="p">},</span>
         <span class="p">{</span>
-            <span class="nx">type</span><span class="o">:</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">type</span><span class="p">.</span><span class="nx">operator</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-144">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-144">&#182;</a>               </div>               <p>Match any of +, <em>, /, -, %, ~, !, &lt;, &lt;=, >, >=, !=, ==, ||, &amp;&amp;, *</em></p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">regex</span><span class="o">:</span> <span class="sr">/(^[\+\-~%]|^[&lt;&gt;!]=?|^==|^\|\||^&amp;&amp;|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/</span><span class="p">,</span>
+            <span class="nx">type</span><span class="o">:</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">type</span><span class="p">.</span><span class="nx">operator</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-144">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-144">&#182;</a>               </div>               <p>Match any of +, <em>, /, -, %, ~, !, &lt;, &lt;=, >, >=, !=, ==, ||, &amp;&amp;, *</em></p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">regex</span><span class="o">:</span> <span class="sr">/(^[\+\-~%]|^[!=]==?|^[!&lt;&gt;]=?|^\|\||^&amp;&amp;|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/</span><span class="p">,</span>
             <span class="nx">next</span><span class="o">:</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">set</span><span class="p">.</span><span class="nx">expressions</span><span class="p">,</span>
             <span class="nx">compile</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">token</span><span class="p">,</span> <span class="nx">stack</span><span class="p">,</span> <span class="nx">output</span><span class="p">)</span> <span class="p">{</span>
                 <span class="nx">token</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">token</span><span class="p">.</span><span class="nx">value</span><span class="p">.</span><span class="nx">trim</span><span class="p">();</span>
@@ -2264,7 +2264,9 @@ https://github.com/justjohn/twig.js
                 <span class="nx">token</span><span class="p">.</span><span class="nx">associativity</span> <span class="o">=</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">operator</span><span class="p">.</span><span class="nx">leftToRight</span><span class="p">;</span>
                 <span class="k">break</span><span class="p">;</span>
 
+            <span class="k">case</span> <span class="s1">&#39;===&#39;</span><span class="o">:</span>
             <span class="k">case</span> <span class="s1">&#39;==&#39;</span><span class="o">:</span>
+            <span class="k">case</span> <span class="s1">&#39;!==&#39;</span><span class="o">:</span>
             <span class="k">case</span> <span class="s1">&#39;!=&#39;</span><span class="o">:</span>
                 <span class="nx">token</span><span class="p">.</span><span class="nx">precidence</span> <span class="o">=</span> <span class="mi">9</span><span class="p">;</span>
                 <span class="nx">token</span><span class="p">.</span><span class="nx">associativity</span> <span class="o">=</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">operator</span><span class="p">.</span><span class="nx">leftToRight</span><span class="p">;</span>
@@ -2388,10 +2390,22 @@ https://github.com/justjohn/twig.js
                 <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span> <span class="o">&gt;=</span> <span class="nx">b</span><span class="p">);</span>
                 <span class="k">break</span><span class="p">;</span>
 
+            <span class="k">case</span> <span class="s1">&#39;===&#39;</span><span class="o">:</span>
+                <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span> <span class="o">===</span> <span class="nx">b</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+
             <span class="k">case</span> <span class="s1">&#39;==&#39;</span><span class="o">:</span>
                 <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
                 <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
                 <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span> <span class="o">==</span> <span class="nx">b</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+
+            <span class="k">case</span> <span class="s1">&#39;!==&#39;</span><span class="o">:</span>
+                <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span> <span class="o">!==</span> <span class="nx">b</span><span class="p">);</span>
                 <span class="k">break</span><span class="p">;</span>
 
             <span class="k">case</span> <span class="s1">&#39;!=&#39;</span><span class="o">:</span>

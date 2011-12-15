@@ -244,7 +244,7 @@ test("equals", function() {
 
 test("notEquals", function() {
     expect(boolean_data.length);
-    var test_template = twig({data: '{{ a != b }}'});
+    var test_template = twig({data: '{{ a !== b }}'});
     boolean_data.forEach(function(pair) {
         var output = test_template.render(pair);
         equal( output, (pair.a != pair.b).toString() );
