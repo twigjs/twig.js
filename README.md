@@ -23,7 +23,7 @@ A limited set of filters are supported (with more coming) and most of the expres
 
 Supported filters:
 
-upper, lower, capitalize, title, length, reverse, sort, keys, url_encode, join, default, json_encode, merge
+upper, lower, capitalize, title, length, reverse, sort, keys, url_encode, join, default, json_encode, merge, date, replace, format, striptags
 
 # Node Usage
 
