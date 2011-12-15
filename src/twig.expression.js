@@ -167,13 +167,14 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.operator,
             // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **
-            regex: /(^[\+\/\-~%]|^[<>!]=?|^==|^\|\||^&&|^\*\*?)/,
+            regex: /(^[\+\-~%]|^[<>!]=?|^==|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
+                token.value = token.value.trim();
                 var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
 
-                Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator);
+                Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator, " from ", value);
 
                 while (stack.length > 0 && (
                             (operator.associativity === Twig.expression.operator.leftToRight &&

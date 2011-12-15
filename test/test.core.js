@@ -54,7 +54,7 @@ describe("Twig.js Core ->", function() {
          twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}).should.equal("1,2,3" );
     });
     it("should be able to output variables", function() {
-         twig({data: '{{ val }}'}).render({ val: "test"}).should.equal("test");
+         twig({data: '{{ orp }}'}).render({ orp: "test"}).should.equal("test");
          twig({data: '{{ val }}'}).render({ val: function() {
                                                        return "test"
                                                    }}).should.equal("test");
@@ -149,6 +149,17 @@ describe("Twig.js Expressions ->", function() {
             });
         });
 
+        it("should divide numbers and return an int result", function() {
+            var test_template = twig({data: '{{ a // b }}'});
+            numeric_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                // Get expected truncated result
+                var c = parseInt(pair.a/pair.b);
+
+                output.should.equal(c.toString() );
+            });
+        });
+
         it("should raise numbers to a power", function() {
             var test_template = twig({data: '{{ a ** b }}'});
             var pow_test_data = [
@@ -158,7 +169,6 @@ describe("Twig.js Expressions ->", function() {
             ];
             pow_test_data.forEach(function(pair) {
                 var output = test_template.render(pair);
-                console.log(pair, output);
                 output.should.equal(pair.c.toString() );
             });
         });
@@ -252,9 +262,20 @@ describe("Twig.js Expressions ->", function() {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a || pair.b).toString() );
             });
+            test_template = twig({data: '{{ a or b }}'});
+            boolean_data.forEach(function(pair) {
+                console.log(pair);
+                var output = test_template.render(pair);
+                output.should.equal((pair.a || pair.b).toString() );
+            });
         });
         it("should support boolean and", function() {
             var test_template = twig({data: '{{ a && b }}'});
+            boolean_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                output.should.equal((pair.a && pair.b).toString() );
+            });
+            test_template = twig({data: '{{ a and b }}'});
             boolean_data.forEach(function(pair) {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a && pair.b).toString() );

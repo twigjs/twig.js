@@ -35,11 +35,13 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
+            case 'or':
             case '||':
                 token.precidence = 14;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case 'and':
             case '&&':
                 token.precidence = 13;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -67,6 +69,7 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case '//':
             case '**':
             case '*':
             case '/':
@@ -93,7 +96,7 @@ var Twig = (function (Twig) {
      * Returns the updated stack.
      */
     Twig.expression.operator.parse = function (operator, stack) {
-        Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
+        console.log("Twig.expression.operator.parse: ", "Handling ", operator);
         var a,b;
         switch (operator) {
             case '+':
@@ -118,6 +121,12 @@ var Twig = (function (Twig) {
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
                 stack.push(a / b);
+                break;
+
+            case '//':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(parseInt(a / b));
                 break;
 
             case '%':
@@ -172,12 +181,14 @@ var Twig = (function (Twig) {
                 stack.push(a != b);
                 break;
 
+            case 'or':
             case '||':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a || b);
                 break;
 
+            case 'and':
             case '&&':
                 b = stack.pop();
                 a = stack.pop();
@@ -189,6 +200,9 @@ var Twig = (function (Twig) {
                 a = stack.pop();
                 stack.push(Math.pow(a, b));
                 break;
+
+            default:
+                throw new Twig.Error(operator + " is an unknown operator.");
         }
     };
 
