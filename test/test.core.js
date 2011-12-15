@@ -264,7 +264,6 @@ describe("Twig.js Expressions ->", function() {
             });
             test_template = twig({data: '{{ a or b }}'});
             boolean_data.forEach(function(pair) {
-                console.log(pair);
                 var output = test_template.render(pair);
                 output.should.equal((pair.a || pair.b).toString() );
             });
@@ -283,6 +282,9 @@ describe("Twig.js Expressions ->", function() {
         });
         it("should support boolean not", function() {
             var test_template = twig({data: '{{ !a }}'});
+            test_template.render({a:false}).should.equal(true.toString());
+            test_template.render({a:true}).should.equal(false.toString());
+            test_template = twig({data: '{{ not a }}'});
             test_template.render({a:false}).should.equal(true.toString());
             test_template.render({a:true}).should.equal(false.toString());
         });

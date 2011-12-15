@@ -2062,7 +2062,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.operator,
             // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **
-            regex: /(^[\+\-~%]|^[<>!]=?|^==|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+)/,
+            regex: /(^[\+\-~%]|^[<>!]=?|^==|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 token.value = token.value.trim();
@@ -2716,6 +2716,7 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case 'not':
             case '!':
                 token.precidence = 3;
                 token.associativity = Twig.expression.operator.rightToLeft;
@@ -2734,7 +2735,7 @@ var Twig = (function (Twig) {
      * Returns the updated stack.
      */
     Twig.expression.operator.parse = function (operator, stack) {
-        console.log("Twig.expression.operator.parse: ", "Handling ", operator);
+        Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
         var a,b;
         switch (operator) {
             case '+':
@@ -2779,6 +2780,7 @@ var Twig = (function (Twig) {
                 stack.push(a + b);
                 break;
 
+            case 'not':
             case '!':
                 stack.push(!stack.pop());
                 break;
