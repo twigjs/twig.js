@@ -166,8 +166,8 @@ var Twig = (function (Twig) {
         },
         {
             type: Twig.expression.type.operator,
-            // Match any of +, *, /, -,^, ~, !, <, <=, >, >=, !=, ==, ||, &&
-            regex: /(^[\+\*\/\-\^~%]|^[<>!]=?|^==|^\|\||^&&)/,
+            // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **
+            regex: /(^[\+\/\-~%]|^[<>!]=?|^==|^\|\||^&&|^\*\*?)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 var value = token.value,

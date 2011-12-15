@@ -124,30 +124,45 @@ describe("Twig.js Expressions ->", function() {
             var test_template = twig({data: '{{ a + b }}'});
             numeric_test_data.forEach(function(pair) {
                 var output = test_template.render(pair);
-                     output.should.equal( (pair.a + pair.b).toString() );
+                output.should.equal( (pair.a + pair.b).toString() );
             });
         });
         it("should subtract numbers", function() {
             var test_template = twig({data: '{{ a - b }}'});
             numeric_test_data.forEach(function(pair) {
                 var output = test_template.render(pair);
-                     output.should.equal( (pair.a - pair.b).toString() );
+                output.should.equal( (pair.a - pair.b).toString() );
             });
         });
         it("should multiply numbers", function() {
             var test_template = twig({data: '{{ a * b }}'});
             numeric_test_data.forEach(function(pair) {
                 var output = test_template.render(pair);
-                     output.should.equal((pair.a * pair.b).toString() );
+                output.should.equal((pair.a * pair.b).toString() );
             });
         });
         it("should divide numbers", function() {
             var test_template = twig({data: '{{ a / b }}'});
             numeric_test_data.forEach(function(pair) {
                 var output = test_template.render(pair);
-                     output.should.equal((pair.a / pair.b).toString() );
+                output.should.equal((pair.a / pair.b).toString() );
             });
         });
+
+        it("should raise numbers to a power", function() {
+            var test_template = twig({data: '{{ a ** b }}'});
+            var pow_test_data = [
+                {a: 2, b:3, c: 8}
+                , {a: 4, b:.5, c: 2}
+                , {a: 5, b: 1, c: 5}
+            ];
+            pow_test_data.forEach(function(pair) {
+                var output = test_template.render(pair);
+                console.log(pair, output);
+                output.should.equal(pair.c.toString() );
+            });
+        });
+        
         it("should concatanate values", function() {
             twig({data: '{{ "test" ~ a }}'}).render({a:1234}).should.equal("test1234");
             twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}).should.equal("1234test1234");

@@ -219,11 +219,9 @@ var Twig = (function (Twig) {
             return Twig.lib.strip_tags(value);
         }
 
-        /*convert_encoding,
+        /* convert_encoding,
         escape,
-        format,
-        raw,
-        striptags */
+        raw */
     };
 
     Twig.filter = function(filter, value, params) {

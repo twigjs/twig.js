@@ -1733,7 +1733,7 @@ https://github.com/justjohn/twig.js
             <span class="p">}</span>
         <span class="p">},</span>
         <span class="p">{</span>
-            <span class="nx">type</span><span class="o">:</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">type</span><span class="p">.</span><span class="nx">operator</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-144">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-144">&#182;</a>               </div>               <p>Match any of +, *, /, -,^, ~, !, &lt;, &lt;=, >, >=, !=, ==, ||, &amp;&amp;</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">regex</span><span class="o">:</span> <span class="sr">/(^[\+\*\/\-\^~%]|^[&lt;&gt;!]=?|^==|^\|\||^&amp;&amp;)/</span><span class="p">,</span>
+            <span class="nx">type</span><span class="o">:</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">type</span><span class="p">.</span><span class="nx">operator</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-144">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-144">&#182;</a>               </div>               <p>Match any of +, <em>, /, -, %, ~, !, &lt;, &lt;=, >, >=, !=, ==, ||, &amp;&amp;, *</em></p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">regex</span><span class="o">:</span> <span class="sr">/(^[\+\/\-~%]|^[&lt;&gt;!]=?|^==|^\|\||^&amp;&amp;|^\*\*?)/</span><span class="p">,</span>
             <span class="nx">next</span><span class="o">:</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">set</span><span class="p">.</span><span class="nx">expressions</span><span class="p">,</span>
             <span class="nx">compile</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">token</span><span class="p">,</span> <span class="nx">stack</span><span class="p">,</span> <span class="nx">output</span><span class="p">)</span> <span class="p">{</span>
                 <span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">token</span><span class="p">.</span><span class="nx">value</span><span class="p">,</span>
@@ -2283,6 +2283,7 @@ https://github.com/justjohn/twig.js
                 <span class="nx">token</span><span class="p">.</span><span class="nx">associativity</span> <span class="o">=</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">expression</span><span class="p">.</span><span class="nx">operator</span><span class="p">.</span><span class="nx">leftToRight</span><span class="p">;</span>
                 <span class="k">break</span><span class="p">;</span>
 
+            <span class="k">case</span> <span class="s1">&#39;**&#39;</span><span class="o">:</span>
             <span class="k">case</span> <span class="s1">&#39;*&#39;</span><span class="o">:</span>
             <span class="k">case</span> <span class="s1">&#39;/&#39;</span><span class="o">:</span>
             <span class="k">case</span> <span class="s1">&#39;%&#39;</span><span class="o">:</span>
@@ -2397,6 +2398,12 @@ https://github.com/justjohn/twig.js
                 <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
                 <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
                 <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span> <span class="o">&amp;&amp;</span> <span class="nx">b</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+
+            <span class="k">case</span> <span class="s1">&#39;**&#39;</span><span class="o">:</span>
+                <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">pow</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">));</span>
                 <span class="k">break</span><span class="p">;</span>
         <span class="p">}</span>
     <span class="p">};</span>
@@ -2600,11 +2607,9 @@ Without this, d would have an index of "4" and overwrite the value
             <span class="k">return</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">lib</span><span class="p">.</span><span class="nx">strip_tags</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
         <span class="p">}</span>
 
-        <span class="cm">/*convert_encoding,</span>
+        <span class="cm">/* convert_encoding,</span>
 <span class="cm">        escape,</span>
-<span class="cm">        format,</span>
-<span class="cm">        raw,</span>
-<span class="cm">        striptags */</span>
+<span class="cm">        raw */</span>
     <span class="p">};</span>
 
     <span class="nx">Twig</span><span class="p">.</span><span class="nx">filter</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">filter</span><span class="p">,</span> <span class="nx">value</span><span class="p">,</span> <span class="nx">params</span><span class="p">)</span> <span class="p">{</span>

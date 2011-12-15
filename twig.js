@@ -2061,8 +2061,8 @@ var Twig = (function (Twig) {
         },
         {
             type: Twig.expression.type.operator,
-            // Match any of +, *, /, -,^, ~, !, <, <=, >, >=, !=, ==, ||, &&
-            regex: /(^[\+\*\/\-\^~%]|^[<>!]=?|^==|^\|\||^&&)/,
+            // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **
+            regex: /(^[\+\/\-~%]|^[<>!]=?|^==|^\|\||^&&|^\*\*?)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 var value = token.value,
@@ -2704,6 +2704,7 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case '**':
             case '*':
             case '/':
             case '%':
@@ -2818,6 +2819,12 @@ var Twig = (function (Twig) {
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a && b);
+                break;
+
+            case '**':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(Math.pow(a, b));
                 break;
         }
     };
@@ -3047,11 +3054,9 @@ var Twig = (function (Twig) {
             return Twig.lib.strip_tags(value);
         }
 
-        /*convert_encoding,
+        /* convert_encoding,
         escape,
-        format,
-        raw,
-        striptags */
+        raw */
     };
 
     Twig.filter = function(filter, value, params) {
