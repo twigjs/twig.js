@@ -87,17 +87,28 @@ There are two sets of tests available for Twig.js. The node tests are written in
 
 # License
 
-Twig.js is available under a [BSD 2-Clause license][bsd-2], see the LICENSE file for more information.
+Twig.js is available under a [BSD 2-Clause License][bsd-2], see the LICENSE file for more information.
 
 # Acknowledgments
 
-1. The JavaScript Array fills in src/twig.fills.js are from <https://developer.mozilla.org/> and
-used under a [Creative Commons Attribution-ShareAlike 2.5 License][cc-by-sa-2.5]
+See the LICENSES.md file for copies of the referenced licenses.
 
-2. The Date.format function in src/twig.fills.js is from <http://jpaq.org/> and used under a [MIT license][mit].
+1. The JavaScript Array fills in src/twig.fills.js are from <https://developer.mozilla.org/> and are available under the [MIT License][mit] or are [public domain][mdn-license].
 
+2. The Date.format function in src/twig.lib.js is from <http://jpaq.org/> and used under a [MIT license][mit-jpaq].
+
+3. The sprintf implementation in src/twig.lib.js used for the format filter is from <http://www.diveintojavascript.com/projects/javascript-sprintf> and used under a [BSD 3-Clause License][bsd-3].
+
+4. The strip_tags implementation in src/twig.lib.js used for the striptags filter is from <http://phpjs.org/functions/strip_tags> and used under and [MIT License][mit-phpjs].
+
+[mit-jpaq]:     http://jpaq.org/license/
+[mit-phpjs]:    http://phpjs.org/pages/license/#MIT
 [mit]:          http://www.opensource.org/licenses/mit-license.php
+[mdn-license]:  https://developer.mozilla.org/Project:Copyrights
+
 [bsd-2]:        http://www.opensource.org/licenses/BSD-2-Clause
+[bsd-3]:        http://www.opensource.org/licenses/BSD-3-Clause
 [cc-by-sa-2.5]: http://creativecommons.org/licenses/by-sa/2.5/ "Creative Commons Attribution-ShareAlike 2.5 License"
+
 [mocha]:        http://visionmedia.github.com/mocha/
 [qunit]:        http://docs.jquery.com/QUnit

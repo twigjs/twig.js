@@ -198,15 +198,31 @@ var Twig = (function (Twig) {
         date: function(value, params) {
             var date = new Date(value);
             return date.format(params[0]);
+        },
+
+        replace: function(value, params) {
+            var pairs = params[0],
+                tag;
+            for (tag in pairs) {
+                if (pairs.hasOwnProperty(tag) && tag !== "_keys") {
+                    value = value.replace(tag, pairs[tag]);
+                }
+            }
+            return value;
+        },
+
+        format: function(value, params) {
+            return Twig.lib.vsprintf(value, params);
+        },
+
+        striptags: function(value) {
+            return Twig.lib.strip_tags(value);
         }
 
-
         /*convert_encoding,
-        date,
         escape,
         format,
         raw,
-        replace,
         striptags */
     };
 
@@ -222,4 +238,5 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
+
 })(Twig || { });

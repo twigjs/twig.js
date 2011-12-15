@@ -175,6 +175,27 @@ describe("Twig.js Filters ->", function() {
         });
     });
     
+    describe("replace ->", function() {
+        it("should replace strings provided in a map", function() {
+            var template = twig({data: '{{ "I like %this% and %that%."|replace({"%this%": foo, "%that%": "bar"}) }}'});
+            template.render({foo: "foo"}).should.equal("I like foo and bar." );
+        });
+    });
+    
+    describe("format ->", function() {
+        it("should replace formatting tags with parameters", function() {
+            var template = twig({data: '{{ "I like %s and %s."|format(foo, "bar") }}'});
+            template.render({foo: "foo"}).should.equal("I like foo and bar." );
+        });
+    });
+    
+    describe("striptags ->", function() {
+        it("should remove tags from a value", function() {
+            var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\\"#fragment\\">Other text</a>"|striptags }}'});
+            template.render().should.equal("Test paragraph. Other text" );
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0" );
