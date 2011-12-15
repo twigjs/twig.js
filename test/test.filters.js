@@ -164,14 +164,24 @@ describe("Twig.js Filters ->", function() {
     });
 
     describe("date ->", function() {
+        function pad(num) {return num<10?'0'+num:num;}
+        function stringDate(date){
+            return pad(date.getDate()) + "/" + pad(date.getMonth()+1) + "/" + date.getFullYear()
+                                     + " @ " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
+        }
+
         // NOTE: these tests are currently timezone dependent
         it("should recognize timestamps", function() { 
-            var template = twig({data: '{{ 27571323556134|date("d/m/Y @ H:i:s") }}'});
-            template.render().should.equal("13/09/2843 @ 08:59:16" );
+            var template = twig({data: '{{ 27571323556134|date("d/m/Y @ H:i:s") }}'})
+                , date = new Date(27571323556134); // 13/09/2843 @ 08:59:16 EST
+            
+            template.render().should.equal( stringDate(date) );
         });
         it("should recognize string date formats", function() { 
-            var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'});
-            template.render().should.equal("14/08/2007 @ 04:52:15" );
+            var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'})
+                , date = new Date(1187081535000); // 14/08/2007 @ 04:52:15 EST
+
+            template.render().should.equal( stringDate(date) );
         });
     });
     
