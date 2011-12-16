@@ -1,4 +1,4 @@
-[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.png)](http://travis-ci.org/justjohn/twig.js)
+[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.png)](http://travis-ci.org/#!/justjohn/twig.js)
 
 # About
 
