@@ -1,9 +1,18 @@
-<div class="userPicture"><a href="http://twitter.com/{{ user.screen_name }}"><img src="{{ user.profile_image_url }}" alt="" /></a></div>
+{% if retweeted_status is defined %}
+    {% set rt_user=retweeted_status.user %}
+{% else %}
+    {% set rt_user=user %}
+{% endif %}
+<div class="userPicture"><a href="http://twitter.com/{{ rt_user.screen_name }}"><img src="{{ rt_user.profile_image_url }}" alt="" /></a></div>
 <div class="content">
     <div class="date">{{ created_at|date("M j, Y @ g:i a") }}</div>
     <div class="user">
-        <span class="name"><a href="{{ user.url }}">{{ user.name }}</a></span>
-        <span class="handle"><a href="http://twitter.com/{{ user.screen_name }}">{{ user.screen_name }}</a></span>
+        <span class="name"><a href="{{ rt_user.url }}">{{ rt_user.name }}</a></span>
+        <span class="handle"><a href="http://twitter.com/{{ rt_user.screen_name }}">{{ rt_user.screen_name }}</a></span>
     </div>
+    {% if retweeted_status is defined %}
+    <div class="text">{{ retweeted_status.text }}</div>
+    {% else %}
     <div class="text">{{ text }}</div>
+    {% endif %}
 </div>

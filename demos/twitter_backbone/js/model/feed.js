@@ -1,7 +1,7 @@
 module.declare(
     [
-        { backbone: 'vendor/backbone' } 
-        , { underscore: 'vendor/underscore' } 
+        { backbone: 'vendor/backbone' }
+        , { underscore: 'vendor/underscore' }
         , { tweet: "js/model/tweet" }
     ],
     function(require, exports, module) {
@@ -28,9 +28,9 @@ module.declare(
                         }
                         , function(data) {
                             _.each(data, function(tweet) {
-                                var newTweet = that.create(tweet);
+                                that.create(tweet);
                             });
-                        }); 
+                        });
                 }
             });
         exports.feed = new Feed;
