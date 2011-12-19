@@ -493,10 +493,17 @@ var Twig = (function (Twig) {
     /**
      * Load a template from a remote location using AJAX and saves in with the given ID.
      *
+     * Available parameters:
+     *
+     *      async:       Should the HTTP request be performed asynchronously.
+     *                      Defaults to true.
+     *      method:      What method should be used to load the template
+     *                      (fs or ajax)
+     *      precompiled: Has the template already been compiled.
+     *
      * @param {string} location  The remote URL to load as a template.
      * @param {Object} params The template parameters.
      * @param {function} callback  A callback triggered when the template finishes loading.
-     * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
      *
      *
      */
@@ -507,7 +514,7 @@ var Twig = (function (Twig) {
             blocks      = params.blocks,
             precompiled = params.precompiled,
             template    = null;
-            
+
         // Default to async
         if (async === undefined) async = true;
 
@@ -518,7 +525,7 @@ var Twig = (function (Twig) {
         // Check for existing template
         if (Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
-            return Twig.Templates.registry.hasOwnProperty(id);
+            return Twig.Templates.registry[id];
         }
 
         if (method == 'ajax') {
@@ -540,7 +547,7 @@ var Twig = (function (Twig) {
                     } else {
                         data = xmlhttp.responseText;
                     }
-                    
+
                     template = new Twig.Template({
                         data:   data,
                         blocks: blocks,
@@ -561,15 +568,15 @@ var Twig = (function (Twig) {
             (function() {
                 var fs = require('fs'),
                     data = null;
-                
+
                 if (async === true) {
                     // async with callback
                     fs.readFile(location, 'utf8', function(err, data) {
-                    
+
                         if (precompiled === true) {
                             data = JSON.parse(data);
                         }
-                        
+
                         // template is in data
                         template = new Twig.Template({
                             data:   data,
@@ -577,18 +584,18 @@ var Twig = (function (Twig) {
                             id:     id,
                             path:   location
                         });
-    
+
                         if (callback) {
                             callback(template);
                         }
                     });
                 } else {
                     data = fs.readFileSync(location, 'utf8');
-                    
+
                     if (precompiled === true) {
                         data = JSON.parse(data);
                     }
-                        
+
                     // sync
                     template = new Twig.Template({
                         data:   data,
@@ -596,7 +603,7 @@ var Twig = (function (Twig) {
                         id:     id,
                         path:   location
                     });
-                    
+
                     if (callback) {
                         callback(template);
                     }
@@ -647,7 +654,7 @@ var Twig = (function (Twig) {
         this.id     = id;
         this.blocks = blocks || {};
         this.extend = null;
-        
+
         this.path   = path;
         this.url    = url;
 

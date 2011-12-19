@@ -398,10 +398,17 @@ currently at the head of the stack before we push a new one on.</p>             
     <span class="cm">/**</span>
 <span class="cm">     * Load a template from a remote location using AJAX and saves in with the given ID.</span>
 <span class="cm">     *</span>
+<span class="cm">     * Available parameters:</span>
+<span class="cm">     *</span>
+<span class="cm">     *      async:       Should the HTTP request be performed asynchronously.</span>
+<span class="cm">     *                      Defaults to true.</span>
+<span class="cm">     *      method:      What method should be used to load the template</span>
+<span class="cm">     *                      (fs or ajax)</span>
+<span class="cm">     *      precompiled: Has the template already been compiled.</span>
+<span class="cm">     *</span>
 <span class="cm">     * @param {string} location  The remote URL to load as a template.</span>
 <span class="cm">     * @param {Object} params The template parameters.</span>
 <span class="cm">     * @param {function} callback  A callback triggered when the template finishes loading.</span>
-<span class="cm">     * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.</span>
 <span class="cm">     *</span>
 <span class="cm">     *</span>
 <span class="cm">     */</span>
@@ -411,10 +418,9 @@ currently at the head of the stack before we push a new one on.</p>             
             <span class="nx">async</span>       <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">async</span><span class="p">,</span>
             <span class="nx">blocks</span>      <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">blocks</span><span class="p">,</span>
             <span class="nx">precompiled</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">precompiled</span><span class="p">,</span>
-            <span class="nx">template</span>    <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
-            </pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>Default to async</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">async</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="nx">async</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>Default to the URL so the template is cached.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">id</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">template</span>    <span class="o">=</span> <span class="kc">null</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>Default to async</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">async</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="nx">async</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>Default to the URL so the template is cached.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">id</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">id</span> <span class="o">=</span> <span class="nx">location</span><span class="p">;</span>
-        <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>Check for existing template</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">.</span><span class="nx">Templates</span><span class="p">.</span><span class="nx">registry</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>A template is already saved with the given id.</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="k">return</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Templates</span><span class="p">.</span><span class="nx">registry</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+        <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>Check for existing template</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">.</span><span class="nx">Templates</span><span class="p">.</span><span class="nx">registry</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>A template is already saved with the given id.</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="k">return</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Templates</span><span class="p">.</span><span class="nx">registry</span><span class="p">[</span><span class="nx">id</span><span class="p">];</span>
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="nx">method</span> <span class="o">==</span> <span class="s1">&#39;ajax&#39;</span><span class="p">)</span> <span class="p">{</span>
@@ -436,7 +442,7 @@ currently at the head of the stack before we push a new one on.</p>             
                     <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
                         <span class="nx">data</span> <span class="o">=</span> <span class="nx">xmlhttp</span><span class="p">.</span><span class="nx">responseText</span><span class="p">;</span>
                     <span class="p">}</span>
-                    
+
                     <span class="nx">template</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Template</span><span class="p">({</span>
                         <span class="nx">data</span><span class="o">:</span>   <span class="nx">data</span><span class="p">,</span>
                         <span class="nx">blocks</span><span class="o">:</span> <span class="nx">blocks</span><span class="p">,</span>
@@ -455,36 +461,34 @@ currently at the head of the stack before we push a new one on.</p>             
         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// if method = &#39;fs&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-44">&#182;</a>               </div>               <p>Create local scope</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
                 <span class="kd">var</span> <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">),</span>
                     <span class="nx">data</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
-                
+
                 <span class="k">if</span> <span class="p">(</span><span class="nx">async</span> <span class="o">===</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-45">&#182;</a>               </div>               <p>async with callback</p>             </td>             <td class="code">               <div class="highlight"><pre>                    <span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">(</span><span class="nx">location</span><span class="p">,</span> <span class="s1">&#39;utf8&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
-                    
+
                         <span class="k">if</span> <span class="p">(</span><span class="nx">precompiled</span> <span class="o">===</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
                             <span class="nx">data</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
-                        <span class="p">}</span>
-                        </pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-46">&#182;</a>               </div>               <p>template is in data</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">template</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Template</span><span class="p">({</span>
+                        <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-46">&#182;</a>               </div>               <p>template is in data</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">template</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Template</span><span class="p">({</span>
                             <span class="nx">data</span><span class="o">:</span>   <span class="nx">data</span><span class="p">,</span>
                             <span class="nx">blocks</span><span class="o">:</span> <span class="nx">blocks</span><span class="p">,</span>
                             <span class="nx">id</span><span class="o">:</span>     <span class="nx">id</span><span class="p">,</span>
                             <span class="nx">path</span><span class="o">:</span>   <span class="nx">location</span>
                         <span class="p">});</span>
-    
+
                         <span class="k">if</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
                             <span class="nx">callback</span><span class="p">(</span><span class="nx">template</span><span class="p">);</span>
                         <span class="p">}</span>
                     <span class="p">});</span>
                 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
                     <span class="nx">data</span> <span class="o">=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">location</span><span class="p">,</span> <span class="s1">&#39;utf8&#39;</span><span class="p">);</span>
-                    
+
                     <span class="k">if</span> <span class="p">(</span><span class="nx">precompiled</span> <span class="o">===</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
                         <span class="nx">data</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
-                    <span class="p">}</span>
-                        </pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-47">&#182;</a>               </div>               <p>sync</p>             </td>             <td class="code">               <div class="highlight"><pre>                    <span class="nx">template</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Template</span><span class="p">({</span>
+                    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-47">&#182;</a>               </div>               <p>sync</p>             </td>             <td class="code">               <div class="highlight"><pre>                    <span class="nx">template</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Template</span><span class="p">({</span>
                         <span class="nx">data</span><span class="o">:</span>   <span class="nx">data</span><span class="p">,</span>
                         <span class="nx">blocks</span><span class="o">:</span> <span class="nx">blocks</span><span class="p">,</span>
                         <span class="nx">id</span><span class="o">:</span>     <span class="nx">id</span><span class="p">,</span>
                         <span class="nx">path</span><span class="o">:</span>   <span class="nx">location</span>
                     <span class="p">});</span>
-                    
+
                     <span class="k">if</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
                         <span class="nx">callback</span><span class="p">(</span><span class="nx">template</span><span class="p">);</span>
                     <span class="p">}</span>
@@ -528,7 +532,7 @@ currently at the head of the stack before we push a new one on.</p>             
 </code></pre>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">this</span><span class="p">.</span><span class="nx">id</span>     <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">blocks</span> <span class="o">=</span> <span class="nx">blocks</span> <span class="o">||</span> <span class="p">{};</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">extend</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
-        
+
         <span class="k">this</span><span class="p">.</span><span class="nx">path</span>   <span class="o">=</span> <span class="nx">path</span><span class="p">;</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">url</span>    <span class="o">=</span> <span class="nx">url</span><span class="p">;</span>
 
