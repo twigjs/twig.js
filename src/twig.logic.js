@@ -226,7 +226,8 @@ var Twig = (function (Twig) {
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
                     key,
-                    keyset;
+                    keyset,
+                    that = this;
 
                 if (result instanceof Array) {
                     key = 0;
@@ -235,7 +236,7 @@ var Twig = (function (Twig) {
                         if (token.key_var) {
                             context[token.key_var] = key;
                         }
-                        output.push(Twig.parse.apply(this, [token.output, context]));
+                        output.push(Twig.parse.apply(that, [token.output, context]));
 
                         key += 1;
                     });
@@ -252,7 +253,7 @@ var Twig = (function (Twig) {
                             if (token.key_var) {
                                 context[token.key_var] = key;
                             }
-                            output.push(Twig.parse.apply(this, [token.output, context]));
+                            output.push(Twig.parse.apply(that, [token.output, context]));
                         }
                     });
                 }

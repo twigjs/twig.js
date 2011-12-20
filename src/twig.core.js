@@ -246,7 +246,9 @@ var Twig = (function (Twig) {
         // Output and intermediate stacks
         var output = [],
             stack = [],
+            // The tokens between open and close tags
             intermediate_output = [],
+
             token = null,
             logic_token = null,
             unclosed_token = null,
@@ -321,6 +323,7 @@ var Twig = (function (Twig) {
                             prev_token.output = prev_token.output || [];
                             prev_token.output = prev_token.output.concat(intermediate_output);
                             stack.push(prev_token);
+                            intermediate_output = [];
                         }
 
                         // Push the new logic token onto the logic stack
