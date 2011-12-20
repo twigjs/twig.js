@@ -382,7 +382,7 @@ var Twig = (function (Twig) {
                 var block_output = "",
                     output = "";
 
-                // Don't ovverride previous blocks
+                // Don't override previous blocks
                 if (this.blocks[token.block] === undefined) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
@@ -390,11 +390,21 @@ var Twig = (function (Twig) {
                     }, context]);
 
                     this.blocks[token.block] = block_output;
+                } else {
+                    // This block is already defined, throw an exception!
+                    console.log("Blocks are ", this );
+                    throw new Twig.Error("Unable to parse block " + token.block
+                                        + " since it has already been defined.");
                 }
 
                 // This is the base template -> append to output
                 if ( this.extend === null ) {
-                    output = this.blocks[token.block];
+                    // Check if a child block has been set from a template extending this one.
+                    if (this.child.blocks[token.block]) {
+                        output = this.child.blocks[token.block];
+                    } else {
+                        output = this.blocks[token.block];
+                    }
                 }
 
                 return {

@@ -12,6 +12,8 @@ var Twig = (function (Twig) {
     Twig.trace = false;
     Twig.debug = false;
 
+    Twig.cache = false;
+
     /**
      * Exception thrown by twig.js.
      */
@@ -523,7 +525,7 @@ var Twig = (function (Twig) {
             id = location;
         }
         // Check for existing template
-        if (Twig.Templates.registry.hasOwnProperty(id)) {
+        if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
             return Twig.Templates.registry[id];
         }
@@ -652,7 +654,10 @@ var Twig = (function (Twig) {
         //
 
         this.id     = id;
-        this.blocks = blocks || {};
+        this.blocks = {};
+        this.child = {
+            blocks: blocks
+        };
         this.extend = null;
 
         this.path   = path;
@@ -705,9 +710,6 @@ var Twig = (function (Twig) {
                     id:     url,
                     blocks: this.blocks
                 });
-
-                // Pass the parsed blocks to the parent.
-                this.parent.blocks = this.blocks;
 
                 return this.parent.render(context);
             }
