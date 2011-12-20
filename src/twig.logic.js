@@ -391,11 +391,6 @@ var Twig = (function (Twig) {
                     }, context]);
 
                     this.blocks[token.block] = block_output;
-                } else {
-                    // This block is already defined, throw an exception!
-                    console.log("Blocks are ", this );
-                    throw new Twig.Error("Unable to parse block " + token.block
-                                        + " since it has already been defined.");
                 }
 
                 // This is the base template -> append to output
@@ -473,7 +468,7 @@ var Twig = (function (Twig) {
                 var expression = token.match[1].trim();
                 delete token.match;
 
-                token.stack   = Twig.expression.compile.apply(this, [{
+                token.stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
                     value: expression
                 }]).stack;

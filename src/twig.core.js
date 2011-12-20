@@ -659,7 +659,7 @@ var Twig = (function (Twig) {
         this.id     = id;
         this.blocks = {};
         this.child = {
-            blocks: blocks
+            blocks: blocks || {}
         };
         this.extend = null;
 
