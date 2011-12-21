@@ -1,0 +1,16 @@
+{% extends "../layout.twig" %}
+
+{% block title %}Twig.js Notepad ({{ notes|length }}){% endblock %}
+
+{% block body %}
+<div class="notes">
+    <ul>
+        {% for id,note in notes %}
+        <li>
+            <a href="/notes/{{ id }}">{{ note.title }}</a>
+            <span class="count">({{ note.text|length }})</span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
