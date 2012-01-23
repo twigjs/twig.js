@@ -28,27 +28,17 @@ module.declare(
                             , include_rts: "true"
                             , screen_name: username
                         }
-<<<<<<< local
                     });
 
                     request.done(function(data) {
                         _.each(data, function(tweet) {
                             var newTweet = that.create(tweet);
-=======
-                        , function(data) {
-                            _.each(data, function(tweet) {
-                                that.create(tweet);
-                            });
->>>>>>> other
                         });
-<<<<<<< local
                     });
 
                     request.error(function(jqXHR, status) {
                         alert("Unable to load tweets, error:\n" + status);
                     });
-=======
->>>>>>> other
                 }
             });
         exports.feed = new Feed;

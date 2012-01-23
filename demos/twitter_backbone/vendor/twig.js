@@ -3,14 +3,16 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.core.js
-//
-// This file handles template level tokenizing, compiling and parsing.
 var Twig = (function (Twig) {
     "use strict";
+    // ## twig.core.js
+    //
+    // This file handles template level tokenizing, compiling and parsing.
 
     Twig.trace = false;
     Twig.debug = false;
+
+    Twig.cache = false;
 
     /**
      * Exception thrown by twig.js.
@@ -244,7 +246,9 @@ var Twig = (function (Twig) {
         // Output and intermediate stacks
         var output = [],
             stack = [],
+            // The tokens between open and close tags
             intermediate_output = [],
+
             token = null,
             logic_token = null,
             unclosed_token = null,
@@ -319,6 +323,7 @@ var Twig = (function (Twig) {
                             prev_token.output = prev_token.output || [];
                             prev_token.output = prev_token.output.concat(intermediate_output);
                             stack.push(prev_token);
+                            intermediate_output = [];
                         }
 
                         // Push the new logic token onto the logic stack
@@ -493,63 +498,123 @@ var Twig = (function (Twig) {
     /**
      * Load a template from a remote location using AJAX and saves in with the given ID.
      *
-     * @param {string} url  The remote URL to load as a template.
+     * Available parameters:
+     *
+     *      async:       Should the HTTP request be performed asynchronously.
+     *                      Defaults to true.
+     *      method:      What method should be used to load the template
+     *                      (fs or ajax)
+     *      precompiled: Has the template already been compiled.
+     *
+     * @param {string} location  The remote URL to load as a template.
      * @param {Object} params The template parameters.
      * @param {function} callback  A callback triggered when the template finishes loading.
-     * @param {boolean} async  Should the HTTP request be performed asynchronously. Defaults to true.
      *
      *
      */
-    Twig.Templates.loadRemote = function(url, params, async, callback) {
+    Twig.Templates.loadRemote = function(location, params, callback) {
         var id          = params.id,
+            method      = params.method,
+            async       = params.async,
             blocks      = params.blocks,
             precompiled = params.precompiled,
             template    = null;
 
+        // Default to async
+        if (async === undefined) async = true;
+
         // Default to the URL so the template is cached.
         if (id === undefined) {
-            id = url;
+            id = location;
         }
         // Check for existing template
-        if (Twig.Templates.registry.hasOwnProperty(id)) {
+        if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
-            return Twig.Templates.registry.hasOwnProperty(id);
-        }
-        if (typeof XMLHttpRequest == "undefined") {
-            throw new Error("Unsupported platform: Unable to do remote requests " +
-                            "because there is no XMLHTTPRequest implementation");
+            return Twig.Templates.registry[id];
         }
 
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-            var tokens = null;
+        if (method == 'ajax') {
 
-            if(xmlhttp.readyState == 4) {
-                Twig.log.debug("Got template ", xmlhttp.responseText);
-                // Get the template
-                if (precompiled === true) {
-                    tokens = JSON.parse(xmlhttp.responseText);
+            if (typeof XMLHttpRequest == "undefined") {
+                throw new Error("Unsupported platform: Unable to do remote requests " +
+                                "because there is no XMLHTTPRequest implementation");
+            }
+
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+                var data = null;
+
+                if(xmlhttp.readyState == 4) {
+                    Twig.log.debug("Got template ", xmlhttp.responseText);
+
+                    if (precompiled === true) {
+                        data = JSON.parse(xmlhttp.responseText);
+                    } else {
+                        data = xmlhttp.responseText;
+                    }
+
                     template = new Twig.Template({
-                        data: tokens,
+                        data:   data,
                         blocks: blocks,
-                        id:   id
+                        id:     id,
+                        url:    location
+                    });
+
+                    if (callback) {
+                        callback(template);
+                    }
+                }
+            };
+            xmlhttp.open("GET", location, async);
+            xmlhttp.send();
+
+        } else { // if method = 'fs'
+            // Create local scope
+            (function() {
+                var fs = require('fs'),
+                    data = null;
+
+                if (async === true) {
+                    // async with callback
+                    fs.readFile(location, 'utf8', function(err, data) {
+
+                        if (precompiled === true) {
+                            data = JSON.parse(data);
+                        }
+
+                        // template is in data
+                        template = new Twig.Template({
+                            data:   data,
+                            blocks: blocks,
+                            id:     id,
+                            path:   location
+                        });
+
+                        if (callback) {
+                            callback(template);
+                        }
                     });
                 } else {
-                    template = new Twig.Template({
-                        data: xmlhttp.responseText,
-                        blocks: blocks,
-                        id: id
-                    });
-                    template.url = url;
-                }
-                if (callback) {
-                    callback(template);
-                }
-            }
-        };
-        xmlhttp.open("GET", url, async === true);
-        xmlhttp.send();
+                    data = fs.readFileSync(location, 'utf8');
 
+                    if (precompiled === true) {
+                        data = JSON.parse(data);
+                    }
+
+                    // sync
+                    template = new Twig.Template({
+                        data:   data,
+                        blocks: blocks,
+                        id:     id,
+                        path:   location
+                    });
+
+                    if (callback) {
+                        callback(template);
+                    }
+                }
+            })();
+        }
         if (async === false) {
             return template;
         }
@@ -576,7 +641,8 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
-            url;
+            path = params.path,
+            url = params.url;
 
         // # What is stored in a Twig.Template
         //
@@ -591,8 +657,14 @@ var Twig = (function (Twig) {
         //
 
         this.id     = id;
-        this.blocks = blocks || {};
+        this.blocks = {};
+        this.child = {
+            blocks: blocks || {}
+        };
         this.extend = null;
+
+        this.path   = path;
+        this.url    = url;
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
@@ -607,16 +679,19 @@ var Twig = (function (Twig) {
                 blocks = params && params.output == 'blocks';
 
             this.importBlocks = function(file, override) {
-                var url = relativePath(that.url, file),
+                var url = relativePath(that, file),
                     // Load blocks from an external file
                     sub_template = Twig.Templates.loadRemote(url, {
+                        method: that.url?'ajax':'fs',
+                        async: false,
                         id: url
-                    }, false),
+                    }),
                     key;
 
                 override = override || false;
 
                 sub_template.render(context);
+
                 // Mixin blocks
                 Object.keys(sub_template.blocks).forEach(function(key) {
                     if (override || that.blocks[key] === undefined) {
@@ -629,15 +704,15 @@ var Twig = (function (Twig) {
 
             // Does this template extend another
             if (this.extend) {
-                url = relativePath(this.url, this.extend);
+                url = relativePath(this, this.extend);
+
                 // This template extends another, load it with this template's blocks
                 this.parent = Twig.Templates.loadRemote(url, {
+                    method: this.url?'ajax':'fs',
+                    async: false,
                     id:     url,
                     blocks: this.blocks
-                }, false)
-
-                // Pass the parsed blocks to the parent.
-                this.parent.blocks = this.blocks;
+                });
 
                 return this.parent.render(context);
             }
@@ -657,16 +732,26 @@ var Twig = (function (Twig) {
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
      *
-     * @param {string} base The base path.
+     * @param {string} template The Twig.Template.
      * @param {string} file The file path, relative to the base path.
      *
      * @return {string} The canonical version of the path.
      */
-    function relativePath(base, file) {
-        var sep_chr = '/',
-            base_path = base.split(sep_chr),
+    function relativePath(template, file) {
+        var base,
+            base_path,
+            sep_chr = '/',
             new_path = [],
             val;
+        if (template.url) {
+            base = template.url;
+        } else if (template.path) {
+            base = template.path;
+        } else {
+            throw new Twig.Error("Cannot extend an inline template.");
+        }
+
+        base_path = base.split(sep_chr),
 
         // Remove file from url
         base_path.pop();
@@ -692,7 +777,8 @@ var Twig = (function (Twig) {
 
 
 // The following methods are from MDN and are available under a
-// [Creative Commons Attribution-ShareAlike 2.5 License.](http://creativecommons.org/licenses/by-sa/2.5/)
+// [MIT License](http://www.opensource.org/licenses/mit-license.php) or are
+// [Public Domain](https://developer.mozilla.org/Project:Copyrights).
 //
 // See:
 //
@@ -806,6 +892,154 @@ var Twig = (function (Twig) {
         return ret;
     }
 
+})();
+
+// ## twig.lib.js
+//
+// This file contains 3rd party libraries used within twig.
+//
+// Copies of the licenses for the code included here can be found in the
+// LICENSES.md file.
+//
+
+var Twig = (function(Twig) {
+
+    // Namespace for libraries
+    Twig.lib = { };
+
+    /**
+    sprintf() for JavaScript 0.7-beta1
+    http://www.diveintojavascript.com/projects/javascript-sprintf
+    **/
+    var sprintf = (function() {
+            function get_type(variable) {
+                    return Object.prototype.toString.call(variable).slice(8, -1).toLowerCase();
+            }
+            function str_repeat(input, multiplier) {
+                    for (var output = []; multiplier > 0; output[--multiplier] = input) {/* do nothing */}
+                    return output.join('');
+            }
+
+            var str_format = function() {
+                    if (!str_format.cache.hasOwnProperty(arguments[0])) {
+                            str_format.cache[arguments[0]] = str_format.parse(arguments[0]);
+                    }
+                    return str_format.format.call(null, str_format.cache[arguments[0]], arguments);
+            };
+
+            str_format.format = function(parse_tree, argv) {
+                    var cursor = 1, tree_length = parse_tree.length, node_type = '', arg, output = [], i, k, match, pad, pad_character, pad_length;
+                    for (i = 0; i < tree_length; i++) {
+                            node_type = get_type(parse_tree[i]);
+                            if (node_type === 'string') {
+                                    output.push(parse_tree[i]);
+                            }
+                            else if (node_type === 'array') {
+                                    match = parse_tree[i]; // convenience purposes only
+                                    if (match[2]) { // keyword argument
+                                            arg = argv[cursor];
+                                            for (k = 0; k < match[2].length; k++) {
+                                                    if (!arg.hasOwnProperty(match[2][k])) {
+                                                            throw(sprintf('[sprintf] property "%s" does not exist', match[2][k]));
+                                                    }
+                                                    arg = arg[match[2][k]];
+                                            }
+                                    }
+                                    else if (match[1]) { // positional argument (explicit)
+                                            arg = argv[match[1]];
+                                    }
+                                    else { // positional argument (implicit)
+                                            arg = argv[cursor++];
+                                    }
+
+                                    if (/[^s]/.test(match[8]) && (get_type(arg) != 'number')) {
+                                            throw(sprintf('[sprintf] expecting number but found %s', get_type(arg)));
+                                    }
+                                    switch (match[8]) {
+                                            case 'b': arg = arg.toString(2); break;
+                                            case 'c': arg = String.fromCharCode(arg); break;
+                                            case 'd': arg = parseInt(arg, 10); break;
+                                            case 'e': arg = match[7] ? arg.toExponential(match[7]) : arg.toExponential(); break;
+                                            case 'f': arg = match[7] ? parseFloat(arg).toFixed(match[7]) : parseFloat(arg); break;
+                                            case 'o': arg = arg.toString(8); break;
+                                            case 's': arg = ((arg = String(arg)) && match[7] ? arg.substring(0, match[7]) : arg); break;
+                                            case 'u': arg = Math.abs(arg); break;
+                                            case 'x': arg = arg.toString(16); break;
+                                            case 'X': arg = arg.toString(16).toUpperCase(); break;
+                                    }
+                                    arg = (/[def]/.test(match[8]) && match[3] && arg >= 0 ? '+'+ arg : arg);
+                                    pad_character = match[4] ? match[4] == '0' ? '0' : match[4].charAt(1) : ' ';
+                                    pad_length = match[6] - String(arg).length;
+                                    pad = match[6] ? str_repeat(pad_character, pad_length) : '';
+                                    output.push(match[5] ? arg + pad : pad + arg);
+                            }
+                    }
+                    return output.join('');
+            };
+
+            str_format.cache = {};
+
+            str_format.parse = function(fmt) {
+                    var _fmt = fmt, match = [], parse_tree = [], arg_names = 0;
+                    while (_fmt) {
+                            if ((match = /^[^\x25]+/.exec(_fmt)) !== null) {
+                                    parse_tree.push(match[0]);
+                            }
+                            else if ((match = /^\x25{2}/.exec(_fmt)) !== null) {
+                                    parse_tree.push('%');
+                            }
+                            else if ((match = /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(_fmt)) !== null) {
+                                    if (match[2]) {
+                                            arg_names |= 1;
+                                            var field_list = [], replacement_field = match[2], field_match = [];
+                                            if ((field_match = /^([a-z_][a-z_\d]*)/i.exec(replacement_field)) !== null) {
+                                                    field_list.push(field_match[1]);
+                                                    while ((replacement_field = replacement_field.substring(field_match[0].length)) !== '') {
+                                                            if ((field_match = /^\.([a-z_][a-z_\d]*)/i.exec(replacement_field)) !== null) {
+                                                                    field_list.push(field_match[1]);
+                                                            }
+                                                            else if ((field_match = /^\[(\d+)\]/.exec(replacement_field)) !== null) {
+                                                                    field_list.push(field_match[1]);
+                                                            }
+                                                            else {
+                                                                    throw('[sprintf] huh?');
+                                                            }
+                                                    }
+                                            }
+                                            else {
+                                                    throw('[sprintf] huh?');
+                                            }
+                                            match[2] = field_list;
+                                    }
+                                    else {
+                                            arg_names |= 2;
+                                    }
+                                    if (arg_names === 3) {
+                                            throw('[sprintf] mixing positional and named placeholders is not (yet) supported');
+                                    }
+                                    parse_tree.push(match);
+                            }
+                            else {
+                                    throw('[sprintf] huh?');
+                            }
+                            _fmt = _fmt.substring(match[0].length);
+                    }
+                    return parse_tree;
+            };
+
+            return str_format;
+    })();
+
+    var vsprintf = function(fmt, argv) {
+     	argv.unshift(fmt);
+        return sprintf.apply(null, argv);
+    };
+
+    // Expose to Twig
+    Twig.lib.sprintf = sprintf;
+    Twig.lib.vsprintf = vsprintf;
+
+
     /**
      * jPaq - A fully customizable JavaScript/JScript library
      * http://jpaq.org/
@@ -818,42 +1052,42 @@ var Twig = (function (Twig) {
      * Revised: April 6, 2011
      */
     ; (function() {
-    var jPaq = {
-            toString : function() {
-                    /// <summary>
-                    ///   Get a brief description of this library.
-                    /// </summary>
-                    /// <returns type="String">
-                    ///   Returns a brief description of this library.
-                    /// </returns>
-                    return "jPaq - A fully customizable JavaScript/JScript library created by Christopher West.";
-            }
-    };
-    var shortDays = "Sun,Mon,Tue,Wed,Thu,Fri,Sat".split(",");
-    var fullDays = "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday".split(",");
-    var shortMonths = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(",");
-    var fullMonths = "January,February,March,April,May,June,July,August,September,October,November,December".split(",");
-    function getOrdinalFor(intNum) {
-            return (((intNum = Math.abs(intNum) % 100) % 10 == 1 && intNum != 11) ? "st"
-                    : (intNum % 10 == 2 && intNum != 12) ? "nd" : (intNum % 10 == 3
-                    && intNum != 13) ? "rd" : "th");
-    }
-    function getISO8601Year(aDate) {
-            var d = new Date(aDate.getFullYear() + 1, 0, 4);
-            if((d - aDate) / 86400000 < 7 && (aDate.getDay() + 6) % 7 < (d.getDay() + 6) % 7)
-                    return d.getFullYear();
-            if(aDate.getMonth() > 0 || aDate.getDate() >= 4)
-                    return aDate.getFullYear();
-            return aDate.getFullYear() - (((aDate.getDay() + 6) % 7 - aDate.getDate() > 2) ? 1 : 0);
-    }
-    function getISO8601Week(aDate) {
-            // Get a day during the first week of the year.
-            var d = new Date(getISO8601Year(aDate), 0, 4);
-            // Get the first monday of the year.
-            d.setDate(d.getDate() - (d.getDay() + 6) % 7);
-            return parseInt((aDate - d) / 604800000) + 1;
-    }
-    Date.prototype.format = function(format) {
+        var jPaq = {
+                toString : function() {
+                        /// <summary>
+                        ///   Get a brief description of this library.
+                        /// </summary>
+                        /// <returns type="String">
+                        ///   Returns a brief description of this library.
+                        /// </returns>
+                        return "jPaq - A fully customizable JavaScript/JScript library created by Christopher West.";
+                }
+        };
+        var shortDays = "Sun,Mon,Tue,Wed,Thu,Fri,Sat".split(",");
+        var fullDays = "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday".split(",");
+        var shortMonths = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(",");
+        var fullMonths = "January,February,March,April,May,June,July,August,September,October,November,December".split(",");
+        function getOrdinalFor(intNum) {
+                return (((intNum = Math.abs(intNum) % 100) % 10 == 1 && intNum != 11) ? "st"
+                        : (intNum % 10 == 2 && intNum != 12) ? "nd" : (intNum % 10 == 3
+                        && intNum != 13) ? "rd" : "th");
+        }
+        function getISO8601Year(aDate) {
+                var d = new Date(aDate.getFullYear() + 1, 0, 4);
+                if((d - aDate) / 86400000 < 7 && (aDate.getDay() + 6) % 7 < (d.getDay() + 6) % 7)
+                        return d.getFullYear();
+                if(aDate.getMonth() > 0 || aDate.getDate() >= 4)
+                        return aDate.getFullYear();
+                return aDate.getFullYear() - (((aDate.getDay() + 6) % 7 - aDate.getDate() > 2) ? 1 : 0);
+        }
+        function getISO8601Week(aDate) {
+                // Get a day during the first week of the year.
+                var d = new Date(getISO8601Year(aDate), 0, 4);
+                // Get the first monday of the year.
+                d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+                return parseInt((aDate - d) / 604800000) + 1;
+        }
+        Date.prototype.format = function(format) {
             /// <summary>
             ///   Gets a string for this date, formatted according to the given format
             ///   string.
@@ -907,70 +1141,118 @@ var Twig = (function (Twig) {
             var jan1st = new Date(this.getFullYear(), 0, 1);
             var me = this;
             return format.replace(/[dDjlNSwzWFmMntLoYyaABgGhHisu]/g, function(option) {
-                    switch(option) {
-                            // Day of the month, 2 digits with leading zeros
-                            case "d": return ("0" + me.getDate()).replace(/^.+(..)$/, "$1");
-                            // A textual representation of a day, three letters
-                            case "D": return shortDays[me.getDay()];
-                            // Day of the month without leading zeros
-                            case "j": return me.getDate();
-                            // A full textual representation of the day of the week
-                            case "l": return fullDays[me.getDay()];
-                            // ISO-8601 numeric representation of the day of the week
-                            case "N": return (me.getDay() + 6) % 7 + 1;
-                            // English ordinal suffix for the day of the month, 2 characters
-                            case "S": return getOrdinalFor(me.getDate());
-                            // Numeric representation of the day of the week
-                            case "w": return me.getDay();
-                            // The day of the year (starting from 0)
-                            case "z": return Math.ceil((jan1st - me) / 86400000);
-                            // ISO-8601 week number of year, weeks starting on Monday
-                            case "W": return ("0" + getISO8601Week(me)).replace(/^.(..)$/, "$1");
-                            // A full textual representation of a month, such as January or March
-                            case "F": return fullMonths[me.getMonth()];
-                            // Numeric representation of a month, with leading zeros
-                            case "m": return ("0" + (me.getMonth() + 1)).replace(/^.+(..)$/, "$1");
-                            // A short textual representation of a month, three letters
-                            case "M": return shortMonths[me.getMonth()];
-                            // Numeric representation of a month, without leading zeros
-                            case "n": return me.getMonth() + 1;
-                            // Number of days in the given month
-                            case "t": return new Date(me.getFullYear(), me.getMonth() + 1, -1).getDate();
-                            // Whether it's a leap year
-                            case "L": return new Date(me.getFullYear(), 1, 29).getDate() == 29 ? 1 : 0;
-                            // ISO-8601 year number. This has the same value as Y, except that if the
-                            // ISO week number (W) belongs to the previous or next year, that year is
-                            // used instead.
-                            case "o": return getISO8601Year(me);
-                            // A full numeric representation of a year, 4 digits
-                            case "Y": return me.getFullYear();
-                            // A two digit representation of a year
-                            case "y": return (me.getFullYear() + "").replace(/^.+(..)$/, "$1");
-                            // Lowercase Ante meridiem and Post meridiem
-                            case "a": return me.getHours() < 12 ? "am" : "pm";
-                            // Uppercase Ante meridiem and Post meridiem
-                            case "A": return me.getHours() < 12 ? "AM" : "PM";
-                            // Swatch Internet time
-                            case "B": return Math.floor((((me.getUTCHours() + 1) % 24) + me.getUTCMinutes() / 60 + me.getUTCSeconds() / 3600) * 1000 / 24);
-                            // 12-hour format of an hour without leading zeros
-                            case "g": return me.getHours() % 12 != 0 ? me.getHours() % 12 : 12;
-                            // 24-hour format of an hour without leading zeros
-                            case "G": return me.getHours();
-                            // 12-hour format of an hour with leading zeros
-                            case "h": return ("0" + (me.getHours() % 12 != 0 ? me.getHours() % 12 : 12)).replace(/^.+(..)$/, "$1");
-                            // 24-hour format of an hour with leading zeros
-                            case "H": return ("0" + me.getHours()).replace(/^.+(..)$/, "$1");
-                            // Minutes with leading zeros
-                            case "i": return ("0" + me.getMinutes()).replace(/^.+(..)$/, "$1");
-                            // Seconds, with leading zeros
-                            case "s": return ("0" + me.getSeconds()).replace(/^.+(..)$/, "$1");
-                            // Milliseconds
-                            case "u": return me.getMilliseconds();
-                    }
+                switch(option) {
+                    // Day of the month, 2 digits with leading zeros
+                    case "d": return ("0" + me.getDate()).replace(/^.+(..)$/, "$1");
+                    // A textual representation of a day, three letters
+                    case "D": return shortDays[me.getDay()];
+                    // Day of the month without leading zeros
+                    case "j": return me.getDate();
+                    // A full textual representation of the day of the week
+                    case "l": return fullDays[me.getDay()];
+                    // ISO-8601 numeric representation of the day of the week
+                    case "N": return (me.getDay() + 6) % 7 + 1;
+                    // English ordinal suffix for the day of the month, 2 characters
+                    case "S": return getOrdinalFor(me.getDate());
+                    // Numeric representation of the day of the week
+                    case "w": return me.getDay();
+                    // The day of the year (starting from 0)
+                    case "z": return Math.ceil((jan1st - me) / 86400000);
+                    // ISO-8601 week number of year, weeks starting on Monday
+                    case "W": return ("0" + getISO8601Week(me)).replace(/^.(..)$/, "$1");
+                    // A full textual representation of a month, such as January or March
+                    case "F": return fullMonths[me.getMonth()];
+                    // Numeric representation of a month, with leading zeros
+                    case "m": return ("0" + (me.getMonth() + 1)).replace(/^.+(..)$/, "$1");
+                    // A short textual representation of a month, three letters
+                    case "M": return shortMonths[me.getMonth()];
+                    // Numeric representation of a month, without leading zeros
+                    case "n": return me.getMonth() + 1;
+                    // Number of days in the given month
+                    case "t": return new Date(me.getFullYear(), me.getMonth() + 1, -1).getDate();
+                    // Whether it's a leap year
+                    case "L": return new Date(me.getFullYear(), 1, 29).getDate() == 29 ? 1 : 0;
+                    // ISO-8601 year number. This has the same value as Y, except that if the
+                    // ISO week number (W) belongs to the previous or next year, that year is
+                    // used instead.
+                    case "o": return getISO8601Year(me);
+                    // A full numeric representation of a year, 4 digits
+                    case "Y": return me.getFullYear();
+                    // A two digit representation of a year
+                    case "y": return (me.getFullYear() + "").replace(/^.+(..)$/, "$1");
+                    // Lowercase Ante meridiem and Post meridiem
+                    case "a": return me.getHours() < 12 ? "am" : "pm";
+                    // Uppercase Ante meridiem and Post meridiem
+                    case "A": return me.getHours() < 12 ? "AM" : "PM";
+                    // Swatch Internet time
+                    case "B": return Math.floor((((me.getUTCHours() + 1) % 24) + me.getUTCMinutes() / 60 + me.getUTCSeconds() / 3600) * 1000 / 24);
+                    // 12-hour format of an hour without leading zeros
+                    case "g": return me.getHours() % 12 != 0 ? me.getHours() % 12 : 12;
+                    // 24-hour format of an hour without leading zeros
+                    case "G": return me.getHours();
+                    // 12-hour format of an hour with leading zeros
+                    case "h": return ("0" + (me.getHours() % 12 != 0 ? me.getHours() % 12 : 12)).replace(/^.+(..)$/, "$1");
+                    // 24-hour format of an hour with leading zeros
+                    case "H": return ("0" + me.getHours()).replace(/^.+(..)$/, "$1");
+                    // Minutes with leading zeros
+                    case "i": return ("0" + me.getMinutes()).replace(/^.+(..)$/, "$1");
+                    // Seconds, with leading zeros
+                    case "s": return ("0" + me.getSeconds()).replace(/^.+(..)$/, "$1");
+                    // Milliseconds
+                    case "u": return me.getMilliseconds();
+                }
             });
-    };
+        };
     })();
-})();
+
+
+    Twig.lib.strip_tags = function(input, allowed) {
+        // Strips HTML and PHP tags from a string
+        //
+        // version: 1109.2015
+        // discuss at: http://phpjs.org/functions/strip_tags
+        // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // +   improved by: Luke Godfrey
+        // +      input by: Pul
+        // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // +   bugfixed by: Onno Marsman
+        // +      input by: Alex
+        // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // +      input by: Marc Palau
+        // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // +      input by: Brett Zamir (http://brett-zamir.me)
+        // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // +   bugfixed by: Eric Nagel
+        // +      input by: Bobby Drake
+        // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // +   bugfixed by: Tomasz Wesolowski
+        // +      input by: Evertjan Garretsen
+        // +    revised by: Rafał Kukawski (http://blog.kukawski.pl/)
+        // *     example 1: strip_tags('<p>Kevin</p> <b>van</b> <i>Zonneveld</i>', '<i><b>');
+        // *     returns 1: 'Kevin <b>van</b> <i>Zonneveld</i>'
+        // *     example 2: strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>');
+        // *     returns 2: '<p>Kevin van Zonneveld</p>'
+        // *     example 3: strip_tags("<a href='http://kevin.vanzonneveld.net'>Kevin van Zonneveld</a>", "<a>");
+        // *     returns 3: '<a href='http://kevin.vanzonneveld.net'>Kevin van Zonneveld</a>'
+        // *     example 4: strip_tags('1 < 5 5 > 1');
+        // *     returns 4: '1 < 5 5 > 1'
+        // *     example 5: strip_tags('1 <br/> 1');
+        // *     returns 5: '1  1'
+        // *     example 6: strip_tags('1 <br/> 1', '<br>');
+        // *     returns 6: '1  1'
+        // *     example 7: strip_tags('1 <br/> 1', '<br><br/>');
+        // *     returns 7: '1 <br/> 1'
+        allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+        var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+            commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+        return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
+            return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+        });
+    }
+
+    return Twig;
+
+})(Twig || { });
 
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
@@ -1200,7 +1482,8 @@ var Twig = (function (Twig) {
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
                     key,
-                    keyset;
+                    keyset,
+                    that = this;
 
                 if (result instanceof Array) {
                     key = 0;
@@ -1209,7 +1492,7 @@ var Twig = (function (Twig) {
                         if (token.key_var) {
                             context[token.key_var] = key;
                         }
-                        output.push(Twig.parse.apply(this, [token.output, context]));
+                        output.push(Twig.parse.apply(that, [token.output, context]));
 
                         key += 1;
                     });
@@ -1226,7 +1509,7 @@ var Twig = (function (Twig) {
                             if (token.key_var) {
                                 context[token.key_var] = key;
                             }
-                            output.push(Twig.parse.apply(this, [token.output, context]));
+                            output.push(Twig.parse.apply(that, [token.output, context]));
                         }
                     });
                 }
@@ -1356,7 +1639,7 @@ var Twig = (function (Twig) {
                 var block_output = "",
                     output = "";
 
-                // Don't ovverride previous blocks
+                // Don't override previous blocks
                 if (this.blocks[token.block] === undefined) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
@@ -1368,7 +1651,12 @@ var Twig = (function (Twig) {
 
                 // This is the base template -> append to output
                 if ( this.extend === null ) {
-                    output = this.blocks[token.block];
+                    // Check if a child block has been set from a template extending this one.
+                    if (this.child.blocks[token.block]) {
+                        output = this.child.blocks[token.block];
+                    } else {
+                        output = this.blocks[token.block];
+                    }
                 }
 
                 return {
@@ -1436,7 +1724,7 @@ var Twig = (function (Twig) {
                 var expression = token.match[1].trim();
                 delete token.match;
 
-                token.stack   = Twig.expression.compile.apply(this, [{
+                token.stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
                     value: expression
                 }]).stack;
@@ -1666,7 +1954,6 @@ var Twig = (function (Twig) {
         filter:     'Twig.expression.type.filter',
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
-        setkey:     'Twig.expression.type.setkey',
         test:     'Twig.expression.type.test'
     };
 
@@ -1679,7 +1966,6 @@ var Twig = (function (Twig) {
             Twig.expression.type.object.end,
             Twig.expression.type.parameter.end,
             Twig.expression.type.comma,
-            Twig.expression.type.setkey,
             Twig.expression.type.test
         ],
         expressions: [
@@ -1750,27 +2036,21 @@ var Twig = (function (Twig) {
             }
         },
         {
-            type: Twig.expression.type.setkey,
-            regex: /^\:/,
-            next: Twig.expression.set.expressions,
-            compile: function(token, stack, output) {
-                var key_token = output.pop();
-                if (key_token.type !== Twig.expression.type.string) {
-                    throw new Twig.Error("Unexpected object key: " + key_token);
-                }
-                token.key = key_token.value;
-                output.push(token);
-            },
-            parse: Twig.expression.fn.parse.push
-        },
-        {
             type: Twig.expression.type.comma,
             // Match a comma
             regex: /^,/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
-                while(stack.length > 0) {
-                    output.push(stack.pop());
+                var i = stack.length - 1,
+                    stack_token;
+                    
+                // pop tokens off the stack until the start of the object
+                for(;i >= 0; i--) {
+                    stack_token = stack.pop();
+                    if (stack_token.type === Twig.expression.type.object.start) {
+                        break;
+                    }
+                    output.push(stack_token);
                 }
                 output.push(token);
             }
@@ -1779,7 +2059,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.expression,
             // Match (, anything but ), )
             regex: /^\(([^\)]+)\)/,
-            next: Twig.expression.set.operations,
+            next: Twig.expression.set.operations.concat([Twig.expression.type.key.period]),
             compile: function(token, stack, output) {
                 token.value = token.match[1];
 
@@ -1791,28 +2071,57 @@ var Twig = (function (Twig) {
         },
         {
             type: Twig.expression.type.operator,
-            // Match any of +, *, /, -,^, ~, !, <, <=, >, >=, !=, ==, ||, &&
-            regex: /(^[\+\*\/\-\^~%]|^[<>!]=?|^==|^\|\||^&&)/,
+            // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **, ?, :
+            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
+                delete token.match;
+                
+                token.value = token.value.trim();
                 var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
 
-                Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator);
+                Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator, " from ", value);
 
-                while (stack.length > 0 && (
-                            (operator.associativity === Twig.expression.operator.leftToRight &&
-                             operator.precidence    >= stack[stack.length-1].precidence) ||
+                while (stack.length > 0 &&
+                       stack[stack.length-1].type == Twig.expression.type.operator &&
+                            (
+                                (operator.associativity === Twig.expression.operator.leftToRight &&
+                                 operator.precidence    >= stack[stack.length-1].precidence) ||
 
-                            (operator.associativity === Twig.expression.operator.rightToLeft &&
-                             operator.precidence    >  stack[stack.length-1].precidence))
+                                (operator.associativity === Twig.expression.operator.rightToLeft &&
+                                 operator.precidence    >  stack[stack.length-1].precidence) 
+                            )
                        ) {
-                     output.push(stack.pop());
+                     var temp = stack.pop();
+                     output.push(temp);
                 }
-                stack.push(operator);
+                
+                if (value === ":") {
+                    // Check if this is a ternary or object key being set
+                    if (stack[stack.length - 1] && stack[stack.length-1].value === "?") {
+                        // Continue as normal for a ternary
+                    } else {
+                        // This is not a ternary so we push the token to the output where it can be handled
+                        //   when the assocated object is closed.
+                        var key_token = output.pop();
+                        if (key_token.type !== Twig.expression.type.string) {
+                            throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
+                        }
+                        token.key = key_token.value;
+                        output.push(token);
+                        return;
+                    }
+                } else {
+                    stack.push(operator);
+                }
             },
             parse: function(token, stack, context) {
-                Twig.expression.operator.parse(token.value, stack);
+                if (token.key) {
+                    stack.push(token);
+                } else {
+                    Twig.expression.operator.parse(token.value, stack);
+                }
             }
         },
         {
@@ -1954,7 +2263,10 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.object.start,
             regex: /^\{/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.object.end]),
-            compile: Twig.expression.fn.compile.push,
+            compile: function(token, stack, output) {
+                output.push(token);
+                stack.push(token);
+            },
             parse: Twig.expression.fn.parse.push
         },
 
@@ -1969,8 +2281,16 @@ var Twig = (function (Twig) {
                     Twig.expression.type.key.period,
                     Twig.expression.type.key.brackets]),
             compile: function(token, stack, output) {
-                while(stack.length > 0) {
-                    output.push(stack.pop());
+                var i = stack.length-1,
+                    stack_token;
+                    
+                // pop tokens off the stack until the start of the object
+                for(;i >= 0; i--) {
+                    stack_token = stack.pop();
+                    if (stack_token.type === Twig.expression.type.object.start) {
+                        break;
+                    }
+                    output.push(stack_token);
                 }
                 output.push(token);
             },
@@ -1978,6 +2298,7 @@ var Twig = (function (Twig) {
                 var new_object = {},
                     object_ended = false,
                     token = null,
+                    token_key = null,
                     value = null;
 
                 while (stack.length > 0) {
@@ -1987,7 +2308,7 @@ var Twig = (function (Twig) {
                         object_ended = true;
                         break;
                     }
-                    if (token.type && token.type === Twig.expression.type.setkey) {
+                    if (token.type && token.type === Twig.expression.type.operator && token.key) {
                         if (value === null) {
                             throw new Twig.Error("Expected value for key " + token.key + " in object definition. Got " + token);
                         }
@@ -2121,9 +2442,12 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.number,
             // match a number
-            regex: /^\-?\d*\.?\d+/,
+            regex: /^\-?\d+(\.\d+)?/,
             next: Twig.expression.set.operations,
-            compile: Twig.expression.fn.compile.push,
+            compile: function(token, stack, output) {
+                token.value = Number(token.value);
+                output.push(token);
+            },
             parse: Twig.expression.fn.parse.push_value
         }
     ];
@@ -2229,6 +2553,13 @@ var Twig = (function (Twig) {
                 // Not a match, don't change the expression
                 return match[0];
             }
+            
+            // Validate the token if a validation function is provided
+            if (Twig.expression.handler[type].validate &&
+                    !Twig.expression.handler[type].validate(tokens)) {
+                return match[0];
+            }
+            
             invalid_matches = [];
 
             tokens.push({
@@ -2399,17 +2730,21 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
+            case 'or':
             case '||':
                 token.precidence = 14;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case 'and':
             case '&&':
                 token.precidence = 13;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case '===':
             case '==':
+            case '!==':
             case '!=':
                 token.precidence = 9;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -2431,6 +2766,8 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case '//':
+            case '**':
             case '*':
             case '/':
             case '%':
@@ -2438,6 +2775,7 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case 'not':
             case '!':
                 token.precidence = 3;
                 token.associativity = Twig.expression.operator.rightToLeft;
@@ -2457,8 +2795,23 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator.parse = function (operator, stack) {
         Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
-        var a,b;
+        var a, b, c;
         switch (operator) {
+            case ':':
+                // Ignore
+                break;
+              
+            case '?':
+                c = stack.pop(); // false expr
+                b = stack.pop(); // true expr
+                a = stack.pop(); // conditional
+                if (a) {
+                    stack.push(b);
+                } else {
+                    stack.push(c);
+                }
+                break;
+            
             case '+':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
@@ -2483,6 +2836,12 @@ var Twig = (function (Twig) {
                 stack.push(a / b);
                 break;
 
+            case '//':
+                b = parseFloat(stack.pop());
+                a = parseFloat(stack.pop());
+                stack.push(parseInt(a / b));
+                break;
+
             case '%':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
@@ -2495,6 +2854,7 @@ var Twig = (function (Twig) {
                 stack.push(a + b);
                 break;
 
+            case 'not':
             case '!':
                 stack.push(!stack.pop());
                 break;
@@ -2523,10 +2883,22 @@ var Twig = (function (Twig) {
                 stack.push(a >= b);
                 break;
 
+            case '===':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a === b);
+                break;
+
             case '==':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a == b);
+                break;
+
+            case '!==':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(a !== b);
                 break;
 
             case '!=':
@@ -2535,17 +2907,28 @@ var Twig = (function (Twig) {
                 stack.push(a != b);
                 break;
 
+            case 'or':
             case '||':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a || b);
                 break;
 
+            case 'and':
             case '&&':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a && b);
                 break;
+
+            case '**':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(Math.pow(a, b));
+                break;
+
+            default:
+                throw new Twig.Error(operator + " is an unknown operator.");
         }
     };
 
@@ -2618,13 +3001,11 @@ var Twig = (function (Twig) {
                 // Because of this we use a "hidden" key called _keys to
                 // store the keys in the order we want to return them.
 
-                var sorted_obj = { },
-                    sorted_keys = Object.keys(value).sort(function(a, b) {
+                delete value._keys;
+                var keys = Object.keys(value),
+                    sorted_keys = keys.sort(function(a, b) {
                         return value[a] > value[b];
                     });
-                sorted_keys.forEach(function(key) {
-                    sorted_obj[key] = value[key];
-                });
                 value._keys = sorted_keys;
                 return value;
             }
@@ -2755,16 +3136,30 @@ var Twig = (function (Twig) {
         date: function(value, params) {
             var date = new Date(value);
             return date.format(params[0]);
+        },
+
+        replace: function(value, params) {
+            var pairs = params[0],
+                tag;
+            for (tag in pairs) {
+                if (pairs.hasOwnProperty(tag) && tag !== "_keys") {
+                    value = value.replace(tag, pairs[tag]);
+                }
+            }
+            return value;
+        },
+
+        format: function(value, params) {
+            return Twig.lib.vsprintf(value, params);
+        },
+
+        striptags: function(value) {
+            return Twig.lib.strip_tags(value);
         }
 
-
-        /*convert_encoding,
-        date,
+        /* convert_encoding,
         escape,
-        format,
-        raw,
-        replace,
-        striptags */
+        raw */
     };
 
     Twig.filter = function(filter, value, params) {
@@ -2779,6 +3174,7 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
+
 })(Twig || { });
 
 //     Twig.js v0.3
@@ -2882,9 +3278,20 @@ var Twig = (function (Twig) {
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
-                precompiled: params.precompiled
+                precompiled: params.precompiled,
+                method: 'ajax',
+                async: params.async
 
-            }, params.async, params.load);
+            }, params.load);
+            
+        } else if (params.path !== undefined) {
+            return Twig.Templates.loadRemote(params.path, {
+                id: id,
+                precompiled: params.precompiled,
+                method: 'fs',
+                async: params.async
+
+            }, params.load);
         }
     };
 
@@ -2914,11 +3321,16 @@ var Twig = (function (Twig) {
      */
     Twig.exports.compile = function(markup, options) {
         var id = options.filename,
-            // Try to load the template from the cache
-            template = new Twig.Template({
-                data: markup,
-                id: id
-            }); // Twig.Templates.load(id) ||
+            sep_chr = '/',
+            path = options.filename,
+            template;
+
+        // Try to load the template from the cache
+        template = new Twig.Template({
+            data: markup,
+            path: path,
+            id: id
+        }); // Twig.Templates.load(id) ||
 
         return function(context) {
             return template.render(context);
