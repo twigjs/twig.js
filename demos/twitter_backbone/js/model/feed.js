@@ -13,24 +13,42 @@ module.declare(
                 , model: Tweet
 
                 , loadUser: function(username) {
-                    var that = this;
+                    var that = this
+                        , request;
                     while(this.length > 0) {
                         this.each(function(tweet){
                             tweet.destroy();
                         });
                     }
-                    $.getJSON(
-                        'https://api.twitter.com/1/statuses/user_timeline.json?callback=?'
-                        , {
+                    request = $.ajax({
+                        url: 'https://api.twitter.com/1/statuses/user_timeline.json?callback=?'
+                        , dataType: 'json'
+                        , data: {
                             include_entities: "true"
                             , include_rts: "true"
                             , screen_name: username
                         }
+<<<<<<< local
+                    });
+
+                    request.done(function(data) {
+                        _.each(data, function(tweet) {
+                            var newTweet = that.create(tweet);
+=======
                         , function(data) {
                             _.each(data, function(tweet) {
                                 that.create(tweet);
                             });
+>>>>>>> other
                         });
+<<<<<<< local
+                    });
+
+                    request.error(function(jqXHR, status) {
+                        alert("Unable to load tweets, error:\n" + status);
+                    });
+=======
+>>>>>>> other
                 }
             });
         exports.feed = new Feed;

@@ -1,0 +1,12 @@
+<form action="/notes" method="post">
+	<input type="hidden" name="id" value="{{ id }}" />
+	<div class="field">
+		<label for="title">Title</label>
+		<input type="text" name="title" id="title" value="{{ title }}" />
+	</div>
+	<div class="field">
+		<label for="text">Text</label>
+		<textarea name="text" id="text">{{ text }}</textarea>
+	</div>
+	<input type="submit" name="addNote" value="{% if id is empty %}Add{% else %}Update{% endif %} Note" />
+</form>

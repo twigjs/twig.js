@@ -1,0 +1,60 @@
+.box-shadow (@x: 0, @y: 0, @blurx: 1px, @blury: 1px, @color: #000) {
+  -moz-box-shadow: @arguments;
+  -webkit-box-shadow: @arguments;
+  box-shadow: @arguments;
+}
+
+.inset-box-shadow (@x: 0, @y: 0, @blur: 1px, @size: 1px, @color: #000) {
+  -moz-box-shadow: inset @arguments;
+  -webkit-box-shadow: inset @arguments;
+  box-shadow: inset @arguments;
+}
+
+.background-gradient (@start, @end) {
+    background-image: -webkit-gradient(linear, left top, left bottom, from(@start), to(@end));
+    background-image: -webkit-linear-gradient(top, @start, @end);
+    background-image:    -moz-linear-gradient(top, @start, @end);
+    background-image:     -ms-linear-gradient(top, @start, @end);
+    background-image:      -o-linear-gradient(top, @start, @end);
+    background-image:         linear-gradient(top, @start, @end);
+}
+
+.border-radius (@radius) {
+    -moz-border-radius: @radius;
+    -webkit-border-radius: @radius;
+    border-radius: @radius;
+}
+
+.border-radius-top (@radius) {
+    -webkit-border-top-right-radius: @radius;
+    -webkit-border-top-left-radius:  @radius;
+       -moz-border-radius-topright:  @radius;
+       -moz-border-radius-topleft:   @radius;
+           border-top-right-radius:  @radius;
+           border-top-left-radius:   @radius;
+}
+
+.border-radius-bottom (@radius) {
+    -webkit-border-bottom-right-radius: @radius;
+    -webkit-border-bottom-left-radius:  @radius;
+       -moz-border-radius-bottomright:  @radius;
+       -moz-border-radius-bottomleft:   @radius;
+           border-bottom-right-radius:  @radius;
+           border-bottom-left-radius:   @radius;
+}
+
+.transition (@property, @duration, @timing) {
+    -moz-transition: @arguments;
+    -o-transition: @arguments;
+    -ms-transition: @arguments;
+    -webkit-transition: @arguments;
+    transition: @arguments;
+}
+
+.transform-y (@distance) {
+    -webkit-transform: translate3D(0, @distance, 0);
+    -moz-transform: translateY(@distance);
+    -ms-transform: translate3D(0, @distance, 0);
+    -o-transform: translate3D(0, @distance, 0);
+}
+

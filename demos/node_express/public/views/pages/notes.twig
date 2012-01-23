@@ -3,11 +3,16 @@
 {% block title %}Twig.js Notepad ({{ notes|length }}){% endblock %}
 
 {% block body %}
+<h2>Twig.js Notes</h2>
+{% if messages is not empty %}
+	<div class="message">{{ message }}</div>
+{% endif %}
 <div class="notes">
+	<a href="/add">New Note</a>
     <ul>
         {% for id,note in notes %}
         <li>
-            <a href="/notes/{{ id }}">{{ note.title }}</a>
+            <a class="ajax_link" href="/notes/{{ id }}">{{ note.title }}</a>
             <span class="count">({{ note.text|length }})</span>
         </li>
         {% endfor %}
