@@ -17,8 +17,8 @@
     "node": "*"
   },
   "dependencies": {
-    "express": "2.5.*",
-    "markdown": "0.3.*"
+    "express": "2.5.x",
+    "markdown": "0.3.x"
   }
   "devDependencies": {}
 }
