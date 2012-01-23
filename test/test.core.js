@@ -330,5 +330,28 @@ describe("Twig.js Expressions ->", function() {
             });
         });
     });
+
+    describe("Other Operators ->", function() {
+        it("should support the ternary operator", function() {
+            var test_template = twig({data: '{{ a ? b:c }}'})
+                , output_t = test_template.render({a: true,  b: "one", c: "two"})
+                , output_f = test_template.render({a: false, b: "one", c: "two"});
+
+            output_t.should.equal( "one" );
+            output_f.should.equal( "two" );
+        });
+        it("should support the ternary operator with objects in it", function() {
+            var test_template2 = twig({data: '{{ (a ? {"a":e+f}:{"a":1}).a }}'})
+                , output2 = test_template2.render({a: true, b: false, e: 1, f: 2});
+
+            output2.should.equal( "3" );
+        });
+        it("should support the ternary operator inside objects", function() {
+            var test_template2 = twig({data: '{{ ({"b" : a || b ? {"a":e+f}:{"a":1} }.b.a }}'})
+                , output2 = test_template2.render({a: false, b: false, e: 1, f: 2});
+
+            output2.should.equal( "1" );
+        });
+    });
 });
 

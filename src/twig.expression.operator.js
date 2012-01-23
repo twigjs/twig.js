@@ -100,8 +100,23 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator.parse = function (operator, stack) {
         Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
-        var a,b;
+        var a, b, c;
         switch (operator) {
+            case ':':
+                // Ignore
+                break;
+              
+            case '?':
+                c = stack.pop(); // false expr
+                b = stack.pop(); // true expr
+                a = stack.pop(); // conditional
+                if (a) {
+                    stack.push(b);
+                } else {
+                    stack.push(c);
+                }
+                break;
+            
             case '+':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());

@@ -3,6 +3,12 @@ var twig   = require("../twig").twig,
 
 describe("Twig.js Tests ->", function() {
     describe("empty test ->", function() {
+        it("should identify numbers as not empty", function() {
+            // number
+            twig({data: '{{ 1 is empty }}'}).render().should.equal("false" );
+            twig({data: '{{ 0 is empty }}'}).render().should.equal("false" );
+        });
+        
         it("should identify empty strings", function() {
             // String
             twig({data: '{{ "" is empty }}'}).render().should.equal("true" );

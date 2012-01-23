@@ -11,7 +11,9 @@ var Twig = (function (Twig) {
     Twig.tests = {
         empty: function(value) {
             if (value === null || value === undefined) return true;
-            // Handle string and array
+            // Handler numbers
+            if (typeof value === "number") return false; // numbers are never "empty"
+            // Handle strings and arrays
             if (value.length && value.length > 0) return false;
             // Handle objects
             for (var key in value) {

@@ -41,7 +41,6 @@ var Twig = (function (Twig) {
         filter:     'Twig.expression.type.filter',
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
-        setkey:     'Twig.expression.type.setkey',
         test:     'Twig.expression.type.test'
     };
 
@@ -54,7 +53,6 @@ var Twig = (function (Twig) {
             Twig.expression.type.object.end,
             Twig.expression.type.parameter.end,
             Twig.expression.type.comma,
-            Twig.expression.type.setkey,
             Twig.expression.type.test
         ],
         expressions: [
@@ -125,27 +123,21 @@ var Twig = (function (Twig) {
             }
         },
         {
-            type: Twig.expression.type.setkey,
-            regex: /^\:/,
-            next: Twig.expression.set.expressions,
-            compile: function(token, stack, output) {
-                var key_token = output.pop();
-                if (key_token.type !== Twig.expression.type.string) {
-                    throw new Twig.Error("Unexpected object key: " + key_token);
-                }
-                token.key = key_token.value;
-                output.push(token);
-            },
-            parse: Twig.expression.fn.parse.push
-        },
-        {
             type: Twig.expression.type.comma,
             // Match a comma
             regex: /^,/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
-                while(stack.length > 0) {
-                    output.push(stack.pop());
+                var i = stack.length - 1,
+                    stack_token;
+                    
+                // pop tokens off the stack until the start of the object
+                for(;i >= 0; i--) {
+                    stack_token = stack.pop();
+                    if (stack_token.type === Twig.expression.type.object.start) {
+                        break;
+                    }
+                    output.push(stack_token);
                 }
                 output.push(token);
             }
@@ -154,7 +146,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.expression,
             // Match (, anything but ), )
             regex: /^\(([^\)]+)\)/,
-            next: Twig.expression.set.operations,
+            next: Twig.expression.set.operations.concat([Twig.expression.type.key.period]),
             compile: function(token, stack, output) {
                 token.value = token.match[1];
 
@@ -166,29 +158,57 @@ var Twig = (function (Twig) {
         },
         {
             type: Twig.expression.type.operator,
-            // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **
-            regex: /(^[\+\-~%]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/,
+            // Match any of +, *, /, -, %, ~, !, <, <=, >, >=, !=, ==, ||, &&, **, ?, :
+            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
+                delete token.match;
+                
                 token.value = token.value.trim();
                 var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
 
                 Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator, " from ", value);
 
-                while (stack.length > 0 && (
-                            (operator.associativity === Twig.expression.operator.leftToRight &&
-                             operator.precidence    >= stack[stack.length-1].precidence) ||
+                while (stack.length > 0 &&
+                       stack[stack.length-1].type == Twig.expression.type.operator &&
+                            (
+                                (operator.associativity === Twig.expression.operator.leftToRight &&
+                                 operator.precidence    >= stack[stack.length-1].precidence) ||
 
-                            (operator.associativity === Twig.expression.operator.rightToLeft &&
-                             operator.precidence    >  stack[stack.length-1].precidence))
+                                (operator.associativity === Twig.expression.operator.rightToLeft &&
+                                 operator.precidence    >  stack[stack.length-1].precidence) 
+                            )
                        ) {
-                     output.push(stack.pop());
+                     var temp = stack.pop();
+                     output.push(temp);
                 }
-                stack.push(operator);
+                
+                if (value === ":") {
+                    // Check if this is a ternary or object key being set
+                    if (stack[stack.length - 1] && stack[stack.length-1].value === "?") {
+                        // Continue as normal for a ternary
+                    } else {
+                        // This is not a ternary so we push the token to the output where it can be handled
+                        //   when the assocated object is closed.
+                        var key_token = output.pop();
+                        if (key_token.type !== Twig.expression.type.string) {
+                            throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
+                        }
+                        token.key = key_token.value;
+                        output.push(token);
+                        return;
+                    }
+                } else {
+                    stack.push(operator);
+                }
             },
             parse: function(token, stack, context) {
-                Twig.expression.operator.parse(token.value, stack);
+                if (token.key) {
+                    stack.push(token);
+                } else {
+                    Twig.expression.operator.parse(token.value, stack);
+                }
             }
         },
         {
@@ -330,7 +350,10 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.object.start,
             regex: /^\{/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.object.end]),
-            compile: Twig.expression.fn.compile.push,
+            compile: function(token, stack, output) {
+                output.push(token);
+                stack.push(token);
+            },
             parse: Twig.expression.fn.parse.push
         },
 
@@ -345,8 +368,16 @@ var Twig = (function (Twig) {
                     Twig.expression.type.key.period,
                     Twig.expression.type.key.brackets]),
             compile: function(token, stack, output) {
-                while(stack.length > 0) {
-                    output.push(stack.pop());
+                var i = stack.length-1,
+                    stack_token;
+                    
+                // pop tokens off the stack until the start of the object
+                for(;i >= 0; i--) {
+                    stack_token = stack.pop();
+                    if (stack_token.type === Twig.expression.type.object.start) {
+                        break;
+                    }
+                    output.push(stack_token);
                 }
                 output.push(token);
             },
@@ -354,6 +385,7 @@ var Twig = (function (Twig) {
                 var new_object = {},
                     object_ended = false,
                     token = null,
+                    token_key = null,
                     value = null;
 
                 while (stack.length > 0) {
@@ -363,7 +395,7 @@ var Twig = (function (Twig) {
                         object_ended = true;
                         break;
                     }
-                    if (token.type && token.type === Twig.expression.type.setkey) {
+                    if (token.type && token.type === Twig.expression.type.operator && token.key) {
                         if (value === null) {
                             throw new Twig.Error("Expected value for key " + token.key + " in object definition. Got " + token);
                         }
@@ -608,6 +640,13 @@ var Twig = (function (Twig) {
                 // Not a match, don't change the expression
                 return match[0];
             }
+            
+            // Validate the token if a validation function is provided
+            if (Twig.expression.handler[type].validate &&
+                    !Twig.expression.handler[type].validate(tokens)) {
+                return match[0];
+            }
+            
             invalid_matches = [];
 
             tokens.push({
