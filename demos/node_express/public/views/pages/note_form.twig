@@ -1,12 +1,27 @@
-<form action="/notes" method="post">
-	<input type="hidden" name="id" value="{{ id }}" />
-	<div class="field">
-		<label for="title">Title</label>
-		<input type="text" name="title" id="title" value="{{ title }}" />
+{% extends "../layout.twig" %}
+
+{% block title %}{{ id is empty ? "Add Note":"Update " ~ title }} :: Twig.Notebook{% endblock %}
+
+{% block body %}
+<form action="/notes{{ id is empty ? "":"/"~id }}" method="post">
+	<nav>
+		<input type="submit" class="button right" name="addNote" value="{{ id is empty ? "Done" }}" />
+		<a class="button" href="/notes{{ id is empty ? "":"/"~id }}">Back</a>
+	</nav>
+	<h2>{{ id is empty ? "Add":"Update" }} Note</h2>
+	<div class="edit_note">
+		<input type="hidden" name="id" value="{{ id }}" />
+		<div class="field">
+			<label for="title">Title</label>
+			<input type="text" name="title" id="title" value="{{ title }}" />
+		</div>
+		<div class="field">
+			<label for="text">Text</label>
+			<textarea name="text" id="text">{{ text }}</textarea>
+		</div>
+		<div class="instructions">
+			Use of <a href="http://daringfireball.net/projects/markdown/">Markdown</a> is encouraged!
+		</div>
 	</div>
-	<div class="field">
-		<label for="text">Text</label>
-		<textarea name="text" id="text">{{ text }}</textarea>
-	</div>
-	<input type="submit" name="addNote" value="{% if id is empty %}Add{% else %}Update{% endif %} Note" />
 </form>
+{% endblock %}

@@ -16,7 +16,7 @@ var id_ctr = 4;
 var notes = {
     1: {
         title: "Note"
-        , text: "These could be your notes. But you would have to turn this demo program into something beautiful."
+        , text: "These could be your **notes**.\n\nBut you would have to turn this demo program into something beautiful."
 				, id: 1
     }
     , 2: {
@@ -26,7 +26,7 @@ var notes = {
     }
     , 3: {
         title: "Tasks"
-        , text: "<ol><li>Wake Up</li><li>Drive to Work</li><li>Work</li><li>Drive Home</li><li>Sleep</li></ol>"
+        , text: "* Wake Up\n* Drive to Work\n* Work\n* Drive Home\n* Sleep"
 				, id: 3
     }
 };
@@ -61,36 +61,32 @@ app.get('/edit/:id', function(req, res) {
   res.render('pages/note_form', note);
 });
 
-app.get('/notes', function(req, res) {
-  res.render('pages/notes', {
-    notes : notes
-  });
-});
+function update_note(body) {
+    var title = body.title;
+    var text = body.text;
+    var id = body.id;
 
-app.post('/notes', function(req, res) {
-	var title = req.body.title;
-	var text = req.body.text;
-	var id = req.body.id;
+    if (title) {
+    	if (id == "") {
+    		// Get new ID and increment ID counter
+    		id = id_ctr;
+    		id_ctr++;
+    	}	
 	
-	if (title) {
-		if (id == "") {
-			// Get new ID and increment ID counter
-			id = id_ctr;
-			id_ctr++;
-		}	
-		
-		// Add note
-		var note = {
-			title: title
-			, text: text
-			, id: id
-		};
-		
-		console.log("Adding new note");
-		console.log(note);
-		
-		notes[id] = note;
-	}
+    	notes[id] = {
+    		title: title
+    		, text: text
+    		, id: id
+    	};
+    	
+    	console.log("Adding/Updating note");
+    	console.log(notes[id]);
+    }
+    
+}
+
+app.all('/notes', function(req, res) {
+  update_note(req.body);
 	
   res.render('pages/notes', {
     notes : notes
@@ -98,7 +94,9 @@ app.post('/notes', function(req, res) {
 });
 
 
-app.get('/notes/:id', function(req, res) {
+app.all('/notes/:id', function(req, res) {
+  update_note(req.body);
+
   var id = parseInt(req.params.id);
   var note = notes[id];
 

@@ -3,4 +3,120 @@ body {
     padding:0;
     margin:0;
     overflow: hidden;
+    font-family: 'Open Sans', sans-serif;
 }
+
+h1, h2 {
+    font-size: 28pt;
+    text-align: center;
+    border-bottom: 1px solid #777;
+    padding-bottom: 10px;
+    margin: 5px 10px 10px;
+}
+h2 {
+    font-size: 20pt;
+}
+
+.note_container {
+    width: 400px;
+    margin: 0 auto;
+    padding: 10px 10px 20px;
+    background: #F7F6F0;
+}
+
+.button, a.button {
+    cursor: default;
+    font-size: 100%;
+    vertical-align: baseline;
+    display:inline-block;
+    outline:none;
+    margin:5px auto;
+    padding: 3px 7px;
+    text-decoration: none;
+    color: black;
+    background: #F5F3EB;
+    .background-gradient(#F5F3EB, #E8E7DF);
+    border: 1px solid #D1D0C7;
+    .border-radius(5px);
+    line-height:130%;
+    float: left;
+}
+.button.right {
+    float:right;
+}
+
+.welcome {
+    margin: 20px;
+    
+    nav {
+        margin-top: 20px;
+        text-align:center;
+        
+        .button {
+            float: none;
+        }
+    }
+}
+
+nav {
+    padding: 0 10px;
+    .button {
+        margin:10px 0 0;
+    }
+}
+    
+.notes {
+    ul {
+        list-style-type: none;
+        padding:0;
+        margin: 15px 5px;
+        li {
+            padding:0;
+            margin:5px 0;
+            
+            a {
+                color: black;
+            }
+            .count {
+                color: #777;
+                font-size: 70%;
+            }
+        }
+    }
+}
+
+.note {
+    margin: 10px;
+    
+    .text {
+        padding: 0 10px;
+        font-family: 'Handlee', cursive;
+        font-size: 110%;
+    }
+}
+
+.edit_note {
+    margin: 0 10px;
+    
+    .field {
+        display: block;
+        margin: 10px 0;
+        
+        label {
+            display: block;
+        }
+        
+        input, textarea {
+            margin: 0;
+            width: 98%;
+        }
+        textarea {
+            height: 200px;
+            font-family: 'Handlee', cursive;
+            font-size: 110%;
+        }
+    }
+}
+
+
+

@@ -1,13 +1,16 @@
 {% extends "../layout.twig" %}
 
-{% block title %}{{ title }} :: Twig.js Notepad{% endblock %}
+{% block title %}{{ title }} :: Twig.Notebook{% endblock %}
 
 {% block body %}
+	<nav>
+		<a class="button" href="/notes">Back</a>
+		<a class="button right" href="/edit/{{ id }}">Edit</a>
+	</nav>
+    <h2>{{ title }}</h2>
     <div class="note">
-        <h3>{{ title }}</h3>
         <div class="text">
             {{ markdown }}
         </div>
     </div>
-	<a href="/edit/{{ id }}">Edit</a>
 {% endblock %}

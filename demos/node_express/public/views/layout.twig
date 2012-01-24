@@ -7,8 +7,9 @@
 	    <meta name="author" content="John Roepke" />
 	    <meta name="viewport" content="width=device-width,initial-scale=1">
 
-	    <link rel="stylesheet" href="vendor/normalize.css" type="text/css" />
-	    <link rel="stylesheet/less" href="less/styles.less" type="text/css" />
+		<link href='http://fonts.googleapis.com/css?family=Handlee|Open+Sans' rel='stylesheet' type='text/css'>
+	    <link rel="stylesheet" href="/vendor/normalize.css" type="text/css" />
+	    <link rel="stylesheet/less" href="/less/styles.less" type="text/css" />
 	
 	    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	    <script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.1.3/less-1.1.3.min.js"></script>
@@ -18,6 +19,8 @@
         <title>{% block title %}Twig.Notebook{% endblock %}</title>
     </head>
     <body>
-        {% block body %}{% endblock %}
+		<div class="note_container">
+        	{% block body %}{% endblock %}
+		</div>
     </body>
 </html>
