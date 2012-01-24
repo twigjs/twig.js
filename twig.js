@@ -2849,9 +2849,10 @@ var Twig = (function (Twig) {
                 break;
 
             case '~':
-                b = stack.pop().toString();
-                a = stack.pop().toString();
-                stack.push(a + b);
+                b = stack.pop();
+                a = stack.pop();
+                stack.push( (a !== undefined ? a.toString() : "")
+                          + (b !== undefined ? b.toString() : "") );
                 break;
 
             case 'not':

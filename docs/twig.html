@@ -2410,9 +2410,10 @@ https://github.com/justjohn/twig.js
                 <span class="k">break</span><span class="p">;</span>
 
             <span class="k">case</span> <span class="s1">&#39;~&#39;</span><span class="o">:</span>
-                <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">toString</span><span class="p">();</span>
-                <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">toString</span><span class="p">();</span>
-                <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span> <span class="o">+</span> <span class="nx">b</span><span class="p">);</span>
+                <span class="nx">b</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">a</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+                <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span> <span class="p">(</span><span class="nx">a</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="o">?</span> <span class="nx">a</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span> <span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                          <span class="o">+</span> <span class="p">(</span><span class="nx">b</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="o">?</span> <span class="nx">b</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span> <span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="p">);</span>
                 <span class="k">break</span><span class="p">;</span>
 
             <span class="k">case</span> <span class="s1">&#39;not&#39;</span><span class="o">:</span>
