@@ -1,18 +1,45 @@
 var twig = require("../../twig")
-		, markdown = require("markdown")
+    , _ = require("underscore")._
+	, markdown = require("markdown")
     , express = require('express')
     , app = express.createServer();
 
+// Generate some 
 function error_json(id, message) {
 	return {
-		status: "error",
-		id: id,
-		message: message
+		error: true
+		, id: id
+		, message: message
+		, json: true
 	}
 }
 
-var id_ctr = 4;
+function update_note(body) {
+    var title = body.title;
+    var text = body.text;
+    var id = body.id;
 
+    if (title) {
+    	if (id == "") {
+    		// Get new ID and increment ID counter
+    		id = id_ctr;
+    		id_ctr++;
+    	}	
+	
+    	notes[id] = {
+    		title: title
+    		, text: text
+    		, id: id
+    	};
+    	
+    	console.log("Adding/Updating note");
+    	console.log(notes[id]);
+    }
+    
+}
+
+// Some test data to pre-populate the notebook with
+var id_ctr = 4;
 var notes = {
     1: {
         title: "Note"
@@ -43,7 +70,8 @@ app.configure(function () {
 
 app.register('twig', twig);
 
-// Provide the "app" view
+// Routing for the notebook
+
 app.get('/', function(req, res){
   res.render('pages/index', {
     message : "Hello World"
@@ -61,30 +89,6 @@ app.get('/edit/:id', function(req, res) {
   res.render('pages/note_form', note);
 });
 
-function update_note(body) {
-    var title = body.title;
-    var text = body.text;
-    var id = body.id;
-
-    if (title) {
-    	if (id == "") {
-    		// Get new ID and increment ID counter
-    		id = id_ctr;
-    		id_ctr++;
-    	}	
-	
-    	notes[id] = {
-    		title: title
-    		, text: text
-    		, id: id
-    	};
-    	
-    	console.log("Adding/Updating note");
-    	console.log(notes[id]);
-    }
-    
-}
-
 app.all('/notes', function(req, res) {
   update_note(req.body);
 	
@@ -92,7 +96,6 @@ app.all('/notes', function(req, res) {
     notes : notes
   });
 });
-
 
 app.all('/notes/:id', function(req, res) {
   update_note(req.body);
@@ -102,7 +105,7 @@ app.all('/notes/:id', function(req, res) {
 
 	if (note) {
 		note.markdown = markdown.markdown.toHTML( note.text );
-	  res.render('pages/note', note);
+	    res.render('pages/note', note);
 	} else {
 		res.render('pages/note_404');
 	}
@@ -113,6 +116,7 @@ app.all('/notes/:id', function(req, res) {
 app.get('/api/notes', function(req, res) {
   res.json({
     notes : notes
+    , json: true
   });
 });
 
@@ -122,7 +126,9 @@ app.get('/api/notes/:id', function(req, res) {
 
   if (note) {
 		note.markdown = markdown.markdown.toHTML( note.text );
-  	res.json(note);
+  	    res.json(_.extend({
+  	        json: true
+  	    }, note));
   } else {
 		res.json(error_json(41, "Unable to find note with id " + id))
   }

@@ -1,4 +1,4 @@
-{% extends "../layout.twig" %}
+{% extends json is defined?"../inline.twig":"../layout.twig" %}
 
 {% block body %}
 	<h1>Twig Notebook</h1>

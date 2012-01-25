@@ -1,11 +1,11 @@
-{% extends "../layout.twig" %}
+{% extends json is defined?"../inline.twig":"../layout.twig" %}
 
 {% block title %}{{ title }} :: Twig.Notebook{% endblock %}
 
 {% block body %}
 	<nav>
-		<a class="button" href="/notes">Back</a>
-		<a class="button right" href="/edit/{{ id }}">Edit</a>
+		<a class="button ajax_link" href="/notes">Back</a>
+		<a class="button right ajax_link" href="/edit/{{ id }}">Edit</a>
 	</nav>
     <h2>{{ title }}</h2>
     <div class="note">

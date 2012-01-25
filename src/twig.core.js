@@ -12,7 +12,8 @@ var Twig = (function (Twig) {
     Twig.trace = false;
     Twig.debug = false;
 
-    Twig.cache = false;
+    // Default caching to on for the improved performance it offers
+    Twig.cache = true;
 
     /**
      * Exception thrown by twig.js.
@@ -388,6 +389,7 @@ var Twig = (function (Twig) {
         // Default to an empty object if none provided
         context = context || { };
 
+        console.log("Parsing with context ", context)
         tokens.forEach(function (token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
@@ -516,7 +518,6 @@ var Twig = (function (Twig) {
         var id          = params.id,
             method      = params.method,
             async       = params.async,
-            blocks      = params.blocks,
             precompiled = params.precompiled,
             template    = null;
 
@@ -555,7 +556,6 @@ var Twig = (function (Twig) {
 
                     template = new Twig.Template({
                         data:   data,
-                        blocks: blocks,
                         id:     id,
                         url:    location
                     });
@@ -585,7 +585,6 @@ var Twig = (function (Twig) {
                         // template is in data
                         template = new Twig.Template({
                             data:   data,
-                            blocks: blocks,
                             id:     id,
                             path:   location
                         });
@@ -604,7 +603,6 @@ var Twig = (function (Twig) {
                     // sync
                     template = new Twig.Template({
                         data:   data,
-                        blocks: blocks,
                         id:     id,
                         path:   location
                     });
@@ -657,14 +655,18 @@ var Twig = (function (Twig) {
         //
 
         this.id     = id;
-        this.blocks = {};
-        this.child = {
-            blocks: blocks || {}
-        };
-        this.extend = null;
-
         this.path   = path;
         this.url    = url;
+        
+        this.reset = function() {
+            Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
+            this.blocks = {};
+            this.child = {
+                blocks: blocks || {}
+            };
+            this.extend = null;
+        }
+        this.reset();
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
@@ -673,10 +675,19 @@ var Twig = (function (Twig) {
         }
 
         this.render = function (context, params) {
+            params = params || {};
+            
             var that = this,
                 output,
                 // Should the output be an object with the blocks
-                blocks = params && params.output == 'blocks';
+                blocks = params.output == 'blocks';
+                
+            
+            // Clear any previous state
+            that.reset();
+            if (params.blocks) {
+                this.blocks = params.blocks;
+            }
 
             this.importBlocks = function(file, override) {
                 var url = relativePath(that, file),
@@ -710,11 +721,12 @@ var Twig = (function (Twig) {
                 this.parent = Twig.Templates.loadRemote(url, {
                     method: this.url?'ajax':'fs',
                     async: false,
-                    id:     url,
-                    blocks: this.blocks
+                    id:     url
                 });
 
-                return this.parent.render(context);
+                return this.parent.render(context, {
+                    blocks: this.blocks
+                });
             }
 
             if (blocks === true) {

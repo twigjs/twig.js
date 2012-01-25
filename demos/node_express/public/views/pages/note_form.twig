@@ -1,4 +1,4 @@
-{% extends "../layout.twig" %}
+{% extends json is defined?"../inline.twig":"../layout.twig" %}
 
 {% block title %}{{ id is empty ? "Add Note":"Update " ~ title }} :: Twig.Notebook{% endblock %}
 
@@ -6,7 +6,7 @@
 <form action="/notes{{ id is empty ? "":"/"~id }}" method="post">
 	<nav>
 		<input type="submit" class="button right" name="addNote" value="{{ id is empty ? "Done" }}" />
-		<a class="button" href="/notes{{ id is empty ? "":"/"~id }}">Back</a>
+		<a class="button ajax_link" href="/notes{{ id is empty ? "":"/"~id }}">Back</a>
 	</nav>
 	<h2>{{ id is empty ? "Add":"Update" }} Note</h2>
 	<div class="edit_note">

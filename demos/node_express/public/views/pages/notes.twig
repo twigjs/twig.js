@@ -1,11 +1,11 @@
-{% extends "../layout.twig" %}
+{% extends json is defined?"../inline.twig":"../layout.twig" %}
 
 {% block title %}Twig.Notebook{% endblock %}
 
 {% block body %}
 <nav>
-	<a class="button right" href="/add">New</a>
-	<a class="button" href="/">Back</a>
+	<a class="button right ajax_link" href="/add">New</a>
+	<a class="button ajax_link" href="/">Back</a>
 </nav>
 <h2>Twig.js Notes</h2>
 {% if messages is not empty %}

@@ -102,6 +102,17 @@ var Twig = (function (Twig) {
             return template.render(context);
         };
     };
+    
+    /**
+     * Shoud Twig.js cache templates.
+     * Disable during development to see changes to templates without
+     * reloading, and disable in production to improve performance.
+     *
+     * @param {boolean} cache
+     */
+    Twig.exports.cache = function(cache) {
+        Twig.cache = cache;
+    }
 
     return Twig;
 }) (Twig || { });

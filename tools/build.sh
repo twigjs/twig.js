@@ -33,9 +33,13 @@ done
 
 # Generate annotated docs with docco
 echo "Generating annotated source"
-node_modules/.bin/docco twig.js
+node_modules/.bin/docco $OUTPUT
 
 # Minimize with Google Closure Compiler
 echo "Minimizing"
-node_modules/.bin/uglifyjs twig.js > twig.min.js
+node_modules/.bin/uglifyjs $OUTPUT > $OUTPUT_MIN
+
+echo "Copying generated output to demos"
+cp $OUTPUT demos/node_express/public/vendor/
+cp $OUTPUT demos/twitter_backbone/vendor/
 
