@@ -10,8 +10,9 @@ var Twig = (function (Twig) {
     // This file handles template level tokenizing, compiling and parsing.
 
     Twig.trace = false;
-    Twig.debug = true;
+    Twig.debug = false;
 
+    // Default caching to on for the improved performance it offers
     Twig.cache = true;
 
     /**
@@ -388,7 +389,6 @@ var Twig = (function (Twig) {
         // Default to an empty object if none provided
         context = context || { };
 
-        console.log("Parsing with context ", context)
         tokens.forEach(function (token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
