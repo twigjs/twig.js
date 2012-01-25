@@ -31,15 +31,12 @@ Twig.cache = true;
             , url = api_base + "/notes/" + id;
             
         $.getJSON(url, function(data) {
-            console.log("Got from API: ", data);
             var output;
             if (data.error) {
                 output = error_template.render(data);
             } else {
                 output = template.render(data);
-                console.log("Rendered to ", output);
             }
-            console.log($("#noteApp"));
             $("#noteApp").html(output);
         });
     });
