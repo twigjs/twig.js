@@ -1,3 +1,4 @@
 syntax: glob
 
+nbproject
 *node_modules
