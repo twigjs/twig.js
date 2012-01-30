@@ -1,0 +1,3 @@
+syntax: glob
+
+*node_modules

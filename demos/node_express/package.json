@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "express": "2.5.x",
-    "markdown": "0.3.x"
-  }
+    "markdown": "0.3.x",
+    "underscore": "1.3.x"
+  },
   "devDependencies": {}
 }

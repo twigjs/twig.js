@@ -4,7 +4,7 @@ var twig = require("../../twig")
     , express = require('express')
     , app = express.createServer();
 
-// Generate some 
+// Generate some
 function error_json(id, message) {
 	return {
 		error: true
@@ -24,18 +24,18 @@ function update_note(body) {
     		// Get new ID and increment ID counter
     		id = id_ctr;
     		id_ctr++;
-    	}	
-	
+    	}
+
     	notes[id] = {
     		title: title
     		, text: text
     		, id: id
     	};
-    	
+
     	console.log("Adding/Updating note");
     	console.log(notes[id]);
     }
-    
+
 }
 
 // Some test data to pre-populate the notebook with
@@ -91,7 +91,7 @@ app.get('/edit/:id', function(req, res) {
 
 app.all('/notes', function(req, res) {
   update_note(req.body);
-	
+
   res.render('pages/notes', {
     notes : notes
   });
@@ -134,6 +134,9 @@ app.get('/api/notes/:id', function(req, res) {
   }
 });
 
-app.listen(9999);
-console.log("Express Twig.js Demo is running on port 9999");
+var port = process.env.C9_PORT || 9999;
+
+app.listen(port);
+
+console.log("Express Twig.js Demo is running on port " + port);
 
