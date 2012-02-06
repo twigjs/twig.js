@@ -1355,7 +1355,7 @@ var Twig = (function (Twig) {
                 // Start a new logic chain
                 chain = true;
 
-                if (result === true) {
+                if (result) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
