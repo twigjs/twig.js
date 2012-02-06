@@ -2354,13 +2354,13 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.filter,
             // match a | then a letter or _, then any number of letters, numbers, _ or -
-            regex: /^\|[a-zA-Z_][a-zA-Z0-9_\-]*/,
+            regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_\-]*)/,
             next: Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
                     Twig.expression.type.key.brackets,
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
-                token.value = token.value.substr(1);
+                token.value = token.match[1];
                 output.push(token);
             },
             parse: function(token, stack, context) {
