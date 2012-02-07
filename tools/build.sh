@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Combine the js files into a single file
-INPUT="twig.core.js twig.fills.js twig.lib.js twig.logic.js twig.expression.js twig.expression.operator.js twig.filters.js twig.tests.js twig.exports.js twig.module.js"
+INPUT="twig.core.js twig.fills.js twig.lib.js twig.logic.js twig.expression.js twig.expression.operator.js twig.filters.js twig.functions.js twig.tests.js twig.exports.js twig.module.js"
 
 # Write the combined output to this file
 OUTPUT="twig.js"

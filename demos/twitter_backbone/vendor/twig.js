@@ -1355,7 +1355,7 @@ var Twig = (function (Twig) {
                 // Start a new logic chain
                 chain = true;
 
-                if (result === true) {
+                if (result) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
@@ -1963,6 +1963,7 @@ var Twig = (function (Twig) {
             brackets: 'Twig.expression.type.key.brackets'
         },
         filter:     'Twig.expression.type.filter',
+        _function:   'Twig.expression.type._function',
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
         test:     'Twig.expression.type.test'
@@ -2354,13 +2355,13 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.filter,
             // match a | then a letter or _, then any number of letters, numbers, _ or -
-            regex: /^\|[a-zA-Z_][a-zA-Z0-9_\-]*/,
+            regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_\-]*)/,
             next: Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
                     Twig.expression.type.key.brackets,
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
-                token.value = token.value.substr(1);
+                token.value = token.match[1];
                 output.push(token);
             },
             parse: function(token, stack, context) {
@@ -2370,7 +2371,33 @@ var Twig = (function (Twig) {
                 stack.push(Twig.filter(token.value, input, params));
             }
         },
-
+        {
+            type: Twig.expression.type._function,
+            // match any letter or _, then any number of letters, numbers, _ or -
+            regex: /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*?)\)/,
+            next: Twig.expression.type.key.brackets,
+            compile: Twig.expression.fn.compile.push,
+            parse: function(token, stack, context) {
+                var fn = token.match[1],
+                    args = token.match[2].split(/,/);
+                
+                for (var i in args)
+                {
+                    args[i] = args[i].replace(
+                        /^['"]+(.*?)['"]+$/,
+                        '$1'
+                    );
+                }
+                if (!Twig.functions[fn])
+                {
+                    throw new Twig.Error(fn+' filter does not exist');
+                }
+                
+                // Get the variable from the context
+                var value = Twig.functions[fn](args);
+                stack.push(value);
+            }
+        },
         // Token representing a variable.
         //
         // Variables can contain letters, numbers, underscores and
@@ -3191,6 +3218,42 @@ var Twig = (function (Twig) {
 
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
+//                   2012 Hadrien Lanneau
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
+
+// ## twig.functions.js
+//
+// This file handles parsing filters.
+var Twig = (function (Twig) {
+
+    // Determine object type
+    function is(type, obj) {
+        var clas = Object.prototype.toString.call(obj).slice(8, -1);
+        return obj !== undefined && obj !== null && clas === type;
+    }
+
+    Twig.functions = {
+        //  attribute, block, constant, cycle, date, dump, parent, random, range.
+    };
+
+    Twig._function = function(_function, value, params) {
+        if (!Twig.functions[_function]) {
+            throw "Unable to find function " + _function;
+        }
+        return Twig.functions[_function](value, params);
+    }
+
+    Twig._function.extend = function(_function, definition) {
+        Twig.functions[_function] = definition;
+    };
+
+    return Twig;
+
+})(Twig || { });
+
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3312,6 +3375,11 @@ var Twig = (function (Twig) {
     // Extend Twig with a new filter.
     Twig.exports.extendFilter = function(filter, definition) {
         Twig.filter.extend(filter, definition);
+    };
+    
+    // Extend Twig with a new function.
+    Twig.exports.extendFunction = function(fn, definition) {
+        Twig._function.extend(fn, definition);
     };
 
     // Extend Twig with a new test.
