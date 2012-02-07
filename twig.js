@@ -1983,7 +1983,6 @@ var Twig = (function (Twig) {
         expressions: [
             Twig.expression.type.expression,
             Twig.expression.type.string,
-            Twig.expression.type._function,
             Twig.expression.type.variable,
             Twig.expression.type.number,
             Twig.expression.type.array.start,
@@ -2389,13 +2388,13 @@ var Twig = (function (Twig) {
                         '$1'
                     );
                 }
-                if (!Twig.filters[fn])
+                if (!Twig.functions[fn])
                 {
                     throw new Twig.Error(fn+' filter does not exist');
                 }
                 
                 // Get the variable from the context
-                var value = Twig.filters[fn](args);
+                var value = Twig.functions[fn](args);
                 stack.push(value);
             }
         },
@@ -3219,6 +3218,42 @@ var Twig = (function (Twig) {
 
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
+//                   2012 Hadrien Lanneau
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
+
+// ## twig.functions.js
+//
+// This file handles parsing filters.
+var Twig = (function (Twig) {
+
+    // Determine object type
+    function is(type, obj) {
+        var clas = Object.prototype.toString.call(obj).slice(8, -1);
+        return obj !== undefined && obj !== null && clas === type;
+    }
+
+    Twig.functions = {
+        //  attribute, block, constant, cycle, date, dump, parent, random, range.
+    };
+
+    Twig._function = function(_function, value, params) {
+        if (!Twig.functions[_function]) {
+            throw "Unable to find function " + _function;
+        }
+        return Twig.functions[_function](value, params);
+    }
+
+    Twig._function.extend = function(_function, definition) {
+        Twig.functions[_function] = definition;
+    };
+
+    return Twig;
+
+})(Twig || { });
+
+//     Twig.js v0.3
+//     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3340,6 +3375,11 @@ var Twig = (function (Twig) {
     // Extend Twig with a new filter.
     Twig.exports.extendFilter = function(filter, definition) {
         Twig.filter.extend(filter, definition);
+    };
+    
+    // Extend Twig with a new function.
+    Twig.exports.extendFunction = function(fn, definition) {
+        Twig._function.extend(fn, definition);
     };
 
     // Extend Twig with a new test.

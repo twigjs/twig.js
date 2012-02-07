@@ -39,6 +39,7 @@ var Twig = (function (Twig) {
             brackets: 'Twig.expression.type.key.brackets'
         },
         filter:     'Twig.expression.type.filter',
+        _function:   'Twig.expression.type._function',
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
         test:     'Twig.expression.type.test'
@@ -430,13 +431,13 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.filter,
             // match a | then a letter or _, then any number of letters, numbers, _ or -
-            regex: /^\|[a-zA-Z_][a-zA-Z0-9_\-]*/,
+            regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_\-]*)/,
             next: Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
                     Twig.expression.type.key.brackets,
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
-                token.value = token.value.substr(1);
+                token.value = token.match[1];
                 output.push(token);
             },
             parse: function(token, stack, context) {
@@ -446,7 +447,33 @@ var Twig = (function (Twig) {
                 stack.push(Twig.filter(token.value, input, params));
             }
         },
-
+        {
+            type: Twig.expression.type._function,
+            // match any letter or _, then any number of letters, numbers, _ or -
+            regex: /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*?)\)/,
+            next: Twig.expression.type.key.brackets,
+            compile: Twig.expression.fn.compile.push,
+            parse: function(token, stack, context) {
+                var fn = token.match[1],
+                    args = token.match[2].split(/,/);
+                
+                for (var i in args)
+                {
+                    args[i] = args[i].replace(
+                        /^['"]+(.*?)['"]+$/,
+                        '$1'
+                    );
+                }
+                if (!Twig.functions[fn])
+                {
+                    throw new Twig.Error(fn+' filter does not exist');
+                }
+                
+                // Get the variable from the context
+                var value = Twig.functions[fn](args);
+                stack.push(value);
+            }
+        },
         // Token representing a variable.
         //
         // Variables can contain letters, numbers, underscores and
