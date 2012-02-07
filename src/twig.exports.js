@@ -65,6 +65,11 @@ var Twig = (function (Twig) {
     Twig.exports.extendFilter = function(filter, definition) {
         Twig.filter.extend(filter, definition);
     };
+    
+    // Extend Twig with a new function.
+    Twig.exports.extendFunction = function(fn, definition) {
+        Twig._function.extend(fn, definition);
+    };
 
     // Extend Twig with a new test.
     Twig.exports.extendTest = function(test, definition) {
