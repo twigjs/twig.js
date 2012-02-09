@@ -2191,9 +2191,10 @@ var Twig = (function (Twig) {
 
                 // Get the token preceding the parameters
                 token = output.pop();
-                if (token.type !== Twig.expression.type.filter &&
+                if (token.type !== Twig.expression.type._function &&
+                    token.type !== Twig.expression.type.filter &&
                     token.type !== Twig.expression.type.test) {
-                    throw new Twig.Error("Expected filter before parameters, got " + token.type);
+                    throw new Twig.Error("Expected filter or function before parameters, got " + token.type);
                 }
                 token.params = param_stack;
                 output.push(token);
@@ -2374,30 +2375,35 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type._function,
             // match any letter or _, then any number of letters, numbers, _ or -
-            regex: /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*?)\)/,
-            next: Twig.expression.type.key.brackets,
-            compile: Twig.expression.fn.compile.push,
+            regex: /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/,
+            next: Twig.expression.type.parameter.start,
+            validate: function(match, tokens) {
+                var fn = match[1];
+                // validate that this function exists before matching
+                return Twig.functions[fn] !== undefined;
+            },
+            transform: function(match, tokens) {
+                return '(';
+            },
+            compile: function(token, stack, output) {
+                var fn = token.match[1];
+                token.fn = fn;
+                output.push(token);
+            },
             parse: function(token, stack, context) {
-                var fn = token.match[1],
-                    args = token.match[2].split(/,/);
+                var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
+                    fn     = token.fn;
                 
-                for (var i in args)
-                {
-                    args[i] = args[i].replace(
-                        /^['"]+(.*?)['"]+$/,
-                        '$1'
-                    );
-                }
-                if (!Twig.functions[fn])
-                {
-                    throw new Twig.Error(fn+' filter does not exist');
+                if (!Twig.functions[fn]) {
+                    throw new Twig.Error(fn + ' function does not exist');
                 }
                 
                 // Get the variable from the context
-                var value = Twig.functions[fn](args);
+                var value = Twig.functions[fn].apply(this, params);
                 stack.push(value);
             }
         },
+        
         // Token representing a variable.
         //
         // Variables can contain letters, numbers, underscores and
@@ -2594,7 +2600,7 @@ var Twig = (function (Twig) {
             
             // Validate the token if a validation function is provided
             if (Twig.expression.handler[type].validate &&
-                    !Twig.expression.handler[type].validate(tokens)) {
+                    !Twig.expression.handler[type].validate(match, tokens)) {
                 return match[0];
             }
             
@@ -2609,6 +2615,13 @@ var Twig = (function (Twig) {
             match_found = true;
             next = token_next;
             exp_offset += match[0].length;
+            
+            // Does the token need to return output back to the expression string
+            // e.g. a function match of cycle( might return the '(' back to the expression
+            // This allows look-ahead to differentiate between token types (e.g. functions and variable names)
+            if (Twig.expression.handler[type].transform) {
+                return Twig.expression.handler[type].transform(match, tokens);
+            }
             return '';
         };
 
