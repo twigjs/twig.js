@@ -283,7 +283,7 @@ var Twig = (function (Twig) {
                 while (stack.length > 0) {
                     value = stack.pop();
                     // Push values into the array until the start of the array
-                    if (value.type && value.type == Twig.expression.type.parameter.start) {
+                    if (value && value.type && value.type == Twig.expression.type.parameter.start) {
                         array_ended = true;
                         break;
                     }

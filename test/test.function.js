@@ -3,6 +3,9 @@ var Twig   = require("../twig"),
     should = require('should');
 
 describe("Twig.js Functions ->", function() {
+    Twig.extendFunction("echo", function(a) {
+        return a;
+    });
     Twig.extendFunction("square", function(a) {
         return a * a;
     });
@@ -14,6 +17,9 @@ describe("Twig.js Functions ->", function() {
     });
     it("should chain with other expressions", function() {
         twig({data: '{{ square(a) + 4 }}'}).render({a:4}).should.equal("20");
+    });
+    it("should chain with filters", function() {
+        twig({data: '{{ echo(a)|default("foo") }}'}).render().should.equal("foo");
     });
     it("should work in for loop expressions", function() {
         twig({data: '{% for i in list(1, 2, 3) %}{{ i }},{% endfor %}'}).render().should.equal("1,2,3,");
