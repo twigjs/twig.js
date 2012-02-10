@@ -1376,6 +1376,7 @@ var Twig = (function (Twig) {
             regex: /^elseif\s+([^\s].*)$/,
             next: [
                 Twig.logic.type.else_,
+                Twig.logic.type.elseif,
                 Twig.logic.type.endif
             ],
             open: false,
