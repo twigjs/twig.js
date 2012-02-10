@@ -1376,6 +1376,7 @@ var Twig = (function (Twig) {
             regex: /^elseif\s+([^\s].*)$/,
             next: [
                 Twig.logic.type.else_,
+                Twig.logic.type.elseif,
                 Twig.logic.type.endif
             ],
             open: false,
@@ -2793,9 +2794,7 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
-            case '===':
             case '==':
-            case '!==':
             case '!=':
                 token.precidence = 9;
                 token.associativity = Twig.expression.operator.leftToRight;
