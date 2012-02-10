@@ -33,6 +33,11 @@ describe("Twig.js Core ->", function() {
         twig({data: '{{ 0.64 }}'}).render().should.equal("0.64" );
     });
 
+    it("should be able to output booleans", function() {
+        twig({data: '{{ true }}'}).render().should.equal( "true" );
+        twig({data: '{{ false }}'}).render().should.equal( "false" );
+    });
+
     it("should be able to output strings", function() {
         twig({data: '{{ "double" }}'}).render().should.equal("double");
         twig({data: "{{ 'single' }}"}).render().should.equal('single');
@@ -304,30 +309,6 @@ describe("Twig.js Expressions ->", function() {
             test_template = twig({data: '{{ not a }}'});
             test_template.render({a:false}).should.equal(true.toString());
             test_template.render({a:true}).should.equal(false.toString());
-        });
-
-        it("should support exact equals", function() {
-            var test_template = twig({data: '{{ a === b }}'});
-            boolean_data.forEach(function(pair) {
-                var output = test_template.render(pair);
-                output.should.equal((pair.a === pair.b).toString() );
-            });
-            equality_data.forEach(function(pair) {
-                var output = test_template.render(pair);
-                output.should.equal((pair.a === pair.b).toString() );
-            });
-        });
-
-        it("should support exact not equals", function() {
-            var test_template = twig({data: '{{ a !== b }}'});
-            boolean_data.forEach(function(pair) {
-                var output = test_template.render(pair);
-                output.should.equal((pair.a !== pair.b).toString() );
-            });
-            equality_data.forEach(function(pair) {
-                var output = test_template.render(pair);
-                output.should.equal((pair.a !== pair.b).toString() );
-            });
         });
     });
 

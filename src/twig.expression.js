@@ -15,6 +15,13 @@ var Twig = (function (Twig) {
     Twig.expression = { };
 
     /**
+     * Reserved word that can't be used as variable names.
+     */
+    Twig.expression.reservedWords = [
+        "true", "false"
+    ];
+
+    /**
      * The type of tokens used in expressions.
      */
     Twig.expression.type = {
@@ -22,6 +29,7 @@ var Twig = (function (Twig) {
         expression: 'Twig.expression.type.expression',
         operator:   'Twig.expression.type.operator',
         string:     'Twig.expression.type.string',
+        bool:       'Twig.expression.type.bool',
         array: {
             start:  'Twig.expression.type.array.start',
             end:    'Twig.expression.type.array.end'
@@ -58,6 +66,7 @@ var Twig = (function (Twig) {
         ],
         expressions: [
             Twig.expression.type.expression,
+            Twig.expression.type.bool,
             Twig.expression.type.string,
             Twig.expression.type.variable,
             Twig.expression.type.number,
@@ -496,6 +505,9 @@ var Twig = (function (Twig) {
                     Twig.expression.type.key.period,
                     Twig.expression.type.key.brackets]),
             compile: Twig.expression.fn.compile.push,
+            validate: function(match, tokens) {
+                return Twig.expression.reservedWords.indexOf(match[0]) == -1;
+            },
             parse: function(token, stack, context) {
                 // Get the variable from the context
                 var value = Twig.expression.resolve(token.value, context);
@@ -566,6 +578,19 @@ var Twig = (function (Twig) {
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 token.value = Number(token.value);
+                output.push(token);
+            },
+            parse: Twig.expression.fn.parse.push_value
+        },
+        {
+            /**
+             * Match a boolean
+             */
+            type: Twig.expression.type.bool,
+            regex: /^(true|false)/,
+            next: Twig.expression.set.operations,
+            compile: function(token, stack, output) {
+                token.value = (token.match[0] == "true");
                 output.push(token);
             },
             parse: Twig.expression.fn.parse.push_value

@@ -35,6 +35,9 @@ var Twig = (function (Twig) {
         },
         none: function(value) {
             return value === null;
+        },
+        sameas: function(value, params) {
+            return value === params[0];
         }
         /*
         constant ?

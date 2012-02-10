@@ -64,4 +64,18 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ key is none }}'}).render({key: null}).should.equal("true");
         });
     });
+    describe("sameas test ->", function() {
+        it("should identify the exact same type as true", function() {
+            twig({data: '{{ true is sameas(true) }}'}).render().should.equal("true");
+            twig({data: '{{ a is sameas(1) }}'}).render({a: 1}).should.equal("true");
+            twig({data: '{{ a is sameas("test") }}'}).render({a: "test"}).should.equal("true");
+            twig({data: '{{ a is sameas(true) }}'}).render({a: true}).should.equal("true");
+        });
+        it("should identify the different types as false", function() {
+            twig({data: '{{ false is sameas(true) }}'}).render().should.equal("false");
+            twig({data: '{{ true is sameas(1) }}'}).render().should.equal("false");
+            twig({data: '{{ false is sameas("") }}'}).render().should.equal("false");
+            twig({data: '{{ a is sameas(1) }}'}).render({a: "1"}).should.equal("false");
+        });
+    });
 });
