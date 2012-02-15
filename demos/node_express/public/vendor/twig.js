@@ -2851,7 +2851,6 @@ var Twig = (function (Twig) {
                 break;
 
             case 'not':
-            case '!':
                 token.precidence = 3;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
