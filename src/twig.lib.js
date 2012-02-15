@@ -191,6 +191,84 @@ var Twig = (function(Twig) {
                 d.setDate(d.getDate() - (d.getDay() + 6) % 7);
                 return parseInt((aDate - d) / 604800000) + 1;
         }
+        Date.prototype.setFromString = function(string)
+        {
+            var parts;
+
+            /**
+             * Default format : ISO 8601
+             */
+            if (parts = string.match(
+                    /^([0-9]{4})\-([0-9]{2})\-([0-9]{2})T([0-9]{2})\:([0-9]{2})\:([0-9]{2})(\+|\-)([0-9]{2}):([0-9]{2})$/
+                ))
+            {
+                this.setFullYear(
+                    parseInt(parts[1], 10),
+                    parseInt(parts[2], 10) - 1,
+                    parseInt(parts[3], 10)
+                );
+                this.setHours(parseInt(parts[4], 10));
+                this.setMinutes(parseInt(parts[5], 10));
+                this.setSeconds(parseInt(parts[6], 10));
+
+                /**
+                 * Convert date to GMT
+                 */
+                this.setMinutes(
+                    this.getMinutes() -
+                    parseInt(               // Hours
+                        parts[7]+parts[8],
+                        10
+                    ) * 60 -
+                    parseInt(               // Minutes
+                        parts[7]+parts[9],
+                        10
+                    ) -                     // Client timezone offset in minutes
+                    this.getTimezoneOffset()
+                );
+            }
+
+            /**
+             * database datetime format
+             */
+            else if (parts = string.match(
+                    /^([0-9]{4})\-([0-9]{2})\-([0-9]{2})\s([0-9]{2})\:([0-9]{2})\:?([0-9]{2})?$/
+                ))
+            {
+                this.setFullYear(
+                    parseInt(parts[1], 10),
+                    parseInt(parts[2], 10) - 1,
+                    parseInt(parts[3], 10)
+                );
+                this.setHours(parseInt(parts[4], 10));
+                this.setMinutes(parseInt(parts[5], 10));
+                parts[6] &&
+                    this.setSeconds(parseInt(parts[6], 10)) ||
+                    this.setSeconds(0);
+            }
+            /**
+             * database date format
+             */
+            else if (parts = string.match(
+                    /^([0-9]{4})\-([0-9]{2})\-([0-9]{2})$/
+                ))
+            {
+                this.setFullYear(
+                    parseInt(parts[1], 10),
+                    parseInt(parts[2], 10) - 1,
+                    parseInt(parts[3], 10)
+                );
+                this.setHours(0);
+                this.setMinutes(0);
+                this.setSeconds(0);
+            }
+            else
+            {
+                throw new Error("Invalid string format");
+            }
+
+            return this;
+        }
         Date.prototype.format = function(format) {
             /// <summary>
             ///   Gets a string for this date, formatted according to the given format
