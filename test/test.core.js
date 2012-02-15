@@ -302,11 +302,7 @@ describe("Twig.js Expressions ->", function() {
             });
         });
         it("should support boolean not", function() {
-            var test_template = twig({data: '{{ !a }}'});
-            test_template.render({a:false}).should.equal(true.toString());
-            test_template.render({a:true}).should.equal(false.toString());
-
-            test_template = twig({data: '{{ not a }}'});
+            var test_template = twig({data: '{{ not a }}'});
             test_template.render({a:false}).should.equal(true.toString());
             test_template.render({a:true}).should.equal(false.toString());
         });
