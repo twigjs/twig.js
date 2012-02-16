@@ -2,10 +2,12 @@ var Twig   = require("../twig"),
     twig   = Twig.twig,
     should = require('should');
 
+// twig({data: '{% if echo(true) or echo(false) %}yes{% endif %}'}).render().should.equal("yes");
+
 describe("Twig.js Functions ->", function() {
-    Twig.extendFunction("echo", function(a) {
-        return a;
-    });
+	Twig.extendFunction("echo", function(a) {
+	    return a;
+	});
     Twig.extendFunction("square", function(a) {
         return a * a;
     });
@@ -26,5 +28,8 @@ describe("Twig.js Functions ->", function() {
     });
     it("should be able to differentiate between a function and a variable", function() {
         twig({data: '{{ square ( square ) + square }}'}).render({square: 2}).should.equal("6");
+    });
+    it("should work with boolean operations", function() {
+        twig({data: '{% if echo(true) or echo(false) %}yes{% endif %}'}).render().should.equal("yes");
     });
 });

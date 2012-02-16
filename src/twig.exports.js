@@ -28,6 +28,9 @@ var Twig = (function (Twig) {
         if (params.debug !== undefined) {
             Twig.debug = params.debug;
         }
+        if (params.trace !== undefined) {
+            Twig.trace = params.trace;
+        }
 
         if (params.data !== undefined) {
             return new Twig.Template({

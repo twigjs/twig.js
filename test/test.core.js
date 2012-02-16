@@ -324,7 +324,7 @@ describe("Twig.js Expressions ->", function() {
             output2.should.equal( "3" );
         });
         it("should support the ternary operator inside objects", function() {
-            var test_template2 = twig({data: '{{ ({"b" : a || b ? {"a":e+f}:{"a":1} }.b.a }}'})
+            var test_template2 = twig({data: '{{ {"b" : a || b ? {"a":e+f}:{"a":1} }.b.a }}'})
                 , output2 = test_template2.render({a: false, b: false, e: 1, f: 2});
 
             output2.should.equal( "1" );
