@@ -63,5 +63,22 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: [[1,2],[3,4],[5,6]]}).should.equal("12.34.56." );
             test_template.render({test: []}).should.equal("else" );
         });
+        it("should have a loop context item available", function() {
+            var test_template = twig({data: '{% for key,value in test %}{{ loop.index }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("1234" );
+            test_template = twig({data: '{% for key,value in test %}{{ loop.index0 }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("0123" );
+            test_template = twig({data: '{% for key,value in test %}{{ loop.revindex }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("4321" );
+            test_template = twig({data: '{% for key,value in test %}{{ loop.revindex0 }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("3210" );
+            test_template = twig({data: '{% for key,value in test %}{{ loop.length }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("4444" );
+            test_template = twig({data: '{% for key,value in test %}{{ loop.first }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("truefalsefalsefalse" );
+            test_template = twig({data: '{% for key,value in test %}{{ loop.last }}{% endfor %}'});
+            test_template.render({test: [1,2,3,4]}).should.equal("falsefalsefalsetrue" );
+            
+        });
     });
 });
