@@ -229,16 +229,29 @@ var Twig = (function (Twig) {
                     key,
                     keyset,
                     that = this;
-
+                    
                 if (result instanceof Array) {
                     key = 0;
                     result.forEach(function (value) {
+                        var len = result.length;
                         context[token.value_var] = value;
                         if (token.key_var) {
                             context[token.key_var] = key;
                         }
+                        /**
+                         * Loop object
+                         */
+                        context.loop = {
+                            index: key+1,
+                            index0: key,
+                            revindex: len-key,
+                            revindex0: len-key-1,
+                            first: (key === 0),
+                            last: (key === len-1),
+                            length: len,
+                            parent: context
+                        };
                         output.push(Twig.parse.apply(that, [token.output, context]));
-
                         key += 1;
                     });
                 } else if (result instanceof Object) {
@@ -248,6 +261,7 @@ var Twig = (function (Twig) {
                         keyset = Object.keys(result);
                     }
                     keyset.forEach(function(key) {
+                        
                         if (key === "_keys") return; // Ignore the _keys property
                         if (result.hasOwnProperty(key)) {
                             context[token.value_var] = result[key];
