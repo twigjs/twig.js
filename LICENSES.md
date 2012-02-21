@@ -50,7 +50,8 @@
     THE SOFTWARE.
 
 
-## LICENSE for the strip_tags function is src/lib/twig.lib.js
+## LICENSE for the strip_tags function in src/twig.lib.js and range function
+## in src/twig.functions.js
 
     This is version: 3.26
     php.js is copyright 2011 Kevin van Zonneveld.
