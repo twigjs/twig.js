@@ -290,7 +290,9 @@ var Twig = (function (Twig) {
                 token = output.pop();
                 if (token.type !== Twig.expression.type._function &&
                     token.type !== Twig.expression.type.filter &&
-                    token.type !== Twig.expression.type.test) {
+                    token.type !== Twig.expression.type.test &&
+                    token.type !== Twig.expression.type.key.brackets &&
+                    token.type !== Twig.expression.type.key.period) {
                     throw new Twig.Error("Expected filter or function before parameters, got " + token.type);
                 }
                 token.params = param_stack;
@@ -533,7 +535,7 @@ var Twig = (function (Twig) {
             },
             parse: function(token, stack, context) {
                 // Get the variable from the context
-                var value = Twig.expression.resolve(token.value, context);
+                var value = Twig.expression.resolve(context[token.value], context);
                 stack.push(value);
             }
         },
@@ -542,7 +544,8 @@ var Twig = (function (Twig) {
             regex: /^\.([a-zA-Z_][a-zA-Z0-9_]*)/,
             next: Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets]),
+                    Twig.expression.type.key.brackets,
+                    Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 token.key = token.match[1];
                 delete token.match;
@@ -551,15 +554,18 @@ var Twig = (function (Twig) {
                 output.push(token);
             },
             parse: function(token, stack, context) {
-                var key = token.key,
-                    object = stack.pop();
+                var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
+                    key = token.key,
+                    object = stack.pop(),
+                    value;
 
                 if (object === null || object === undefined) {
                     throw new Twig.Error("Can't access a key " + key + " on an undefined object.");
                 }
 
                 // Get the variable from the context
-                stack.push(object[key]);
+                value = object[key];
+                stack.push(Twig.expression.resolve(value, context, params));
             }
         },
         {
@@ -567,7 +573,8 @@ var Twig = (function (Twig) {
             regex: /^\[([^\]]*)\]/,
             next: Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets]),
+                    Twig.expression.type.key.brackets,
+                    Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 var match = token.match[1];
                 delete token.value;
@@ -582,13 +589,18 @@ var Twig = (function (Twig) {
             },
             parse: function(token, stack, context) {
                 // Evaluate key
-                var key = Twig.expression.parse.apply(this, [token.stack, context]),
-                    object = stack.pop();
-                // Get the variable from the context
+                var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
+                    key = Twig.expression.parse.apply(this, [token.stack, context]),
+                    object = stack.pop(),
+                    value;
+                    
                 if (!object.hasOwnProperty(key)) {
                     throw new Twig.Error("Model doesn't provide the key " + key);
                 }
-                stack.push(object[key]);
+                
+                // Get the variable from the context
+                value = object[key];
+                stack.push(Twig.expression.resolve(value, context, params));
             }
         },
         {
@@ -629,10 +641,9 @@ var Twig = (function (Twig) {
      * @param {string} key The context object key.
      * @param {Object} context The render context.
      */
-    Twig.expression.resolve = function(key, context) {
-        var value = context[key];
+    Twig.expression.resolve = function(value, context, params) {
         if (typeof value == 'function') {
-            return value.apply(context, []);
+            return value.apply(context, params || []);
         } else {
             return value;
         }

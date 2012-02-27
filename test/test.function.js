@@ -61,6 +61,62 @@ describe("Twig.js Functions ->", function() {
             }
         }).should.equal("1-test-true");
     });
+    it("should execute functions passed as context value parameters with this mapped to the context", function() {
+        twig({
+            data: '{{ value }}'
+        }).render({
+            test: "value",
+            value: function() {
+                return this.test;
+            }
+        }).should.equal("value");
+    });
+    
+    it("should execute functions passed as context object parameters", function() {
+        twig({
+            data: '{{ obj.value }}'
+        }).render({
+            obj: {
+                 value: function() {
+                    return "test";
+                }
+            }
+        }).should.equal("test");
+    });
+    it("should execute functions passed as context object parameters with arguments", function() {
+        twig({
+            data: '{{ obj.value(1, "test") }}'
+        }).render({
+            obj: {
+                 value: function(a, b, c) {
+                    return a + "-" + b + "-" + (c===undefined?"true":"false");
+                }
+            }
+        }).should.equal("1-test-true");
+    });
+    
+    it("should execute functions passed as context object parameters", function() {
+        twig({
+            data: '{{ obj["value"] }}'
+        }).render({
+            obj: {
+                 value: function() {
+                    return "test";
+                }
+            }
+        }).should.equal("test");
+    });
+    it("should execute functions passed as context object parameters with arguments", function() {
+        twig({
+            data: '{{ obj["value"](1, "test") }}'
+        }).render({
+            obj: {
+                 value: function(a, b, c) {
+                    return a + "-" + b + "-" + (c===undefined?"true":"false");
+                }
+            }
+        }).should.equal("1-test-true");
+    });
     
     
     describe("Built-in Functions ->", function() {
