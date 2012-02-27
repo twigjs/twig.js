@@ -1,5 +1,5 @@
-var twig   = require("../twig").twig,
-    should = require("should");
+var Twig = Twig || require("../twig"),
+    twig = twig || Twig.twig;
 
 describe("Twig.js Control Structures ->", function() {
 

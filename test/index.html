@@ -1,13 +1,32 @@
-<!DOCTYPE html>
 <html>
-    <head>
-        <title>Twig.js Tests</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js" type="text/javascript"></script>
-        <script src="../node_modules/mocha/mocha.js"></script>
-        <script>mocha.setup('bdd')</script>
-        <script src="test.core.js"></script>
-        <script>onload = mocha.run;</script>
-    </head>
-    <body><div id="mocha"></div></body>
-</html>    
+<head>
+  <meta charset="utf-8">
+  <title>Mocha Tests</title>
+  <link rel="stylesheet" href="lib/mocha.css" />
+  <script src="lib/chai.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="lib/mocha.js"></script>
+  <script src="../twig.js"></script>
+  <script type="text/javascript">
+	chai.should();
+	mocha.setup('bdd')
+  </script>
+  <script src="test.core.js"></script>
+  <script src="test.controlStructures.js"></script>
+  <script src="test.filters.js"></script>
+  <script src="test.functions.js"></script>
+  <script src="test.tests.js"></script>
+  <script src="browser/test.browser.js"></script>
+  <script src="browser/test.block.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      mocha
+        .run()
+        .globals(['twig']) // acceptable globals
+    })
+  </script>
+</head>
+<body>
+  <div id="mocha"></div>
+</body>
+</html>

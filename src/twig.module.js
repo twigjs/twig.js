@@ -22,6 +22,6 @@ if (typeof module !== 'undefined' && module.declare) {
 } else {
     // Export for browser use
     window.twig = Twig.exports.twig;
-    window.Twig = Twig;
+    window.Twig = Twig.exports;
 }
 

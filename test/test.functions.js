@@ -1,6 +1,5 @@
-var Twig   = require("../twig"),
-    twig   = Twig.twig,
-    should = require('should');
+var Twig = Twig || require("../twig"),
+    twig = twig || Twig.twig;
 
 describe("Twig.js Functions ->", function() {
     // Add some test functions to work with

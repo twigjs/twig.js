@@ -786,7 +786,6 @@ var Twig = (function (Twig) {
 
 }) (Twig || { });
 
-
 // The following methods are from MDN and are available under a
 // [MIT License](http://www.opensource.org/licenses/mit-license.php) or are
 // [Public Domain](https://developer.mozilla.org/Project:Copyrights).
@@ -904,7 +903,6 @@ var Twig = (function (Twig) {
     }
 
 })();
-
 // ## twig.lib.js
 //
 // This file contains 3rd party libraries used within twig.
@@ -1527,7 +1525,6 @@ var Twig = (function(Twig) {
     return Twig;
 
 })(Twig || { });
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -2199,7 +2196,6 @@ var Twig = (function (Twig) {
     return Twig;
 
 })(Twig || { });
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -3085,7 +3081,6 @@ var Twig = (function (Twig) {
     return Twig;
 
 })( Twig || { } );
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -3326,7 +3321,6 @@ var Twig = (function (Twig) {
     return Twig;
 
 })( Twig || { } );
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -3573,7 +3567,6 @@ var Twig = (function (Twig) {
     return Twig;
 
 })(Twig || { });
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //                   2012 Hadrien Lanneau
@@ -3675,7 +3668,6 @@ var Twig = (function (Twig) {
     return Twig;
 
 })(Twig || { });
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -3735,7 +3727,6 @@ var Twig = (function (Twig) {
 
     return Twig;
 })( Twig || { } );
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -3863,7 +3854,6 @@ var Twig = (function (Twig) {
     return Twig;
 }) (Twig || { });
 
-
 //     Twig.js v0.3
 //     Copyright (c) 2011 John Roepke
 //     Available under the BSD 2-Clause License
@@ -3888,7 +3878,6 @@ if (typeof module !== 'undefined' && module.declare) {
 } else {
     // Export for browser use
     window.twig = Twig.exports.twig;
-    window.Twig = Twig;
+    window.Twig = Twig.exports;
 }
-
 
