@@ -290,8 +290,7 @@ var Twig = (function (Twig) {
                 token = output.pop();
                 if (token.type !== Twig.expression.type._function &&
                     token.type !== Twig.expression.type.filter &&
-                    token.type !== Twig.expression.type.test &&
-                    token.type !== Twig.expression.type.variable) {
+                    token.type !== Twig.expression.type.test) {
                     throw new Twig.Error("Expected filter or function before parameters, got " + token.type);
                 }
                 token.params = param_stack;
