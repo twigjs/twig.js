@@ -49,4 +49,25 @@ describe("Twig.js Functions ->", function() {
             twig({data: '{% for i in range(0, 3) %}{{ cycle(["odd", "even"], i) }};{% endfor %}'}).render().should.equal("odd;even;odd;even;");
         });
     });
+    describe("date ->", function() { 
+        function pad(num) {return num<10?'0'+num:num;}
+        function stringDate(date){
+            return pad(date.getDate()) + "/" + pad(date.getMonth()+1) + "/" + date.getFullYear()
+                                     + " @ " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
+        }
+        
+        it("should understand timestamps", function() {
+            var date = new Date(946706400 * 1000);
+            twig({data: '{{ date(946706400)|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
+        });
+        it("should understand relative dates", function() {
+            twig({data: '{{ date("+1 day") > date() }}'}).render().should.equal("true");
+            twig({data: '{{ date("-1 day") > date() }}'}).render().should.equal("false");
+        });
+        it("should understand exact dates", function() {
+            var date = new Date("June 20, 2010 UTC");
+            
+            twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
+        });
+    });
 });

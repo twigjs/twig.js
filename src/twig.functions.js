@@ -16,7 +16,7 @@ var Twig = (function (Twig) {
     }
 
     Twig.functions = {
-        //  attribute, block, constant, cycle, date, dump, parent, random,.
+        //  attribute, block, constant, date, dump, parent, random,.
         
         // Range function from http://phpjs.org/functions/range:499
         // Used under an MIT License
@@ -66,6 +66,22 @@ var Twig = (function (Twig) {
         cycle: function(arr, i) {
             var pos = i % arr.length;
             return arr[pos];
+        },
+        date: function(date, time) {
+            var dateObj;
+            if (date == undefined) {
+                dateObj = new Date();
+            } else if (Twig.lib.is("Date", date)) {
+                dateObj = date;
+            } else if (Twig.lib.is("String", date)) {
+                dateObj = new Date(Twig.lib.strtotime(date) * 1000);
+            } else if (Twig.lib.is("Number", date)) {
+                // timestamp
+                dateObj = new Date(date * 1000);
+            } else {
+                throw new Twig.Error("Unable to parse date " + date);
+            }
+            return dateObj;
         }
     };
 
