@@ -290,7 +290,8 @@ var Twig = (function (Twig) {
                 token = output.pop();
                 if (token.type !== Twig.expression.type._function &&
                     token.type !== Twig.expression.type.filter &&
-                    token.type !== Twig.expression.type.test) {
+                    token.type !== Twig.expression.type.test &&
+                    token.type !== Twig.expression.type.variable) {
                     throw new Twig.Error("Expected filter or function before parameters, got " + token.type);
                 }
                 token.params = param_stack;
@@ -492,16 +493,21 @@ var Twig = (function (Twig) {
             },
             parse: function(token, stack, context) {
                 var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
-                    fn     = token.fn;
-
+                    fn     = token.fn,
+                    value;
                 
-                if (!Twig.functions[fn]) {
-                    throw new Twig.Error(fn + ' function does not exist');
+                if (Twig.functions[fn]) {
+                    // Get the function from the built-in functions
+                    value = Twig.functions[fn].apply(this, params);
+                    
+                } else if (typeof context[fn] == 'function') {
+                    // Get the function from the user/context defined functions
+                    value = context[fn].apply(context, params);
+                    
+                } else {
+                    throw new Twig.Error(fn + ' function does not exist and is not defined in the context');
                 }
                 
-                // Get the variable from the context
-                var value = Twig.functions[fn].apply(this, params);
-				
                 stack.push(value);
             }
         },
@@ -520,7 +526,8 @@ var Twig = (function (Twig) {
             regex: /^[a-zA-Z_][a-zA-Z0-9_]*/,
             next: Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets]),
+                    Twig.expression.type.key.brackets,
+                    Twig.expression.type.parameter.start]),
             compile: Twig.expression.fn.compile.push,
             validate: function(match, tokens) {
                 return Twig.expression.reservedWords.indexOf(match[0]) == -1;
@@ -626,7 +633,7 @@ var Twig = (function (Twig) {
     Twig.expression.resolve = function(key, context) {
         var value = context[key];
         if (typeof value == 'function') {
-            return value.apply(context, [context]);
+            return value.apply(context, []);
         } else {
             return value;
         }

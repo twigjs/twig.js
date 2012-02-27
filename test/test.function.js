@@ -33,41 +33,73 @@ describe("Twig.js Functions ->", function() {
         twig({data: '{% if echo(true) or echo(false) %}yes{% endif %}'}).render().should.equal("yes");
     });
     
-    describe("range ->", function() { 
-        it("should work over a range of numbers", function() {
-            twig({data: '{% for i in range(0, 3) %}{{ i }},{% endfor %}'}).render().should.equal("0,1,2,3,");
-        });
-        it("should work over a range of letters", function() {
-            twig({data: '{% for i in range("a", "c") %}{{ i }},{% endfor %}'}).render().should.equal("a,b,c,");
-        });
-        it("should work with an interval", function() {
-            twig({data: '{% for i in range(1, 15, 3) %}{{ i }},{% endfor %}'}).render().should.equal("1,4,7,10,13,");
-        });
+    it("should execute functions passed as context values", function() {
+        twig({
+            data: '{{ value }}'
+        }).render({
+            value: function() {
+                return "test";
+            }
+        }).should.equal("test");
     });
-    describe("cycle ->", function() { 
-        it("should cycle through an array of values", function() {
-            twig({data: '{% for i in range(0, 3) %}{{ cycle(["odd", "even"], i) }};{% endfor %}'}).render().should.equal("odd;even;odd;even;");
-        });
+    it("should execute functions passed as context values with this mapped to the context", function() {
+        twig({
+            data: '{{ value }}'
+        }).render({
+            test: "value",
+            value: function() {
+                return this.test;
+            }
+        }).should.equal("value");
     });
-    describe("date ->", function() { 
-        function pad(num) {return num<10?'0'+num:num;}
-        function stringDate(date){
-            return pad(date.getDate()) + "/" + pad(date.getMonth()+1) + "/" + date.getFullYear()
-                                     + " @ " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
-        }
+    it("should execute functions passed as context values with arguments", function() {
+        twig({
+            data: '{{ value(1, "test") }}'
+        }).render({
+            value: function(a, b, c) {
+                return a + "-" + b + "-" + (c===undefined?"true":"false");
+            }
+        }).should.equal("1-test-true");
+    });
+    
+    
+    describe("Built-in Functions ->", function() {
+        describe("range ->", function() { 
+            it("should work over a range of numbers", function() {
+                twig({data: '{% for i in range(0, 3) %}{{ i }},{% endfor %}'}).render().should.equal("0,1,2,3,");
+            });
+            it("should work over a range of letters", function() {
+                twig({data: '{% for i in range("a", "c") %}{{ i }},{% endfor %}'}).render().should.equal("a,b,c,");
+            });
+            it("should work with an interval", function() {
+                twig({data: '{% for i in range(1, 15, 3) %}{{ i }},{% endfor %}'}).render().should.equal("1,4,7,10,13,");
+            });
+        });
+        describe("cycle ->", function() { 
+            it("should cycle through an array of values", function() {
+                twig({data: '{% for i in range(0, 3) %}{{ cycle(["odd", "even"], i) }};{% endfor %}'}).render().should.equal("odd;even;odd;even;");
+            });
+        });
+        describe("date ->", function() { 
+            function pad(num) {return num<10?'0'+num:num;}
+            function stringDate(date){
+                return pad(date.getDate()) + "/" + pad(date.getMonth()+1) + "/" + date.getFullYear()
+                                         + " @ " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
+            }
         
-        it("should understand timestamps", function() {
-            var date = new Date(946706400 * 1000);
-            twig({data: '{{ date(946706400)|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
-        });
-        it("should understand relative dates", function() {
-            twig({data: '{{ date("+1 day") > date() }}'}).render().should.equal("true");
-            twig({data: '{{ date("-1 day") > date() }}'}).render().should.equal("false");
-        });
-        it("should understand exact dates", function() {
-            var date = new Date("June 20, 2010 UTC");
+            it("should understand timestamps", function() {
+                var date = new Date(946706400 * 1000);
+                twig({data: '{{ date(946706400)|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
+            });
+            it("should understand relative dates", function() {
+                twig({data: '{{ date("+1 day") > date() }}'}).render().should.equal("true");
+                twig({data: '{{ date("-1 day") > date() }}'}).render().should.equal("false");
+            });
+            it("should understand exact dates", function() {
+                var date = new Date("June 20, 2010 UTC");
             
-            twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
+                twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
+            });
         });
     });
 });
