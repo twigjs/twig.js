@@ -565,7 +565,7 @@ var Twig = (function (Twig) {
 
                 // Get the variable from the context
                 value = object[key];
-                stack.push(Twig.expression.resolve(value, context, params));
+                stack.push(Twig.expression.resolve(value, object, params));
             }
         },
         {
