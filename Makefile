@@ -15,9 +15,11 @@ test:
 
 twig.js: $(SRC)
 	cat $^ > $@
+	cp $@ demos/node_express/public/vendor/
+	cp $@ demos/twitter_backbone/vendor/
 
 twig.min.js: twig.js
-	./node_modules/.bin/uglifyjs --no-mangle $< > $@
+	./node_modules/.bin/uglifyjs $< > $@
 
 docs: test-docs annotated-docs
 
