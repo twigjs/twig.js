@@ -1,5 +1,5 @@
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -1526,7 +1526,7 @@ var Twig = (function(Twig) {
 
 })(Twig || { });
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -2197,7 +2197,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3082,7 +3082,7 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3322,7 +3322,7 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3568,7 +3568,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //                   2012 Hadrien Lanneau
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
@@ -3669,7 +3669,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3728,7 +3728,7 @@ var Twig = (function (Twig) {
     return Twig;
 })( Twig || { } );
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3855,7 +3855,7 @@ var Twig = (function (Twig) {
 }) (Twig || { });
 
 //     Twig.js v0.3
-//     Copyright (c) 2011 John Roepke
+//     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
