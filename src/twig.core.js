@@ -734,6 +734,11 @@ var Twig = (function (Twig) {
                 return output;
             }
         };
+        
+        this.compile = function() {
+            // compile the template into raw JS
+            return Twig.compiler.compile(this);
+        };
 
         if (id !== undefined) {
             Twig.Templates.save(this);

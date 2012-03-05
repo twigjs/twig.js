@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <script src="../../twig.min.js"></script>
+        <script src="templates/test.twig.js"></script>
+    </head>
+    <body>
+        <div id="body"></div>
+        <script type="text/javascript">
+            document.getElementById("body").innerHTML = twig({ref:"test.twig"}).render({test:true});
+        </script>
+    </body>
+</html>
