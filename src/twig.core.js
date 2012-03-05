@@ -12,7 +12,7 @@ var Twig = (function (Twig) {
     Twig.trace = false;
     Twig.debug = false;
 
-    // Default caching to on for the improved performance it offers
+    // Default caching to true for the improved performance it offers
     Twig.cache = true;
 
     /**
