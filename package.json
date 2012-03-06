@@ -16,10 +16,16 @@
   "engines": {
     "node": "*"
   },
+  "bin": {
+    "twigjs": "./bin/twigjs"
+  },
   "scripts": {
     "test": "make test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "walk": "2.1.x",
+    "minimatch": "0.2.x"
+  },
   "devDependencies": {
     "should": "0.3.x",
     "mocha": "0.10.x",

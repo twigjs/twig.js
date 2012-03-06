@@ -3883,7 +3883,7 @@ var Twig = (function (Twig) {
     };
     
     Twig.compiler.wrap = function(id, tokens) {
-        var output = 'twig({id:"'+id.replace('"', '\\"')+'", data:'+tokens+', precompiled: true});';
+        var output = '(function() {\n\tvar template = twig({id:"'+id.replace('"', '\\"')+'", data:'+tokens+', precompiled: true});\n\texports && exports.template = template;\n})();';
         return output;
     };
     

@@ -3,6 +3,9 @@
 var Twig = require("../twig")
     , twig = Twig.twig
     , fs = require("fs")
+    , minimatch = require("minimatch")
+    , WALK = require("walk")
+    , PATHS = require("./lib/paths")
 
     , args = process.argv
     , node = args.shift()
@@ -13,7 +16,7 @@ var Twig = require("../twig")
     , arg
     , options = {
         compress: false
-        , pattern: "*.twig"
+        , pattern: "*\\.twig"
         , recursive: false
     };
 
@@ -25,7 +28,7 @@ while (args.length > 0) {
             return;
         case "--output":
         case "-o":
-            options.output = args.shift();
+            options.output = PATHS.strip_slash(args.shift());
             break;
         case "--pattern":
         case "-p":
@@ -35,10 +38,6 @@ while (args.length > 0) {
         case "-c":
             options.compress = true;
             break;
-        case "--recursive":
-        case "-r":
-            options.recursive = true;
-            break;
         default:
             files.push(arg);
     }
@@ -46,22 +45,13 @@ while (args.length > 0) {
 
 // Create output template directory if necessary
 if (options.output) {
-    try {
-        fs.mkdirSync(options.output);
-    } catch (err) {
-        if (err.code == "EEXIST")  {
-            // ignore if it's a "EEXIST" exeption
-        }  else {
-            console.log(err);
-            throw err;
-        }
-    }
+    mkdir(options.output);
 }
 
 files.forEach(function(file) {
     fs.stat(file, function(err, stats) {
         if (stats.isDirectory()) {
-            parseTemplateFolder(file);
+            parseTemplateFolder(file, options.pattern);
         } else if (stats.isFile()) {
             parseTemplateFile(file);
         } else {
@@ -70,37 +60,84 @@ files.forEach(function(file) {
     });
 });
 
-function parseTemplateFolder(directory) {
+function parseTemplateFolder(directory, pattern) {
+    directory = PATHS.strip_slash(directory);
     
+   // Get the files in the directory
+   // Walker options
+    var walker  = WALK.walk(directory, { followLinks: false })
+        , files = [];
+
+    walker.on('file', function(root, stat, next) {
+        // normalize (remove / from end if present)
+        root = PATHS.strip_slash(root);
+        
+        // match against file pattern
+        var name = stat.name
+            , file = root + '/' + name;
+        if (minimatch(name, pattern)) {
+            parseTemplateFile(file, directory);
+            files.push(file);
+        }
+        next();
+    });
+
+    walker.on('end', function() {
+        // console.log(files);
+    });
 }
 
-function parseTemplateFile(file) {
+function parseTemplateFile(file, base) {
+    if (base) base = PATHS.strip_slash(base);
     var split_file = file.split("/")
-        , output_file_name = split_file[split_file.length-1]
+        , output_file_name = split_file.pop()
+        , output_file_base = PATHS.findBase(file)
         , output_directory = options.output
+        , output_base = PATHS.removePath(base, output_file_base)
         , output_file;
-                
+
+    if (output_directory) {
+        // Create template directory
+        if (output_base !== "") {
+            mkdir(output_directory + "/" + output_base);
+            output_base += "/";
+        }
+        output_file = output_directory + "/" + output_base + output_file_name + ".js"
+    } else {
+        output_file = file + ".js"
+    }
+            
     var tpl = twig({
-        path: file
+        id: output_file
+        , path: file
         , load: function(template) {
             // compile!
             var output = template.compile();
             
-            if (output_directory) {
-                output_file = output_directory + "/" + output_file_name + ".js"
-            } else {
-                output_file = file + ".js"
-            }
+            
             
             fs.writeFile(output_file, output, 'utf8', function(err) {
                 if (err) {
                     console.log("Unable to compile " + file + ", error " + err);
                 } else {
-                    console.log("Compiled " + file + " -> " + output_file);
+                    console.log("Compiled " + file + "\t-> " + output_file);
                 }
             });
         }
     });
+}
+
+function mkdir(dir) {
+    try {
+        fs.mkdirSync(dir);
+    } catch (err) {
+        if (err.code == "EEXIST")  {
+            // ignore if it's a "EEXIST" exeption
+        }  else {
+            console.log(err);
+            throw err;
+        }
+    }
 }
 
 function printUsage(stream) {
@@ -114,6 +151,6 @@ function printUsage(stream) {
     stream.write("\t--compress     Should the output file be compressed using uglify-js.\n\n");
     stream.write("\t--output ...   What directory should twigjs output to. By default twigjs will\n");
     stream.write("\t               write to the same directory as the input file.\n\n");
-    stream.write("\t--pattern ...  If parsing a directory of files, what files should be compiled.\n\n");
-    stream.write("\t--recursive    If parsing a directory of files, should twigjs scan recursively\n\n");
+    stream.write("\t--pattern ...  If parsing a directory of files, what files should be compiled.\n");
+    stream.write("\t               Defaults to *.twig.\n\n");
 }
