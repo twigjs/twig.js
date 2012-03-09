@@ -35,6 +35,7 @@ var Twig = (function (Twig) {
         if (params.data !== undefined) {
             return new Twig.Template({
                 data: params.data,
+                module: params.module,
                 id:   id
             });
 
@@ -47,6 +48,7 @@ var Twig = (function (Twig) {
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
+                module: params.module,
                 precompiled: params.precompiled,
                 method: 'ajax',
                 async: params.async
@@ -56,6 +58,7 @@ var Twig = (function (Twig) {
         } else if (params.path !== undefined) {
             return Twig.Templates.loadRemote(params.path, {
                 id: id,
+                module: params.module,
                 precompiled: params.precompiled,
                 method: 'fs',
                 async: params.async

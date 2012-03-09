@@ -735,9 +735,9 @@ var Twig = (function (Twig) {
             }
         };
         
-        this.compile = function() {
+        this.compile = function(options) {
             // compile the template into raw JS
-            return Twig.compiler.compile(this);
+            return Twig.compiler.compile(this, options);
         };
 
         if (id !== undefined) {
