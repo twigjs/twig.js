@@ -63,4 +63,5 @@ function printUsage(stream) {
     stream.write("\t               of twig.js used for module dependencies.\n\n");
     stream.write("\t--pattern ...  If parsing a directory of files, what files should be compiled.\n");
     stream.write("\t               Defaults to *.twig.\n\n");
+    stream.write("NOTE: This is currently very rough, incomplete and under development.\n\n");
 }
