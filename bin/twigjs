@@ -56,9 +56,9 @@ function printUsage(stream) {
     stream.write("\t--output ...   What directory should twigjs output to. By default twigjs will\n");
     stream.write("\t               write to the same directory as the input file.\n\n");
     stream.write("\t--module ...   Should the output be written in module format. Supported formats:\n");
-    stream.write("\t                   node:   Node.js / CommonJS 1.1 modules\n");
-    stream.write("\t                   amd:    RequireJS / Asynchronous modules (requires --twig)\n");
-    stream.write("\t                   cjs2.0: CommonJS 2.0 draft8 modules (requires --twig)\n\n");
+    stream.write("\t                   node:  Node.js / CommonJS 1.1 modules\n");
+    stream.write("\t                   amd:   RequireJS / Asynchronous modules (requires --twig)\n");
+    stream.write("\t                   cjs2:  CommonJS 2.0 draft8 modules (requires --twig)\n\n");
     stream.write("\t--twig ...     Used with --module. The location relative to the output directory\n");
     stream.write("\t               of twig.js. (used for module dependency resolution).\n\n");
     stream.write("\t--pattern ...  If parsing a directory of files, what files should be compiled.\n");
