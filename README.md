@@ -83,7 +83,7 @@ console.log(
 
 # Tests
 
-There are two sets of tests available for Twig.js. The node tests are written in [Mocha][mocha] and can be invoked with `make test`. There are also browser tests written in [QUnit][qunit] that are in the `qtest` directory. These will eventually be replaced with the Mocha tests, but for now are still the best way to test browser compatability.
+The tiwg.js tests are written in [Mocha][mocha] and can be invoked with `make test`. 
 
 # License
 
