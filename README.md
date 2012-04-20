@@ -35,8 +35,8 @@ You can include twig in your app with
 
     var twig = require('twig');
 
-Twig is also compatable with express. You can create an express app using
-the twig templating language by setting the view engine to twig.
+Twig is compatable with express 2 and 3. You can create an express app using 
+the twig.js templating language by setting the view engine to twig.
 
 ## app.js
 
@@ -49,7 +49,7 @@ app.configure(function () {
     app.set("view options", { layout: false });
 });
 
-app.register('twig', twig);
+app.register('twig', twig); // remove if using express 3
 
 app.get('/', function(req, res){
   res.render('index', {
