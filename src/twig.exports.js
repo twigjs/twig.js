@@ -131,7 +131,7 @@ var Twig = (function (Twig) {
             path: path,
             load: function(template) {
                 // render and return template
-                fn(template.render(options));
+                fn(null, template.render(options));
             }
         });
     };

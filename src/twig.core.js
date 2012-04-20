@@ -530,6 +530,7 @@ var Twig = (function (Twig) {
         // Check for existing template
         if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
+            callback(Twig.Templates.registry[id]);
             return Twig.Templates.registry[id];
         }
 
