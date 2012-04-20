@@ -3823,7 +3823,7 @@ var Twig = (function (Twig) {
 
 
     /**
-     * Provide an extension for use with express.
+     * Provide an extension for use with express 2.
      *
      * @param {string} markup The template markup.
      * @param {array} options The express options.
@@ -3847,7 +3847,30 @@ var Twig = (function (Twig) {
             return template.render(context);
         };
     };
+
+    /**
+     * Provide an extension for use with express 3.
+     *
+     * @param {string} path The location of the template file on disk.
+     * @param {Object|Function} The options or callback.
+     * @param {Function} fn callback.
+     */
     
+    Twig.exports.renderFile = function(path, options, fn) {
+        // handle callback in options
+        if ('function' == typeof options) {
+            fn = options, options = {};
+        }
+        Twig.exports.twig({
+            path: path,
+            load: function(template) {
+                // render and return template
+                fn(template.render(options));
+            }
+        });
+    };
+    Twig.exports.__express = Twig.exports.renderFile;
+
     /**
      * Shoud Twig.js cache templates.
      * Disable during development to see changes to templates without
