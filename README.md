@@ -12,18 +12,9 @@ of the Twig templating language (with more coming).
 
 Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki) on Github.
 
-Supported tags:
+### Feature Support
 
-* extends / use / block (with browser based ajax loading)
-* if / elseif / else / endif
-* for / else / endfor
-* set
-
-A limited set of filters are supported (with more coming) and most of the expression syntax is implemented.
-
-Supported filters:
-
-upper, lower, capitalize, title, length, reverse, sort, keys, url_encode, join, default, json_encode, merge, date, replace, format, striptags
+For a list of supported tags/filters/functions/tests see the [implementation notes on the wiki](https://github.com/justjohn/twig.js/wiki/Supported-Features---Implementation-Notes).
 
 # Node Usage
 
