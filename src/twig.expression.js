@@ -177,7 +177,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.operator,
             // Match any of +, *, /, -, %, ~, <, <=, >, >=, !=, ==, ||, &&, **, ?, :, and, or, not
-            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^not\s+)/,
+            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^not\s+)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 delete token.match;

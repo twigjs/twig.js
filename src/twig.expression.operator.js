@@ -23,6 +23,12 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
+            case 'not in':
+            case 'in':
+                token.precidence = 20;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+                
             case ',':
                 token.precidence = 18;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -230,10 +236,38 @@ var Twig = (function (Twig) {
                 stack.push(Math.pow(a, b));
                 break;
 
+
+            case 'not in':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push( !containment(a, b) );
+                break;
+                
+            case 'in':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push( containment(a, b) );
+                break;
+                
             default:
                 throw new Twig.Error(operator + " is an unknown operator.");
         }
     };
+    
+    var containment = function(a, b) {
+        if (b.indexOf != undefined) {
+            return b.indexOf(a) > -1;
+            
+        } else {
+            var el;
+            for (el in b) {
+                if (b.hasOwnProperty(el) && b[el] === a) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     return Twig;
 
