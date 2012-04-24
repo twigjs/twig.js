@@ -36,6 +36,9 @@ var Twig = (function (Twig) {
         none: function(value) {
             return value === null;
         },
+        'null': function(value) {
+            return this.none(value); // Alias of none
+        },
         sameas: function(value, params) {
             return value === params[0];
         }

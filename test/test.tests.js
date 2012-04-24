@@ -62,6 +62,7 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ key is none }}'}).render().should.equal("false");
             twig({data: '{{ key is none }}'}).render({key: "test"}).should.equal("false");
             twig({data: '{{ key is none }}'}).render({key: null}).should.equal("true");
+            twig({data: '{{ key is null }}'}).render({key: null}).should.equal("true");
         });
     });
     describe("sameas test ->", function() {
