@@ -1,4 +1,4 @@
-//     Twig.js v0.3
+//     Twig.js
 //     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
