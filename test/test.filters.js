@@ -223,17 +223,7 @@ describe("Twig.js Filters ->", function() {
     describe("nl2br ->", function() {
         it("should convert newlines into html breaks", function() {
             var template = twig({data: '{{ test|nl2br }}'});
-            template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br>Line 2<br>Line 3<br>Line 4<br><br>");
-        });
-    });
-
-    describe("merge ->", function() {
-        it("should merge properties from one object to another ", function() {
-            var template = twig({data: '{% set object1 = object1|merge(object2) %}'});
-            template.render({ 
-                object1: { prop1: 'String', prop2: 5 },
-                object2: { prop3: true, prop4: 'Another String' }
-            }).should.equal("");
+            template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br />Line 2<br />Line 3<br />Line 4<br /><br />");
         });
     });
 

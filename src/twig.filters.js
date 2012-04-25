@@ -235,14 +235,15 @@ var Twig = (function (Twig) {
 
         /* Alias of escape */
         "e": function(value) {
-            return this.escape(value);
+            return Twig.filters.escape(value);
         },
 
         nl2br: function(value) {
-            return this.escape(value)
-                        .replace(/\r\n/g,'<br>')
-                        .replace(/\r/g,'<br>')
-                        .replace(/\n/g,'<br>');
+            var br = '<br />';
+            return Twig.filters.escape(value)
+                        .replace(/\r\n/g, br)
+                        .replace(/\r/g, br)
+                        .replace(/\n/g, br);
         }
 
         /* convert_encoding,
