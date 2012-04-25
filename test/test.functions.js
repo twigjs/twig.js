@@ -156,5 +156,26 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
             });
         });
+        describe("dump ->", function() {
+            var EOL = '\n';
+            it("should output formatted number", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: 5 }).should.equal('number(5)' + EOL);
+            });
+            it("should output formatted string", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: "String" }).should.equal('string(6) "String"' + EOL);
+            });
+            it("should output formatted boolean", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: true }).should.equal('bool(true)' + EOL);
+            });
+            it("should output formatted null", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: null }).should.equal('NULL' + EOL);
+            });
+            it("should output formatted object", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: {} }).should.equal('object(0) {' + EOL + '}' + EOL);
+            });
+            it("should output formatted array", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: [] }).should.equal('object(0) {' + EOL + '}' + EOL);
+            });
+        });
     });
 });
