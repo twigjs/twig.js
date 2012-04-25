@@ -3586,10 +3586,29 @@ var Twig = (function (Twig) {
 
         striptags: function(value) {
             return Twig.lib.strip_tags(value);
+        },
+
+        escape: function(value) {
+            return value.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+        },
+
+        /* Alias of escape */
+        "e": function(value) {
+            return this.escape(value);
+        },
+
+        nl2br: function(value) {
+            return this.escape(value)
+                        .replace(/\r\n/g,'<br>')
+                        .replace(/\r/g,'<br>')
+                        .replace(/\n/g,'<br>');
         }
 
         /* convert_encoding,
-        escape,
         raw */
     };
 
