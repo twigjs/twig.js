@@ -227,6 +227,16 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe("merge ->", function() {
+        it("should merge properties from one object to another ", function() {
+            var template = twig({data: '{% set object1 = object1|merge(object2) %}'});
+            template.render({ 
+                object1: { prop1: 'String', prop2: 5 },
+                object2: { prop3: true, prop4: 'Another String' }
+            }).should.equal("");
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0" );
