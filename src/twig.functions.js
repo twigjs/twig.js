@@ -67,6 +67,62 @@ var Twig = (function (Twig) {
             var pos = i % arr.length;
             return arr[pos];
         },
+        dump: function(variable) {
+            var EOL = '\n';
+            var indentChar = '  ';
+            var indentTimes = 0;
+            var out = '';
+            (function recurse(variable) {
+                var indent = function(times) {
+                    var ind = '';
+                    while (times > 0) {
+                        times--;
+                        ind += indentChar;
+                    }
+                    return ind;
+                }
+                var displayVar = function(variable) {
+                    out += indent(indentTimes);
+                    if (typeof(variable) === 'object') {
+                        recurse(variable);
+                    } else if (typeof(variable) === 'function') {
+                        out += 'function()' + EOL;
+                    } else if (typeof(variable) === 'string') {
+                        out += 'string(' + variable.length + ') "' + variable + '"' + EOL;
+                    } else if (typeof(variable) === 'number') {
+                        out += 'number(' + variable + ')' + EOL;
+                    } else if (typeof(variable) === 'boolean') {
+                        out += 'bool(' + variable + ')' + EOL;
+                    }
+                }
+                if (variable === null) {
+                    out += 'NULL' + EOL;
+                } else if (variable === undefined) {
+                    out += 'undefined' + EOL;
+                } else if (typeof variable === 'object') {
+                    out += indent(indentTimes) + typeof(variable);
+                    indentTimes++;
+                    out += '(' + (function(obj) {
+                        var size = 0, key;
+                        for (key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                                size++;
+                            }
+                        }
+                        return size;
+                    })(variable) + ') {' + EOL;
+                    for (var i in variable) {
+                        out += indent(indentTimes) + '[' + i + ']=> ' + EOL;
+                        displayVar(variable[i]);
+                    }
+                    indentTimes--;
+                    out += indent(indentTimes) + '}' + EOL;
+                } else {
+                    displayVar(variable);
+                }
+            })(variable);
+            return out;
+        },
         date: function(date, time) {
             var dateObj;
             if (date == undefined) {
