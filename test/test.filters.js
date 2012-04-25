@@ -206,6 +206,37 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe("escape ->", function() {
+        it("should convert unsafe characters to HTML entities", function() {
+            var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\'#fragment\'>Other text</a>"|escape }}'});
+            template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
+        });
+    });
+
+    describe("e ->", function() {
+        it("should alias escape function with e", function() {
+            var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\'#fragment\'>Other text</a>"|e }}'});
+            template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
+        });
+    });
+
+    describe("nl2br ->", function() {
+        it("should convert newlines into html breaks", function() {
+            var template = twig({data: '{{ test|nl2br }}'});
+            template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br>Line 2<br>Line 3<br>Line 4<br><br>");
+        });
+    });
+
+    describe("merge ->", function() {
+        it("should merge properties from one object to another ", function() {
+            var template = twig({data: '{% set object1 = object1|merge(object2) %}'});
+            template.render({ 
+                object1: { prop1: 'String', prop2: 5 },
+                object2: { prop3: true, prop4: 'Another String' }
+            }).should.equal("");
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0" );
