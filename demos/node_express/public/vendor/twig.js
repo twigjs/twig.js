@@ -3681,7 +3681,6 @@ var Twig = (function (Twig) {
             var indentChar = '  ';
             var indentTimes = 0;
             var out = '';
-            console.log(variable);
             (function recurse(variable) {
                 var indent = function(times) {
                     var ind = '';
