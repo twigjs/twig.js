@@ -176,6 +176,9 @@ describe("Twig.js Functions ->", function() {
             it("should output formatted array", function() {
                 twig({data: '{{ dump(test) }}' }).render({ test: [] }).should.equal('object(0) {' + EOL + '}' + EOL);
             });
+            it("should output formatted undefined", function() {
+                twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);
+            });
         });
     });
 });

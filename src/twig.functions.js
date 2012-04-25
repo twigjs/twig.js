@@ -85,6 +85,8 @@ var Twig = (function (Twig) {
                     out += indent(indentTimes);
                     if (typeof(variable) === 'object') {
                         recurse(variable);
+                    } else if (typeof(variable) === 'function') {
+                        out += 'function()' + EOL;
                     } else if (typeof(variable) === 'string') {
                         out += 'string(' + variable.length + ') "' + variable + '"' + EOL;
                     } else if (typeof(variable) === 'number') {
@@ -95,13 +97,17 @@ var Twig = (function (Twig) {
                 }
                 if (variable === null) {
                     out += 'NULL' + EOL;
+                } else if (variable === undefined) {
+                    out += 'undefined' + EOL;
                 } else if (typeof variable === 'object') {
                     out += indent(indentTimes) + typeof(variable);
                     indentTimes++;
                     out += '(' + (function(obj) {
                         var size = 0, key;
                         for (key in obj) {
-                            if (obj.hasOwnProperty(key)) size++;
+                            if (obj.hasOwnProperty(key)) {
+                                size++;
+                            }
                         }
                         return size;
                     })(variable) + ') {' + EOL;
