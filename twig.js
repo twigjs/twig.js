@@ -3586,10 +3586,23 @@ var Twig = (function (Twig) {
 
         striptags: function(value) {
             return Twig.lib.strip_tags(value);
+        },
+
+        escape: function(value) {
+            return value
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+        },
+
+        /* Alias of escape */
+        "e": function(value) {
+            return this.escape(value);
         }
 
         /* convert_encoding,
-        escape,
         raw */
     };
 

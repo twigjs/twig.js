@@ -232,10 +232,14 @@ var Twig = (function (Twig) {
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
                     .replace(/'/g, "&#039;");
+        },
+
+        /* Alias of escape */
+        "e": function(value) {
+            return this.escape(value);
         }
 
         /* convert_encoding,
-        escape,
         raw */
     };
 
