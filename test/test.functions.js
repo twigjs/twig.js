@@ -129,6 +129,11 @@ describe("Twig.js Functions ->", function() {
             it("should work with an interval", function() {
                 twig({data: '{% for i in range(1, 15, 3) %}{{ i }},{% endfor %}'}).render().should.equal("1,4,7,10,13,");
             });
+			
+            it("should work with .. invocation", function() {
+                twig({data: '{% for i in 0..3 %}{{ i }},{% endfor %}'}).render().should.equal("0,1,2,3,");
+                twig({data: '{% for i in "a" .. "c" %}{{ i }},{% endfor %}'}).render().should.equal("a,b,c,");
+            });
         });
         describe("cycle ->", function() { 
             it("should cycle through an array of values", function() {
