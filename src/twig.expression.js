@@ -472,7 +472,7 @@ var Twig = (function (Twig) {
                 var input = stack.pop(),
                     params = token.params && Twig.expression.parse.apply(this, [token.params, context]);
 
-                stack.push(Twig.filter(token.value, input, params));
+                stack.push(Twig.filter.apply(this, [token.value, input, params]));
             }
         },
         {
