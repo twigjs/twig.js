@@ -809,6 +809,12 @@ var Twig = (function (Twig) {
     "use strict";
     // Handle methods that don't yet exist in every browser
 
+    if (!String.prototype.trim) {
+        String.prototype.trim = function() {
+            return this.replace(/^\s+|\s+$/g,''); 
+        }
+    };
+
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
             if (this === void 0 || this === null) {
