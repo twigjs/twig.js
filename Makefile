@@ -30,6 +30,6 @@ annotated-docs:
 	node_modules/.bin/docco $< 
     
 clean:
-	rm -f twig{,.min}.js
+	rm -f twig.min.js twig.js
 
 .PHONY: test docs test-docs clean

@@ -1,3 +1,4 @@
+make[1]: Entering directory `/home/john/workspace/twig.js'
     <section class="suite">
       <h1>Twig.js Control Structures -></h1>
       <dl>
@@ -665,6 +666,33 @@ var template = twig({data: '{{ &quot;&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- C
 template.render().should.equal(&quot;Test paragraph. Other text&quot; );</code></pre></dd>
           </dl>
         </section>
+        <section class="suite">
+          <h1>escape -></h1>
+          <dl>
+            <dt>should convert unsafe characters to HTML entities</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ &quot;&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=\'#fragment\'&gt;Other text&lt;/a&gt;&quot;|escape }}'});
+template.render().should.equal(&quot;&amp;lt;p&amp;gt;Test paragraph.&amp;lt;/p&amp;gt;&amp;lt;!-- Comment --&amp;gt; &amp;lt;a href=&amp;#039;#fragment\&amp;#039;&amp;gt;Other text&amp;lt;/a&amp;gt;&quot; );</code></pre></dd>
+          </dl>
+        </section>
+        <section class="suite">
+          <h1>e -></h1>
+          <dl>
+            <dt>should alias escape function with e</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ &quot;&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=\'#fragment\'&gt;Other text&lt;/a&gt;&quot;|e }}'});
+template.render().should.equal(&quot;&amp;lt;p&amp;gt;Test paragraph.&amp;lt;/p&amp;gt;&amp;lt;!-- Comment --&amp;gt; &amp;lt;a href=&amp;#039;#fragment\&amp;#039;&amp;gt;Other text&amp;lt;/a&amp;gt;&quot; );</code></pre></dd>
+          </dl>
+        </section>
+        <section class="suite">
+          <h1>nl2br -></h1>
+          <dl>
+            <dt>should convert newlines into html breaks</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ test|nl2br }}'});
+template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal(&quot;Line 1&lt;br /&gt;Line 2&lt;br /&gt;Line 3&lt;br /&gt;Line 4&lt;br /&gt;&lt;br /&gt;&quot;);</code></pre></dd>
+          </dl>
+        </section>
       </dl>
     </section>
     <section class="suite">
@@ -870,6 +898,10 @@ twig({data: '{% for i in range(&quot;a&quot;, &quot;c&quot;) %}{{ i }},{% endfor
                 <dt>should work with an interval</dt>
                 <dd><pre><code>
 twig({data: '{% for i in range(1, 15, 3) %}{{ i }},{% endfor %}'}).render().should.equal(&quot;1,4,7,10,13,&quot;);</code></pre></dd>
+                <dt>should work with .. invocation</dt>
+                <dd><pre><code>
+twig({data: '{% for i in 0..3 %}{{ i }},{% endfor %}'}).render().should.equal(&quot;0,1,2,3,&quot;);
+twig({data: '{% for i in &quot;a&quot; .. &quot;c&quot; %}{{ i }},{% endfor %}'}).render().should.equal(&quot;a,b,c,&quot;);</code></pre></dd>
               </dl>
             </section>
             <section class="suite">
@@ -896,6 +928,32 @@ twig({data: '{{ date(&quot;-1 day&quot;) &gt; date() }}'}).render().should.equal
 var date = new Date(&quot;June 20, 2010 UTC&quot;);
             
 twig({data: '{{ date(&quot;June 20, 2010 UTC&quot;)|date(&quot;d/m/Y @ H:i:s&quot;) }}'}).render().should.equal(stringDate(date));</code></pre></dd>
+              </dl>
+            </section>
+            <section class="suite">
+              <h1>dump -></h1>
+              <dl>
+                <dt>should output formatted number</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: 5 }).should.equal('number(5)' + EOL);</code></pre></dd>
+                <dt>should output formatted string</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: &quot;String&quot; }).should.equal('string(6) &quot;String&quot;' + EOL);</code></pre></dd>
+                <dt>should output formatted boolean</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: true }).should.equal('bool(true)' + EOL);</code></pre></dd>
+                <dt>should output formatted null</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: null }).should.equal('NULL' + EOL);</code></pre></dd>
+                <dt>should output formatted object</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: {} }).should.equal('object(0) {' + EOL + '}' + EOL);</code></pre></dd>
+                <dt>should output formatted array</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: [] }).should.equal('object(0) {' + EOL + '}' + EOL);</code></pre></dd>
+                <dt>should output formatted undefined</dt>
+                <dd><pre><code>
+twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);</code></pre></dd>
               </dl>
             </section>
           </dl>
@@ -974,7 +1032,8 @@ twig({data: '{{ key is defined }}'}).render({key: &quot;test&quot;}).should.equa
             <dd><pre><code>
 twig({data: '{{ key is none }}'}).render().should.equal(&quot;false&quot;);
 twig({data: '{{ key is none }}'}).render({key: &quot;test&quot;}).should.equal(&quot;false&quot;);
-twig({data: '{{ key is none }}'}).render({key: null}).should.equal(&quot;true&quot;);</code></pre></dd>
+twig({data: '{{ key is none }}'}).render({key: null}).should.equal(&quot;true&quot;);
+twig({data: '{{ key is null }}'}).render({key: null}).should.equal(&quot;true&quot;);</code></pre></dd>
           </dl>
         </section>
         <section class="suite">
@@ -996,3 +1055,4 @@ twig({data: '{{ a is sameas(1) }}'}).render({a: &quot;1&quot;}).should.equal(&qu
         </section>
       </dl>
     </section>
+make[1]: Leaving directory `/home/john/workspace/twig.js'
