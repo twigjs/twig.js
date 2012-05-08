@@ -23,6 +23,7 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
+			case "..":
             case 'not in':
             case 'in':
                 token.precidence = 20;
@@ -247,6 +248,12 @@ var Twig = (function (Twig) {
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( containment(a, b) );
+                break;
+                
+            case '..':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push( Twig.functions.range(a, b) );
                 break;
                 
             default:

@@ -675,14 +675,15 @@ var Twig = (function (Twig) {
         }
 
         this.render = function (context, params) {
-            params = params || {};
-            
+            params = params || {};            
+
             var that = this,
                 output,
                 // Should the output be an object with the blocks
                 blocks = params.output == 'blocks';
                 
-            
+            this.context = context;
+
             // Clear any previous state
             that.reset();
             if (params.blocks) {

@@ -223,10 +223,30 @@ var Twig = (function (Twig) {
 
         striptags: function(value) {
             return Twig.lib.strip_tags(value);
+        },
+
+        escape: function(value) {
+            return value.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+        },
+
+        /* Alias of escape */
+        "e": function(value) {
+            return Twig.filters.escape(value);
+        },
+
+        nl2br: function(value) {
+            var br = '<br />';
+            return Twig.filters.escape(value)
+                        .replace(/\r\n/g, br)
+                        .replace(/\r/g, br)
+                        .replace(/\n/g, br);
         }
 
         /* convert_encoding,
-        escape,
         raw */
     };
 
@@ -234,7 +254,7 @@ var Twig = (function (Twig) {
         if (!Twig.filters[filter]) {
             throw "Unable to find filter " + filter;
         }
-        return Twig.filters[filter](value, params);
+        return Twig.filters[filter].apply(this, [value, params]);
     }
 
     Twig.filter.extend = function(filter, definition) {

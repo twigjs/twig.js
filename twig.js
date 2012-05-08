@@ -675,14 +675,15 @@ var Twig = (function (Twig) {
         }
 
         this.render = function (context, params) {
-            params = params || {};
-            
+            params = params || {};            
+
             var that = this,
                 output,
                 // Should the output be an object with the blocks
                 blocks = params.output == 'blocks';
                 
-            
+            this.context = context;
+
             // Clear any previous state
             that.reset();
             if (params.blocks) {
@@ -808,6 +809,12 @@ var Twig = (function (Twig) {
 (function() {
     "use strict";
     // Handle methods that don't yet exist in every browser
+
+    if (!String.prototype.trim) {
+        String.prototype.trim = function() {
+            return this.replace(/^\s+|\s+$/g,''); 
+        }
+    };
 
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
@@ -2381,7 +2388,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.operator,
             // Match any of +, *, /, -, %, ~, <, <=, >, >=, !=, ==, ||, &&, **, ?, :, and, or, not
-            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^not\s+)/,
+            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^not|^\.\.)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 delete token.match;
@@ -2676,7 +2683,7 @@ var Twig = (function (Twig) {
                 var input = stack.pop(),
                     params = token.params && Twig.expression.parse.apply(this, [token.params, context]);
 
-                stack.push(Twig.filter(token.value, input, params));
+                stack.push(Twig.filter.apply(this, [token.value, input, params]));
             }
         },
         {
@@ -3112,6 +3119,7 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
+			case "..":
             case 'not in':
             case 'in':
                 token.precidence = 20;
@@ -3336,6 +3344,12 @@ var Twig = (function (Twig) {
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( containment(a, b) );
+                break;
+                
+            case '..':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push( Twig.functions.range(a, b) );
                 break;
                 
             default:
@@ -3586,10 +3600,30 @@ var Twig = (function (Twig) {
 
         striptags: function(value) {
             return Twig.lib.strip_tags(value);
+        },
+
+        escape: function(value) {
+            return value.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+        },
+
+        /* Alias of escape */
+        "e": function(value) {
+            return Twig.filters.escape(value);
+        },
+
+        nl2br: function(value) {
+            var br = '<br />';
+            return Twig.filters.escape(value)
+                        .replace(/\r\n/g, br)
+                        .replace(/\r/g, br)
+                        .replace(/\n/g, br);
         }
 
         /* convert_encoding,
-        escape,
         raw */
     };
 
@@ -3597,7 +3631,7 @@ var Twig = (function (Twig) {
         if (!Twig.filters[filter]) {
             throw "Unable to find filter " + filter;
         }
-        return Twig.filters[filter](value, params);
+        return Twig.filters[filter].apply(this, [value, params]);
     }
 
     Twig.filter.extend = function(filter, definition) {
@@ -3676,24 +3710,26 @@ var Twig = (function (Twig) {
             var pos = i % arr.length;
             return arr[pos];
         },
-        dump: function(variable) {
-            var EOL = '\n';
-            var indentChar = '  ';
-            var indentTimes = 0;
-            var out = '';
-            (function recurse(variable) {
-                var indent = function(times) {
-                    var ind = '';
+        dump: function() {
+            var EOL = '\n',
+            	indentChar = '  ',
+            	indentTimes = 0,
+            	out = '',
+				args = Array.prototype.slice.call(arguments),
+				indent = function(times) {
+                	var ind	 = '';
                     while (times > 0) {
                         times--;
                         ind += indentChar;
                     }
                     return ind;
-                }
-                var displayVar = function(variable) {
+                },
+				displayVar = function(variable) {
                     out += indent(indentTimes);
                     if (typeof(variable) === 'object') {
-                        recurse(variable);
+                        dumpVar(variable);
+                    } else if (typeof(variable) === 'function') {
+                        out += 'function()' + EOL;
                     } else if (typeof(variable) === 'string') {
                         out += 'string(' + variable.length + ') "' + variable + '"' + EOL;
                     } else if (typeof(variable) === 'number') {
@@ -3701,29 +3737,43 @@ var Twig = (function (Twig) {
                     } else if (typeof(variable) === 'boolean') {
                         out += 'bool(' + variable + ')' + EOL;
                     }
-                }
-                if (variable === null) {
-                    out += 'NULL' + EOL;
-                } else if (typeof variable === 'object') {
-                    out += indent(indentTimes) + typeof(variable);
-                    indentTimes++;
-                    out += '(' + (function(obj) {
-                        var size = 0, key;
-                        for (key in obj) {
-                            if (obj.hasOwnProperty(key)) size++;
-                        }
-                        return size;
-                    })(variable) + ') {' + EOL;
-                    for (var i in variable) {
-                        out += indent(indentTimes) + '[' + i + ']=> ' + EOL;
-                        displayVar(variable[i]);
-                    }
-                    indentTimes--;
-                    out += indent(indentTimes) + '}' + EOL;
-                } else {
-                    displayVar(variable);
-                }
-            })(variable);
+                },
+             	dumpVar = function(variable) {
+					var	i;
+	                if (variable === null) {
+	                    out += 'NULL' + EOL;
+	                } else if (variable === undefined) {
+	                    out += 'undefined' + EOL;
+	                } else if (typeof variable === 'object') {
+	                    out += indent(indentTimes) + typeof(variable);
+	                    indentTimes++;
+	                    out += '(' + (function(obj) {
+	                        var size = 0, key;
+	                        for (key in obj) {
+	                            if (obj.hasOwnProperty(key)) {
+	                                size++;
+	                            }
+	                        }
+	                        return size;
+	                    })(variable) + ') {' + EOL;
+	                    for (i in variable) {
+	                        out += indent(indentTimes) + '[' + i + ']=> ' + EOL;
+	                        displayVar(variable[i]);
+	                    }
+	                    indentTimes--;
+	                    out += indent(indentTimes) + '}' + EOL;
+	                } else {
+	                    displayVar(variable);
+	                }
+	            };
+
+			// handle no argument case by dumping the entire render context
+			if (args.length == 0) args.push(this.context);
+
+			args.forEach(function(variable) {
+				dumpVar(variable);
+			});
+
             return out;
         },
         date: function(date, time) {
