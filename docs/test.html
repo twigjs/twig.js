@@ -1,4 +1,3 @@
-make[1]: Entering directory `/home/john/workspace/twig.js'
     <section class="suite">
       <h1>Twig.js Control Structures -></h1>
       <dl>
@@ -693,6 +692,27 @@ var template = twig({data: '{{ test|nl2br }}'});
 template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal(&quot;Line 1&lt;br /&gt;Line 2&lt;br /&gt;Line 3&lt;br /&gt;Line 4&lt;br /&gt;&lt;br /&gt;&quot;);</code></pre></dd>
           </dl>
         </section>
+        <section class="suite">
+          <h1>number_format -></h1>
+          <dl>
+            <dt>should round to nearest integer if no parameters</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ 1234.56|number_format }}'});
+template.render().should.equal(&quot;1,235&quot;);</code></pre></dd>
+            <dt>should have customizable decimal points</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ 1234.567890123|number_format(4) }}'});
+template.render().should.equal(&quot;1,234.5679&quot;);</code></pre></dd>
+            <dt>should have customizable decimal seperator</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ 1234.567890123|number_format(2,&quot;,&quot;) }}'});
+template.render().should.equal(&quot;1,234,57&quot;);</code></pre></dd>
+            <dt>should have customizable thousands seperator</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ 1234.5678|number_format(2,&quot;,&quot;,&quot; &quot;) }}'});
+template.render().should.equal(&quot;1 234,57&quot;);</code></pre></dd>
+          </dl>
+        </section>
       </dl>
     </section>
     <section class="suite">
@@ -1055,4 +1075,3 @@ twig({data: '{{ a is sameas(1) }}'}).render({a: &quot;1&quot;}).should.equal(&qu
         </section>
       </dl>
     </section>
-make[1]: Leaving directory `/home/john/workspace/twig.js'

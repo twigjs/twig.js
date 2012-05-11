@@ -227,6 +227,26 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+
+    describe("number_format ->", function() {
+        it("should round to nearest integer if no parameters", function() {
+            var template = twig({data: '{{ 1234.56|number_format }}'});
+            template.render().should.equal("1,235");
+        });
+        it("should have customizable decimal points", function() {
+            var template = twig({data: '{{ 1234.567890123|number_format(4) }}'});
+            template.render().should.equal("1,234.5679");
+        });
+        it("should have customizable decimal seperator", function() {
+            var template = twig({data: '{{ 1234.567890123|number_format(2,",") }}'});
+            template.render().should.equal("1,234,57");
+        });
+        it("should have customizable thousands seperator", function() {
+            var template = twig({data: '{{ 1234.5678|number_format(2,","," ") }}'});
+            template.render().should.equal("1 234,57");
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0" );
