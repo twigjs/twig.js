@@ -227,13 +227,23 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
-    describe("merge ->", function() {
-        it("should merge properties from one object to another ", function() {
-            var template = twig({data: '{% set object1 = object1|merge(object2) %}'});
-            template.render({ 
-                object1: { prop1: 'String', prop2: 5 },
-                object2: { prop3: true, prop4: 'Another String' }
-            }).should.equal("");
+
+    describe("number_format ->", function() {
+        it("should round to nearest integer if no parameters", function() {
+            var template = twig({data: '{{ 1234.56|number_format }}'});
+            template.render().should.equal("1,235");
+        });
+        it("should have customizable decimal points", function() {
+            var template = twig({data: '{{ 1234.567890123|number_format(4) }}'});
+            template.render().should.equal("1,234.5679");
+        });
+        it("should have customizable decimal seperator", function() {
+            var template = twig({data: '{{ 1234.567890123|number_format(2,",") }}'});
+            template.render().should.equal("1,234,57");
+        });
+        it("should have customizable thousands seperator", function() {
+            var template = twig({data: '{{ 1234.5678|number_format(2,","," ") }}'});
+            template.render().should.equal("1 234,57");
         });
     });
 
