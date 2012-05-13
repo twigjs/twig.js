@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Twig.js by justjohn</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Twig.js</h1>
+        <p>JS implementation of the Twig Templating Library</p>
+        <p class="view"><a href="https://github.com/justjohn/twig.js">View the Project on GitHub <small>justjohn/twig.js</small></a></p>
+        <ul>
+          <li><a href="https://github.com/justjohn/twig.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/justjohn/twig.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/justjohn/twig.js">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p><a href="http://travis-ci.org/#!/justjohn/twig.js"><img src="https://secure.travis-ci.org/justjohn/twig.js.png" alt="Build Status"></a></p>
+
+<h1>About</h1>
+
+<p>Twig.js is a pure JavaScript implementation of the Twig PHP templating language
+(<a href="http://twig.sensiolabs.org/">http://twig.sensiolabs.org/</a>)</p>
+
+<p>The goal is to provide a library that is compatible with both browsers and server side containers such as node.js.</p>
+
+<p>Twig.js is currently a work in progress and supports a limited subset
+of the Twig templating language (with more coming).</p>
+
+<p>Documentation is available in the <a href="https://github.com/justjohn/twig.js/wiki">twig.js wiki</a> on Github.</p>
+
+<h3>Feature Support</h3>
+
+<p>For a list of supported tags/filters/functions/tests see the <a href="https://github.com/justjohn/twig.js/wiki/Supported-Features---Implementation-Notes">implementation notes on the wiki</a>.</p>
+
+<h1>Node Usage</h1>
+
+<p>Twig.js can be installed with NPM</p>
+
+<pre><code>npm install twig
+</code></pre>
+
+<p>You can include twig in your app with</p>
+
+<pre><code>var twig = require('twig');
+</code></pre>
+
+<p>Twig is compatable with express 2 and 3. You can create an express app using 
+the twig.js templating language by setting the view engine to twig.</p>
+
+<h2>app.js</h2>
+
+<div class="highlight">
+<pre><span class="kd">var</span> <span class="nx">twig</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"twig"</span><span class="p">),</span>
+    <span class="nx">app</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express'</span><span class="p">).</span><span class="nx">createServer</span><span class="p">();</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">configure</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">'view engine'</span><span class="p">,</span> <span class="s1">'twig'</span><span class="p">);</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s2">"view options"</span><span class="p">,</span> <span class="p">{</span> <span class="nx">layout</span><span class="o">:</span> <span class="kc">false</span> <span class="p">});</span>
+<span class="p">});</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">'twig'</span><span class="p">,</span> <span class="nx">twig</span><span class="p">);</span> <span class="c1">// remove if using express 3</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">){</span>
+  <span class="nx">res</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="s1">'index'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">message</span> <span class="o">:</span> <span class="s2">"Hello World"</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mi">9999</span><span class="p">);</span>
+</pre>
+</div>
+
+
+<h2>views/index.twig</h2>
+
+<div class="highlight">
+<pre>Message of the moment: <span class="nt">&lt;b&gt;</span>{{ message }}<span class="nt">&lt;/b&gt;</span>
+</pre>
+</div>
+
+
+<h1>Browser Usage</h1>
+
+<p>Include twig.js or twig.min.js in your page, then:</p>
+
+<div class="highlight">
+<pre><span class="kd">var</span> <span class="nx">template</span> <span class="o">=</span> <span class="nx">twig</span><span class="p">({</span>
+    <span class="nx">data</span><span class="o">:</span> <span class="s1">'The {{ baked_good }} is a lie.'</span>
+<span class="p">});</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span>
+    <span class="nx">template</span><span class="p">.</span><span class="nx">render</span><span class="p">({</span><span class="nx">baked_good</span><span class="o">:</span> <span class="s1">'cupcake'</span><span class="p">})</span>
+<span class="p">);</span>
+<span class="c1">// outputs: "The cupcake is a lie."</span>
+</pre>
+</div>
+
+
+<h1>Tests</h1>
+
+<p>The tiwg.js tests are written in <a href="http://visionmedia.github.com/mocha/">Mocha</a> and can be invoked with <code>make test</code>. </p>
+
+<h1>License</h1>
+
+<p>Twig.js is available under a <a href="http://www.opensource.org/licenses/BSD-2-Clause">BSD 2-Clause License</a>, see the LICENSE file for more information.</p>
+
+<h1>Acknowledgments</h1>
+
+<p>See the LICENSES.md file for copies of the referenced licenses.</p>
+
+<ol>
+<li><p>The JavaScript Array fills in src/twig.fills.js are from <a href="https://developer.mozilla.org/">https://developer.mozilla.org/</a> and are available under the <a href="http://www.opensource.org/licenses/mit-license.php">MIT License</a> or are <a href="https://developer.mozilla.org/Project:Copyrights">public domain</a>.</p></li>
+<li><p>The Date.format function in src/twig.lib.js is from <a href="http://jpaq.org/">http://jpaq.org/</a> and used under a <a href="http://jpaq.org/license/">MIT license</a>.</p></li>
+<li><p>The sprintf implementation in src/twig.lib.js used for the format filter is from <a href="http://www.diveintojavascript.com/projects/javascript-sprintf">http://www.diveintojavascript.com/projects/javascript-sprintf</a> and used under a <a href="http://www.opensource.org/licenses/BSD-3-Clause">BSD 3-Clause License</a>.</p></li>
+<li><p>The strip_tags implementation in src/twig.lib.js used for the striptags filter is from <a href="http://phpjs.org/functions/strip_tags">http://phpjs.org/functions/strip_tags</a> and used under and <a href="http://phpjs.org/pages/license/#MIT">MIT License</a>.</p></li>
+</ol>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/justjohn">justjohn</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-26466301-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
