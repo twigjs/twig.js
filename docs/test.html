@@ -144,6 +144,17 @@ twig({data: '{{ orp }}'}).render({ orp: &quot;test&quot;}).should.equal(&quot;te
 twig({data: '{{ val }}'}).render({ val: function() {
                                               return &quot;test&quot;
                                           }}).should.equal(&quot;test&quot;);</code></pre></dd>
+        <dt>should recognize null</dt>
+        <dd><pre><code>
+twig({data: '{{ null == val }}'}).render({val: null}).should.equal( &quot;true&quot; );
+twig({data: '{{ null == val }}'}).render({val: undefined}).should.equal( &quot;true&quot; );
+
+twig({data: '{{ null == val }}'}).render({val: &quot;test&quot;}).should.equal( &quot;false&quot; );
+twig({data: '{{ null == val }}'}).render({val: 0}).should.equal( &quot;false&quot; );
+twig({data: '{{ null == val }}'}).render({val: false}).should.equal( &quot;false&quot; );</code></pre></dd>
+        <dt>should recognize null in an object</dt>
+        <dd><pre><code>
+twig({data: '{% set at = {&quot;foo&quot;: null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( &quot;true&quot; );</code></pre></dd>
       </dl>
     </section>
     <section class="suite">

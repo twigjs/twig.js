@@ -2229,7 +2229,7 @@ var Twig = (function (Twig) {
      * Reserved word that can't be used as variable names.
      */
     Twig.expression.reservedWords = [
-        "true", "false"
+        "true", "false", "null"
     ];
 
     /**
@@ -2264,6 +2264,7 @@ var Twig = (function (Twig) {
         _function:  'Twig.expression.type._function',
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
+        _null:     'Twig.expression.type.null',
         test:       'Twig.expression.type.test'
     };
 
@@ -2286,6 +2287,7 @@ var Twig = (function (Twig) {
             Twig.expression.type.string,
             Twig.expression.type.variable,
             Twig.expression.type.number,
+            Twig.expression.type._null,
             Twig.expression.type.array.start,
             Twig.expression.type.object.start
         ]
@@ -2365,6 +2367,9 @@ var Twig = (function (Twig) {
             compile: function(token, stack, output) {
                 var i = stack.length - 1,
                     stack_token;
+                    
+                delete token.match;
+                delete token.value;
                     
                 // pop tokens off the stack until the start of the object
                 for(;i >= 0; i--) {
@@ -2493,6 +2498,7 @@ var Twig = (function (Twig) {
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 var value = token.value;
+                delete token.match
 
                 // Remove the quotes from the string
                 if (value.substring(0, 1) === '"') {
@@ -2652,7 +2658,7 @@ var Twig = (function (Twig) {
                 // pop tokens off the stack until the start of the object
                 for(;i >= 0; i--) {
                     stack_token = stack.pop();
-                    if (stack_token.type === Twig.expression.type.object.start) {
+                    if (stack_token && stack_token.type === Twig.expression.type.object.start) {
                         break;
                     }
                     output.push(stack_token);
@@ -2664,18 +2670,19 @@ var Twig = (function (Twig) {
                     object_ended = false,
                     token = null,
                     token_key = null,
+                    has_value = false,
                     value = null;
 
                 while (stack.length > 0) {
                     token = stack.pop();
                     // Push values into the array until the start of the object
-                    if (token.type && token.type === Twig.expression.type.object.start) {
+                    if (token && token.type && token.type === Twig.expression.type.object.start) {
                         object_ended = true;
                         break;
                     }
-                    if (token.type && (token.type === Twig.expression.type.operator.binary || token.type === Twig.expression.type.operator.unary) && token.key) {
-                        if (value === null) {
-                            throw new Twig.Error("Expected value for key " + token.key + " in object definition. Got " + token);
+                    if (token && token.type && (token.type === Twig.expression.type.operator.binary || token.type === Twig.expression.type.operator.unary) && token.key) {
+                        if (!has_value) {
+                            throw new Twig.Error("Missing value for key '" + token.key + "' in object definition.");
                         }
                         new_object[token.key] = value;
 
@@ -2685,9 +2692,12 @@ var Twig = (function (Twig) {
                         if (new_object._keys === undefined) new_object._keys = [];
                         new_object._keys.unshift(token.key);
 
+                        // reset value check
                         value = null;
+                        has_value = false;
 
                     } else {
+                        has_value = true;
                         value = token;
                     }
                 }
@@ -2843,6 +2853,21 @@ var Twig = (function (Twig) {
                 value = object[key];
                 stack.push(Twig.expression.resolve(value, object, params));
             }
+        },
+        {
+            /**
+             * Match a null value.
+             */
+            type: Twig.expression.type._null,
+            // match a number
+            regex: /^null/,
+            next: Twig.expression.set.operations,
+            compile: function(token, stack, output) {
+                delete token.match;
+                token.value = null;
+                output.push(token);
+            },
+            parse: Twig.expression.fn.parse.push_value
         },
         {
             /**

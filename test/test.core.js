@@ -65,6 +65,19 @@ describe("Twig.js Core ->", function() {
                                                    }}).should.equal("test");
     });
     
+    
+    it("should recognize null", function() {
+        twig({data: '{{ null == val }}'}).render({val: null}).should.equal( "true" );
+        twig({data: '{{ null == val }}'}).render({val: undefined}).should.equal( "true" );
+        
+        twig({data: '{{ null == val }}'}).render({val: "test"}).should.equal( "false" );
+        twig({data: '{{ null == val }}'}).render({val: 0}).should.equal( "false" );
+        twig({data: '{{ null == val }}'}).render({val: false}).should.equal( "false" );
+    });
+
+    it("should recognize null in an object", function() {
+        twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
+    });
 });
 
 describe("Twig.js Expressions ->", function() {
