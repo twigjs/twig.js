@@ -2813,11 +2813,21 @@ var Twig = (function (Twig) {
                     value;
 
                 if (object === null || object === undefined) {
-                    throw new Twig.Error("Can't access a key " + key + " on an undefined object.");
+                    throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                 }
+                
+                var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
 
                 // Get the variable from the context
-                value = object[key];
+                if (object.hasOwnProperty(key)) {
+                    value = object[key];
+                } else if (object.hasOwnProperty("get"+capitalize(key))) {
+                    value = object["get"+capitalize(key)];
+                } else if (object.hasOwnProperty("is"+capitalize(key))) {
+                    value = object["is"+capitalize(key)];
+                } else {
+                    value = null;
+                }
                 stack.push(Twig.expression.resolve(value, object, params));
             }
         },
@@ -2845,12 +2855,16 @@ var Twig = (function (Twig) {
                     object = stack.pop(),
                     value;
                     
-                if (!object.hasOwnProperty(key)) {
-                    throw new Twig.Error("Model doesn't provide the key " + key);
+                if (object === null || object === undefined) {
+                    throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                 }
                 
                 // Get the variable from the context
-                value = object[key];
+                if (object.hasOwnProperty(key)) {
+                    value = object[key];
+                } else {
+                    value = null;
+                }
                 stack.push(Twig.expression.resolve(value, object, params));
             }
         },

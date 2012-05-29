@@ -94,32 +94,27 @@ describe("Twig.js Expressions ->", function() {
 
     describe("Basic Operators ->", function() {
         it("should support dot key notation", function() {
-            var test_template = twig({data: '{{ key.value }} {{ key.sub.test }}'});
-            var output = test_template.render({
+            twig({data: '{{ key.value }} {{ key.sub.test }}'}).render({
                 key: {
                     value: "test",
                     sub: {
                         test: "value"
                     }
                 }
-            });
-            output.should.equal("test value");
+            }).should.equal("test value");
         });
         it("should support square bracket key notation", function() {
-            var test_template = twig({data: '{{ key["value"] }} {{ key[\'sub\']["test"] }}'});
-            var output = test_template.render({
+            twig({data: '{{ key["value"] }} {{ key[\'sub\']["test"] }}'}).render({
                 key: {
                     value: "test",
                     sub: {
                         test: "value"
                     }
                 }
-            });
-            output.should.equal("test value");
+            }).should.equal("test value");
         });
         it("should support mixed dot and bracket key notation", function() {
-            var test_template = twig({data: '{{ key["value"] }} {{ key.sub[key.value] }} {{ s.t["u"].v["w"] }}'});
-            var output = test_template.render({
+            twig({data: '{{ key["value"] }} {{ key.sub[key.value] }} {{ s.t["u"].v["w"] }}'}).render({
                 key: {
                     value: "test",
                     sub: {
@@ -127,8 +122,7 @@ describe("Twig.js Expressions ->", function() {
                     }
                 },
                 s: { t: { u: { v: { w: 'x' } } } }
-            });
-            output.should.equal("test value x" );
+            }).should.equal("test value x" );
         });
         
         it("should support dot key notation after a function", function() {
@@ -159,6 +153,41 @@ describe("Twig.js Expressions ->", function() {
             output.should.equal("test 2");
         });
 
+        it("should check for getKey methods if a key doesn't exist.", function() {
+            twig({data: '{{ obj.value }}'}).render({
+                obj: {
+                    getValue: function() {
+                        return "val";
+                    },
+                    isValue: function() {
+                        return "not val";
+                    }
+                }
+            }).should.equal("val");
+        });
+        
+        it("should check for isKey methods if a key doesn't exist.", function() {
+            twig({data: '{{ obj.value }}'}).render({
+                obj: {
+                    isValue: function() {
+                        return "val";
+                    }
+                }
+            }).should.equal("val");
+        });
+        
+        it("should return null if a period key doesn't exist.", function() {
+            twig({data: '{{ obj.value == null }}'}).render({
+                obj: {}
+            }).should.equal("true");
+        });
+        
+        it("should return null if a bracket key doesn't exist.", function() {
+            twig({data: '{{ obj["value"] == null }}'}).render({
+                obj: {}
+            }).should.equal("true");
+        });
+        
         var string_data = [
             {a: 'test', b: 'string'},
             {a: 'test', b: ''},

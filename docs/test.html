@@ -165,32 +165,27 @@ twig({data: '{% set at = {&quot;foo&quot;: null} %}{{ at.foo == val }}'}).render
           <dl>
             <dt>should support dot key notation</dt>
             <dd><pre><code>
-var test_template = twig({data: '{{ key.value }} {{ key.sub.test }}'});
-var output = test_template.render({
+twig({data: '{{ key.value }} {{ key.sub.test }}'}).render({
     key: {
         value: &quot;test&quot;,
         sub: {
             test: &quot;value&quot;
         }
     }
-});
-output.should.equal(&quot;test value&quot;);</code></pre></dd>
+}).should.equal(&quot;test value&quot;);</code></pre></dd>
             <dt>should support square bracket key notation</dt>
             <dd><pre><code>
-var test_template = twig({data: '{{ key[&quot;value&quot;] }} {{ key[\'sub\'][&quot;test&quot;] }}'});
-var output = test_template.render({
+twig({data: '{{ key[&quot;value&quot;] }} {{ key[\'sub\'][&quot;test&quot;] }}'}).render({
     key: {
         value: &quot;test&quot;,
         sub: {
             test: &quot;value&quot;
         }
     }
-});
-output.should.equal(&quot;test value&quot;);</code></pre></dd>
+}).should.equal(&quot;test value&quot;);</code></pre></dd>
             <dt>should support mixed dot and bracket key notation</dt>
             <dd><pre><code>
-var test_template = twig({data: '{{ key[&quot;value&quot;] }} {{ key.sub[key.value] }} {{ s.t[&quot;u&quot;].v[&quot;w&quot;] }}'});
-var output = test_template.render({
+twig({data: '{{ key[&quot;value&quot;] }} {{ key.sub[key.value] }} {{ s.t[&quot;u&quot;].v[&quot;w&quot;] }}'}).render({
     key: {
         value: &quot;test&quot;,
         sub: {
@@ -198,8 +193,7 @@ var output = test_template.render({
         }
     },
     s: { t: { u: { v: { w: 'x' } } } }
-});
-output.should.equal(&quot;test value x&quot; );</code></pre></dd>
+}).should.equal(&quot;test value x&quot; );</code></pre></dd>
             <dt>should support dot key notation after a function</dt>
             <dd><pre><code>
 var test_template = twig({data: '{{ key.fn().value }}'});
@@ -226,6 +220,37 @@ var output = test_template.render({
     }
 });
 output.should.equal(&quot;test 2&quot;);</code></pre></dd>
+            <dt>should check for getKey methods if a key doesn't exist.</dt>
+            <dd><pre><code>
+twig({data: '{{ obj.value }}'}).render({
+    obj: {
+        getValue: function() {
+            return &quot;val&quot;;
+        },
+        isValue: function() {
+            return &quot;not val&quot;;
+        }
+    }
+}).should.equal(&quot;val&quot;);</code></pre></dd>
+            <dt>should check for isKey methods if a key doesn't exist.</dt>
+            <dd><pre><code>
+twig({data: '{{ obj.value }}'}).render({
+    obj: {
+        isValue: function() {
+            return &quot;val&quot;;
+        }
+    }
+}).should.equal(&quot;val&quot;);</code></pre></dd>
+            <dt>should return null if a period key doesn't exist.</dt>
+            <dd><pre><code>
+twig({data: '{{ obj.value == null }}'}).render({
+    obj: {}
+}).should.equal(&quot;true&quot;);</code></pre></dd>
+            <dt>should return null if a bracket key doesn't exist.</dt>
+            <dd><pre><code>
+twig({data: '{{ obj[&quot;value&quot;] == null }}'}).render({
+    obj: {}
+}).should.equal(&quot;true&quot;);</code></pre></dd>
             <dt>should add numbers</dt>
             <dd><pre><code>
 var test_template = twig({data: '{{ a + b }}'});
