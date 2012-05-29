@@ -155,13 +155,8 @@ twig({data: '{{ null == val }}'}).render({val: false}).should.equal( &quot;false
         <dt>should recognize null in an object</dt>
         <dd><pre><code>
 twig({data: '{% set at = {&quot;foo&quot;: null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( &quot;true&quot; );</code></pre></dd>
-      </dl>
-    </section>
-    <section class="suite">
-      <h1>Twig.js Expressions -></h1>
-      <dl>
         <section class="suite">
-          <h1>Basic Operators -></h1>
+          <h1>Key Notation -></h1>
           <dl>
             <dt>should support dot key notation</dt>
             <dd><pre><code>
@@ -251,6 +246,16 @@ twig({data: '{{ obj.value == null }}'}).render({
 twig({data: '{{ obj[&quot;value&quot;] == null }}'}).render({
     obj: {}
 }).should.equal(&quot;true&quot;);</code></pre></dd>
+          </dl>
+        </section>
+      </dl>
+    </section>
+    <section class="suite">
+      <h1>Twig.js Expressions -></h1>
+      <dl>
+        <section class="suite">
+          <h1>Basic Operators -></h1>
+          <dl>
             <dt>should add numbers</dt>
             <dd><pre><code>
 var test_template = twig({data: '{{ a + b }}'});
@@ -448,9 +453,9 @@ var test_template = twig({data: '{{ &quot;a&quot; in [&quot;a&quot;, &quot;b&quo
 test_template.render().should.equal(true.toString());
 
 var test_template = twig({data: '{{ &quot;d&quot; in [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] }}'});
-test_template.render().should.equal(false.toString());
-
-// inverse
+test_template.render().should.equal(false.toString());</code></pre></dd>
+            <dt>should support not in/containment functionality for arrays</dt>
+            <dd><pre><code>
 var test_template = twig({data: '{{ &quot;a&quot; not in [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] }}'});
 test_template.render().should.equal(false.toString());
 
@@ -462,9 +467,9 @@ var test_template = twig({data: '{{ &quot;at&quot; in &quot;hat&quot; }}'});
 test_template.render().should.equal(true.toString());
 
 var test_template = twig({data: '{{ &quot;d&quot; in &quot;not&quot; }}'});
-test_template.render().should.equal(false.toString());
-
-// inverse
+test_template.render().should.equal(false.toString());</code></pre></dd>
+            <dt>should support not in/containment functionality for strings</dt>
+            <dd><pre><code>
 var test_template = twig({data: '{{ &quot;at&quot; not in &quot;hat&quot; }}'});
 test_template.render().should.equal(false.toString());
 
@@ -476,9 +481,9 @@ var test_template = twig({data: '{{ &quot;value&quot; in {&quot;key&quot; : &quo
 test_template.render().should.equal(true.toString());
 
 var test_template = twig({data: '{{ &quot;d&quot; in {&quot;key_a&quot; : &quot;no&quot;} }}'});
-test_template.render().should.equal(false.toString());
-
-// inverse
+test_template.render().should.equal(false.toString());</code></pre></dd>
+            <dt>should support not in/containment functionality for objects</dt>
+            <dd><pre><code>
 var test_template = twig({data: '{{ &quot;value&quot; not in {&quot;key&quot; : &quot;value&quot;, &quot;2&quot;: &quot;other&quot;} }}'});
 test_template.render().should.equal(false.toString());
 

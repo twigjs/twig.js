@@ -233,23 +233,26 @@ describe("Twig.js Expressions ->", function() {
             
             var test_template = twig({data: '{{ "d" in ["a", "b", "c"] }}'});
             test_template.render().should.equal(false.toString());
-            
-            // inverse
+        });
+        
+        it("should support not in/containment functionality for arrays", function() {
             var test_template = twig({data: '{{ "a" not in ["a", "b", "c"] }}'});
             test_template.render().should.equal(false.toString());
             
             var test_template = twig({data: '{{ "d" not in ["a", "b", "c"] }}'});
             test_template.render().should.equal(true.toString());
         });
-        
+            
+            
         it("should support in/containment functionality for strings", function() {
             var test_template = twig({data: '{{ "at" in "hat" }}'});
             test_template.render().should.equal(true.toString());
             
             var test_template = twig({data: '{{ "d" in "not" }}'});
             test_template.render().should.equal(false.toString());
-            
-            // inverse
+        });
+        
+        it("should support not in/containment functionality for strings", function() {
             var test_template = twig({data: '{{ "at" not in "hat" }}'});
             test_template.render().should.equal(false.toString());
             
@@ -263,8 +266,9 @@ describe("Twig.js Expressions ->", function() {
             
             var test_template = twig({data: '{{ "d" in {"key_a" : "no"} }}'});
             test_template.render().should.equal(false.toString());
-            
-            // inverse
+        });
+        
+        it("should support not in/containment functionality for objects", function() {
             var test_template = twig({data: '{{ "value" not in {"key" : "value", "2": "other"} }}'});
             test_template.render().should.equal(false.toString());
             
