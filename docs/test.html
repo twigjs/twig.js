@@ -189,6 +189,32 @@ var output = test_template.render({
     s: { t: { u: { v: { w: 'x' } } } }
 });
 output.should.equal(&quot;test value x&quot; );</code></pre></dd>
+            <dt>should support dot key notation after a function</dt>
+            <dd><pre><code>
+var test_template = twig({data: '{{ key.fn().value }}'});
+var output = test_template.render({
+    key: {
+        fn: function() {
+            return {
+                value: &quot;test&quot;
+            }
+        }
+    }
+});
+output.should.equal(&quot;test&quot;);</code></pre></dd>
+            <dt>should support bracket key notation after a function</dt>
+            <dd><pre><code>
+var test_template = twig({data: '{{ key.fn()[&quot;value&quot;] }}'});
+var output = test_template.render({
+    key: {
+        fn: function() {
+            return {
+                value: &quot;test 2&quot;
+            }
+        }
+    }
+});
+output.should.equal(&quot;test 2&quot;);</code></pre></dd>
             <dt>should add numbers</dt>
             <dd><pre><code>
 var test_template = twig({data: '{{ a + b }}'});

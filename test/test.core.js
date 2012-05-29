@@ -117,6 +117,34 @@ describe("Twig.js Expressions ->", function() {
             });
             output.should.equal("test value x" );
         });
+        
+        it("should support dot key notation after a function", function() {
+            var test_template = twig({data: '{{ key.fn().value }}'});
+            var output = test_template.render({
+                key: {
+                    fn: function() {
+                        return {
+                            value: "test"
+                        }
+                    }
+                }
+            });
+            output.should.equal("test");
+        });
+        
+        it("should support bracket key notation after a function", function() {
+            var test_template = twig({data: '{{ key.fn()["value"] }}'});
+            var output = test_template.render({
+                key: {
+                    fn: function() {
+                        return {
+                            value: "test 2"
+                        }
+                    }
+                }
+            });
+            output.should.equal("test 2");
+        });
 
         var string_data = [
             {a: 'test', b: 'string'},

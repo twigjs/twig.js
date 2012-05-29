@@ -2290,6 +2290,11 @@ var Twig = (function (Twig) {
             Twig.expression.type.object.start
         ]
     };
+    
+    // Most expressions allow a '.' or '[' after them, so we provide a convenience set
+    Twig.expression.set.operations_extended = Twig.expression.set.operations.concat([
+                    Twig.expression.type.key.period,
+                    Twig.expression.type.key.brackets]);
 
     // Some commonly used compile and parse functions.
     Twig.expression.fn = {
@@ -2379,7 +2384,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.expression,
             // Match (, anything but ), )
             regex: /^\(([^\)]+)\)/,
-            next: Twig.expression.set.operations.concat([Twig.expression.type.key.period]),
+            next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {
                 token.value = token.match[1];
 
@@ -2517,7 +2522,7 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.parameter.end,
             regex: /^\)/,
-            next: Twig.expression.set.operations,
+            next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {
 				var stack_token;
 				stack_token = stack.pop();
@@ -2583,9 +2588,7 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.array.end,
             regex: /^\]/,
-            next: Twig.expression.set.operations.concat([
-                    Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets]),
+            next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {		
 				var i = stack.length - 1,
 					stack_token;
@@ -2641,9 +2644,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.object.end,
             regex: /^\}/,
-            next: Twig.expression.set.operations.concat([
-                    Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets]),
+            next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {
                 var i = stack.length-1,
                     stack_token;
@@ -2708,9 +2709,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.filter,
             // match a | then a letter or _, then any number of letters, numbers, _ or -
             regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_\-]*)/,
-            next: Twig.expression.set.operations.concat([
-                    Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets,
+            next: Twig.expression.set.operations_extended.concat([
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 token.value = token.match[1];
@@ -2773,9 +2772,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.variable,
             // match any letter or _, then any number of letters, numbers, _ or -
             regex: /^[a-zA-Z_][a-zA-Z0-9_]*/,
-            next: Twig.expression.set.operations.concat([
-                    Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets,
+            next: Twig.expression.set.operations_extended.concat([
                     Twig.expression.type.parameter.start]),
             compile: Twig.expression.fn.compile.push,
             validate: function(match, tokens) {
@@ -2790,9 +2787,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.key.period,
             regex: /^\.([a-zA-Z_][a-zA-Z0-9_]*)/,
-            next: Twig.expression.set.operations.concat([
-                    Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets,
+            next: Twig.expression.set.operations_extended.concat([
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 token.key = token.match[1];
@@ -2819,9 +2814,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.key.brackets,
             regex: /^\[([^\]]*)\]/,
-            next: Twig.expression.set.operations.concat([
-                    Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets,
+            next: Twig.expression.set.operations_extended.concat([
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 var match = token.match[1];
