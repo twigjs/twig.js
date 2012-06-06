@@ -226,6 +226,14 @@ describe("Twig.js Filters ->", function() {
             template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br />Line 2<br />Line 3<br />Line 4<br /><br />");
         });
     });
+	
+
+    describe("trim ->", function() {
+        it("should trim whitespace from strings", function() {
+            var template = twig({data: '{{ test|trim }}'});
+            template.render({ test: '\r\n Test\n  ' }).should.equal("Test");
+        });
+    });
 
 
     describe("number_format ->", function() {
