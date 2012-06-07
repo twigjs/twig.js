@@ -43,13 +43,11 @@ var Twig = (function (Twig) {
                 break;
 
             case 'or':
-            case '||':
                 token.precidence = 14;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'and':
-            case '&&':
                 token.precidence = 13;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
@@ -218,14 +216,12 @@ var Twig = (function (Twig) {
                 break;
 
             case 'or':
-            case '||':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a || b);
                 break;
 
             case 'and':
-            case '&&':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a && b);

@@ -175,24 +175,14 @@ describe("Twig.js Expressions ->", function() {
             });
         });
         it("should support boolean or", function() {
-            var test_template = twig({data: '{{ a || b }}'});
-            boolean_data.forEach(function(pair) {
-                var output = test_template.render(pair);
-                output.should.equal((pair.a || pair.b).toString() );
-            });
-            test_template = twig({data: '{{ a or b }}'});
+            var test_template = twig({data: '{{ a or b }}'});
             boolean_data.forEach(function(pair) {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a || pair.b).toString() );
             });
         });
         it("should support boolean and", function() {
-            var test_template = twig({data: '{{ a && b }}'});
-            boolean_data.forEach(function(pair) {
-                var output = test_template.render(pair);
-                output.should.equal((pair.a && pair.b).toString() );
-            });
-            test_template = twig({data: '{{ a and b }}'});
+            var test_template = twig({data: '{{ a and b }}'});
             boolean_data.forEach(function(pair) {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a && pair.b).toString() );
@@ -221,7 +211,7 @@ describe("Twig.js Expressions ->", function() {
             output2.should.equal( "3" );
         });
         it("should support the ternary operator inside objects", function() {
-            var test_template2 = twig({data: '{{ {"b" : a || b ? {"a":e+f}:{"a":1} }.b.a }}'})
+            var test_template2 = twig({data: '{{ {"b" : a or b ? {"a":e+f}:{"a":1} }.b.a }}'})
                 , output2 = test_template2.render({a: false, b: false, e: 1, f: 2});
 
             output2.should.equal( "1" );
