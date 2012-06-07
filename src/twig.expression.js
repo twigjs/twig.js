@@ -608,11 +608,11 @@ var Twig = (function (Twig) {
                 var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
 
                 // Get the variable from the context
-                if (object.hasOwnProperty(key)) {
+                if (key in object) {
                     value = object[key];
-                } else if (object.hasOwnProperty("get"+capitalize(key))) {
+                } else if (object["get"+capitalize(key)] !== undefined) {
                     value = object["get"+capitalize(key)];
-                } else if (object.hasOwnProperty("is"+capitalize(key))) {
+                } else if (object["is"+capitalize(key)] !== undefined) {
                     value = object["is"+capitalize(key)];
                 } else {
                     value = null;

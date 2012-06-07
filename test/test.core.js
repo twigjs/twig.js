@@ -164,6 +164,21 @@ describe("Twig.js Core ->", function() {
             }).should.equal("val");
         });
         
+        it("should check for getKey methods on prototype objects.", function() {
+			var object = {
+                getValue: function() {
+                    return "val";
+                }
+            };
+			function Subobj() {};
+			Subobj.prototype = object;
+			var subobj = new Subobj();
+			
+            twig({data: '{{ obj.value }}'}).render({
+                obj: subobj
+            }).should.equal("val");
+        });
+
         it("should return null if a period key doesn't exist.", function() {
             twig({data: '{{ obj.value == null }}'}).render({
                 obj: {}
