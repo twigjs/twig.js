@@ -2401,8 +2401,8 @@ var Twig = (function (Twig) {
         },
         {
             type: Twig.expression.type.operator.binary,
-            // Match any of +, *, /, -, %, ~, <, <=, >, >=, !=, ==, ||, &&, **, ?, :, and, or, not
-            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\|\||^&&|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
+            // Match any of +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, not
+            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
             compile: function(token, stack, output) {
                 delete token.match;
@@ -2819,11 +2819,11 @@ var Twig = (function (Twig) {
                 var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
 
                 // Get the variable from the context
-                if (object.hasOwnProperty(key)) {
+                if (key in object) {
                     value = object[key];
-                } else if (object.hasOwnProperty("get"+capitalize(key))) {
+                } else if (object["get"+capitalize(key)] !== undefined) {
                     value = object["get"+capitalize(key)];
-                } else if (object.hasOwnProperty("is"+capitalize(key))) {
+                } else if (object["is"+capitalize(key)] !== undefined) {
                     value = object["is"+capitalize(key)];
                 } else {
                     value = null;
@@ -3208,13 +3208,11 @@ var Twig = (function (Twig) {
                 break;
 
             case 'or':
-            case '||':
                 token.precidence = 14;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'and':
-            case '&&':
                 token.precidence = 13;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
@@ -3383,14 +3381,12 @@ var Twig = (function (Twig) {
                 break;
 
             case 'or':
-            case '||':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a || b);
                 break;
 
             case 'and':
-            case '&&':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push(a && b);
