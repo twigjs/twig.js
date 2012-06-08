@@ -319,11 +319,11 @@ var Twig = (function (Twig) {
             regex: /^\)/,
             next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {
-				var stack_token;
-				stack_token = stack.pop();
+                var stack_token;
+                stack_token = stack.pop();
                 while(stack.length > 0 && stack_token.type != Twig.expression.type.parameter.start) {
                     output.push(stack_token);
-					stack_token = stack.pop();
+                    stack_token = stack.pop();
                 }
                 // Move contents of parens into preceding filter
                 var param_stack = [];
@@ -384,9 +384,9 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.array.end,
             regex: /^\]/,
             next: Twig.expression.set.operations_extended,
-            compile: function(token, stack, output) {		
-				var i = stack.length - 1,
-					stack_token;
+            compile: function(token, stack, output) {        
+                var i = stack.length - 1,
+                    stack_token;
                 // pop tokens off the stack until the start of the object
                 for(;i >= 0; i--) {
                     stack_token = stack.pop();
@@ -532,10 +532,10 @@ var Twig = (function (Twig) {
             compile: function(token, stack, output) {
                 var fn = token.match[1];
                 token.fn = fn;
-				// cleanup token
-				delete token.match;
-				delete token.value;
-				
+                // cleanup token
+                delete token.match;
+                delete token.value;
+                
                 output.push(token);
             },
             parse: function(token, stack, context) {
@@ -600,9 +600,13 @@ var Twig = (function (Twig) {
                     key = token.key,
                     object = stack.pop(),
                     value;
-
+                
                 if (object === null || object === undefined) {
-                    throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+                    if (this.options.strict_variables) {
+                        throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+                    } else {
+                        return null;
+                    }
                 }
                 
                 var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
@@ -645,11 +649,15 @@ var Twig = (function (Twig) {
                     value;
                     
                 if (object === null || object === undefined) {
-                    throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+                    if (this.options.strict_variables) {
+                        throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+                    } else {
+                        return null;
+                    }
                 }
                 
                 // Get the variable from the context
-                if (object.hasOwnProperty(key)) {
+                if (key in object) {
                     value = object[key];
                 } else {
                     value = null;
@@ -695,7 +703,7 @@ var Twig = (function (Twig) {
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 token.value = (token.match[0] == "true");
-				delete token.match;
+                delete token.match;
                 output.push(token);
             },
             parse: Twig.expression.fn.parse.push_value
@@ -895,13 +903,13 @@ var Twig = (function (Twig) {
             token = tokens.shift();
             token_template = Twig.expression.handler[token.type];
 
-	        Twig.log.trace("Twig.expression.compile: ", "Compiling ", token);
+            Twig.log.trace("Twig.expression.compile: ", "Compiling ", token);
 
             // Compile the template
             token_template.compile && token_template.compile(token, stack, output);
 
-	        Twig.log.trace("Twig.expression.compile: ", "Stack is", stack);
-	        Twig.log.trace("Twig.expression.compile: ", "Output is", output);
+            Twig.log.trace("Twig.expression.compile: ", "Stack is", stack);
+            Twig.log.trace("Twig.expression.compile: ", "Output is", output);
         }
 
         while(stack.length > 0) {

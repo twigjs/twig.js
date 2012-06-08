@@ -20,7 +20,10 @@ var Twig = (function (Twig) {
      */
     Twig.exports.twig = function twig(params) {
         'use strict';
-        var id = params.id;
+        var id = params.id,
+            options = {
+                strict_variables: params.strict_variables || false
+            };
         if (id) {
             Twig.validateId(id);
         }
@@ -36,7 +39,8 @@ var Twig = (function (Twig) {
             return new Twig.Template({
                 data: params.data,
                 module: params.module,
-                id:   id
+                id:   id,
+                options: options
             });
 
         } else if (params.ref !== undefined) {
@@ -51,7 +55,8 @@ var Twig = (function (Twig) {
                 module: params.module,
                 precompiled: params.precompiled,
                 method: 'ajax',
-                async: params.async
+                async: params.async,
+                options: options
 
             }, params.load, params.error);
             
@@ -61,7 +66,8 @@ var Twig = (function (Twig) {
                 module: params.module,
                 precompiled: params.precompiled,
                 method: 'fs',
-                async: params.async
+                async: params.async,
+                options: options
 
             }, params.load, params.error);
         }

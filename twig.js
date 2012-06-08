@@ -519,6 +519,7 @@ var Twig = (function (Twig) {
             method      = params.method,
             async       = params.async,
             precompiled = params.precompiled,
+			options     = params.options,
             template    = null;
 
         // Default to async
@@ -560,7 +561,8 @@ var Twig = (function (Twig) {
                     template = new Twig.Template({
                         data:   data,
                         id:     id,
-                        url:    location
+                        url:    location,
+						options: options
                     });
 
                     if (callback) {
@@ -595,7 +597,8 @@ var Twig = (function (Twig) {
                         template = new Twig.Template({
                             data:   data,
                             id:     id,
-                            path:   location
+                            path:   location,
+							options: options
                         });
 
                         if (callback) {
@@ -613,7 +616,8 @@ var Twig = (function (Twig) {
                     template = new Twig.Template({
                         data:   data,
                         id:     id,
-                        path:   location
+                        path:   location,
+						options: options
                     });
 
                     if (callback) {
@@ -652,7 +656,9 @@ var Twig = (function (Twig) {
             id = params.id,
             blocks = params.blocks,
             path = params.path,
-            url = params.url;
+            url = params.url,
+			// parser options
+			options = params.options;
 
         // # What is stored in a Twig.Template
         //
@@ -663,13 +669,20 @@ var Twig = (function (Twig) {
         //          tokens: The list of tokens that makes up this template.
         //          blocks: The list of block this template contains.
         //          base:   The base template (if any)
+		//			options:  {
+		//				Compiler/parser options
+		//
+		//				strict_variables: true/false
+		//			    	Should missing variable/keys emit an error message. If false, they default to null.
+		//			}
         //     }
         //
 
         this.id     = id;
         this.path   = path;
         this.url    = url;
-        
+		this.options = options;
+
         this.reset = function() {
             Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
             this.blocks = {};
@@ -697,7 +710,7 @@ var Twig = (function (Twig) {
             this.context = context;
 
             // Clear any previous state
-            that.reset();
+            this.reset();
             if (params.blocks) {
                 this.blocks = params.blocks;
             }
@@ -2838,9 +2851,13 @@ var Twig = (function (Twig) {
                     key = token.key,
                     object = stack.pop(),
                     value;
-
+				
                 if (object === null || object === undefined) {
-                    throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+					if (this.options.strict_variables) {
+                    	throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+					} else {
+						return null;
+					}
                 }
                 
                 var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
@@ -2883,11 +2900,15 @@ var Twig = (function (Twig) {
                     value;
                     
                 if (object === null || object === undefined) {
-                    throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+					if (this.options.strict_variables) {
+                    	throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
+					} else {
+						return null;
+					}
                 }
                 
                 // Get the variable from the context
-                if (object.hasOwnProperty(key)) {
+                if (key in object) {
                     value = object[key];
                 } else {
                     value = null;
@@ -4033,7 +4054,10 @@ var Twig = (function (Twig) {
      */
     Twig.exports.twig = function twig(params) {
         'use strict';
-        var id = params.id;
+        var id = params.id,
+			options = {
+				strict_variables: params.strict_variables || false
+			};
         if (id) {
             Twig.validateId(id);
         }
@@ -4049,7 +4073,8 @@ var Twig = (function (Twig) {
             return new Twig.Template({
                 data: params.data,
                 module: params.module,
-                id:   id
+                id:   id,
+				options: options
             });
 
         } else if (params.ref !== undefined) {
@@ -4064,7 +4089,8 @@ var Twig = (function (Twig) {
                 module: params.module,
                 precompiled: params.precompiled,
                 method: 'ajax',
-                async: params.async
+                async: params.async,
+				options: options
 
             }, params.load, params.error);
             
@@ -4074,7 +4100,8 @@ var Twig = (function (Twig) {
                 module: params.module,
                 precompiled: params.precompiled,
                 method: 'fs',
-                async: params.async
+                async: params.async,
+				options: options
 
             }, params.load, params.error);
         }

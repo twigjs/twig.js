@@ -519,6 +519,7 @@ var Twig = (function (Twig) {
             method      = params.method,
             async       = params.async,
             precompiled = params.precompiled,
+            options     = params.options,
             template    = null;
 
         // Default to async
@@ -532,8 +533,8 @@ var Twig = (function (Twig) {
         if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
             if (callback) {
-				callback(Twig.Templates.registry[id]);
-			}
+                callback(Twig.Templates.registry[id]);
+            }
             return Twig.Templates.registry[id];
         }
 
@@ -560,7 +561,8 @@ var Twig = (function (Twig) {
                     template = new Twig.Template({
                         data:   data,
                         id:     id,
-                        url:    location
+                        url:    location,
+                        options: options
                     });
 
                     if (callback) {
@@ -580,12 +582,12 @@ var Twig = (function (Twig) {
                 if (async === true) {
                     // async with callback
                     fs.readFile(location, 'utf8', function(err, data) {
-						if (err) {
-							if (error_callback) {
-								error_callback(err);
-							}
-							return;
-						}
+                        if (err) {
+                            if (error_callback) {
+                                error_callback(err);
+                            }
+                            return;
+                        }
 
                         if (precompiled === true) {
                             data = JSON.parse(data);
@@ -595,7 +597,8 @@ var Twig = (function (Twig) {
                         template = new Twig.Template({
                             data:   data,
                             id:     id,
-                            path:   location
+                            path:   location,
+                            options: options
                         });
 
                         if (callback) {
@@ -613,7 +616,8 @@ var Twig = (function (Twig) {
                     template = new Twig.Template({
                         data:   data,
                         id:     id,
-                        path:   location
+                        path:   location,
+                        options: options
                     });
 
                     if (callback) {
@@ -652,7 +656,9 @@ var Twig = (function (Twig) {
             id = params.id,
             blocks = params.blocks,
             path = params.path,
-            url = params.url;
+            url = params.url,
+            // parser options
+            options = params.options;
 
         // # What is stored in a Twig.Template
         //
@@ -663,13 +669,20 @@ var Twig = (function (Twig) {
         //          tokens: The list of tokens that makes up this template.
         //          blocks: The list of block this template contains.
         //          base:   The base template (if any)
+        //            options:  {
+        //                Compiler/parser options
+        //
+        //                strict_variables: true/false
+        //                    Should missing variable/keys emit an error message. If false, they default to null.
+        //            }
         //     }
         //
 
         this.id     = id;
         this.path   = path;
         this.url    = url;
-        
+        this.options = options;
+
         this.reset = function() {
             Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
             this.blocks = {};
@@ -697,7 +710,7 @@ var Twig = (function (Twig) {
             this.context = context;
 
             // Clear any previous state
-            that.reset();
+            this.reset();
             if (params.blocks) {
                 this.blocks = params.blocks;
             }
