@@ -1779,49 +1779,64 @@ var Twig = (function (Twig) {
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
                     key,
+					len,
+					index = 0,
                     keyset,
                     that = this;
                     
-                if (result instanceof Array) {
-                    key = 0;
+                if (result instanceof Array) {	
+                    len = result.length;
                     result.forEach(function (value) {
-                        var len = result.length;
                         context[token.value_var] = value;
                         if (token.key_var) {
-                            context[token.key_var] = key;
+                            context[token.key_var] = index;
                         }
                         /**
                          * Loop object
                          */
                         context.loop = {
-                            index: key+1,
-                            index0: key,
-                            revindex: len-key,
-                            revindex0: len-key-1,
-                            first: (key === 0),
-                            last: (key === len-1),
+                            index: index+1,
+                            index0: index,
+                            revindex: len-index,
+                            revindex0: len-index-1,
+                            first: (index === 0),
+                            last: (index === len-1),
                             length: len,
                             parent: context
                         };
                         output.push(Twig.parse.apply(that, [token.output, context]));
-                        key += 1;
+                        index += 1;
                     });
                 } else if (result instanceof Object) {
                     if (result._keys !== undefined) {
                         keyset = result._keys;
                     } else {
                         keyset = Object.keys(result);
-                    }
+                    }	
+					len = keyset.length;
                     keyset.forEach(function(key) {
-                        
                         if (key === "_keys") return; // Ignore the _keys property
-                        if (result.hasOwnProperty(key)) {
-                            context[token.value_var] = result[key];
-                            if (token.key_var) {
-                                context[token.key_var] = key;
-                            }
-                            output.push(Twig.parse.apply(that, [token.output, context]));
+						
+                        /**
+                         * Loop object
+                         */
+                        context.loop = {
+                            index: index+1,
+                            index0: index,
+                            revindex: len-index,
+                            revindex0: len-index-1,
+                            first: (index === 0),
+                            last: (index === len-1),
+                            length: len,
+                            parent: context
+                        };
+
+                        context[token.value_var] = result[key];
+                        if (token.key_var) {
+                            context[token.key_var] = key;
                         }
+                        output.push(Twig.parse.apply(that, [token.output, context]));
+						index += 1;
                     });
                 }
                 // Only allow else statements if no output was generated
