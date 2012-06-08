@@ -53,7 +53,7 @@ var Twig = (function (Twig) {
                 method: 'ajax',
                 async: params.async
 
-            }, params.load);
+            }, params.load, params.error);
             
         } else if (params.path !== undefined) {
             return Twig.Templates.loadRemote(params.path, {
@@ -63,7 +63,7 @@ var Twig = (function (Twig) {
                 method: 'fs',
                 async: params.async
 
-            }, params.load);
+            }, params.load, params.error);
         }
     };
 

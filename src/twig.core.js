@@ -510,10 +510,11 @@ var Twig = (function (Twig) {
      * @param {string} location  The remote URL to load as a template.
      * @param {Object} params The template parameters.
      * @param {function} callback  A callback triggered when the template finishes loading.
+     * @param {function} error_callback  A callback triggered if an error occurs loading the template.
      *
      *
      */
-    Twig.Templates.loadRemote = function(location, params, callback) {
+    Twig.Templates.loadRemote = function(location, params, callback, error_callback) {
         var id          = params.id,
             method      = params.method,
             async       = params.async,
@@ -530,7 +531,9 @@ var Twig = (function (Twig) {
         // Check for existing template
         if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
-            callback(Twig.Templates.registry[id]);
+            if (callback) {
+				callback(Twig.Templates.registry[id]);
+			}
             return Twig.Templates.registry[id];
         }
 
@@ -577,6 +580,12 @@ var Twig = (function (Twig) {
                 if (async === true) {
                     // async with callback
                     fs.readFile(location, 'utf8', function(err, data) {
+						if (err) {
+							if (error_callback) {
+								error_callback(err);
+							}
+							return;
+						}
 
                         if (precompiled === true) {
                             data = JSON.parse(data);
@@ -615,6 +624,9 @@ var Twig = (function (Twig) {
         }
         if (async === false) {
             return template;
+        } else {
+            // placeholder for now, should eventually return a deferred object.
+            return true;
         }
     };
 
