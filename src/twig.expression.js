@@ -612,7 +612,7 @@ var Twig = (function (Twig) {
                 var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
 
                 // Get the variable from the context
-                if (key in object) {
+                if (typeof object === 'object' && key in object) {
                     value = object[key];
                 } else if (object["get"+capitalize(key)] !== undefined) {
                     value = object["get"+capitalize(key)];
@@ -657,7 +657,7 @@ var Twig = (function (Twig) {
                 }
                 
                 // Get the variable from the context
-                if (key in object) {
+                if (typeof object === 'object' && key in object) {
                     value = object[key];
                 } else {
                     value = null;

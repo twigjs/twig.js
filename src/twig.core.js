@@ -367,7 +367,7 @@ var Twig = (function (Twig) {
         if (stack.length > 0) {
             unclosed_token = stack.pop();
             throw new Error("Unable to find an end tag for " + unclosed_token.type +
-                            ", expecting one of " + unclosed_token.next.join(", "));
+                            ", expecting one of " + unclosed_token.next);
         }
         return output;
     };
