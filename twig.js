@@ -4141,13 +4141,13 @@ var Twig = (function (Twig) {
             sep_chr = '/',
             path = options.filename,
             template;
-
+            
         // Try to load the template from the cache
         template = new Twig.Template({
             data: markup,
             path: path,
             id: id,
-            options: options
+            options: options.settings['twig options']
         }); // Twig.Templates.load(id) ||
 
         return function(context) {
