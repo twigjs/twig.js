@@ -1,3 +1,4 @@
+make[1]: Entering directory `/var/lib/stickshift/1743258eef714e02a1402b50da3c6bbc/app-root/data/148201'
     <section class="suite">
       <h1>Twig.js Control Structures -></h1>
       <dl>
@@ -63,7 +64,7 @@ test_template.render({test: []}).should.equal(&quot;else&quot; );</code></pre></
 var test_template = twig({data: '{% for key,list in test %}{% for val in list %}{{ val }}{%endfor %}.{% else %}else{% endfor %}'});
 test_template.render({test: [[1,2],[3,4],[5,6]]}).should.equal(&quot;12.34.56.&quot; );
 test_template.render({test: []}).should.equal(&quot;else&quot; );</code></pre></dd>
-            <dt>should have a loop context item available</dt>
+            <dt>should have a loop context item available for arrays</dt>
             <dd><pre><code>
 var test_template = twig({data: '{% for key,value in test %}{{ loop.index }}{% endfor %}'});
 test_template.render({test: [1,2,3,4]}).should.equal(&quot;1234&quot; );
@@ -79,6 +80,22 @@ test_template = twig({data: '{% for key,value in test %}{{ loop.first }}{% endfo
 test_template.render({test: [1,2,3,4]}).should.equal(&quot;truefalsefalsefalse&quot; );
 test_template = twig({data: '{% for key,value in test %}{{ loop.last }}{% endfor %}'});
 test_template.render({test: [1,2,3,4]}).should.equal(&quot;falsefalsefalsetrue&quot; );</code></pre></dd>
+            <dt>should have a loop context item available for objects</dt>
+            <dd><pre><code>
+var test_template = twig({data: '{% for key,value in test %}{{ loop.index }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;1234&quot; );
+test_template = twig({data: '{% for key,value in test %}{{ loop.index0 }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;0123&quot; );
+test_template = twig({data: '{% for key,value in test %}{{ loop.revindex }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;4321&quot; );
+test_template = twig({data: '{% for key,value in test %}{{ loop.revindex0 }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;3210&quot; );
+test_template = twig({data: '{% for key,value in test %}{{ loop.length }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;4444&quot; );
+test_template = twig({data: '{% for key,value in test %}{{ loop.first }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;truefalsefalsefalse&quot; );
+test_template = twig({data: '{% for key,value in test %}{{ loop.last }}{% endfor %}'});
+test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal(&quot;falsefalsefalsetrue&quot; );</code></pre></dd>
           </dl>
         </section>
       </dl>
@@ -236,6 +253,20 @@ twig({data: '{{ obj.value }}'}).render({
         }
     }
 }).should.equal(&quot;val&quot;);</code></pre></dd>
+            <dt>should check for getKey methods on prototype objects.</dt>
+            <dd><pre><code>
+			var object = {
+                getValue: function() {
+                    return &quot;val&quot;;
+                }
+            };
+			function Subobj() {};
+			Subobj.prototype = object;
+			var subobj = new Subobj();
+			
+            twig({data: '{{ obj.value }}'}).render({
+                obj: subobj
+            }).should.equal(&quot;val&quot;);</code></pre></dd>
             <dt>should return null if a period key doesn't exist.</dt>
             <dd><pre><code>
 twig({data: '{{ obj.value == null }}'}).render({
@@ -395,24 +426,14 @@ equality_data.forEach(function(pair) {
 });</code></pre></dd>
             <dt>should support boolean or</dt>
             <dd><pre><code>
-var test_template = twig({data: '{{ a || b }}'});
-boolean_data.forEach(function(pair) {
-    var output = test_template.render(pair);
-    output.should.equal((pair.a || pair.b).toString() );
-});
-test_template = twig({data: '{{ a or b }}'});
+var test_template = twig({data: '{{ a or b }}'});
 boolean_data.forEach(function(pair) {
     var output = test_template.render(pair);
     output.should.equal((pair.a || pair.b).toString() );
 });</code></pre></dd>
             <dt>should support boolean and</dt>
             <dd><pre><code>
-var test_template = twig({data: '{{ a &amp;&amp; b }}'});
-boolean_data.forEach(function(pair) {
-    var output = test_template.render(pair);
-    output.should.equal((pair.a &amp;&amp; pair.b).toString() );
-});
-test_template = twig({data: '{{ a and b }}'});
+var test_template = twig({data: '{{ a and b }}'});
 boolean_data.forEach(function(pair) {
     var output = test_template.render(pair);
     output.should.equal((pair.a &amp;&amp; pair.b).toString() );
@@ -443,7 +464,7 @@ var test_template2 = twig({data: '{{ (a ? {&quot;a&quot;:e+f}:{&quot;a&quot;:1})
 output2.should.equal( &quot;3&quot; );</code></pre></dd>
             <dt>should support the ternary operator inside objects</dt>
             <dd><pre><code>
-var test_template2 = twig({data: '{{ {&quot;b&quot; : a || b ? {&quot;a&quot;:e+f}:{&quot;a&quot;:1} }.b.a }}'})
+var test_template2 = twig({data: '{{ {&quot;b&quot; : a or b ? {&quot;a&quot;:e+f}:{&quot;a&quot;:1} }.b.a }}'})
     , output2 = test_template2.render({a: false, b: false, e: 1, f: 2});
 
 output2.should.equal( &quot;1&quot; );</code></pre></dd>
@@ -757,6 +778,15 @@ template.render().should.equal(&quot;&amp;lt;p&amp;gt;Test paragraph.&amp;lt;/p&
             <dd><pre><code>
 var template = twig({data: '{{ test|nl2br }}'});
 template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal(&quot;Line 1&lt;br /&gt;Line 2&lt;br /&gt;Line 3&lt;br /&gt;Line 4&lt;br /&gt;&lt;br /&gt;&quot;);</code></pre></dd>
+          </dl>
+        </section>
+        <section class="suite">
+          <h1>trim -></h1>
+          <dl>
+            <dt>should trim whitespace from strings</dt>
+            <dd><pre><code>
+var template = twig({data: '{{ test|trim }}'});
+template.render({ test: '\r\n Test\n  ' }).should.equal(&quot;Test&quot;);</code></pre></dd>
           </dl>
         </section>
         <section class="suite">
@@ -1142,3 +1172,4 @@ twig({data: '{{ a is sameas(1) }}'}).render({a: &quot;1&quot;}).should.equal(&qu
         </section>
       </dl>
     </section>
+make[1]: Leaving directory `/var/lib/stickshift/1743258eef714e02a1402b50da3c6bbc/app-root/data/148201'
