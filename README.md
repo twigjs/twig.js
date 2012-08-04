@@ -31,6 +31,29 @@ the twig.js templating language by setting the view engine to twig.
 
 ## app.js
 
+**Express 3**
+
+```js
+var Twig = require("twig"),
+    express = require('express'),
+    app = express();
+
+// This section is optional and used to configure twig.
+app.set("twig options", { 
+    strict_variables: false
+});
+
+app.get('/', function(req, res){
+  res.render('index.twig', {
+    message : "Hello World"
+  });
+});
+
+app.listen(9999);
+```
+
+**Express 2**
+
 ```js
 var twig = require("twig"),
     app = require('express').createServer();
@@ -38,9 +61,14 @@ var twig = require("twig"),
 app.configure(function () {
     app.set('view engine', 'twig');
     app.set("view options", { layout: false });
+    
+    // This section is optional and used to configure twig.
+    app.set("twig options", { 
+        strict_variables: false
+    });
 });
 
-app.register('twig', twig); // remove if using express 3
+app.register('twig', twig);
 
 app.get('/', function(req, res){
   res.render('index', {
