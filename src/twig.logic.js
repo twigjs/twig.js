@@ -411,23 +411,30 @@ var Twig = (function (Twig) {
             },
             parse: function (token, context, chain) {
                 var block_output = "",
-                    output = "";
+                    output = "",
+                    hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
                 // Don't override previous blocks
-                if (this.blocks[token.block] === undefined) {
+                if (this.blocks[token.block] === undefined || hasParent) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
                     }, context]);
 
-                    this.blocks[token.block] = block_output;
+                    if (hasParent) {
+                        this.blocks[token.block] =  this.blocks[token.block].replace(Twig.placeholders.parent, block_output);
+                    } else {
+                        this.blocks[token.block] = block_output;
+                    }
                 }
-
+                        
                 // This is the base template -> append to output
                 if ( this.extend === null ) {
+                
                     // Check if a child block has been set from a template extending this one.
                     if (this.child.blocks[token.block]) {
                         output = this.child.blocks[token.block];
+                        
                     } else {
                         output = this.blocks[token.block];
                     }

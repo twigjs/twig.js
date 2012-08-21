@@ -15,6 +15,10 @@ var Twig = (function (Twig) {
     // Default caching to true for the improved performance it offers
     Twig.cache = true;
 
+    Twig.placeholders = {
+        parent: "{{|PARENT|}}"
+    };
+
     /**
      * Exception thrown by twig.js.
      */

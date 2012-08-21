@@ -58,6 +58,23 @@ describe("Twig.js Blocks ->", function() {
         });
     });
     
+    it("should have access to a parent block content", function(done) {
+        // Test loading a template from a remote endpoint
+        twig({
+            id:   'child-parent',
+            path: 'test/templates/child-parent.twig',
+                    
+            load: function(template) {
+                template.render({ 
+                    base: "template.twig", 
+                    inner: ':value' 
+                }).should.equal( "Other Title - body:value:child" );
+                done();
+            }
+        });
+    });
+    
+    
     it("should include blocks from another template for horizontal reuse", function(done) {
         // Test horizontal reuse
         twig({

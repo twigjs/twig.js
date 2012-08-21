@@ -148,6 +148,10 @@ var Twig = (function (Twig) {
                 throw new Twig.Error("Unable to parse date " + date);
             }
             return dateObj;
+        },
+        parent: function() {
+            // Add a placeholder
+            return Twig.placeholders.parent;
         }
     };
 
