@@ -1,4 +1,4 @@
-make[1]: Entering directory `/home/john/workspace/twig.js'
+make[1]: Entering directory `/home/john/Dropbox/workspace/twig.js'
     <section class="suite">
       <h1>Twig.js Control Structures -></h1>
       <dl>
@@ -869,6 +869,21 @@ twig({
         done();
     }
 });</code></pre></dd>
+        <dt>should have access to a parent block content</dt>
+        <dd><pre><code>
+// Test loading a template from a remote endpoint
+twig({
+    id:   'child-parent',
+    path: 'test/templates/child-parent.twig',
+            
+    load: function(template) {
+        template.render({ 
+            base: &quot;template.twig&quot;, 
+            inner: ':value' 
+        }).should.equal( &quot;Other Title - body:value:child&quot; );
+        done();
+    }
+});</code></pre></dd>
         <dt>should include blocks from another template for horizontal reuse</dt>
         <dd><pre><code>
 // Test horizontal reuse
@@ -1172,4 +1187,4 @@ twig({data: '{{ a is sameas(1) }}'}).render({a: &quot;1&quot;}).should.equal(&qu
         </section>
       </dl>
     </section>
-make[1]: Leaving directory `/home/john/workspace/twig.js'
+make[1]: Leaving directory `/home/john/Dropbox/workspace/twig.js'
