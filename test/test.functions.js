@@ -155,6 +155,9 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{{ date("+1 day") > date() }}'}).render().should.equal("true");
                 twig({data: '{{ date("-1 day") > date() }}'}).render().should.equal("false");
             });
+            it("should support 'now' as a date parameter", function() {
+                twig({data: '{{ date("now") }}' }).render().should.equal(new Date().toString());
+            });
             it("should understand exact dates", function() {
                 var date = new Date("June 20, 2010 UTC");
             
