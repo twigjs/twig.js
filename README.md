@@ -102,7 +102,7 @@ console.log(
 
 # Tests
 
-The tiwg.js tests are written in [Mocha][mocha] and can be invoked with `make test`. 
+The twig.js tests are written in [Mocha][mocha] and can be invoked with `make test`. 
 
 # License
 
