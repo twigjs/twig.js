@@ -718,19 +718,24 @@ var Twig = (function (Twig) {
             if (params.blocks) {
                 this.blocks = params.blocks;
             }
-
-            this.importBlocks = function(file, override) {
+            
+            this.importFile = function(file) {
                 var url = relativePath(that, file),
                     // Load blocks from an external file
                     sub_template = Twig.Templates.loadRemote(url, {
                         method: that.url?'ajax':'fs',
                         async: false,
                         id: url
-                    }),
+                    });
+                
+                return sub_template;
+            };
+
+            this.importBlocks = function(file, override) {
+                var sub_template = this.importFile(file),
                     key;
-
                 override = override || false;
-
+                
                 sub_template.render(context);
 
                 // Mixin blocks

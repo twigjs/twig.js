@@ -103,3 +103,19 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 });
+
+
+
+describe("Twig.js Include ->", function() {
+    it("should load a parent template and render the default values", function() {
+        twig({
+            id:   'include',
+            path: 'test/templates/include.twig',
+            async: false
+        });
+    
+        // Load the template
+        twig({ref: 'include'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
+    });
+});
+
