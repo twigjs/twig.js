@@ -1,4 +1,4 @@
-make[1]: Entering directory `/var/lib/stickshift/1743258eef714e02a1402b50da3c6bbc/app-root/data/148201'
+make[1]: Entering directory `/home/john/workspace/twig.js'
     <section class="suite">
       <h1>Twig.js Control Structures -></h1>
       <dl>
@@ -1066,6 +1066,18 @@ twig({data: '{% for i in range(0, 3) %}{{ cycle([&quot;odd&quot;, &quot;even&quo
                 <dd><pre><code>
 var date = new Date(946706400 * 1000);
 twig({data: '{{ date(946706400)|date(&quot;d/m/Y @ H:i:s&quot;) }}'}).render().should.equal(stringDate(date));</code></pre></dd>
+                <dt>should understand relative dates</dt>
+                <dd><pre><code>
+twig({data: '{{ date(&quot;+1 day&quot;) &gt; date() }}'}).render().should.equal(&quot;true&quot;);
+twig({data: '{{ date(&quot;-1 day&quot;) &gt; date() }}'}).render().should.equal(&quot;false&quot;);</code></pre></dd>
+                <dt>should support 'now' as a date parameter</dt>
+                <dd><pre><code>
+twig({data: '{{ date(&quot;now&quot;) }}' }).render().should.equal(new Date().toString());</code></pre></dd>
+                <dt>should understand exact dates</dt>
+                <dd><pre><code>
+var date = new Date(&quot;June 20, 2010 UTC&quot;);
+            
+twig({data: '{{ date(&quot;June 20, 2010 UTC&quot;)|date(&quot;d/m/Y @ H:i:s&quot;) }}'}).render().should.equal(stringDate(date));</code></pre></dd>
               </dl>
             </section>
             <section class="suite">
@@ -1193,4 +1205,4 @@ twig({data: '{{ a is sameas(1) }}'}).render({a: &quot;1&quot;}).should.equal(&qu
         </section>
       </dl>
     </section>
-make[1]: Leaving directory `/var/lib/stickshift/1743258eef714e02a1402b50da3c6bbc/app-root/data/148201'
+make[1]: Leaving directory `/home/john/workspace/twig.js'
