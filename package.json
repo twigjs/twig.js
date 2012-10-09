@@ -27,9 +27,9 @@
     "minimatch": "0.2.x"
   },
   "devDependencies": {
-    "should": "0.3.x",
-    "mocha": "0.10.x",
-    "docco": "0.3.x",
+    "should": "1.2.x",
+    "mocha": "1.6.x",
+    "docco": "0.4.x",
     "uglify-js": "*"
   }
 }
