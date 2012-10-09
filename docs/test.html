@@ -714,8 +714,8 @@ test_template.render({'var':{}}).should.equal(&quot;Empty Key&quot; );</code></p
           <dl>
             <dt>should recognize timestamps</dt>
             <dd><pre><code>
-           var template = twig({data: '{{ 27571323556134|date(&quot;d/m/Y @ H:i:s&quot;) }}'})
-               , date = new Date(27571323556134); // 13/09/2843 @ 08:59:16 EST
+           var template = twig({data: '{{ 27571323556|date(&quot;d/m/Y @ H:i:s&quot;) }}'})
+               , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
            
            template.render().should.equal( stringDate(date) );</code></pre></dd>
             <dt>should recognize string date formats</dt>
