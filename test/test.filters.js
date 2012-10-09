@@ -172,8 +172,8 @@ describe("Twig.js Filters ->", function() {
 
         // NOTE: these tests are currently timezone dependent
         it("should recognize timestamps", function() { 
-            var template = twig({data: '{{ 27571323556134|date("d/m/Y @ H:i:s") }}'})
-                , date = new Date(27571323556134); // 13/09/2843 @ 08:59:16 EST
+            var template = twig({data: '{{ 27571323556|date("d/m/Y @ H:i:s") }}'})
+                , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
             
             template.render().should.equal( stringDate(date) );
         });

@@ -196,14 +196,8 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
-            var date = new Date(value);
-            if (date.getDate() === NaN)
-            {
-                // Firefox can't instanciate a new Date from a string.
-                // Shame on it
-                date.setFromString(value);
-            }
-            return date.format(params[0]);
+            var date = Twig.functions.date(value);
+            return Twig.lib.formatDate(date, params[0]);
         },
 
         replace: function(value, params) {
