@@ -37,8 +37,8 @@ var Twig = (function (Twig) {
             var chars = false;
 
             if (!isNaN(low) && !isNaN(high)) {
-                inival = parseInt(low);
-                endval = parseInt(high);
+                inival = parseInt(low, 10);
+                endval = parseInt(high, 10);
             } else if (isNaN(low) && isNaN(high)) {
                 chars = true;
                 inival = low.charCodeAt(0);

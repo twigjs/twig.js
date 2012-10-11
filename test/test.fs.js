@@ -105,9 +105,8 @@ describe("Twig.js Blocks ->", function() {
 });
 
 
-
 describe("Twig.js Include ->", function() {
-    it("should load a parent template and render the default values", function() {
+    it("should load an included template with no context", function() {
         twig({
             id:   'include',
             path: 'test/templates/include.twig',
@@ -117,5 +116,28 @@ describe("Twig.js Include ->", function() {
         // Load the template
         twig({ref: 'include'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
     });
+    
+    it("should load an included template with additional context", function() {
+        twig({
+            id:   'include-with',
+            path: 'test/templates/include-with.twig',
+            async: false
+        });
+    
+        // Load the template
+        twig({ref: 'include-with'}).render({test: 'tst'}).should.equal( "template: before,tst-mid-template: after,tst" );
+    });
+    
+    /* it("should load an included template with distinct additional context", function() {
+        twig({
+            id:   'include-distinct',
+            path: 'test/templates/include-distinct.twig',
+            async: false
+        });
+    
+        // Load the template
+        twig({ref: 'include-distinct'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
+    }); */
 });
+
 

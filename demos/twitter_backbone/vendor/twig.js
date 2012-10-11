@@ -2041,7 +2041,7 @@ var Twig = (function (Twig) {
                 if (withContext !== undefined) {
                     token.withStack = Twig.expression.compile.apply(this, [{
                         type:  Twig.expression.type.expression,
-                        value: withContext
+                        value: withContext.trim()
                     }]).stack;
                 }
 
@@ -2060,7 +2060,8 @@ var Twig = (function (Twig) {
                 }
                 
                 if (token.withStack !== undefined) {
-                    withContext = Twig.expression.parse.apply(this, [token.stack, context]);
+                    withContext = Twig.expression.parse.apply(this, [token.withStack, context]);
+                    
                     for (i in withContext) {
                         if (withContext.hasOwnProperty(i))
                             innerContext[i] = withContext[i];
@@ -3831,8 +3832,8 @@ var Twig = (function (Twig) {
             var chars = false;
 
             if (!isNaN(low) && !isNaN(high)) {
-                inival = parseInt(low);
-                endval = parseInt(high);
+                inival = parseInt(low, 10);
+                endval = parseInt(high, 10);
             } else if (isNaN(low) && isNaN(high)) {
                 chars = true;
                 inival = low.charCodeAt(0);
