@@ -569,9 +569,11 @@ var Twig = (function (Twig) {
                     i,
                     template;
                     
-                for (i in context) {
-                    if (context.hasOwnProperty(i))
-                        innerContext[i] = context[i];
+                if (!token.only) {
+                    for (i in context) {
+                        if (context.hasOwnProperty(i))
+                            innerContext[i] = context[i];
+                    }
                 }
                 
                 if (token.withStack !== undefined) {

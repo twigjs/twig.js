@@ -125,19 +125,19 @@ describe("Twig.js Include ->", function() {
         });
     
         // Load the template
-        twig({ref: 'include-with'}).render({test: 'tst'}).should.equal( "template: before,tst-mid-template: after,tst" );
+        twig({ref: 'include-with'}).render({test: 'tst', a: 'pass'}).should.equal( "template: before,tst-mid-template: pass,tst" );
     });
     
-    /* it("should load an included template with distinct additional context", function() {
+    it("should load an included template with only additional context", function() {
         twig({
-            id:   'include-distinct',
-            path: 'test/templates/include-distinct.twig',
+            id:   'include-only',
+            path: 'test/templates/include-only.twig',
             async: false
         });
     
         // Load the template
-        twig({ref: 'include-distinct'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
-    }); */
+        twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
+    });
 });
 
 
