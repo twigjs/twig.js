@@ -915,7 +915,7 @@ twig({
     <section class="suite">
       <h1>Twig.js Include -></h1>
       <dl>
-        <dt>should load a parent template and render the default values</dt>
+        <dt>should load an included template with no context</dt>
         <dd><pre><code>
 twig({
     id:   'include',
@@ -925,6 +925,26 @@ twig({
     
 // Load the template
 twig({ref: 'include'}).render({test: 'tst'}).should.equal( &quot;BeforeTest template = tst\n\nAfter&quot; );</code></pre></dd>
+        <dt>should load an included template with additional context</dt>
+        <dd><pre><code>
+twig({
+    id:   'include-with',
+    path: 'test/templates/include-with.twig',
+    async: false
+});
+    
+// Load the template
+twig({ref: 'include-with'}).render({test: 'tst', a: 'pass'}).should.equal( &quot;template: before,tst-mid-template: pass,tst&quot; );</code></pre></dd>
+        <dt>should load an included template with only additional context</dt>
+        <dd><pre><code>
+twig({
+    id:   'include-only',
+    path: 'test/templates/include-only.twig',
+    async: false
+});
+    
+// Load the template
+twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( &quot;template: before,-mid-template: after,&quot; );</code></pre></dd>
       </dl>
     </section>
     <section class="suite">
