@@ -10,11 +10,13 @@ The goal is to provide a library that is compatible with both browsers and serve
 Twig.js is currently a work in progress and supports a limited subset
 of the Twig templating language (with more coming).
 
+### Docs
+
 Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki) on Github.
 
 ### Feature Support
 
-For a list of supported tags/filters/functions/tests see the [implementation notes on the wiki](https://github.com/justjohn/twig.js/wiki/Supported-Features---Implementation-Notes).
+For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/justjohn/twig.js/wiki/Implementation-Notes) page on the wiki.
 
 # Node Usage
 
