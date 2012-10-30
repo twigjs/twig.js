@@ -125,7 +125,7 @@ describe("Twig.js Include ->", function() {
         });
     
         // Load the template
-        twig({ref: 'include-with'}).render({test: 'tst', a: 'pass'}).should.equal( "template: before,tst-mid-template: pass,tst" );
+        twig({ref: 'include-with'}).render({test: 'tst'}).should.equal( "template: before,tst-mid-template: after,tst" );
     });
     
     it("should load an included template with only additional context", function() {

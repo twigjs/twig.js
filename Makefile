@@ -26,8 +26,8 @@ docs: test-docs annotated-docs
 test-docs:
 	make test REPORTER=doc > docs/test.html
 
-annotated-docs:
-	node_modules/.bin/docco $< 
+annotated-docs: $(SRC)
+	node_modules/.bin/docco $^ 
     
 clean:
 	rm -f twig.min.js twig.js
