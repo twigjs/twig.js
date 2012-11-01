@@ -2512,12 +2512,13 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.operator.unary,
             // Match any of not
-            regex: /(^not)/,
+            regex: /(^not\s+)/,
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 delete token.match;
                 
-                var value = token.value.trim(),
+                token.value = token.value.trim();
+                var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
 
                 Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator, " from ", value);
