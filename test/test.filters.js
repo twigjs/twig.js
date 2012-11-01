@@ -241,17 +241,21 @@ describe("Twig.js Filters ->", function() {
             var template = twig({data: '{{ 1234.56|number_format }}'});
             template.render().should.equal("1,235");
         });
-        it("should have customizable decimal points", function() {
+        it("should have customizable precision", function() {
             var template = twig({data: '{{ 1234.567890123|number_format(4) }}'});
             template.render().should.equal("1,234.5679");
         });
-        it("should have customizable decimal seperator", function() {
+        it("should have a customizable decimal seperator", function() {
             var template = twig({data: '{{ 1234.567890123|number_format(2,",") }}'});
             template.render().should.equal("1,234,57");
         });
-        it("should have customizable thousands seperator", function() {
+        it("should have a customizable thousands seperator", function() {
             var template = twig({data: '{{ 1234.5678|number_format(2,","," ") }}'});
             template.render().should.equal("1 234,57");
+        });
+        it("should handle blank seperators", function() {
+            var template = twig({data: '{{ 1234.5678|number_format(2,"","") }}'});
+            template.render().should.equal("123457");
         });
     });
 

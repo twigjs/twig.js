@@ -700,15 +700,18 @@ template.render({ test: '\r\n Test\n  ' }).should.equal(&quot;Test&quot;);</code
             <dt>should round to nearest integer if no parameters</dt>
             <dd><pre><code>var template = twig({data: '{{ 1234.56|number_format }}'});
 template.render().should.equal(&quot;1,235&quot;);</code></pre></dd>
-            <dt>should have customizable decimal points</dt>
+            <dt>should have customizable precision</dt>
             <dd><pre><code>var template = twig({data: '{{ 1234.567890123|number_format(4) }}'});
 template.render().should.equal(&quot;1,234.5679&quot;);</code></pre></dd>
-            <dt>should have customizable decimal seperator</dt>
+            <dt>should have a customizable decimal seperator</dt>
             <dd><pre><code>var template = twig({data: '{{ 1234.567890123|number_format(2,&quot;,&quot;) }}'});
 template.render().should.equal(&quot;1,234,57&quot;);</code></pre></dd>
-            <dt>should have customizable thousands seperator</dt>
+            <dt>should have a customizable thousands seperator</dt>
             <dd><pre><code>var template = twig({data: '{{ 1234.5678|number_format(2,&quot;,&quot;,&quot; &quot;) }}'});
 template.render().should.equal(&quot;1 234,57&quot;);</code></pre></dd>
+            <dt>should handle blank seperators</dt>
+            <dd><pre><code>var template = twig({data: '{{ 1234.5678|number_format(2,&quot;&quot;,&quot;&quot;) }}'});
+template.render().should.equal(&quot;123457&quot;);</code></pre></dd>
           </dl>
         </section>
       </dl>

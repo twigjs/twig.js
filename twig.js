@@ -3732,19 +3732,14 @@ var Twig = (function (Twig) {
          * Adapted from: http://phpjs.org/functions/number_format:481
          */ 
         number_format: function(value, params) {
-            var number = value;
-
-            if (params instanceof Array) {
-                var decimals = params[0] ? params[0] : undefined,
-                    dec_point = params[1] ? params[1] : undefined,
-                    thousands_sep = params[2] ? params[2] : undefined;
-            }
+            var number = value,
+                decimals = (params && params[0]) ? params[0] : undefined,
+                dec      = (params && params[1] !== undefined) ? params[1] : ".",
+                sep      = (params && params[2] !== undefined) ? params[2] : ",";
 
             number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
             var n = !isFinite(+number) ? 0 : +number,
                 prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
-                sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
-                dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
                 s = '',
                 toFixedFix = function (n, prec) {
                     var k = Math.pow(10, prec);
