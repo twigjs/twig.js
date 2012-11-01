@@ -236,14 +236,16 @@ var Twig = (function (Twig) {
                 if (result instanceof Array) {	
                     len = result.length;
                     result.forEach(function (value) {
-                        context[token.value_var] = value;
+                        var inner_context = Twig.lib.copy(context);
+                        
+                        inner_context[token.value_var] = value;
                         if (token.key_var) {
-                            context[token.key_var] = index;
+                            inner_context[token.key_var] = index;
                         }
                         /**
                          * Loop object
                          */
-                        context.loop = {
+                        inner_context.loop = {
                             index: index+1,
                             index0: index,
                             revindex: len-index,
@@ -253,7 +255,7 @@ var Twig = (function (Twig) {
                             length: len,
                             parent: context
                         };
-                        output.push(Twig.parse.apply(that, [token.output, context]));
+                        output.push(Twig.parse.apply(that, [token.output, inner_context]));
                         index += 1;
                     });
                 } else if (result instanceof Object) {
@@ -264,12 +266,20 @@ var Twig = (function (Twig) {
                     }	
 					len = keyset.length;
                     keyset.forEach(function(key) {
-                        if (key === "_keys") return; // Ignore the _keys property
+                        // Ignore the _keys property, it's internal to twig.js
+                        if (key === "_keys") return;
+                        
+                        var inner_context = Twig.lib.copy(context);
 						
+                        inner_context[token.value_var] = result[key];
+                        if (token.key_var) {
+                            inner_context[token.key_var] = key;
+                        }
+                        
                         /**
                          * Loop object
                          */
-                        context.loop = {
+                        inner_context.loop = {
                             index: index+1,
                             index0: index,
                             revindex: len-index,
@@ -280,11 +290,7 @@ var Twig = (function (Twig) {
                             parent: context
                         };
 
-                        context[token.value_var] = result[key];
-                        if (token.key_var) {
-                            context[token.key_var] = key;
-                        }
-                        output.push(Twig.parse.apply(that, [token.output, context]));
+                        output.push(Twig.parse.apply(that, [token.output, inner_context]));
 						index += 1;
                     });
                 }

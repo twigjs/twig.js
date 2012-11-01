@@ -527,6 +527,16 @@ var Twig = (function(Twig) {
         var clas = Object.prototype.toString.call(obj).slice(8, -1);
         return obj !== undefined && obj !== null && clas === type;
     };
+    
+    // shallow-copy an object
+    Twig.lib.copy = function(src) {
+        var target = {},
+            key;
+        for (key in src)
+            target[key] = src[key];
+            
+        return target;
+    };
 
     return Twig;
 
