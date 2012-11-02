@@ -450,6 +450,14 @@ discuss at: http://phpjs.org/functions/strip<em>tags
         <span class="kd">var</span> <span class="nx">clas</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">toString</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">obj</span><span class="p">).</span><span class="nx">slice</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
         <span class="k">return</span> <span class="nx">obj</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="o">&amp;&amp;</span> <span class="nx">obj</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">clas</span> <span class="o">===</span> <span class="nx">type</span><span class="p">;</span>
     <span class="p">};</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>shallow-copy an object</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Twig</span><span class="p">.</span><span class="nx">lib</span><span class="p">.</span><span class="nx">copy</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">target</span> <span class="o">=</span> <span class="p">{},</span>
+            <span class="nx">key</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="nx">key</span> <span class="k">in</span> <span class="nx">src</span><span class="p">)</span>
+            <span class="nx">target</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">src</span><span class="p">[</span><span class="nx">key</span><span class="p">];</span>
+            
+        <span class="k">return</span> <span class="nx">target</span><span class="p">;</span>
+    <span class="p">};</span>
 
     <span class="k">return</span> <span class="nx">Twig</span><span class="p">;</span>
 

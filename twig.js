@@ -1676,7 +1676,7 @@ var Twig = (function (Twig) {
              *  Format: {% for expression %}
              */
             type: Twig.logic.type.for_,
-            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([^\s].+)$/,
+            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([^\s].*?)(?:\s+if\s+([^\s].*))?$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.endfor
@@ -1685,8 +1685,8 @@ var Twig = (function (Twig) {
             compile: function (token) {
                 var key_value = token.match[1],
                     expression = token.match[2],
-                    kv_split = null,
-                    expression_stack = null;
+                    conditional = token.match[3],
+                    kv_split = null;
 
                 token.key_var = null;
                 token.value_var = null;
@@ -1708,12 +1708,18 @@ var Twig = (function (Twig) {
                 //   for key,item in expression
 
                 // Compile the expression.
-                expression_stack = Twig.expression.compile.apply(this, [{
+                token.expression = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
                     value: expression
                 }]).stack;
-
-                token.expression = expression_stack;
+                
+                // Compile the conditional (if available)
+                if (conditional) {
+                    token.conditional = Twig.expression.compile.apply(this, [{
+                        type:  Twig.expression.type.expression,
+                        value: conditional
+                    }]).stack;
+                }
 
                 delete token.match;
                 return token;
@@ -1722,36 +1728,49 @@ var Twig = (function (Twig) {
                 // Parse expression
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
-                    key,
 					len,
 					index = 0,
                     keyset,
-                    that = this;
-                    
-                if (result instanceof Array) {	
-                    len = result.length;
-                    result.forEach(function (value) {
+                    that = this,
+                    conditional = token.conditional,
+                    buildLoop = function(index, len) {
+                        var isConditional = conditional !== undefined;
+                        return {
+                            index: index+1,
+                            index0: index,
+                            revindex: isConditional?undefined:len-index,
+                            revindex0: isConditional?undefined:len-index-1,
+                            first: (index === 0),
+                            last: isConditional?undefined:(index === len-1),
+                            length: isConditional?undefined:len,
+                            parent: context
+                        };
+                    },
+                    loop = function(key, value) {
                         var inner_context = Twig.lib.copy(context);
                         
                         inner_context[token.value_var] = value;
                         if (token.key_var) {
-                            inner_context[token.key_var] = index;
+                            inner_context[token.key_var] = key;
                         }
-                        /**
-                         * Loop object
-                         */
-                        inner_context.loop = {
-                            index: index+1,
-                            index0: index,
-                            revindex: len-index,
-                            revindex0: len-index-1,
-                            first: (index === 0),
-                            last: (index === len-1),
-                            length: len,
-                            parent: context
-                        };
-                        output.push(Twig.parse.apply(that, [token.output, inner_context]));
-                        index += 1;
+                        
+                        // Loop object
+                        inner_context.loop = buildLoop(index, len);
+                        
+                        if (conditional === undefined ||
+                            Twig.expression.parse.apply(that, [conditional, inner_context]))
+                        {
+                            output.push(Twig.parse.apply(that, [token.output, inner_context]));
+                            index += 1;
+                        }
+                    };
+                    
+                if (result instanceof Array) {	
+                    len = result.length;
+                    result.forEach(function (value) {
+                        var key = index;
+                        
+                        loop(key, value);
                     });
                 } else if (result instanceof Object) {
                     if (result._keys !== undefined) {
@@ -1763,32 +1782,11 @@ var Twig = (function (Twig) {
                     keyset.forEach(function(key) {
                         // Ignore the _keys property, it's internal to twig.js
                         if (key === "_keys") return;
-                        
-                        var inner_context = Twig.lib.copy(context);
-						
-                        inner_context[token.value_var] = result[key];
-                        if (token.key_var) {
-                            inner_context[token.key_var] = key;
-                        }
-                        
-                        /**
-                         * Loop object
-                         */
-                        inner_context.loop = {
-                            index: index+1,
-                            index0: index,
-                            revindex: len-index,
-                            revindex0: len-index-1,
-                            first: (index === 0),
-                            last: (index === len-1),
-                            length: len,
-                            parent: context
-                        };
-
-                        output.push(Twig.parse.apply(that, [token.output, inner_context]));
-						index += 1;
+                                                
+                        loop(key,  result[key]);
                     });
                 }
+                
                 // Only allow else statements if no output was generated
                 continue_chain = (output.length === 0);
 

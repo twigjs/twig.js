@@ -95,10 +95,24 @@ describe("Twig.js Control Structures ->", function() {
             test_template = twig({data: '{% for key,value in test %}{{ loop.last }}{% endfor %}'});
             test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal("falsefalsefalsetrue" );
         });
-        
         it("should have a loop context item available in child loops objects", function() {
             var test_template = twig({data: '{% for value in test %}{% for value in inner %}({{ loop.parent.loop.index }},{{ loop.index }}){% endfor %}{% endfor %}'});
             test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1,1)(1,2)(1,3)(2,1)(2,2)(2,3)");
         });
+        
+        it("should support conditionals on for loops [array]", function() {
+            var test_template = twig({data: '{% for value in test if value|length > 2 %}{{ value }},{% endfor %}'});
+            test_template.render({test: ["one", "two", "a", "b", "other"]}).should.equal("one,two,other,");
+            
+            test_template = twig({data: '{% for key,item in test if item.show %}{{key}}:{{ item.value }},{% endfor %}'});
+            test_template.render({test: {
+                a: {show:true, value: "one"},
+                b: {show:false, value: "two"},
+                c: {show:true, value: "three"}}}).should.equal("a:one,c:three,");
+        });
     });
 });
+
+
+
+
