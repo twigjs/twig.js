@@ -2,7 +2,8 @@ var http = require("http"),
     url = require("url"),
     path = require("path"),
     fs = require("fs")
-    port = process.argv[2] || process.env.C9_PORT || 8888;
+    port = process.argv[2] || process.env.PORT || 8888,
+    host = process.argv[3] || process.env.IP || "0.0.0.0";
 
 http.createServer(function(request, response) {
 
@@ -32,7 +33,7 @@ if (fs.statSync(filename).isDirectory()) filename += '/index.html';
       response.end();
     });
   });
-}).listen(parseInt(port, 10));
+}).listen(parseInt(port, 10), host);
 
-console.log("Twig.Twitter demo running at\n => http://localhost:" + port + "/\nCTRL + C to shutdown");
+console.log("Twig.Twitter demo running at\n => " + host + ":" + port + "/\nCTRL + C to shutdown");
 

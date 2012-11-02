@@ -134,9 +134,10 @@ app.get('/api/notes/:id', function(req, res) {
   }
 });
 
-var port = process.env.C9_PORT || 9999;
+var port = process.env.PORT || 9999,
+    host = process.env.IP   || "0.0.0.0";
 
-app.listen(port);
+app.listen(port, host);
 
-console.log("Express Twig.js Demo is running on port " + port);
+console.log("Express Twig.js Demo is running on " + host + ":" + port);
 
