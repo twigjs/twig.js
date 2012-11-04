@@ -2348,7 +2348,7 @@ var Twig = (function (Twig) {
             Twig.expression.type.object.start
         ]
     };
-    
+
     // Most expressions allow a '.' or '[' after them, so we provide a convenience set
     Twig.expression.set.operations_extended = Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
@@ -2423,10 +2423,10 @@ var Twig = (function (Twig) {
             compile: function(token, stack, output) {
                 var i = stack.length - 1,
                     stack_token;
-                    
+
                 delete token.match;
                 delete token.value;
-                    
+
                 // pop tokens off the stack until the start of the object
                 for(;i >= 0; i--) {
                     stack_token = stack.pop();
@@ -2462,7 +2462,7 @@ var Twig = (function (Twig) {
             next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
             compile: function(token, stack, output) {
                 delete token.match;
-                
+
                 token.value = token.value.trim();
                 var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
@@ -2476,13 +2476,13 @@ var Twig = (function (Twig) {
                                  operator.precidence    >= stack[stack.length-1].precidence) ||
 
                                 (operator.associativity === Twig.expression.operator.rightToLeft &&
-                                 operator.precidence    >  stack[stack.length-1].precidence) 
+                                 operator.precidence    >  stack[stack.length-1].precidence)
                             )
                        ) {
                      var temp = stack.pop();
                      output.push(temp);
                 }
-                
+
                 if (value === ":") {
                     // Check if this is a ternary or object key being set
                     if (stack[stack.length - 1] && stack[stack.length-1].value === "?") {
@@ -2491,10 +2491,16 @@ var Twig = (function (Twig) {
                         // This is not a ternary so we push the token to the output where it can be handled
                         //   when the assocated object is closed.
                         var key_token = output.pop();
-                        if (key_token.type !== Twig.expression.type.string) {
+
+                        if (key_token.type === Twig.expression.type.string ||
+                                key_token.type === Twig.expression.type.variable ||
+                                key_token.type === Twig.expression.type.number) {
+                            token.key = key_token.value;
+
+                        } else {
                             throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
                         }
-                        token.key = key_token.value;
+
                         output.push(token);
                         return;
                     }
@@ -2518,7 +2524,7 @@ var Twig = (function (Twig) {
             next: Twig.expression.set.expressions,
             compile: function(token, stack, output) {
                 delete token.match;
-                
+
                 token.value = token.value.trim();
                 var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
@@ -2532,13 +2538,13 @@ var Twig = (function (Twig) {
                                  operator.precidence    >= stack[stack.length-1].precidence) ||
 
                                 (operator.associativity === Twig.expression.operator.rightToLeft &&
-                                 operator.precidence    >  stack[stack.length-1].precidence) 
+                                 operator.precidence    >  stack[stack.length-1].precidence)
                             )
                        ) {
                      var temp = stack.pop();
                      output.push(temp);
                 }
-                
+
                 stack.push(operator);
             },
             parse: function(token, stack, context) {
@@ -2652,7 +2658,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.array.end,
             regex: /^\]/,
             next: Twig.expression.set.operations_extended,
-            compile: function(token, stack, output) {        
+            compile: function(token, stack, output) {
                 var i = stack.length - 1,
                     stack_token;
                 // pop tokens off the stack until the start of the object
@@ -2711,7 +2717,7 @@ var Twig = (function (Twig) {
             compile: function(token, stack, output) {
                 var i = stack.length-1,
                     stack_token;
-                    
+
                 // pop tokens off the stack until the start of the object
                 for(;i >= 0; i--) {
                     stack_token = stack.pop();
@@ -2803,30 +2809,30 @@ var Twig = (function (Twig) {
                 // cleanup token
                 delete token.match;
                 delete token.value;
-                
+
                 output.push(token);
             },
             parse: function(token, stack, context) {
                 var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
                     fn     = token.fn,
                     value;
-                
+
                 if (Twig.functions[fn]) {
                     // Get the function from the built-in functions
                     value = Twig.functions[fn].apply(this, params);
-                    
+
                 } else if (typeof context[fn] == 'function') {
                     // Get the function from the user/context defined functions
                     value = context[fn].apply(context, params);
-                    
+
                 } else {
                     throw new Twig.Error(fn + ' function does not exist and is not defined in the context');
                 }
-                
+
                 stack.push(value);
             }
         },
-        
+
         // Token representing a variable.
         //
         // Variables can contain letters, numbers, underscores and
@@ -2853,7 +2859,7 @@ var Twig = (function (Twig) {
         },
         {
             type: Twig.expression.type.key.period,
-            regex: /^\.([a-zA-Z_][a-zA-Z0-9_]*)/,
+            regex: /^\.([a-zA-Z0-9_]+)/,
             next: Twig.expression.set.operations_extended.concat([
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
@@ -2868,7 +2874,7 @@ var Twig = (function (Twig) {
                     key = token.key,
                     object = stack.pop(),
                     value;
-                
+
                 if (object === null || object === undefined) {
                     if (this.options.strict_variables) {
                         throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
@@ -2876,7 +2882,7 @@ var Twig = (function (Twig) {
                         return null;
                     }
                 }
-                
+
                 var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
 
                 // Get the variable from the context
@@ -2915,7 +2921,7 @@ var Twig = (function (Twig) {
                     key = Twig.expression.parse.apply(this, [token.stack, context]),
                     object = stack.pop(),
                     value;
-                    
+
                 if (object === null || object === undefined) {
                     if (this.options.strict_variables) {
                         throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
@@ -2923,7 +2929,7 @@ var Twig = (function (Twig) {
                         return null;
                     }
                 }
-                
+
                 // Get the variable from the context
                 if (typeof object === 'object' && key in object) {
                     value = object[key];
@@ -3078,13 +3084,13 @@ var Twig = (function (Twig) {
                 // Not a match, don't change the expression
                 return match[0];
             }
-            
+
             // Validate the token if a validation function is provided
             if (Twig.expression.handler[type].validate &&
                     !Twig.expression.handler[type].validate(match, tokens)) {
                 return match[0];
             }
-            
+
             invalid_matches = [];
 
             tokens.push({
@@ -3096,7 +3102,7 @@ var Twig = (function (Twig) {
             match_found = true;
             next = token_next;
             exp_offset += match[0].length;
-            
+
             // Does the token need to return output back to the expression string
             // e.g. a function match of cycle( might return the '(' back to the expression
             // This allows look-ahead to differentiate between token types (e.g. functions and variable names)

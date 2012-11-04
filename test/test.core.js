@@ -64,22 +64,26 @@ describe("Twig.js Core ->", function() {
                                                        return "test"
                                                    }}).should.equal("test");
     });
-    
-    
+
+
     it("should recognize null", function() {
         twig({data: '{{ null == val }}'}).render({val: null}).should.equal( "true" );
         twig({data: '{{ null == val }}'}).render({val: undefined}).should.equal( "true" );
-        
+
         twig({data: '{{ null == val }}'}).render({val: "test"}).should.equal( "false" );
         twig({data: '{{ null == val }}'}).render({val: 0}).should.equal( "false" );
         twig({data: '{{ null == val }}'}).render({val: false}).should.equal( "false" );
     });
 
+
+    it("should recognize object literals", function() {
+        twig({data: '{% set at = {"foo": "test", bar: "other", 1:"zip"} %}{{ at.foo ~ at.bar ~ at.1 }}'}).render().should.equal( "testotherzip" );
+    });
+
     it("should recognize null in an object", function() {
         twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
     });
-    
-    
+
     describe("Key Notation ->", function() {
         it("should support dot key notation", function() {
             twig({data: '{{ key.value }} {{ key.sub.test }}'}).render({
@@ -112,7 +116,7 @@ describe("Twig.js Core ->", function() {
                 s: { t: { u: { v: { w: 'x' } } } }
             }).should.equal("test value x" );
         });
-        
+
         it("should support dot key notation after a function", function() {
             var test_template = twig({data: '{{ key.fn().value }}'});
             var output = test_template.render({
@@ -126,7 +130,7 @@ describe("Twig.js Core ->", function() {
             });
             output.should.equal("test");
         });
-        
+
         it("should support bracket key notation after a function", function() {
             var test_template = twig({data: '{{ key.fn()["value"] }}'});
             var output = test_template.render({
@@ -153,7 +157,7 @@ describe("Twig.js Core ->", function() {
                 }
             }).should.equal("val");
         });
-        
+
         it("should check for isKey methods if a key doesn't exist.", function() {
             twig({data: '{{ obj.value }}'}).render({
                 obj: {
@@ -163,7 +167,7 @@ describe("Twig.js Core ->", function() {
                 }
             }).should.equal("val");
         });
-        
+
         it("should check for getKey methods on prototype objects.", function() {
 			var object = {
                 getValue: function() {
@@ -173,7 +177,7 @@ describe("Twig.js Core ->", function() {
 			function Subobj() {};
 			Subobj.prototype = object;
 			var subobj = new Subobj();
-			
+
             twig({data: '{{ obj.value }}'}).render({
                 obj: subobj
             }).should.equal("val");
@@ -184,7 +188,7 @@ describe("Twig.js Core ->", function() {
                 obj: {}
             }).should.equal("true");
         });
-        
+
         it("should return null if a bracket key doesn't exist.", function() {
             twig({data: '{{ obj["value"] == null }}'}).render({
                 obj: {}
