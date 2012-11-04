@@ -30,7 +30,7 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: false, test2: false}).should.equal("not" );
         });
     });
-    
+
     // {% for ... %}
     describe("for tag ->", function() {
         it("should provide value only for array input", function() {
@@ -99,16 +99,31 @@ describe("Twig.js Control Structures ->", function() {
             var test_template = twig({data: '{% for value in test %}{% for value in inner %}({{ loop.parent.loop.index }},{{ loop.index }}){% endfor %}{% endfor %}'});
             test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1,1)(1,2)(1,3)(2,1)(2,2)(2,3)");
         });
-        
-        it("should support conditionals on for loops [array]", function() {
-            var test_template = twig({data: '{% for value in test if value|length > 2 %}{{ value }},{% endfor %}'});
+
+        it("should support conditionals on for loops", function() {
+            var test_template = twig({data: '{% for value in test if false %}{{ value }},{% endfor %}'});
+            test_template.render({test: ["one", "two", "a", "b", "other"]}).should.equal("");
+
+            test_template = twig({data: '{% for value in test if true %}{{ value }}{% endfor %}'});
+            test_template.render({test: ["a", "s", "d", "f"]}).should.equal("asdf");
+
+            test_template = twig({data: '{% for value in test if value|length > 2 %}{{ value }},{% endfor %}'});
             test_template.render({test: ["one", "two", "a", "b", "other"]}).should.equal("one,two,other,");
-            
+
             test_template = twig({data: '{% for key,item in test if item.show %}{{key}}:{{ item.value }},{% endfor %}'});
             test_template.render({test: {
                 a: {show:true, value: "one"},
                 b: {show:false, value: "two"},
                 c: {show:true, value: "three"}}}).should.equal("a:one,c:three,");
+        });
+
+    });
+
+    // {% set thing='value' %}
+    describe("set tag ->", function() {
+        it("should set the global context from within a for loop", function() {
+            var test_template = twig({data: '{% set value="wrong" %}{% for value in [1] %}{% set value="right" %}{% endfor %}{{value}}'});
+            test_template.render().should.equal("right");
         });
     });
 });

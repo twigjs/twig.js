@@ -687,15 +687,7 @@ var Twig = (function (Twig) {
         this.url    = url;
         this.options = options;
 
-        this.reset = function() {
-            Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-            this.blocks = {};
-            this.child = {
-                blocks: blocks || {}
-            };
-            this.extend = null;
-        }
-        this.reset();
+        this.reset(blocks);
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.apply(this, [data]);
@@ -703,82 +695,92 @@ var Twig = (function (Twig) {
             this.tokens = data;
         }
 
-        this.render = function (context, params) {
-            params = params || {};            
-
-            var that = this,
-                output,
-                // Should the output be an object with the blocks
-                blocks = params.output == 'blocks';
-                
-            this.context = context;
-
-            // Clear any previous state
-            this.reset();
-            if (params.blocks) {
-                this.blocks = params.blocks;
-            }
-            
-            this.importFile = function(file) {
-                var url = relativePath(that, file),
-                    // Load blocks from an external file
-                    sub_template = Twig.Templates.loadRemote(url, {
-                        method: that.url?'ajax':'fs',
-                        async: false,
-                        id: url
-                    });
-                
-                return sub_template;
-            };
-
-            this.importBlocks = function(file, override) {
-                var sub_template = this.importFile(file),
-                    key;
-                override = override || false;
-                
-                sub_template.render(context);
-
-                // Mixin blocks
-                Object.keys(sub_template.blocks).forEach(function(key) {
-                    if (override || that.blocks[key] === undefined) {
-                        that.blocks[key] = sub_template.blocks[key];
-                    }
-                });
-            };
-
-            output = Twig.parse.apply(this, [this.tokens, context]);
-
-            // Does this template extend another
-            if (this.extend) {
-                url = relativePath(this, this.extend);
-
-                // This template extends another, load it with this template's blocks
-                this.parent = Twig.Templates.loadRemote(url, {
-                    method: this.url?'ajax':'fs',
-                    async: false,
-                    id:     url
-                });
-
-                return this.parent.render(context, {
-                    blocks: this.blocks
-                });
-            }
-
-            if (blocks === true) {
-                return this.blocks;
-            } else {
-                return output;
-            }
-        };
-        
-        this.compile = function(options) {
-            // compile the template into raw JS
-            return Twig.compiler.compile(this, options);
-        };
-
         if (id !== undefined) {
             Twig.Templates.save(this);
         }
+    };
+
+    Twig.Template.prototype.reset = function(blocks) {
+        Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
+        this.blocks = {};
+        this.child = {
+            blocks: blocks || {}
+        };
+        this.extend = null;
+    };
+
+    Twig.Template.prototype.render = function (context, params) {
+        params = params || {};
+
+        var output,
+            url;
+
+        this.context = context || {};
+
+        // Clear any previous state
+        this.reset();
+        if (params.blocks) {
+            this.blocks = params.blocks;
+        }
+
+        output = Twig.parse.apply(this, [this.tokens, this.context]);
+
+        // Does this template extend another
+        if (this.extend) {
+            url = relativePath(this, this.extend);
+
+            // This template extends another, load it with this template's blocks
+            this.parent = Twig.Templates.loadRemote(url, {
+                method: this.url?'ajax':'fs',
+                async:  false,
+                id:     url
+            });
+
+            return this.parent.render(this.context, {
+                blocks: this.blocks
+            });
+        }
+
+        if (params.output == 'blocks') {
+            return this.blocks;
+        } else {
+            return output;
+        }
+    };
+
+    Twig.Template.prototype.importFile = function(file) {
+        var url = relativePath(this, file),
+            // Load blocks from an external file
+            sub_template = Twig.Templates.loadRemote(url, {
+                method: this.url?'ajax':'fs',
+                async: false,
+                id: url
+            });
+
+        return sub_template;
+    };
+
+    Twig.Template.prototype.importBlocks = function(file, override) {
+        var sub_template = this.importFile(file),
+            context = this.context,
+            that = this,
+            key;
+
+        override = override || false;
+
+        sub_template.render(context);
+
+        // Mixin blocks
+        Object.keys(sub_template.blocks).forEach(function(key) {
+            if (override || that.blocks[key] === undefined) {
+                that.blocks[key] = sub_template.blocks[key];
+            }
+        });
+    };
+
+    Twig.Template.prototype.compile = function(options) {
+        // compile the template into raw JS
+        return Twig.compiler.compile(this, options);
     };
 
     /**

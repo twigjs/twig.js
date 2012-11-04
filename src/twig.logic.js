@@ -217,7 +217,7 @@ var Twig = (function (Twig) {
                     type:  Twig.expression.type.expression,
                     value: expression
                 }]).stack;
-                
+
                 // Compile the conditional (if available)
                 if (conditional) {
                     token.conditional = Twig.expression.compile.apply(this, [{
@@ -253,15 +253,15 @@ var Twig = (function (Twig) {
                     },
                     loop = function(key, value) {
                         var inner_context = Twig.lib.copy(context);
-                        
+
                         inner_context[token.value_var] = value;
                         if (token.key_var) {
                             inner_context[token.key_var] = key;
                         }
-                        
+
                         // Loop object
                         inner_context.loop = buildLoop(index, len);
-                        
+
                         if (conditional === undefined ||
                             Twig.expression.parse.apply(that, [conditional, inner_context]))
                         {
@@ -269,12 +269,12 @@ var Twig = (function (Twig) {
                             index += 1;
                         }
                     };
-                    
-                if (result instanceof Array) {	
+
+                if (result instanceof Array) {
                     len = result.length;
                     result.forEach(function (value) {
                         var key = index;
-                        
+
                         loop(key, value);
                     });
                 } else if (result instanceof Object) {
@@ -282,16 +282,16 @@ var Twig = (function (Twig) {
                         keyset = result._keys;
                     } else {
                         keyset = Object.keys(result);
-                    }	
+                    }
 					len = keyset.length;
                     keyset.forEach(function(key) {
                         // Ignore the _keys property, it's internal to twig.js
                         if (key === "_keys") return;
-                                                
+
                         loop(key,  result[key]);
                     });
                 }
-                
+
                 // Only allow else statements if no output was generated
                 continue_chain = (output.length === 0);
 
@@ -341,6 +341,8 @@ var Twig = (function (Twig) {
                 var value = Twig.expression.parse.apply(this, [token.expression, context]),
                     key = token.key;
 
+                // set on both the global and local context
+                this.context[key] = value;
                 context[key] = value;
 
                 return {
@@ -432,14 +434,14 @@ var Twig = (function (Twig) {
                         this.blocks[token.block] = block_output;
                     }
                 }
-                        
+
                 // This is the base template -> append to output
                 if ( this.extend === null ) {
-                
+
                     // Check if a child block has been set from a template extending this one.
                     if (this.child.blocks[token.block]) {
                         output = this.child.blocks[token.block];
-                        
+
                     } else {
                         output = this.blocks[token.block];
                     }
@@ -546,9 +548,9 @@ var Twig = (function (Twig) {
                     expression = match[2].trim(),
                     withContext = match[3],
                     only = match[4] !== undefined;
-                    
+
                 delete token.match;
-                
+
                 token.only = only;
                 token.includeMissing = includeMissing;
 
@@ -556,7 +558,7 @@ var Twig = (function (Twig) {
                     type:  Twig.expression.type.expression,
                     value: expression
                 }]).stack;
-                
+
                 if (withContext !== undefined) {
                     token.withStack = Twig.expression.compile.apply(this, [{
                         type:  Twig.expression.type.expression,
@@ -572,23 +574,23 @@ var Twig = (function (Twig) {
                     withContext,
                     i,
                     template;
-                    
+
                 if (!token.only) {
                     for (i in context) {
                         if (context.hasOwnProperty(i))
                             innerContext[i] = context[i];
                     }
                 }
-                
+
                 if (token.withStack !== undefined) {
                     withContext = Twig.expression.parse.apply(this, [token.withStack, context]);
-                    
+
                     for (i in withContext) {
                         if (withContext.hasOwnProperty(i))
                             innerContext[i] = withContext[i];
                     }
                 }
-                
+
                 var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
 
                 // Import file
