@@ -198,6 +198,9 @@ twig({data: '{{ null == val }}'}).render({val: undefined}).should.equal( &quot;t
 twig({data: '{{ null == val }}'}).render({val: &quot;test&quot;}).should.equal( &quot;false&quot; );
 twig({data: '{{ null == val }}'}).render({val: 0}).should.equal( &quot;false&quot; );
 twig({data: '{{ null == val }}'}).render({val: false}).should.equal( &quot;false&quot; );</code></pre></dd>
+        <dt>should recognize object literals</dt>
+        <dd><pre><code>
+twig({data: '{% set at = {&quot;foo&quot;: &quot;test&quot;, bar: &quot;other&quot;, 1:&quot;zip&quot;} %}{{ at.foo ~ at.bar ~ at.1 }}'}).render().should.equal( &quot;testotherzip&quot; );</code></pre></dd>
         <dt>should recognize null in an object</dt>
         <dd><pre><code>
 twig({data: '{% set at = {&quot;foo&quot;: null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( &quot;true&quot; );</code></pre></dd>
@@ -292,7 +295,7 @@ twig({data: '{{ obj.value }}'}).render({
 			function Subobj() {};
 			Subobj.prototype = object;
 			var subobj = new Subobj();
-			
+
             twig({data: '{{ obj.value }}'}).render({
                 obj: subobj
             }).should.equal(&quot;val&quot;);</code></pre></dd>
