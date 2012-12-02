@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "should": "1.2.x",
-    "mocha": "1.6.x",
+    "mocha": "1.7.x",
     "docco": "0.4.x",
     "uglify-js": "*"
   }

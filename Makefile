@@ -24,11 +24,16 @@ twig.min.js: twig.js
 docs: test-docs annotated-docs
 
 test-docs:
-	make test REPORTER=doc > docs/test.html
+	@NODE_ENV=test ./node_modules/.bin/mocha \
+		--require should \
+		--reporter markdown \
+		--timeout 100 \
+		--growl \
+		$(TESTS) > docs/tests.md
 
 annotated-docs: $(SRC)
-	node_modules/.bin/docco $^ twig.js 
-    
+	node_modules/.bin/docco twig.js
+
 clean:
 	rm -f twig.min.js twig.js
 
