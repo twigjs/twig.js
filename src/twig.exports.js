@@ -52,20 +52,21 @@ var Twig = (function (Twig) {
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
+                method: 'ajax',
                 module: params.module,
                 precompiled: params.precompiled,
-                method: 'ajax',
                 async: params.async,
                 options: options
 
             }, params.load, params.error);
-            
+
         } else if (params.path !== undefined) {
             return Twig.Templates.loadRemote(params.path, {
                 id: id,
+                method: 'fs',
+                base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
-                method: 'fs',
                 async: params.async,
                 options: options
 
@@ -77,7 +78,7 @@ var Twig = (function (Twig) {
     Twig.exports.extendFilter = function(filter, definition) {
         Twig.filter.extend(filter, definition);
     };
-    
+
     // Extend Twig with a new function.
     Twig.exports.extendFunction = function(fn, definition) {
         Twig._function.extend(fn, definition);
@@ -104,10 +105,9 @@ var Twig = (function (Twig) {
      */
     Twig.exports.compile = function(markup, options) {
         var id = options.filename,
-            sep_chr = '/',
             path = options.filename,
             template;
-            
+
         // Try to load the template from the cache
         template = new Twig.Template({
             data: markup,
@@ -128,32 +128,38 @@ var Twig = (function (Twig) {
      * @param {Object|Function} The options or callback.
      * @param {Function} fn callback.
      */
-    
+
     Twig.exports.renderFile = function(path, options, fn) {
         // handle callback in options
         if ('function' == typeof options) {
-            fn = options, options = {};
+            fn = options;
+            options = {};
         }
-        
-        var view_options = options.settings['twig options'],
-            option,
-            params = {
+
+        options = options || {};
+
+        var params = {
                 path: path,
+                base: options.settings['views'],
                 load: function(template) {
                     // render and return template
                     fn(null, template.render(options));
                 }
             };
-        
+
         // mixin any options provided to the express app.
+        var view_options = options.settings['twig options'];
+
         if (view_options) {
-            for (option in view_options) {
+            for (var option in view_options) if (view_options.hasOwnProperty(option)) {
                 params[option] = view_options[option];
             }
         }
-        
+
         Twig.exports.twig(params);
     };
+
+    // Express 3 handler
     Twig.exports.__express = Twig.exports.renderFile;
 
     /**

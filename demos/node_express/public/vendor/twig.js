@@ -523,7 +523,6 @@ var Twig = (function (Twig) {
             method      = params.method,
             async       = params.async,
             precompiled = params.precompiled,
-            options     = params.options,
             template    = null;
 
         // Default to async
@@ -533,6 +532,8 @@ var Twig = (function (Twig) {
         if (id === undefined) {
             id = location;
         }
+        params.id = id;
+
         // Check for existing template
         if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             // A template is already saved with the given id.
@@ -543,10 +544,9 @@ var Twig = (function (Twig) {
         }
 
         if (method == 'ajax') {
-
             if (typeof XMLHttpRequest == "undefined") {
-                throw new Error("Unsupported platform: Unable to do remote requests " +
-                                "because there is no XMLHTTPRequest implementation");
+                throw new Twig.Error("Unsupported platform: Unable to do remote requests " +
+                                     "because there is no XMLHTTPRequest implementation");
             }
 
             var xmlhttp = new XMLHttpRequest();
@@ -562,12 +562,10 @@ var Twig = (function (Twig) {
                         data = xmlhttp.responseText;
                     }
 
-                    template = new Twig.Template({
-                        data:   data,
-                        id:     id,
-                        url:    location,
-                        options: options
-                    });
+                    params.url = location;
+                    params.data = data;
+
+                    template = new Twig.Template(params);
 
                     if (callback) {
                         callback(template);
@@ -581,11 +579,9 @@ var Twig = (function (Twig) {
             // Create local scope
             (function() {
                 var fs = require('fs'),
-                    data = null;
-
-                if (async === true) {
-                    // async with callback
-                    fs.readFile(location, 'utf8', function(err, data) {
+                    path = require('path'),
+                    data = null,
+                    loadTemplateFn = function(err, data) {
                         if (err) {
                             if (error_callback) {
                                 error_callback(err);
@@ -597,36 +593,30 @@ var Twig = (function (Twig) {
                             data = JSON.parse(data);
                         }
 
+                        params.data = data;
+                        params.path = location;
+
                         // template is in data
-                        template = new Twig.Template({
-                            data:   data,
-                            id:     id,
-                            path:   location,
-                            options: options
-                        });
+                        template = new Twig.Template(params);
 
                         if (callback) {
                             callback(template);
                         }
+                    };
+
+                if (async === true) {
+                    fs.stat(location, function (err, stats) {
+                        if (err || !stats.isFile())
+                            throw new Twig.Error("Unable to find template file " + location);
+
+                        fs.readFile(location, 'utf8', loadTemplateFn);
                     });
                 } else {
+                    if (!fs.statSync(location).isFile())
+                        throw new Twig.Error("Unable to find template file " + location);
+
                     data = fs.readFileSync(location, 'utf8');
-
-                    if (precompiled === true) {
-                        data = JSON.parse(data);
-                    }
-
-                    // sync
-                    template = new Twig.Template({
-                        data:   data,
-                        id:     id,
-                        path:   location,
-                        options: options
-                    });
-
-                    if (callback) {
-                        callback(template);
-                    }
+                    loadTemplateFn(undefined, data);
                 }
             })();
         }
@@ -659,6 +649,7 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
+            base = params.base,
             path = params.path,
             url = params.url,
             // parser options
@@ -683,6 +674,7 @@ var Twig = (function (Twig) {
         //
 
         this.id     = id;
+        this.base   = base;
         this.path   = path;
         this.url    = url;
         this.options = options;
@@ -732,6 +724,7 @@ var Twig = (function (Twig) {
             // This template extends another, load it with this template's blocks
             this.parent = Twig.Templates.loadRemote(url, {
                 method: this.url?'ajax':'fs',
+                base: this.base,
                 async:  false,
                 id:     url
             });
@@ -794,18 +787,32 @@ var Twig = (function (Twig) {
     function relativePath(template, file) {
         var base,
             base_path,
-            sep_chr = '/',
+            sep_chr = "/",
             new_path = [],
             val;
+
         if (template.url) {
             base = template.url;
         } else if (template.path) {
-            base = template.path;
+            // Get the system-specific path separator
+            var path = require("path"),
+                sep = path.sep || sep_chr,
+                relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\"));
+
+            if (template.base !== undefined && file.match(relative) == null) {
+                file = file.replace(template.base, '');
+                base = template.base + sep;
+            } else {
+                base = template.path;
+            }
+
+            base = base.replace(sep+sep, sep);
+            sep_chr = sep;
         } else {
             throw new Twig.Error("Cannot extend an inline template.");
         }
 
-        base_path = base.split(sep_chr),
+        base_path = base.split(sep_chr);
 
         // Remove file from url
         base_path.pop();
@@ -4102,20 +4109,21 @@ var Twig = (function (Twig) {
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
+                method: 'ajax',
                 module: params.module,
                 precompiled: params.precompiled,
-                method: 'ajax',
                 async: params.async,
                 options: options
 
             }, params.load, params.error);
-            
+
         } else if (params.path !== undefined) {
             return Twig.Templates.loadRemote(params.path, {
                 id: id,
+                method: 'fs',
+                base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
-                method: 'fs',
                 async: params.async,
                 options: options
 
@@ -4127,7 +4135,7 @@ var Twig = (function (Twig) {
     Twig.exports.extendFilter = function(filter, definition) {
         Twig.filter.extend(filter, definition);
     };
-    
+
     // Extend Twig with a new function.
     Twig.exports.extendFunction = function(fn, definition) {
         Twig._function.extend(fn, definition);
@@ -4154,10 +4162,9 @@ var Twig = (function (Twig) {
      */
     Twig.exports.compile = function(markup, options) {
         var id = options.filename,
-            sep_chr = '/',
             path = options.filename,
             template;
-            
+
         // Try to load the template from the cache
         template = new Twig.Template({
             data: markup,
@@ -4178,32 +4185,38 @@ var Twig = (function (Twig) {
      * @param {Object|Function} The options or callback.
      * @param {Function} fn callback.
      */
-    
+
     Twig.exports.renderFile = function(path, options, fn) {
         // handle callback in options
         if ('function' == typeof options) {
-            fn = options, options = {};
+            fn = options;
+            options = {};
         }
-        
-        var view_options = options.settings['twig options'],
-            option,
-            params = {
+
+        options = options || {};
+
+        var params = {
                 path: path,
+                base: options.settings['views'],
                 load: function(template) {
                     // render and return template
                     fn(null, template.render(options));
                 }
             };
-        
+
         // mixin any options provided to the express app.
+        var view_options = options.settings['twig options'];
+
         if (view_options) {
-            for (option in view_options) {
+            for (var option in view_options) if (view_options.hasOwnProperty(option)) {
                 params[option] = view_options[option];
             }
         }
-        
+
         Twig.exports.twig(params);
     };
+
+    // Express 3 handler
     Twig.exports.__express = Twig.exports.renderFile;
 
     /**
