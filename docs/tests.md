@@ -50,11 +50,11 @@
      - [defined test ->](#twigjs-tests---defined-test--)
      - [none test ->](#twigjs-tests---none-test--)
      - [sameas test ->](#twigjs-tests---sameas-test--)
-<a name=""></a>
+<a name="" />
  
-<a name="twigjs-control-structures--"></a>
+<a name="twigjs-control-structures--" />
 # Twig.js Control Structures ->
-<a name="twigjs-control-structures---if-tag--"></a>
+<a name="twigjs-control-structures---if-tag--" />
 ## if tag ->
 should parse the contents of the if block if the expression is true.
 
@@ -92,7 +92,7 @@ test_template.render({test: false, test2: true}).should.equal("not" );
 test_template.render({test: false, test2: false}).should.equal("not" );
 ```
 
-<a name="twigjs-control-structures---for-tag--"></a>
+<a name="twigjs-control-structures---for-tag--" />
 ## for tag ->
 should provide value only for array input.
 
@@ -206,7 +206,7 @@ test_template.render({test: {
     c: {show:true, value: "three"}}}).should.equal("a:one,c:three,");
 ```
 
-<a name="twigjs-control-structures---set-tag--"></a>
+<a name="twigjs-control-structures---set-tag--" />
 ## set tag ->
 should set the global context from within a for loop.
 
@@ -215,7 +215,7 @@ var test_template = twig({data: '{% set value="wrong" %}{% for value in [1] %}{%
 test_template.render().should.equal("right");
 ```
 
-<a name="twigjs-core--"></a>
+<a name="twigjs-core--" />
 # Twig.js Core ->
 should save and load a template by reference.
 
@@ -321,7 +321,7 @@ should recognize null in an object.
 twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
 ```
 
-<a name="twigjs-core---key-notation--"></a>
+<a name="twigjs-core---key-notation--" />
 ## Key Notation ->
 should support dot key notation.
 
@@ -455,9 +455,9 @@ twig({data: '{{ obj["value"] == null }}'}).render({
 }).should.equal("true");
 ```
 
-<a name="twigjs-expressions--"></a>
+<a name="twigjs-expressions--" />
 # Twig.js Expressions ->
-<a name="twigjs-expressions---basic-operators--"></a>
+<a name="twigjs-expressions---basic-operators--" />
 ## Basic Operators ->
 should add numbers.
 
@@ -568,7 +568,7 @@ var expected = data.a / (data.b + data.c) * data.d - (data.e + data.f) / (data.g
 output.should.equal(expected.toString());
 ```
 
-<a name="twigjs-expressions---comparison-operators--"></a>
+<a name="twigjs-expressions---comparison-operators--" />
 ## Comparison Operators ->
 should support less then.
 
@@ -666,7 +666,7 @@ test_template.render({a:false}).should.equal(true.toString());
 test_template.render({a:true}).should.equal(false.toString());
 ```
 
-<a name="twigjs-expressions---other-operators--"></a>
+<a name="twigjs-expressions---other-operators--" />
 ## Other Operators ->
 should support the ternary operator.
 
@@ -757,7 +757,7 @@ var test_template = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
 test_template.render().should.equal(true.toString());
 ```
 
-<a name="twigjs-filters--"></a>
+<a name="twigjs-filters--" />
 # Twig.js Filters ->
 should chain.
 
@@ -766,7 +766,7 @@ var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
 test_template.render().should.equal("2,1,0" );
 ```
 
-<a name="twigjs-filters---url_encode--"></a>
+<a name="twigjs-filters---url_encode--" />
 ## url_encode ->
 should encode URLs.
 
@@ -775,7 +775,7 @@ var test_template = twig({data: '{{ "http://google.com/?q=twig.js"|url_encode() 
 test_template.render().should.equal("http%3A%2F%2Fgoogle.com%2F%3Fq%3Dtwig.js" );
 ```
 
-<a name="twigjs-filters---json_encode--"></a>
+<a name="twigjs-filters---json_encode--" />
 ## json_encode ->
 should encode strings to json.
 
@@ -805,7 +805,7 @@ var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
 test_template.render().should.equal('{"a":[1,"b",3]}' );
 ```
 
-<a name="twigjs-filters---upper--"></a>
+<a name="twigjs-filters---upper--" />
 ## upper ->
 should convert text to uppercase.
 
@@ -814,7 +814,7 @@ var test_template = twig({data: '{{ "hello"|upper }}' });
 test_template.render().should.equal("HELLO" );
 ```
 
-<a name="twigjs-filters---lower--"></a>
+<a name="twigjs-filters---lower--" />
 ## lower ->
 should convert text to lowercase.
 
@@ -823,7 +823,7 @@ var test_template = twig({data: '{{ "HELLO"|lower }}' });
 test_template.render().should.equal("hello" );
 ```
 
-<a name="twigjs-filters---capitalize--"></a>
+<a name="twigjs-filters---capitalize--" />
 ## capitalize ->
 should capitalize the first word in a string.
 
@@ -832,7 +832,7 @@ var test_template = twig({data: '{{ "hello world"|capitalize }}' });
 test_template.render().should.equal("Hello world" );
 ```
 
-<a name="twigjs-filters---title--"></a>
+<a name="twigjs-filters---title--" />
 ## title ->
 should capitalize all the words in a string.
 
@@ -841,7 +841,7 @@ var test_template = twig({data: '{{ "hello world"|title }}' });
 test_template.render().should.equal("Hello World" );
 ```
 
-<a name="twigjs-filters---length--"></a>
+<a name="twigjs-filters---length--" />
 ## length ->
 should determine the length of a string.
 
@@ -864,7 +864,7 @@ var test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length 
 test_template.render().should.equal("3");
 ```
 
-<a name="twigjs-filters---sort--"></a>
+<a name="twigjs-filters---sort--" />
 ## sort ->
 should sort an array.
 
@@ -886,7 +886,7 @@ test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{
 test_template.render().should.equal("a:2 y:7 z:abc m:test " );
 ```
 
-<a name="twigjs-filters---reverse--"></a>
+<a name="twigjs-filters---reverse--" />
 ## reverse ->
 should reverse an array.
 
@@ -901,7 +901,7 @@ should reverse an object.
 
 ```
 
-<a name="twigjs-filters---keys--"></a>
+<a name="twigjs-filters---keys--" />
 ## keys ->
 should return the keys of an array.
 
@@ -920,7 +920,7 @@ test_template = twig({data: '{{ {"0":"a", "1":"b", "2":"c"}|keys }}' });
 test_template.render().should.equal("0,1,2" );
 ```
 
-<a name="twigjs-filters---merge--"></a>
+<a name="twigjs-filters---merge--" />
 ## merge ->
 should merge two objects into an object.
 
@@ -950,7 +950,7 @@ test_template = twig({data: '{% set obj= {"1":"a", "a":"b"}|merge(["c", "d"]) %}
 test_template.render().should.equal('1:a a:b 2:c 3:d ' );
 ```
 
-<a name="twigjs-filters---join--"></a>
+<a name="twigjs-filters---join--" />
 ## join ->
 should join all values in an object.
 
@@ -968,7 +968,7 @@ test_template = twig({data: '{{ [1+ 5,2,4,76]|join("-" ~ ".") }}' });
 test_template.render().should.equal("6-.2-.4-.76" );
 ```
 
-<a name="twigjs-filters---default--"></a>
+<a name="twigjs-filters---default--" />
 ## default ->
 should not provide the default value if a key is defined and not empty.
 
@@ -994,7 +994,7 @@ test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
 test_template.render({'var':{}}).should.equal("Empty Key" );
 ```
 
-<a name="twigjs-filters---date--"></a>
+<a name="twigjs-filters---date--" />
 ## date ->
 should recognize timestamps.
 
@@ -1014,7 +1014,7 @@ var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:
            template.render().should.equal( stringDate(date) );
 ```
 
-<a name="twigjs-filters---replace--"></a>
+<a name="twigjs-filters---replace--" />
 ## replace ->
 should replace strings provided in a map.
 
@@ -1023,7 +1023,7 @@ var template = twig({data: '{{ "I like %this% and %that%."|replace({"%this%": fo
 template.render({foo: "foo"}).should.equal("I like foo and bar." );
 ```
 
-<a name="twigjs-filters---format--"></a>
+<a name="twigjs-filters---format--" />
 ## format ->
 should replace formatting tags with parameters.
 
@@ -1032,7 +1032,7 @@ var template = twig({data: '{{ "I like %s and %s."|format(foo, "bar") }}'});
 template.render({foo: "foo"}).should.equal("I like foo and bar." );
 ```
 
-<a name="twigjs-filters---striptags--"></a>
+<a name="twigjs-filters---striptags--" />
 ## striptags ->
 should remove tags from a value.
 
@@ -1041,7 +1041,7 @@ var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\
 template.render().should.equal("Test paragraph. Other text" );
 ```
 
-<a name="twigjs-filters---escape--"></a>
+<a name="twigjs-filters---escape--" />
 ## escape ->
 should convert unsafe characters to HTML entities.
 
@@ -1050,7 +1050,7 @@ var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\
 template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
 ```
 
-<a name="twigjs-filters---e--"></a>
+<a name="twigjs-filters---e--" />
 ## e ->
 should alias escape function with e.
 
@@ -1059,7 +1059,7 @@ var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\
 template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
 ```
 
-<a name="twigjs-filters---nl2br--"></a>
+<a name="twigjs-filters---nl2br--" />
 ## nl2br ->
 should convert newlines into html breaks.
 
@@ -1068,7 +1068,7 @@ var template = twig({data: '{{ test|nl2br }}'});
 template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br />Line 2<br />Line 3<br />Line 4<br /><br />");
 ```
 
-<a name="twigjs-filters---trim--"></a>
+<a name="twigjs-filters---trim--" />
 ## trim ->
 should trim whitespace from strings.
 
@@ -1077,7 +1077,7 @@ var template = twig({data: '{{ test|trim }}'});
 template.render({ test: '\r\n Test\n  ' }).should.equal("Test");
 ```
 
-<a name="twigjs-filters---number_format--"></a>
+<a name="twigjs-filters---number_format--" />
 ## number_format ->
 should round to nearest integer if no parameters.
 
@@ -1114,7 +1114,7 @@ var template = twig({data: '{{ 1234.5678|number_format(2,"","") }}'});
 template.render().should.equal("123457");
 ```
 
-<a name="twigjs-loader--"></a>
+<a name="twigjs-loader--" />
 # Twig.js Loader ->
 should load a template from the filesystem asynchronously.
 
@@ -1149,7 +1149,7 @@ template.render({
 }).should.equal("Test template = yes\n\nFlag set!");
 ```
 
-<a name="twigjs-blocks--"></a>
+<a name="twigjs-blocks--" />
 # Twig.js Blocks ->
 should load a parent template and render the default values.
 
@@ -1229,7 +1229,7 @@ twig({
 });
 ```
 
-<a name="twigjs-include--"></a>
+<a name="twigjs-include--" />
 # Twig.js Include ->
 should load an included template with no context.
 
@@ -1270,7 +1270,7 @@ twig({
 twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
 ```
 
-<a name="twigjs-functions--"></a>
+<a name="twigjs-functions--" />
 # Twig.js Functions ->
 should allow you to define a function.
 
@@ -1414,9 +1414,9 @@ twig({
 }).should.equal("1-test-true");
 ```
 
-<a name="twigjs-functions---built-in-functions--"></a>
+<a name="twigjs-functions---built-in-functions--" />
 ## Built-in Functions ->
-<a name="twigjs-functions---built-in-functions---range--"></a>
+<a name="twigjs-functions---built-in-functions---range--" />
 ### range ->
 should work over a range of numbers.
 
@@ -1443,7 +1443,7 @@ twig({data: '{% for i in 0..3 %}{{ i }},{% endfor %}'}).render().should.equal("0
 twig({data: '{% for i in "a" .. "c" %}{{ i }},{% endfor %}'}).render().should.equal("a,b,c,");
 ```
 
-<a name="twigjs-functions---built-in-functions---cycle--"></a>
+<a name="twigjs-functions---built-in-functions---cycle--" />
 ### cycle ->
 should cycle through an array of values.
 
@@ -1451,7 +1451,7 @@ should cycle through an array of values.
 twig({data: '{% for i in range(0, 3) %}{{ cycle(["odd", "even"], i) }};{% endfor %}'}).render().should.equal("odd;even;odd;even;");
 ```
 
-<a name="twigjs-functions---built-in-functions---date--"></a>
+<a name="twigjs-functions---built-in-functions---date--" />
 ### date ->
 should understand timestamps.
 
@@ -1481,7 +1481,7 @@ var date = new Date("June 20, 2010 UTC");
 twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
 ```
 
-<a name="twigjs-functions---built-in-functions---dump--"></a>
+<a name="twigjs-functions---built-in-functions---dump--" />
 ### dump ->
 should output formatted number.
 
@@ -1525,7 +1525,7 @@ should output formatted undefined.
 twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);
 ```
 
-<a name="twigjs-regression-tests--"></a>
+<a name="twigjs-regression-tests--" />
 # Twig.js Regression Tests ->
 #47 should not match variables starting with not.
 
@@ -1534,9 +1534,9 @@ twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('unde
 twig({data: '{% for note in notes %}{{note}}{% endfor %}'}).render({notes:['a', 'b', 'c']}).should.equal("abc");
 ```
 
-<a name="twigjs-tests--"></a>
+<a name="twigjs-tests--" />
 # Twig.js Tests ->
-<a name="twigjs-tests---empty-test--"></a>
+<a name="twigjs-tests---empty-test--" />
 ## empty test ->
 should identify numbers as not empty.
 
@@ -1571,7 +1571,7 @@ twig({data: '{{ {"a":"b"} is empty }}'}).render().should.equal("false" );
 twig({data: '{{ {"a":"b"} is not empty }}'}).render().should.equal("true" );
 ```
 
-<a name="twigjs-tests---odd-test--"></a>
+<a name="twigjs-tests---odd-test--" />
 ## odd test ->
 should identify a number as odd.
 
@@ -1580,7 +1580,7 @@ twig({data: '{{ (1 + 4) is odd }}'}).render().should.equal("true" );
 twig({data: '{{ 6 is odd }}'}).render().should.equal("false" );
 ```
 
-<a name="twigjs-tests---even-test--"></a>
+<a name="twigjs-tests---even-test--" />
 ## even test ->
 should identify a number as even.
 
@@ -1589,7 +1589,7 @@ twig({data: '{{ (1 + 4) is even }}'}).render().should.equal("false" );
 twig({data: '{{ 6 is even }}'}).render().should.equal("true" );
 ```
 
-<a name="twigjs-tests---divisibleby-test--"></a>
+<a name="twigjs-tests---divisibleby-test--" />
 ## divisibleby test ->
 should determine if a number is divisible by the given number.
 
@@ -1598,7 +1598,7 @@ twig({data: '{{ 5 is divisibleby(3) }}'}).render().should.equal("false" );
 twig({data: '{{ 6 is divisibleby(3) }}'}).render().should.equal("true" );
 ```
 
-<a name="twigjs-tests---defined-test--"></a>
+<a name="twigjs-tests---defined-test--" />
 ## defined test ->
 should identify a key as defined if it exists in the render context.
 
@@ -1607,7 +1607,7 @@ twig({data: '{{ key is defined }}'}).render().should.equal("false" );
 twig({data: '{{ key is defined }}'}).render({key: "test"}).should.equal( "true" );
 ```
 
-<a name="twigjs-tests---none-test--"></a>
+<a name="twigjs-tests---none-test--" />
 ## none test ->
 should identify a key as none if it exists in the render context and is null.
 
@@ -1618,7 +1618,7 @@ twig({data: '{{ key is none }}'}).render({key: null}).should.equal("true");
 twig({data: '{{ key is null }}'}).render({key: null}).should.equal("true");
 ```
 
-<a name="twigjs-tests---sameas-test--"></a>
+<a name="twigjs-tests---sameas-test--" />
 ## sameas test ->
 should identify the exact same type as true.
 

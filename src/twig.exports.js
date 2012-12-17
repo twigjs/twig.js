@@ -94,6 +94,12 @@ var Twig = (function (Twig) {
         Twig.logic.extend(definition);
     };
 
+    // Provide an environment for extending Twig core.
+    // Calls fn with the internal Twig object.
+    Twig.exports.extend = function(fn) {
+        fn(Twig);
+    };
+
 
     /**
      * Provide an extension for use with express 2.
