@@ -18,6 +18,12 @@ Documentation is available in the [twig.js wiki](https://github.com/justjohn/twi
 
 For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/justjohn/twig.js/wiki/Implementation-Notes) page on the wiki.
 
+### Contributing
+
+If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js. twig.js is built by running `make`
+
+For more details on getting setup, see the [contributing page](https://github.com/justjohn/twig.js/wiki/Contributing) on the wiki.
+
 # Node Usage
 
 Twig.js can be installed with NPM
