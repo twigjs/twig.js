@@ -726,8 +726,7 @@ var Twig = (function (Twig) {
                 method: this.url?'ajax':'fs',
                 base: this.base,
                 async:  false,
-                id:     url,
-		options: this.options
+                id:     url
             });
 
             return this.parent.render(this.context, {
