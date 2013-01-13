@@ -1236,7 +1236,7 @@ twig({
             test: "yes",
             flag: true
         }).should.equal("Test template = yes\n\nFlag set!");
-        
+
         done();
     }
 });
@@ -1267,7 +1267,7 @@ twig({
     path: 'test/templates/template.twig',
     async: false
 });
-    
+
 // Load the template
 twig({ref: 'remote-no-extends'}).render({ }).should.equal( "Default Title - body" );
 ```
@@ -1279,7 +1279,7 @@ should load a child template and replace the parent block's content.
 twig({
     id:   'child-extends',
     path: 'test/templates/child.twig',
-            
+
     load: function(template) {
         template.render({ base: "template.twig" }).should.equal( "Other Title - child" );
         done();
@@ -1294,11 +1294,11 @@ should have access to a parent block content.
 twig({
     id:   'child-parent',
     path: 'test/templates/child-parent.twig',
-            
+
     load: function(template) {
-        template.render({ 
-            base: "template.twig", 
-            inner: ':value' 
+        template.render({
+            base: "template.twig",
+            inner: ':value'
         }).should.equal( "Other Title - body:value:child" );
         done();
     }
@@ -1312,7 +1312,7 @@ should include blocks from another template for horizontal reuse.
 twig({
     id:   'use',
     path: 'test/templates/use.twig',
-            
+
     load: function(template) {
         // Load the template
         template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
@@ -1337,6 +1337,36 @@ twig({
 });
 ```
 
+should render nested blocks.
+
+```js
+// Test rendering of blocks within blocks
+twig({
+    id:     'blocks-nested',
+    path:   'test/templates/blocks-nested.twig',
+
+    load: function(template) {
+        template.render({ }).should.equal( "parent:child" )
+        done();
+    }
+})
+```
+
+should render extended nested blocks.
+
+```js
+// Test rendering of blocks within blocks
+twig({
+    id:     'child-blocks-nested',
+    path:   'test/templates/child-blocks-nested.twig',
+
+    load: function(template) {
+        template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" )
+        done();
+    }
+})
+```
+
 <a name="twigjs-include--"></a>
 # Twig.js Include ->
 should load an included template with no context.
@@ -1347,7 +1377,7 @@ twig({
     path: 'test/templates/include.twig',
     async: false
 });
-    
+
 // Load the template
 twig({ref: 'include'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
 ```
@@ -1360,7 +1390,7 @@ twig({
     path: 'test/templates/include-with.twig',
     async: false
 });
-    
+
 // Load the template
 twig({ref: 'include-with'}).render({test: 'tst'}).should.equal( "template: before,tst-mid-template: after,tst" );
 ```
@@ -1373,7 +1403,7 @@ twig({
     path: 'test/templates/include-only.twig',
     async: false
 });
-    
+
 // Load the template
 twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
 ```
