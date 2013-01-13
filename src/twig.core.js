@@ -393,7 +393,8 @@ var Twig = (function (Twig) {
         // Default to an empty object if none provided
         context = context || { };
 
-        tokens.forEach(function (token) {
+
+        tokens.forEach(function parseToken(token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
             switch (token.type) {
