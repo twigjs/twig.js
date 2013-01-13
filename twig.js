@@ -393,7 +393,8 @@ var Twig = (function (Twig) {
         // Default to an empty object if none provided
         context = context || { };
 
-        tokens.forEach(function (token) {
+
+        tokens.forEach(function parseToken(token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
             switch (token.type) {
@@ -1940,16 +1941,12 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                // This is the base template -> append to output
-                if ( this.extend === null ) {
+                // Check if a child block has been set from a template extending this one.
+                if (this.child.blocks[token.block]) {
+                    output = this.child.blocks[token.block];
 
-                    // Check if a child block has been set from a template extending this one.
-                    if (this.child.blocks[token.block]) {
-                        output = this.child.blocks[token.block];
-
-                    } else {
-                        output = this.blocks[token.block];
-                    }
+                } else {
+                    output = this.blocks[token.block];
                 }
 
                 return {

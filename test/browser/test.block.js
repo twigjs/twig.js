@@ -3,7 +3,7 @@ var Twig = Twig || require("../twig"),
 
 describe("Twig.js Blocks ->", function() {
     it("Should load content in blocks that are not replaced", function() {
-        
+
         twig({
             id:   'remote-no-extends',
             href: 'templates/template.twig',
@@ -53,5 +53,31 @@ describe("Twig.js Blocks ->", function() {
                 done();
             }
         });
+    });
+
+    it("should render nested blocks", function(done) {
+        // Test rendering of blocks within blocks
+        twig({
+            id:     'blocks-nested',
+            href:   'templates/blocks-nested.twig',
+
+            load: function(template) {
+                template.render({ }).should.equal( "parent:child" )
+                done();
+            }
+        })
+    });
+
+    it("should render extended nested blocks", function(done) {
+        // Test rendering of blocks within blocks
+        twig({
+            id:     'child-blocks-nested',
+            href:   'templates/child-blocks-nested.twig',
+
+            load: function(template) {
+                template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" )
+                done();
+            }
+        })
     });
 });

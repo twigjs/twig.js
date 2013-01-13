@@ -3,20 +3,20 @@ var Twig = Twig || require("../twig"),
 
 describe("Twig.js Browser Loading ->", function() {
     it("Should load a template synchronously", function() {
-        
+
         twig({
             id:   'remote-browser',
             href: 'templates/test.twig',
             async: false
         });
-        
+
         // Verify the template was loaded
         twig({ref: 'remote-browser'}).render({
             test: "reload",
             flag: false
         }).should.equal("Test template = reload\n\n");
     });
-    
+
     it("Should load a template asynchronously", function(done) {
 
         // Test loading a template from a remote endpoint asynchronously
@@ -39,6 +39,6 @@ describe("Twig.js Browser Loading ->", function() {
 
                 done();
             }
-        });     
+        });
     });
 });
