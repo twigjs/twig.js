@@ -102,6 +102,32 @@ describe("Twig.js Blocks ->", function() {
             }
         });
     });
+
+    it("should render nested blocks", function(done) {
+        // Test rendering of blocks within blocks
+        twig({
+            id:     'blocks-nested',
+            path:   'test/templates/blocks-nested.twig',
+
+            load: function(template) {
+                template.render({ }).should.equal( "parent:child" )
+                done();
+            }
+        })
+    });
+
+    it("should render extended nested blocks", function(done) {
+        // Test rendering of blocks within blocks
+        twig({
+            id:     'child-blocks-nested',
+            path:   'test/templates/child-blocks-nested.twig',
+
+            load: function(template) {
+                template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" )
+                done();
+            }
+        })
+    });
 });
 
 
