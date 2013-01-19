@@ -749,6 +749,7 @@ var Twig = (function (Twig) {
             sub_template = Twig.Templates.loadRemote(url, {
                 method: this.url?'ajax':'fs',
                 async: false,
+                options: this.options,
                 id: url
             });
 
