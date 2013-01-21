@@ -14,13 +14,29 @@ describe("Twig.js Expressions ->", function() {
     ];
 
     describe("Basic Operators ->", function() {
-        
+
         var string_data = [
             {a: 'test', b: 'string'},
             {a: 'test', b: ''},
             {a: '', b: 'string'},
             {a: '', b: ''},
         ];
+
+        it("should parse parenthesis", function() {
+            var test_template = twig({data: '{{ a - (b + c) }}'}),
+                d = {a: 10, b: 4, c: 2},
+                output = test_template.render(d);
+
+            output.should.equal( (d.a - (d.b + d.c)).toString() );
+        });
+
+        it("should parse nested parenthesis", function() {
+            var test_template = twig({data: '{{ a - ((b) + (1 + c)) }}'}),
+                d = {a: 10, b: 4, c: 2},
+                output = test_template.render(d);
+
+            output.should.equal( (d.a - (d.b + 1 + d.c)).toString() );
+        });
 
         it("should add numbers", function() {
             var test_template = twig({data: '{{ a + b }}'});
@@ -74,7 +90,7 @@ describe("Twig.js Expressions ->", function() {
                 output.should.equal(pair.c.toString() );
             });
         });
-        
+
         it("should concatanate values", function() {
             twig({data: '{{ "test" ~ a }}'}).render({a:1234}).should.equal("test1234");
             twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}).should.equal("1234test1234");
@@ -216,52 +232,52 @@ describe("Twig.js Expressions ->", function() {
 
             output2.should.equal( "1" );
         });
-        
+
         it("should support in/containment functionality for arrays", function() {
             var test_template = twig({data: '{{ "a" in ["a", "b", "c"] }}'});
             test_template.render().should.equal(true.toString());
-            
+
             var test_template = twig({data: '{{ "d" in ["a", "b", "c"] }}'});
             test_template.render().should.equal(false.toString());
         });
-        
+
         it("should support not in/containment functionality for arrays", function() {
             var test_template = twig({data: '{{ "a" not in ["a", "b", "c"] }}'});
             test_template.render().should.equal(false.toString());
-            
+
             var test_template = twig({data: '{{ "d" not in ["a", "b", "c"] }}'});
             test_template.render().should.equal(true.toString());
         });
-            
-            
+
+
         it("should support in/containment functionality for strings", function() {
             var test_template = twig({data: '{{ "at" in "hat" }}'});
             test_template.render().should.equal(true.toString());
-            
+
             var test_template = twig({data: '{{ "d" in "not" }}'});
             test_template.render().should.equal(false.toString());
         });
-        
+
         it("should support not in/containment functionality for strings", function() {
             var test_template = twig({data: '{{ "at" not in "hat" }}'});
             test_template.render().should.equal(false.toString());
-            
+
             var test_template = twig({data: '{{ "d" not in "not" }}'});
             test_template.render().should.equal(true.toString());
         });
-        
+
         it("should support in/containment functionality for objects", function() {
             var test_template = twig({data: '{{ "value" in {"key" : "value", "2": "other"} }}'});
             test_template.render().should.equal(true.toString());
-            
+
             var test_template = twig({data: '{{ "d" in {"key_a" : "no"} }}'});
             test_template.render().should.equal(false.toString());
         });
-        
+
         it("should support not in/containment functionality for objects", function() {
             var test_template = twig({data: '{{ "value" not in {"key" : "value", "2": "other"} }}'});
             test_template.render().should.equal(false.toString());
-            
+
             var test_template = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
             test_template.render().should.equal(true.toString());
         });
