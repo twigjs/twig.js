@@ -460,6 +460,26 @@ twig({data: '{{ obj["value"] == null }}'}).render({
 # Twig.js Expressions ->
 <a name="twigjs-expressions---basic-operators--"></a>
 ## Basic Operators ->
+should parse parenthesis.
+
+```js
+var test_template = twig({data: '{{ a - (b + c) }}'}),
+    d = {a: 10, b: 4, c: 2},
+    output = test_template.render(d);
+
+output.should.equal( (d.a - (d.b + d.c)).toString() );
+```
+
+should parse nested parenthesis.
+
+```js
+var test_template = twig({data: '{{ a - ((b) + (1 + c)) }}'}),
+    d = {a: 10, b: 4, c: 2},
+    output = test_template.render(d);
+
+output.should.equal( (d.a - (d.b + 1 + d.c)).toString() );
+```
+
 should add numbers.
 
 ```js
