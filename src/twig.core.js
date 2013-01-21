@@ -422,6 +422,7 @@ var Twig = (function (Twig) {
                     break;
 
                 case Twig.token.type.output:
+                    Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                     // Parse the given expression in the given context
                     output.push(Twig.expression.parse.apply(that, [token.stack, context]));
                     break;
