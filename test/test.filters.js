@@ -8,6 +8,10 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ "http://google.com/?q=twig.js"|url_encode() }}' });
             test_template.render().should.equal("http%3A%2F%2Fgoogle.com%2F%3Fq%3Dtwig.js" );
         });
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|url_encode() }}' });
+            test_template.render().should.equal("" );
+        });
     });
     describe("json_encode ->", function() { 
         it("should encode strings to json", function() {
@@ -26,6 +30,10 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
             test_template.render().should.equal('{"a":[1,"b",3]}' );
         });
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|json_encode }}' });
+            test_template.render().should.equal("null" );
+        });
     });
     
     // String manipulation
@@ -34,11 +42,19 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ "hello"|upper }}' });
             test_template.render().should.equal("HELLO" );
         });
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|upper }}' });
+            test_template.render().should.equal("" );
+        });
     });
     describe("lower ->", function() { 
         it("should convert text to lowercase", function() {
             var test_template = twig({data: '{{ "HELLO"|lower }}' });
             test_template.render().should.equal("hello" );
+        });
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|lower }}' });
+            test_template.render().should.equal("" );
         });
     });
     describe("capitalize ->", function() { 
@@ -46,11 +62,21 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ "hello world"|capitalize }}' });
             test_template.render().should.equal("Hello world" );
         });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|capitalize }}' });
+            test_template.render().should.equal("" );
+        });
     });
     describe("title ->", function() {
         it("should capitalize all the words in a string", function() {
             var test_template = twig({data: '{{ "hello world"|title }}' });
             test_template.render().should.equal("Hello World" );
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|title }}' });
+            test_template.render().should.equal("" );
         });
     });
     
@@ -67,6 +93,11 @@ describe("Twig.js Filters ->", function() {
         it("should determine the length of an object", function() {
             var test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length }}' });
             test_template.render().should.equal("3");
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|length }}' });
+            test_template.render().should.equal("0" );
         });
     });
     
@@ -86,6 +117,11 @@ describe("Twig.js Filters ->", function() {
             test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
             test_template.render().should.equal("a:2 y:7 z:abc m:test " );
         });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{% set obj = undef|sort %}{% for key, value in obj|sort %}{{key}}:{{value}}{%endfor%}' });
+            test_template.render().should.equal("" );
+        });
     });
     describe("reverse ->", function() { 
         it("should reverse an array", function() {
@@ -93,6 +129,11 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("c,b,a" );
         });
         it("should reverse an object", function() {
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|reverse }}' });
+            test_template.render().should.equal("" );
         });
     });
     describe("keys ->", function() { 
@@ -106,6 +147,11 @@ describe("Twig.js Filters ->", function() {
             
             test_template = twig({data: '{{ {"0":"a", "1":"b", "2":"c"}|keys }}' });
             test_template.render().should.equal("0,1,2" );
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|keys }}' });
+            test_template.render().should.equal("" );
         });
     });
     describe("merge ->", function() {
@@ -139,6 +185,11 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("12476" );
             test_template = twig({data: '{{ [1+ 5,2,4,76]|join("-" ~ ".") }}' });
             test_template.render().should.equal("6-.2-.4-.76" );
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|join }}' });
+            test_template.render().should.equal("" );
         });
     });
     
@@ -183,12 +234,22 @@ describe("Twig.js Filters ->", function() {
 
             template.render().should.equal( stringDate(date) );
         });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|date("d/m/Y @ H:i:s") }}' });
+            test_template.render().should.equal( "" );
+        });
     });
     
     describe("replace ->", function() {
         it("should replace strings provided in a map", function() {
             var template = twig({data: '{{ "I like %this% and %that%."|replace({"%this%": foo, "%that%": "bar"}) }}'});
             template.render({foo: "foo"}).should.equal("I like foo and bar." );
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|replace }}' });
+            test_template.render().should.equal("" );
         });
     });
     
@@ -197,12 +258,22 @@ describe("Twig.js Filters ->", function() {
             var template = twig({data: '{{ "I like %s and %s."|format(foo, "bar") }}'});
             template.render({foo: "foo"}).should.equal("I like foo and bar." );
         });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|format }}' });
+            test_template.render().should.equal("" );
+        });
     });
     
     describe("striptags ->", function() {
         it("should remove tags from a value", function() {
             var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\\"#fragment\\">Other text</a>"|striptags }}'});
             template.render().should.equal("Test paragraph. Other text" );
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|striptags }}' });
+            test_template.render().should.equal("" );
         });
     });
 
@@ -211,12 +282,22 @@ describe("Twig.js Filters ->", function() {
             var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\'#fragment\'>Other text</a>"|escape }}'});
             template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
         });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|escape }}' });
+            test_template.render().should.equal("" );
+        });
     });
 
     describe("e ->", function() {
         it("should alias escape function with e", function() {
             var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\'#fragment\'>Other text</a>"|e }}'});
             template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|e }}' });
+            test_template.render().should.equal("" );
         });
     });
 
@@ -225,6 +306,11 @@ describe("Twig.js Filters ->", function() {
             var template = twig({data: '{{ test|nl2br }}'});
             template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br />Line 2<br />Line 3<br />Line 4<br /><br />");
         });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|nl2br }}' });
+            test_template.render().should.equal("" );
+        });
     });
 	
 
@@ -232,6 +318,11 @@ describe("Twig.js Filters ->", function() {
         it("should trim whitespace from strings", function() {
             var template = twig({data: '{{ test|trim }}'});
             template.render({ test: '\r\n Test\n  ' }).should.equal("Test");
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|trim }}' });
+            test_template.render().should.equal("" );
         });
     });
 
@@ -256,6 +347,11 @@ describe("Twig.js Filters ->", function() {
         it("should handle blank seperators", function() {
             var template = twig({data: '{{ 1234.5678|number_format(2,"","") }}'});
             template.render().should.equal("123457");
+        });
+
+        it("should handle undefined", function() {
+            var test_template = twig({data: '{{ undef|number_format }}' });
+            test_template.render().should.equal("0" );
         });
     });
 

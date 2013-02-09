@@ -135,7 +135,7 @@ var Twig = (function (Twig) {
         },
         date: function(date, time) {
             var dateObj;
-            if (date == undefined) {
+            if (date === undefined) {
                 dateObj = new Date();
             } else if (Twig.lib.is("Date", date)) {
                 dateObj = date;
@@ -160,7 +160,7 @@ var Twig = (function (Twig) {
             throw "Unable to find function " + _function;
         }
         return Twig.functions[_function](value, params);
-    }
+    };
 
     Twig._function.extend = function(_function, definition) {
         Twig.functions[_function] = definition;
