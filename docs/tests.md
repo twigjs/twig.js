@@ -903,6 +903,13 @@ var test_template = twig({data: '{{ "http://google.com/?q=twig.js"|url_encode() 
 test_template.render().should.equal("http%3A%2F%2Fgoogle.com%2F%3Fq%3Dtwig.js" );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|url_encode() }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---json_encode--"></a>
 ## json_encode ->
 should encode strings to json.
@@ -933,6 +940,13 @@ var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
 test_template.render().should.equal('{"a":[1,"b",3]}' );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|json_encode }}' });
+test_template.render().should.equal("null" );
+```
+
 <a name="twigjs-filters---upper--"></a>
 ## upper ->
 should convert text to uppercase.
@@ -940,6 +954,13 @@ should convert text to uppercase.
 ```js
 var test_template = twig({data: '{{ "hello"|upper }}' });
 test_template.render().should.equal("HELLO" );
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|upper }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---lower--"></a>
@@ -951,6 +972,13 @@ var test_template = twig({data: '{{ "HELLO"|lower }}' });
 test_template.render().should.equal("hello" );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|lower }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---capitalize--"></a>
 ## capitalize ->
 should capitalize the first word in a string.
@@ -960,6 +988,13 @@ var test_template = twig({data: '{{ "hello world"|capitalize }}' });
 test_template.render().should.equal("Hello world" );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|capitalize }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---title--"></a>
 ## title ->
 should capitalize all the words in a string.
@@ -967,6 +1002,13 @@ should capitalize all the words in a string.
 ```js
 var test_template = twig({data: '{{ "hello world"|title }}' });
 test_template.render().should.equal("Hello World" );
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|title }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---length--"></a>
@@ -992,6 +1034,13 @@ var test_template = twig({data: '{{ {"a": "b", "c": "1", "test": "test"}|length 
 test_template.render().should.equal("3");
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|length }}' });
+test_template.render().should.equal("0" );
+```
+
 <a name="twigjs-filters---sort--"></a>
 ## sort ->
 should sort an array.
@@ -1014,6 +1063,13 @@ test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{
 test_template.render().should.equal("a:2 y:7 z:abc m:test " );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{% set obj = undef|sort %}{% for key, value in obj|sort %}{{key}}:{{value}}{%endfor%}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---reverse--"></a>
 ## reverse ->
 should reverse an array.
@@ -1027,6 +1083,13 @@ should reverse an object.
 
 ```js
 
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|reverse }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---keys--"></a>
@@ -1046,6 +1109,13 @@ test_template.render().should.equal("a,b,c" );
 
 test_template = twig({data: '{{ {"0":"a", "1":"b", "2":"c"}|keys }}' });
 test_template.render().should.equal("0,1,2" );
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|keys }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---merge--"></a>
@@ -1096,6 +1166,13 @@ test_template = twig({data: '{{ [1+ 5,2,4,76]|join("-" ~ ".") }}' });
 test_template.render().should.equal("6-.2-.4-.76" );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|join }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---default--"></a>
 ## default ->
 should not provide the default value if a key is defined and not empty.
@@ -1142,6 +1219,13 @@ var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:
            template.render().should.equal( stringDate(date) );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|date("d/m/Y @ H:i:s") }}' });
+test_template.render().should.equal( "" );
+```
+
 <a name="twigjs-filters---replace--"></a>
 ## replace ->
 should replace strings provided in a map.
@@ -1149,6 +1233,13 @@ should replace strings provided in a map.
 ```js
 var template = twig({data: '{{ "I like %this% and %that%."|replace({"%this%": foo, "%that%": "bar"}) }}'});
 template.render({foo: "foo"}).should.equal("I like foo and bar." );
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|replace }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---format--"></a>
@@ -1160,6 +1251,13 @@ var template = twig({data: '{{ "I like %s and %s."|format(foo, "bar") }}'});
 template.render({foo: "foo"}).should.equal("I like foo and bar." );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|format }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---striptags--"></a>
 ## striptags ->
 should remove tags from a value.
@@ -1167,6 +1265,13 @@ should remove tags from a value.
 ```js
 var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\\"#fragment\\">Other text</a>"|striptags }}'});
 template.render().should.equal("Test paragraph. Other text" );
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|striptags }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---escape--"></a>
@@ -1178,6 +1283,13 @@ var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\
 template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|escape }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---e--"></a>
 ## e ->
 should alias escape function with e.
@@ -1185,6 +1297,13 @@ should alias escape function with e.
 ```js
 var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\'#fragment\'>Other text</a>"|e }}'});
 template.render().should.equal("&lt;p&gt;Test paragraph.&lt;/p&gt;&lt;!-- Comment --&gt; &lt;a href=&#039;#fragment\&#039;&gt;Other text&lt;/a&gt;" );
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|e }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---nl2br--"></a>
@@ -1196,6 +1315,13 @@ var template = twig({data: '{{ test|nl2br }}'});
 template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br />Line 2<br />Line 3<br />Line 4<br /><br />");
 ```
 
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|nl2br }}' });
+test_template.render().should.equal("" );
+```
+
 <a name="twigjs-filters---trim--"></a>
 ## trim ->
 should trim whitespace from strings.
@@ -1203,6 +1329,13 @@ should trim whitespace from strings.
 ```js
 var template = twig({data: '{{ test|trim }}'});
 template.render({ test: '\r\n Test\n  ' }).should.equal("Test");
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|trim }}' });
+test_template.render().should.equal("" );
 ```
 
 <a name="twigjs-filters---number_format--"></a>
@@ -1240,6 +1373,13 @@ should handle blank seperators.
 ```js
 var template = twig({data: '{{ 1234.5678|number_format(2,"","") }}'});
 template.render().should.equal("123457");
+```
+
+should handle undefined.
+
+```js
+var test_template = twig({data: '{{ undef|number_format }}' });
+test_template.render().should.equal("0" );
 ```
 
 <a name="twigjs-loader--"></a>
@@ -1690,6 +1830,17 @@ twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('unde
 ```js
 // Define and save a template
 twig({data: '{% for note in notes %}{{note}}{% endfor %}'}).render({notes:['a', 'b', 'c']}).should.equal("abc");
+```
+
+#56 functions work inside parentheses.
+
+```js
+// Define and save a template
+Twig.extendFunction('custom', function(value) {
+	return true;
+});
+
+twig({data: '{% if (custom("val") and custom("val")) %}out{% endif %}'}).render({}).should.equal("out");
 ```
 
 <a name="twigjs-tests--"></a>

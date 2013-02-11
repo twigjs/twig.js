@@ -9,7 +9,9 @@
 
 var Twig = (function (Twig) {
     "use strict";
-    Twig.exports = {};
+    Twig.exports = {
+        VERSION: Twig.VERSION
+    };
 
     /**
      * Create and compile a twig.js template.

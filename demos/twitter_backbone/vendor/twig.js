@@ -1,3 +1,14 @@
+//     Twig.js 0.5.5
+//     Copyright (c) 2011-2012 John Roepke
+//     Available under the BSD 2-Clause License
+//     https://github.com/justjohn/twig.js
+
+var Twig = (function (Twig) {
+
+    Twig.VERSION = "0.5.5";
+
+    return Twig;
+})(Twig || {});
 //     Twig.js
 //     Copyright (c) 2011-2012 John Roepke
 //     Available under the BSD 2-Clause License
@@ -4138,7 +4149,9 @@ var Twig = (function (Twig) {
 
 var Twig = (function (Twig) {
     "use strict";
-    Twig.exports = {};
+    Twig.exports = {
+        VERSION: Twig.VERSION
+    };
 
     /**
      * Create and compile a twig.js template.
