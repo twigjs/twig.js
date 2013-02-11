@@ -3548,15 +3548,31 @@ var Twig = (function (Twig) {
     Twig.filters = {
         // String Filters
         upper:  function(value) {
+            if ( typeof value !== "string" ) {
+               return value;
+            }
+
             return value.toUpperCase();
         },
         lower: function(value) {
+            if ( typeof value !== "string" ) {
+               return value;
+            }
+
             return value.toLowerCase();
         },
         capitalize: function(value) {
+            if ( typeof value !== "string" ) {
+                 return value;
+            }
+
             return value.substr(0, 1).toUpperCase() + value.substr(1);
         },
         title: function(value) {
+            if ( typeof value !== "string" ) {
+               return value;
+            }
+
             return value.replace( /(^|\s)([a-z])/g , function(m, p1, p2){
                 return p1 + p2.toUpperCase();
             });
@@ -3570,6 +3586,8 @@ var Twig = (function (Twig) {
                 } else {
                     return value._keys.length;
                 }
+            } else {
+                return 0;
             }
         },
 
@@ -3579,7 +3597,7 @@ var Twig = (function (Twig) {
                 return value.reverse();
             } else if (is("String", value)) {
                 return value.split("").reverse().join("");
-            } else {
+            } else if (value instanceof Object) {
                 var keys = value._keys || Object.keys(value).reverse();
                 value._keys = keys;
                 return value;
@@ -3604,6 +3622,10 @@ var Twig = (function (Twig) {
             }
         },
         keys: function(value) {
+            if (value === undefined){
+                return;
+           }
+
             var keyset = value._keys || Object.keys(value),
                 output = [];
 
@@ -3616,9 +3638,17 @@ var Twig = (function (Twig) {
             return output;
         },
         url_encode: function(value) {
+            if (value === undefined){
+                return;
+            }
+            
             return encodeURIComponent(value);
         },
         join: function(value, params) {
+            if (value === undefined){
+                return;
+            }
+
             var join_str = "",
                 output = [],
                 keyset = null;
@@ -3650,7 +3680,12 @@ var Twig = (function (Twig) {
             }
         },
         json_encode: function(value) {
-            delete value._keys;
+            if (value && value.hasOwnProperty( "_keys" ) ) {
+                delete value._keys;
+            }
+            if(value === undefined || value === null) {
+                return "null";
+            }
             return JSON.stringify(value);
         },
         merge: function(value, params) {
@@ -3719,7 +3754,7 @@ var Twig = (function (Twig) {
                         }
                     });
                 }
-            })
+            });
             if (params.length === 0) {
                 throw new Twig.Error("Filter merge expects at least one parameter");
             }
@@ -3727,11 +3762,19 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
+            if (value === undefined){
+                return;
+            }
+
             var date = Twig.functions.date(value);
             return Twig.lib.formatDate(date, params[0]);
         },
 
         replace: function(value, params) {
+            if (value === undefined){
+                return;
+            }
+
             var pairs = params[0],
                 tag;
             for (tag in pairs) {
@@ -3743,14 +3786,25 @@ var Twig = (function (Twig) {
         },
 
         format: function(value, params) {
+            if (value === undefined){
+                return;
+            }
+
             return Twig.lib.vsprintf(value, params);
         },
 
         striptags: function(value) {
+            if (value === undefined){
+                return;
+            }
+            
             return Twig.lib.strip_tags(value);
         },
 
         escape: function(value) {
+            if (value === undefined){
+                return;
+            }
             return value.replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
                         .replace(/>/g, "&gt;")
@@ -3764,6 +3818,9 @@ var Twig = (function (Twig) {
         },
 
         nl2br: function(value) {
+            if (value === undefined){
+                return;
+            }
             var br = '<br />';
             return Twig.filters.escape(value)
                         .replace(/\r\n/g, br)
@@ -3801,7 +3858,11 @@ var Twig = (function (Twig) {
         },
 
 		trim: function(value, params) {
-			var str = value;
+			if (value === undefined){
+				return;
+			}
+
+			var str = '' + value;
 			var whitespace = ' \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000';
 			for (var i = 0; i < str.length; i++) {
 				if (whitespace.indexOf(str.charAt(i)) === -1) {
@@ -3970,7 +4031,7 @@ var Twig = (function (Twig) {
         },
         date: function(date, time) {
             var dateObj;
-            if (date == undefined) {
+            if (date === undefined) {
                 dateObj = new Date();
             } else if (Twig.lib.is("Date", date)) {
                 dateObj = date;
@@ -3995,7 +4056,7 @@ var Twig = (function (Twig) {
             throw "Unable to find function " + _function;
         }
         return Twig.functions[_function](value, params);
-    }
+    };
 
     Twig._function.extend = function(_function, definition) {
         Twig.functions[_function] = definition;
