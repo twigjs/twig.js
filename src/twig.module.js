@@ -13,8 +13,12 @@ if (typeof module !== 'undefined' && module.declare) {
         for (key in Twig.exports) {
             if (Twig.exports.hasOwnProperty(key)) {
                 exports[key] = Twig.exports[key];
-            }   
+            }
         }
+    });
+} else if (typeof define == 'function' && define.amd) {
+    define(function() {
+        return Twig.exports;
     });
 } else if (typeof module !== 'undefined' && module.exports) {
     // Provide a CommonJS Modules/1.1 module
