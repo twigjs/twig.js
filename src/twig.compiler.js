@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -10,17 +10,17 @@ var Twig = (function (Twig) {
     /**
      * Namespace for compilation.
      */
-    Twig.compiler = { 
+    Twig.compiler = {
         module: {}
     };
-    
+
     // Compile a Twig Template to output.
     Twig.compiler.compile = function(template, options) {
         // Get tokens
         var tokens = JSON.stringify(template.tokens)
             , id = template.id
             , output;
-        
+
         if (options.module) {
             if (Twig.compiler.module[options.module] === undefined) {
                 throw new Twig.Error("Unable to find module type " + options.module);
@@ -31,7 +31,7 @@ var Twig = (function (Twig) {
         }
         return output;
     };
-    
+
     Twig.compiler.module = {
         amd: function(id, tokens, pathToTwig) {
             return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig = Twig.twig;\n' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
@@ -47,10 +47,10 @@ var Twig = (function (Twig) {
                     + '\n});'
         }
     };
-    
+
     Twig.compiler.wrap = function(id, tokens) {
         return 'twig({id:"'+id.replace('"', '\\"')+'", data:'+tokens+', precompiled: true});\n';
     };
-    
+
     return Twig;
 })(Twig || {});

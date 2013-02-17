@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -29,7 +29,7 @@ var Twig = (function (Twig) {
                 token.precidence = 20;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
-                
+
             case ',':
                 token.precidence = 18;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -107,7 +107,7 @@ var Twig = (function (Twig) {
             case ':':
                 // Ignore
                 break;
-              
+
             case '?':
                 c = stack.pop(); // false expr
                 b = stack.pop(); // true expr
@@ -118,7 +118,7 @@ var Twig = (function (Twig) {
                     stack.push(c);
                 }
                 break;
-            
+
             case '+':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
@@ -239,28 +239,28 @@ var Twig = (function (Twig) {
                 a = stack.pop();
                 stack.push( !containment(a, b) );
                 break;
-                
+
             case 'in':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( containment(a, b) );
                 break;
-                
+
             case '..':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( Twig.functions.range(a, b) );
                 break;
-                
+
             default:
                 throw new Twig.Error(operator + " is an unknown operator.");
         }
     };
-    
+
     var containment = function(a, b) {
         if (b.indexOf != undefined) {
             return b.indexOf(a) > -1;
-            
+
         } else {
             var el;
             for (el in b) {

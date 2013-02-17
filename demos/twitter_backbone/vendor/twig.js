@@ -1,16 +1,16 @@
-//     Twig.js 0.5.5
-//     Copyright (c) 2011-2012 John Roepke
+//     Twig.js 0.5.6
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.5.5";
+    Twig.VERSION = "0.5.6";
 
     return Twig;
 })(Twig || {});
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -1518,7 +1518,7 @@ var Twig = (function(Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -2317,7 +2317,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3297,7 +3297,7 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3327,7 +3327,7 @@ var Twig = (function (Twig) {
                 token.precidence = 20;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
-                
+
             case ',':
                 token.precidence = 18;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -3405,7 +3405,7 @@ var Twig = (function (Twig) {
             case ':':
                 // Ignore
                 break;
-              
+
             case '?':
                 c = stack.pop(); // false expr
                 b = stack.pop(); // true expr
@@ -3416,7 +3416,7 @@ var Twig = (function (Twig) {
                     stack.push(c);
                 }
                 break;
-            
+
             case '+':
                 b = parseFloat(stack.pop());
                 a = parseFloat(stack.pop());
@@ -3537,28 +3537,28 @@ var Twig = (function (Twig) {
                 a = stack.pop();
                 stack.push( !containment(a, b) );
                 break;
-                
+
             case 'in':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( containment(a, b) );
                 break;
-                
+
             case '..':
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( Twig.functions.range(a, b) );
                 break;
-                
+
             default:
                 throw new Twig.Error(operator + " is an unknown operator.");
         }
     };
-    
+
     var containment = function(a, b) {
         if (b.indexOf != undefined) {
             return b.indexOf(a) > -1;
-            
+
         } else {
             var el;
             for (el in b) {
@@ -3574,7 +3574,7 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3685,7 +3685,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            
+
             return encodeURIComponent(value);
         },
         join: function(value, params) {
@@ -3841,7 +3841,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            
+
             return Twig.lib.strip_tags(value);
         },
 
@@ -3874,7 +3874,7 @@ var Twig = (function (Twig) {
 
         /**
          * Adapted from: http://phpjs.org/functions/number_format:481
-         */ 
+         */
         number_format: function(value, params) {
             var number = value,
                 decimals = (params && params[0]) ? params[0] : undefined,
@@ -3939,7 +3939,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //                   2012 Hadrien Lanneau
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
@@ -3957,7 +3957,7 @@ var Twig = (function (Twig) {
 
     Twig.functions = {
         //  attribute, block, constant, date, dump, parent, random,.
-        
+
         // Range function from http://phpjs.org/functions/range:499
         // Used under an MIT License
         range: function (low, high, step) {
@@ -4110,7 +4110,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4172,7 +4172,7 @@ var Twig = (function (Twig) {
     return Twig;
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4358,7 +4358,7 @@ var Twig = (function (Twig) {
 }) (Twig || { });
 
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4369,17 +4369,17 @@ var Twig = (function (Twig) {
     /**
      * Namespace for compilation.
      */
-    Twig.compiler = { 
+    Twig.compiler = {
         module: {}
     };
-    
+
     // Compile a Twig Template to output.
     Twig.compiler.compile = function(template, options) {
         // Get tokens
         var tokens = JSON.stringify(template.tokens)
             , id = template.id
             , output;
-        
+
         if (options.module) {
             if (Twig.compiler.module[options.module] === undefined) {
                 throw new Twig.Error("Unable to find module type " + options.module);
@@ -4390,7 +4390,7 @@ var Twig = (function (Twig) {
         }
         return output;
     };
-    
+
     Twig.compiler.module = {
         amd: function(id, tokens, pathToTwig) {
             return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig = Twig.twig;\n' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
@@ -4406,14 +4406,14 @@ var Twig = (function (Twig) {
                     + '\n});'
         }
     };
-    
+
     Twig.compiler.wrap = function(id, tokens) {
         return 'twig({id:"'+id.replace('"', '\\"')+'", data:'+tokens+', precompiled: true});\n';
     };
-    
+
     return Twig;
 })(Twig || {});//     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 

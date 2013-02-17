@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -110,7 +110,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            
+
             return encodeURIComponent(value);
         },
         join: function(value, params) {
@@ -266,7 +266,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            
+
             return Twig.lib.strip_tags(value);
         },
 
@@ -299,7 +299,7 @@ var Twig = (function (Twig) {
 
         /**
          * Adapted from: http://phpjs.org/functions/number_format:481
-         */ 
+         */
         number_format: function(value, params) {
             var number = value,
                 decimals = (params && params[0]) ? params[0] : undefined,

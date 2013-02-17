@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2012 John Roepke
+//     Copyright (c) 2011-2013 John Roepke
 //                   2012 Hadrien Lanneau
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
@@ -17,7 +17,7 @@ var Twig = (function (Twig) {
 
     Twig.functions = {
         //  attribute, block, constant, date, dump, parent, random,.
-        
+
         // Range function from http://phpjs.org/functions/range:499
         // Used under an MIT License
         range: function (low, high, step) {

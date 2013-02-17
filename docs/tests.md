@@ -43,6 +43,7 @@
        - [date ->](#twigjs-functions---built-in-functions---date--)
        - [dump ->](#twigjs-functions---built-in-functions---dump--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
+   - [Twig.js Tags ->](#twigjs-tags--)
    - [Twig.js Tests ->](#twigjs-tests--)
      - [empty test ->](#twigjs-tests---empty-test--)
      - [odd test ->](#twigjs-tests---odd-test--)
@@ -1841,6 +1842,18 @@ Twig.extendFunction('custom', function(value) {
 });
 
 twig({data: '{% if (custom("val") and custom("val")) %}out{% endif %}'}).render({}).should.equal("out");
+```
+
+<a name="twigjs-tags--"></a>
+# Twig.js Tags ->
+should support spaceless.
+
+```js
+twig({
+	data: "{% spaceless %}<div>\n    <b>b</b>   <i>i</i>\n</div>{% endspaceless %}"
+}).render().should.equal(
+	"<div><b>b</b><i>i</i></div>"
+);
 ```
 
 <a name="twigjs-tests--"></a>
