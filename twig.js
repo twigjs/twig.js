@@ -1550,7 +1550,9 @@ var Twig = (function (Twig) {
         endblock:  'Twig.logic.type.endblock',
         extends_:  'Twig.logic.type.extends',
         use:       'Twig.logic.type.use',
-        include:  'Twig.logic.type.include'
+        include:   'Twig.logic.type.include',
+        spaceless: 'Twig.logic.type.spaceless',
+        endspaceless: 'Twig.logic.type.endspaceless'
     };
 
 
@@ -2116,6 +2118,37 @@ var Twig = (function (Twig) {
                     output: template.render(innerContext)
                 };
             }
+        },
+        {
+            type: Twig.logic.type.spaceless,
+            regex: /^spaceless$/,
+            next: [
+                Twig.logic.type.endspaceless
+            ],
+            open: true,
+
+            // Parse the html and return it without any spaces between tags
+            parse: function (token, context, chain) {
+                var // Parse the output without any filter
+                    unfiltered = Twig.parse.apply(this, [token.output, context]),
+                    // A regular expression to find closing and opening tags with spaces between them
+                    rBetweenTagSpaces = />\s+</g,
+                    // Replace all space between closing and opening html tags
+                    output = unfiltered.replace(rBetweenTagSpaces,'><').trim();
+
+                return {
+                    chain: chain,
+                    output: output
+                };
+            }
+        },
+
+        // Add the {% endspaceless %} token
+        {
+            type: Twig.logic.type.endspaceless,
+            regex: /^endspaceless$/,
+            next: [ ],
+            open: false
         }
     ];
 
