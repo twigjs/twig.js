@@ -83,6 +83,14 @@ describe("Twig.js Core ->", function() {
     it("should recognize null in an object", function() {
         twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
     });
+    
+    it("should support raw data", function() {
+        twig({
+        	data: "before {% raw %}{{ test }} {% test2 %} {{{% endraw %} after"
+        }).render().should.equal(
+        	"before {{ test }} {% test2 %} {{ after"
+        );
+    });
 
     describe("Key Notation ->", function() {
         it("should support dot key notation", function() {
