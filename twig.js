@@ -4135,6 +4135,9 @@ var Twig = (function (Twig) {
             }
             return true;
         },
+        iterable: function(value) {
+            return ('object' == typeof value);
+        },
         odd: function(value) {
             return value % 2 === 1;
         },
