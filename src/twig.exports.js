@@ -24,7 +24,8 @@ var Twig = (function (Twig) {
         'use strict';
         var id = params.id,
             options = {
-                strict_variables: params.strict_variables || false
+                strict_variables: params.strict_variables || false,
+                allowInlineIncludes: params.allowInlineIncludes || false
             };
         if (id) {
             Twig.validateId(id);
