@@ -759,14 +759,26 @@ var Twig = (function (Twig) {
     };
 
     Twig.Template.prototype.importFile = function(file) {
-        var url = relativePath(this, file),
-            // Load blocks from an external file
-            sub_template = Twig.Templates.loadRemote(url, {
-                method: this.url?'ajax':'fs',
-                async: false,
-                options: this.options,
-                id: url
-            });
+        var url, sub_template;
+        if ( !this.url && !this.path && this.options.allowInlineIncludes ) {
+            sub_template = Twig.Templates.load(file);
+            sub_template.options = this.options;
+            if ( sub_template ) {
+                return sub_template;
+            }
+
+            throw new Twig.Error("Didn't find the inline template by id");
+        }
+
+        url = relativePath(this, file);
+
+        // Load blocks from an external file
+        sub_template = Twig.Templates.loadRemote(url, {
+            method: this.url?'ajax':'fs',
+            async: false,
+            options: this.options,
+            id: url
+        });
 
         return sub_template;
     };
@@ -4200,7 +4212,8 @@ var Twig = (function (Twig) {
         'use strict';
         var id = params.id,
             options = {
-                strict_variables: params.strict_variables || false
+                strict_variables: params.strict_variables || false,
+                allowInlineIncludes: params.allowInlineIncludes || false
             };
         if (id) {
             Twig.validateId(id);

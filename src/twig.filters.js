@@ -274,7 +274,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            return value.replace(/&/g, "&amp;")
+            return value.toString().replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
                         .replace(/>/g, "&gt;")
                         .replace(/"/g, "&quot;")
