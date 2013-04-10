@@ -1,11 +1,11 @@
-//     Twig.js 0.5.6
+//     Twig.js 0.5.7
 //     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.5.6";
+    Twig.VERSION = "0.5.7";
 
     return Twig;
 })(Twig || {});
@@ -3864,7 +3864,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            return value.replace(/&/g, "&amp;")
+            return value.toString().replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
                         .replace(/>/g, "&gt;")
                         .replace(/"/g, "&quot;")
@@ -4434,7 +4434,7 @@ var Twig = (function (Twig) {
 //     https://github.com/justjohn/twig.js
 
 // ## twig.module.js
-// Provide a CommonJS module export.
+// Provide a CommonJS/AMD/Node module export.
 
 if (typeof module !== 'undefined' && module.declare) {
     // Provide a CommonJS Modules/2.0 draft 8 module

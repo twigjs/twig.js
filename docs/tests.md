@@ -42,6 +42,7 @@
        - [cycle ->](#twigjs-functions---built-in-functions---cycle--)
        - [date ->](#twigjs-functions---built-in-functions---date--)
        - [dump ->](#twigjs-functions---built-in-functions---dump--)
+   - [Twig.js Optional Functionality ->](#twigjs-optional-functionality--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
    - [Twig.js Tags ->](#twigjs-tags--)
    - [Twig.js Tests ->](#twigjs-tests--)
@@ -321,6 +322,16 @@ should recognize null in an object.
 
 ```js
 twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
+```
+
+should support raw data.
+
+```js
+twig({
+	data: "before {% raw %}{{ test }} {% test2 %} {{{% endraw %} after"
+}).render().should.equal(
+	"before {{ test }} {% test2 %} {{ after"
+);
 ```
 
 <a name="twigjs-core---key-notation--"></a>
@@ -1822,6 +1833,25 @@ should output formatted undefined.
 
 ```js
 twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);
+```
+
+<a name="twigjs-optional-functionality--"></a>
+# Twig.js Optional Functionality ->
+should support inline includes by ID.
+
+```js
+twig({
+    id:   'other',
+    data: 'another template'
+});
+
+var template = twig({
+        allowInlineIncludes: true,
+        data: 'template with {% include "other" %}'
+    }),
+    output = template.render()
+
+output.should.equal("template with another template");
 ```
 
 <a name="twigjs-regression-tests--"></a>

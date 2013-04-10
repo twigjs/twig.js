@@ -1,11 +1,11 @@
-//     Twig.js 0.5.6
+//     Twig.js 0.5.7
 //     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.5.6";
+    Twig.VERSION = "0.5.7";
 
     return Twig;
 })(Twig || {});
@@ -73,11 +73,16 @@ var Twig = (function (Twig) {
     /**
      * Token syntax definitions.
      */
-    Twig.token.definitions = {
+    Twig.token.definitions = [
+        {
+            type: Twig.token.type.raw,
+            open: '{% raw %}',
+            close: '{% endraw %}',
+        },
         // *Output type tokens*
         //
         // These typically take the form `{{ expression }}`.
-        output: {
+        {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
@@ -85,7 +90,7 @@ var Twig = (function (Twig) {
         // *Logic type tokens*
         //
         // These typically take a form like `{% if expression %}` or `{% endif %}`
-        logic: {
+        {
             type: Twig.token.type.logic,
             open: '{%',
             close: '%}'
@@ -93,12 +98,12 @@ var Twig = (function (Twig) {
         // *Comment type tokens*
         //
         // These take the form `{# anything #}`
-        comment: {
+        {
             type: Twig.token.type.comment,
             open: '{#',
             close: '#}'
         }
-    };
+    ];
 
 
     /**
@@ -112,22 +117,20 @@ var Twig = (function (Twig) {
                 position: null,
                 def: null
             },
-            token_type,
+            i,
             token_template,
             first_key_position;
 
-        for (token_type in Twig.token.definitions) {
-            if (Twig.token.definitions.hasOwnProperty(token_type)) {
-                token_template = Twig.token.definitions[token_type];
-                first_key_position = template.indexOf(token_template.open);
+        for (i=0;i<Twig.token.definitions.length;i++) {
+            token_template = Twig.token.definitions[i];
+            first_key_position = template.indexOf(token_template.open);
 
-                Twig.log.trace("Twig.token.findStart: ", "Searching for ", token_template.open, " found at ", first_key_position);
+            Twig.log.trace("Twig.token.findStart: ", "Searching for ", token_template.open, " found at ", first_key_position);
 
-                // Does this token occur before any other types?
-                if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
-                    output.position = first_key_position;
-                    output.def = token_template;
-                }
+            // Does this token occur before any other types?
+            if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
+                output.position = first_key_position;
+                output.def = token_template;
             }
         }
 
@@ -3861,7 +3864,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            return value.replace(/&/g, "&amp;")
+            return value.toString().replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
                         .replace(/>/g, "&gt;")
                         .replace(/"/g, "&quot;")
@@ -4431,7 +4434,7 @@ var Twig = (function (Twig) {
 //     https://github.com/justjohn/twig.js
 
 // ## twig.module.js
-// Provide a CommonJS module export.
+// Provide a CommonJS/AMD/Node module export.
 
 if (typeof module !== 'undefined' && module.declare) {
     // Provide a CommonJS Modules/2.0 draft 8 module
