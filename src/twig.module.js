@@ -4,7 +4,7 @@
 //     https://github.com/justjohn/twig.js
 
 // ## twig.module.js
-// Provide a CommonJS module export.
+// Provide a CommonJS/AMD/Node module export.
 
 if (typeof module !== 'undefined' && module.declare) {
     // Provide a CommonJS Modules/2.0 draft 8 module
