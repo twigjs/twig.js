@@ -248,7 +248,7 @@ var Twig = (function (Twig) {
                 tag;
             for (tag in pairs) {
                 if (pairs.hasOwnProperty(tag) && tag !== "_keys") {
-                    value = value.replace(tag, pairs[tag]);
+                    value = value.split(tag).join(pairs[tag]);
                 }
             }
             return value;
