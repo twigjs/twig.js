@@ -13,7 +13,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    describe("json_encode ->", function() { 
+    describe("json_encode ->", function() {
         it("should encode strings to json", function() {
             var test_template = twig({data: '{{ test|json_encode }}' });
             test_template.render({test:'value'}).should.equal('"value"' );
@@ -35,7 +35,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("null" );
         });
     });
-    
+
     // String manipulation
     describe("upper ->", function() {
         it("should convert text to uppercase", function() {
@@ -47,7 +47,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    describe("lower ->", function() { 
+    describe("lower ->", function() {
         it("should convert text to lowercase", function() {
             var test_template = twig({data: '{{ "HELLO"|lower }}' });
             test_template.render().should.equal("hello" );
@@ -57,7 +57,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    describe("capitalize ->", function() { 
+    describe("capitalize ->", function() {
         it("should capitalize the first word in a string", function() {
             var test_template = twig({data: '{{ "hello world"|capitalize }}' });
             test_template.render().should.equal("Hello world" );
@@ -79,7 +79,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    
+
     // String/Object/Array check
     describe("length ->", function() {
         it("should determine the length of a string", function() {
@@ -100,20 +100,20 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("0" );
         });
     });
-    
+
     // Array/object manipulation
-    describe("sort ->", function() { 
+    describe("sort ->", function() {
         it("should sort an array", function() {
             var test_template = twig({data: '{{ [1,5,2,7]|sort }}' });
             test_template.render().should.equal("1,2,5,7" );
-        
+
             test_template = twig({data: '{{ ["test","abc",2,7]|sort }}' });
             test_template.render().should.equal("2,7,abc,test" );
         });
         it("should sort an object", function() {
             var test_template = twig({data: "{% set obj =  {'c': 1,'d': 5,'t': 2,'e':7}|sort %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
             test_template.render().should.equal("c:1 t:2 d:5 e:7 " );
-        
+
             test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
             test_template.render().should.equal("a:2 y:7 z:abc m:test " );
         });
@@ -123,7 +123,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    describe("reverse ->", function() { 
+    describe("reverse ->", function() {
         it("should reverse an array", function() {
             var test_template = twig({data: '{{ ["a", "b", "c"]|reverse }}' });
             test_template.render().should.equal("c,b,a" );
@@ -136,7 +136,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    describe("keys ->", function() { 
+    describe("keys ->", function() {
         it("should return the keys of an array", function() {
             var test_template = twig({data: '{{ ["a", "b", "c"]|keys }}' });
             test_template.render().should.equal("0,1,2" );
@@ -144,7 +144,7 @@ describe("Twig.js Filters ->", function() {
         it("should return the keys of an object", function() {
             var test_template = twig({data: '{{ {"a": 1, "b": 4, "c": 5}|keys }}' });
             test_template.render().should.equal("a,b,c" );
-            
+
             test_template = twig({data: '{{ {"0":"a", "1":"b", "2":"c"}|keys }}' });
             test_template.render().should.equal("0,1,2" );
         });
@@ -169,7 +169,7 @@ describe("Twig.js Filters ->", function() {
             // Mixed merging
             var test_template = twig({data: '{% set obj= ["a", "b"]|merge({"a": "c", "3":4}, ["c", "d"]) %}{% for key in obj|keys|sort %}{{key}}:{{obj[key]}} {%endfor %}' });
             test_template.render().should.equal('0:a 1:b 3:4 4:c 5:d a:c ' );
-        
+
             // Mixed merging(2)
             test_template = twig({data: '{% set obj= {"1":"a", "a":"b"}|merge(["c", "d"]) %}{% for key in obj|keys %}{{key}}:{{obj[key]}} {%endfor %}' });
             test_template.render().should.equal('1:a a:b 2:c 3:d ' );
@@ -192,9 +192,9 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    
+
     // Other
-    describe("default ->", function() { 
+    describe("default ->", function() {
         it("should not provide the default value if a key is defined and not empty", function() {
             var test_template = twig({data: '{{ var|default("Not Defined") }}' });
             test_template.render({"var":"value"}).should.equal("value" );
@@ -204,11 +204,11 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ var|default("Not Defined") }}' });
             test_template.render().should.equal("Not Defined" );
         });
-        
+
         it("should provide a default value if a value is empty", function() {
             var test_template = twig({data: '{{ ""|default("Empty String") }}' });
             test_template.render().should.equal("Empty String" );
-        
+
             test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
             test_template.render({'var':{}}).should.equal("Empty Key" );
         });
@@ -222,13 +222,13 @@ describe("Twig.js Filters ->", function() {
         }
 
         // NOTE: these tests are currently timezone dependent
-        it("should recognize timestamps", function() { 
+        it("should recognize timestamps", function() {
             var template = twig({data: '{{ 27571323556|date("d/m/Y @ H:i:s") }}'})
                 , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
-            
+
             template.render().should.equal( stringDate(date) );
         });
-        it("should recognize string date formats", function() { 
+        it("should recognize string date formats", function() {
             var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'})
                 , date = new Date(1187081535000); // 14/08/2007 @ 04:52:15 EST
 
@@ -240,11 +240,11 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal( "" );
         });
     });
-    
+
     describe("replace ->", function() {
         it("should replace strings provided in a map", function() {
-            var template = twig({data: '{{ "I like %this% and %that%."|replace({"%this%": foo, "%that%": "bar"}) }}'});
-            template.render({foo: "foo"}).should.equal("I like foo and bar." );
+            var template = twig({data: '{{ "I like %this% and %that%. Seriously, I like %this% and %that%."|replace({"%this%": foo, "%that%": "bar"}) }}'});
+            template.render({foo: "foo"}).should.equal("I like foo and bar. Seriously, I like foo and bar." );
         });
 
         it("should handle undefined", function() {
@@ -252,7 +252,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    
+
     describe("format ->", function() {
         it("should replace formatting tags with parameters", function() {
             var template = twig({data: '{{ "I like %s and %s."|format(foo, "bar") }}'});
@@ -264,7 +264,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-    
+
     describe("striptags ->", function() {
         it("should remove tags from a value", function() {
             var template = twig({data: '{{ "<p>Test paragraph.</p><!-- Comment --> <a href=\\"#fragment\\">Other text</a>"|striptags }}'});
@@ -312,7 +312,7 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("" );
         });
     });
-	
+
 
     describe("trim ->", function() {
         it("should trim whitespace from strings", function() {
