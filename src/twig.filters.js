@@ -290,7 +290,7 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            var br = '<br />';
+            var br = "<br />\n";
             return Twig.filters.escape(value)
                         .replace(/\r\n/g, br)
                         .replace(/\r/g, br)
