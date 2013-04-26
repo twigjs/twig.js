@@ -287,7 +287,7 @@ var Twig = (function (Twig) {
                 } else {
                     value = value.replace("\\'", "'");
                 }
-                token.value = value.substring(1, value.length-1);
+                token.value = value.substring(1, value.length-1).replace( /\\n/g, "\n" ).replace( /\\r/g, "\r" );
                 Twig.log.trace("Twig.expression.compile: ", "String value: ", token.value);
                 output.push(token);
             },
