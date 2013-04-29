@@ -17,13 +17,29 @@ var Twig = (function (Twig) {
         rightToLeft: 'rightToLeft'
     };
 
+    var containment = function(a, b) {
+        if (b.indexOf !== undefined) {
+            // String
+            return a === b || a !== '' && b.indexOf(a) > -1;
+
+        } else {
+            var el;
+            for (el in b) {
+                if (b.hasOwnProperty(el) && b[el] === a) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
     /**
      * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
      * See http://en.wikipedia.org/wiki/Operators_in_C_and_C++ for the table of values.
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
-			case "..":
+            case "..":
             case 'not in':
             case 'in':
                 token.precidence = 20;
@@ -256,21 +272,6 @@ var Twig = (function (Twig) {
                 throw new Twig.Error(operator + " is an unknown operator.");
         }
     };
-
-    var containment = function(a, b) {
-        if (b.indexOf != undefined) {
-            return b.indexOf(a) > -1;
-
-        } else {
-            var el;
-            for (el in b) {
-                if (b.hasOwnProperty(el) && b[el] === a) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
 
     return Twig;
 
