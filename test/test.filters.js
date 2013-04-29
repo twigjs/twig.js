@@ -304,7 +304,8 @@ describe("Twig.js Filters ->", function() {
     describe("nl2br ->", function() {
         it("should convert newlines into html breaks", function() {
             var template = twig({data: '{{ test|nl2br }}'});
-            template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' }).should.equal("Line 1<br />Line 2<br />Line 3<br />Line 4<br /><br />");
+            template.render({ test: 'Line 1\r\nLine 2\nLine 3\rLine 4\n\n' })
+                .should.equal("Line 1<br />\nLine 2<br />\nLine 3<br />\nLine 4<br />\n<br />\n");
         });
 
         it("should handle undefined", function() {

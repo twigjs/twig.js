@@ -341,7 +341,7 @@ var Twig = (function(Twig) {
             return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
         });
     }
-    
+
     Twig.lib.strtotime = function (str, now) {
         // http://kevin.vanzonneveld.net
         // +   original by: Caio Ariede (http://caioariede.com)
@@ -405,7 +405,7 @@ var Twig = (function(Twig) {
         var process = function (m) {
             var ago = (m[2] && m[2] === 'ago');
             var num = (num = m[0] === 'last' ? -1 : 1) * (ago ? -1 : 1);
-        
+
             switch (m[0]) {
             case 'last':
             case 'next':
@@ -527,15 +527,19 @@ var Twig = (function(Twig) {
         var clas = Object.prototype.toString.call(obj).slice(8, -1);
         return obj !== undefined && obj !== null && clas === type;
     };
-    
+
     // shallow-copy an object
     Twig.lib.copy = function(src) {
         var target = {},
             key;
         for (key in src)
             target[key] = src[key];
-            
+
         return target;
+    };
+
+    Twig.lib.replaceAll = function(string, search, replace) {
+        return string.split(search).join(replace);
     };
 
     return Twig;

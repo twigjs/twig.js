@@ -248,7 +248,7 @@ var Twig = (function (Twig) {
                 tag;
             for (tag in pairs) {
                 if (pairs.hasOwnProperty(tag) && tag !== "_keys") {
-                    value = value.split(tag).join(pairs[tag]);
+                    value = Twig.lib.replaceAll(value, tag, pairs[tag]);
                 }
             }
             return value;
@@ -290,11 +290,15 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            var br = "<br />\n";
-            return Twig.filters.escape(value)
+            var linebreak_tag = "BACKSLASH_n_replace",
+                br = "<br />" + linebreak_tag;
+
+            value = Twig.filters.escape(value)
                         .replace(/\r\n/g, br)
                         .replace(/\r/g, br)
                         .replace(/\n/g, br);
+
+            return Twig.lib.replaceAll(value, linebreak_tag, "\n");
         },
 
         /**
