@@ -179,7 +179,7 @@ var Twig = (function (Twig) {
 
             if (value instanceof Array) {
                 value.forEach(function(val) {
-                    if (obj._keys) obj._keys.unshift(arr_index);
+                    if (obj._keys) obj._keys.push(arr_index);
                     obj[arr_index] = val;
                     arr_index++;
                 });
@@ -214,7 +214,7 @@ var Twig = (function (Twig) {
                 } else {
                     keyset = param._keys || Object.keys(param);
                     keyset.forEach(function(key) {
-                        if (!obj[key]) obj._keys.unshift(key);
+                        if (!obj[key]) obj._keys.push(key);
                         obj[key] = param[key];
 
                         var int_key = parseInt(key, 10);
