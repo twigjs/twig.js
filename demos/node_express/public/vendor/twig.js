@@ -1332,7 +1332,7 @@ var Twig = (function(Twig) {
             return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
         });
     }
-    
+
     Twig.lib.strtotime = function (str, now) {
         // http://kevin.vanzonneveld.net
         // +   original by: Caio Ariede (http://caioariede.com)
@@ -1396,7 +1396,7 @@ var Twig = (function(Twig) {
         var process = function (m) {
             var ago = (m[2] && m[2] === 'ago');
             var num = (num = m[0] === 'last' ? -1 : 1) * (ago ? -1 : 1);
-        
+
             switch (m[0]) {
             case 'last':
             case 'next':
@@ -1518,15 +1518,19 @@ var Twig = (function(Twig) {
         var clas = Object.prototype.toString.call(obj).slice(8, -1);
         return obj !== undefined && obj !== null && clas === type;
     };
-    
+
     // shallow-copy an object
     Twig.lib.copy = function(src) {
         var target = {},
             key;
         for (key in src)
             target[key] = src[key];
-            
+
         return target;
+    };
+
+    Twig.lib.replaceAll = function(string, search, replace) {
+        return string.split(search).join(replace);
     };
 
     return Twig;
@@ -2620,7 +2624,7 @@ var Twig = (function (Twig) {
                 } else {
                     value = value.replace("\\'", "'");
                 }
-                token.value = value.substring(1, value.length-1);
+                token.value = value.substring(1, value.length-1).replace( /\\n/g, "\n" ).replace( /\\r/g, "\r" );
                 Twig.log.trace("Twig.expression.compile: ", "String value: ", token.value);
                 output.push(token);
             },
@@ -3838,7 +3842,7 @@ var Twig = (function (Twig) {
                 tag;
             for (tag in pairs) {
                 if (pairs.hasOwnProperty(tag) && tag !== "_keys") {
-                    value = value.split(tag).join(pairs[tag]);
+                    value = Twig.lib.replaceAll(value, tag, pairs[tag]);
                 }
             }
             return value;
@@ -3880,11 +3884,15 @@ var Twig = (function (Twig) {
             if (value === undefined){
                 return;
             }
-            var br = '<br />';
-            return Twig.filters.escape(value)
+            var linebreak_tag = "BACKSLASH_n_replace",
+                br = "<br />" + linebreak_tag;
+
+            value = Twig.filters.escape(value)
                         .replace(/\r\n/g, br)
                         .replace(/\r/g, br)
                         .replace(/\n/g, br);
+
+            return Twig.lib.replaceAll(value, linebreak_tag, "\n");
         },
 
         /**
