@@ -231,6 +231,11 @@ var Twig = (function (Twig) {
                     value: template.substring(0, end).trim()
                 });
 
+                if ( found_token.def.type === "logic" && template.substr( end + found_token.def.close.length, 1 ) === "\n" ) {
+                    // Newlines directly after logic tokens are ignored
+                    end += 1;
+                }
+
                 template = template.substr(end + found_token.def.close.length);
 
                 // Increment the position in the template
