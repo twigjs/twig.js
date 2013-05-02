@@ -1,11 +1,11 @@
-//     Twig.js 0.5.7
+//     Twig.js 0.5.8
 //     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.5.7";
+    Twig.VERSION = "0.5.8";
 
     return Twig;
 })(Twig || {});
@@ -241,6 +241,11 @@ var Twig = (function (Twig) {
                     type:  found_token.def.type,
                     value: template.substring(0, end).trim()
                 });
+
+                if ( found_token.def.type === "logic" && template.substr( end + found_token.def.close.length, 1 ) === "\n" ) {
+                    // Newlines directly after logic tokens are ignored
+                    end += 1;
+                }
 
                 template = template.substr(end + found_token.def.close.length);
 
@@ -3334,13 +3339,29 @@ var Twig = (function (Twig) {
         rightToLeft: 'rightToLeft'
     };
 
+    var containment = function(a, b) {
+        if (b.indexOf !== undefined) {
+            // String
+            return a === b || a !== '' && b.indexOf(a) > -1;
+
+        } else {
+            var el;
+            for (el in b) {
+                if (b.hasOwnProperty(el) && b[el] === a) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
     /**
      * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
      * See http://en.wikipedia.org/wiki/Operators_in_C_and_C++ for the table of values.
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
-			case "..":
+            case "..":
             case 'not in':
             case 'in':
                 token.precidence = 20;
@@ -3574,21 +3595,6 @@ var Twig = (function (Twig) {
         }
     };
 
-    var containment = function(a, b) {
-        if (b.indexOf != undefined) {
-            return b.indexOf(a) > -1;
-
-        } else {
-            var el;
-            for (el in b) {
-                if (b.hasOwnProperty(el) && b[el] === a) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     return Twig;
 
 })( Twig || { } );
@@ -3773,7 +3779,7 @@ var Twig = (function (Twig) {
 
             if (value instanceof Array) {
                 value.forEach(function(val) {
-                    if (obj._keys) obj._keys.unshift(arr_index);
+                    if (obj._keys) obj._keys.push(arr_index);
                     obj[arr_index] = val;
                     arr_index++;
                 });
@@ -3808,7 +3814,7 @@ var Twig = (function (Twig) {
                 } else {
                     keyset = param._keys || Object.keys(param);
                     keyset.forEach(function(key) {
-                        if (!obj[key]) obj._keys.unshift(key);
+                        if (!obj[key]) obj._keys.push(key);
                         obj[key] = param[key];
 
                         var int_key = parseInt(key, 10);
