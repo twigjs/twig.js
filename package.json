@@ -27,6 +27,7 @@
     "minimatch": "0.2.x"
   },
   "devDependencies": {
+    "tokenizer": "*",
     "should": "1.2.x",
     "mocha": "1.7.x",
     "docco": "0.4.x",
