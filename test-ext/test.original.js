@@ -3,12 +3,14 @@
 ( function( ) {
 	"use strict";
 	var fs = require( "fs" ),
+		path = require("path"),
+		twigPhpDir = "test-ext/twig.php",
 
 	runTest = function( ) {
 		describe( "Twig original test ->", function( ) {
 			var
 				Twig = Twig || require("../twig"),
-    		twig = twig || Twig.twig,
+				twig = twig || Twig.twig,
 				walk = function( dir, done ) {
 					var results = [],
 						list = fs.readdirSync( dir ),
@@ -56,7 +58,7 @@
 					return res;
 				};
 
-			walk( "twig.php/test/", function( err, files ) {
+			walk( twigPhpDir + "/test/", function( err, files ) {
 				var testFiles = [];
 
 				files.forEach( function( filepath ) {
@@ -281,18 +283,12 @@
 	},
 
 	setup = function( ) {
-		if ( fs.existsSync( "twig.php" ) ) {
+		var existsSync = fs.existsSync || path.existsSync;
+
+		if ( existsSync( twigPhpDir ) ) {
 			runTest( );
 			return;
 		}
-
-		var exec = require( "child_process" ).exec;
-
-console.log( 1 );
-		exec( "git clone git://github.com/fabpot/Twig.git twig.php", function( error, stdout, stderr ) {
-			console.log( arguments );
-		} );
-console.log( 2 );
 	};
 
 	setup( );
