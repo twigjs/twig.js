@@ -56,6 +56,7 @@ var Twig = (function (Twig) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
                 method: 'ajax',
+                base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
                 async: params.async,
