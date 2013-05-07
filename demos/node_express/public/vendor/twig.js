@@ -827,7 +827,11 @@ var Twig = (function (Twig) {
             val;
 
         if (template.url) {
-            base = template.url;
+            if (typeof template.base !== 'undefined') {
+                base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
+            } else {
+                base = template.url;
+            }
         } else if (template.path) {
             // Get the system-specific path separator
             var path = require("path"),
@@ -4263,6 +4267,7 @@ var Twig = (function (Twig) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
                 method: 'ajax',
+                base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
                 async: params.async,
