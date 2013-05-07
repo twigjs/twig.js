@@ -3,7 +3,7 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.function.js
+// ## twig.exports.js
 //
 // This file provides extension points and other hooks into the twig functionality.
 

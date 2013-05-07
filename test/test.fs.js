@@ -128,6 +128,19 @@ describe("Twig.js Blocks ->", function() {
             }
         })
     });
+    
+    it("should be able to extend to a absolute tempalte path", function(done) {
+        // Test loading a template from a remote endpoint
+        twig({
+            base: 'test/templates',
+            path: 'test/templates/a/child.twig',
+
+            load: function(template) {
+                template.render({ base: "b/template.twig" }).should.equal( "Other Title - child" );
+                done();
+            }
+        });
+    });
 });
 
 

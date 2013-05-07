@@ -3,7 +3,7 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.tests.js
+// ## twig.compiler.js
 //
 // This file handles compiling templates into JS
 var Twig = (function (Twig) {
