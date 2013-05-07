@@ -769,6 +769,7 @@ var Twig = (function (Twig) {
         // Load blocks from an external file
         sub_template = Twig.Templates.loadRemote(url, {
             method: this.url?'ajax':'fs',
+            base: this.base,
             async: false,
             options: this.options,
             id: url
