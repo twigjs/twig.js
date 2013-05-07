@@ -17,7 +17,7 @@ test:
 twig.php:
 	./test-ext/checkout.sh
 
-testext: twig.php
+testphp: twig.php
 	@NODE_ENV=test ./node_modules/.bin/mocha \
 		--require should \
 		--reporter $(REPORTER) \
