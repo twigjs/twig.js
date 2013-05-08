@@ -637,6 +637,7 @@ currently at the head of the stack before we push a new one on.</p>             
 
         <span class="nx">url</span> <span class="o">=</span> <span class="nx">relativePath</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">file</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-57">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-57">&#182;</a>               </div>               <p>Load blocks from an external file</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">sub_template</span> <span class="o">=</span> <span class="nx">Twig</span><span class="p">.</span><span class="nx">Templates</span><span class="p">.</span><span class="nx">loadRemote</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
             <span class="nx">method</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">url</span><span class="o">?</span><span class="s1">&#39;ajax&#39;</span><span class="o">:</span><span class="s1">&#39;fs&#39;</span><span class="p">,</span>
+            <span class="nx">base</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">base</span><span class="p">,</span>
             <span class="nx">async</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nx">options</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">options</span><span class="p">,</span>
             <span class="nx">id</span><span class="o">:</span> <span class="nx">url</span>
@@ -1771,7 +1772,7 @@ https://github.com/justjohn/twig.js
                     <span class="nx">includeMissing</span> <span class="o">=</span> <span class="nx">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span><span class="p">,</span>
                     <span class="nx">expression</span> <span class="o">=</span> <span class="nx">match</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="nx">trim</span><span class="p">(),</span>
                     <span class="nx">withContext</span> <span class="o">=</span> <span class="nx">match</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
-                    <span class="nx">only</span> <span class="o">=</span> <span class="nx">match</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span><span class="p">;</span>
+                    <span class="nx">only</span> <span class="o">=</span> <span class="p">((</span><span class="nx">match</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">match</span><span class="p">[</span><span class="mi">4</span><span class="p">].</span><span class="nx">length</span><span class="p">);</span>
 
                 <span class="k">delete</span> <span class="nx">token</span><span class="p">.</span><span class="nx">match</span><span class="p">;</span>
 
@@ -3645,7 +3646,7 @@ https://github.com/justjohn/twig.js
 Copyright (c) 2011-2013 John Roepke
 Available under the BSD 2-Clause License
 https://github.com/justjohn/twig.js
-</code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-246">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-246">&#182;</a>               </div>               <h2>twig.function.js</h2>
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-246">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-246">&#182;</a>               </div>               <h2>twig.exports.js</h2>
 
 <p>This file provides extension points and other hooks into the twig functionality.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">var</span> <span class="nx">Twig</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">)</span> <span class="p">{</span>
     <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
@@ -3800,7 +3801,7 @@ Calls fn with the internal Twig object.</p>             </td>             <td cl
 Copyright (c) 2011-2013 John Roepke
 Available under the BSD 2-Clause License
 https://github.com/justjohn/twig.js
-</code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-258">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-258">&#182;</a>               </div>               <h2>twig.tests.js</h2>
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-258">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-258">&#182;</a>               </div>               <h2>twig.compiler.js</h2>
 
 <p>This file handles compiling templates into JS</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">var</span> <span class="nx">Twig</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">Twig</span><span class="p">)</span> <span class="p">{</span>
     <span class="cm">/**</span>

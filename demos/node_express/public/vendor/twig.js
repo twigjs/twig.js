@@ -780,6 +780,7 @@ var Twig = (function (Twig) {
         // Load blocks from an external file
         sub_template = Twig.Templates.loadRemote(url, {
             method: this.url?'ajax':'fs',
+            base: this.base,
             async: false,
             options: this.options,
             id: url
@@ -2092,7 +2093,7 @@ var Twig = (function (Twig) {
                     includeMissing = match[1] !== undefined,
                     expression = match[2].trim(),
                     withContext = match[3],
-                    only = match[4] !== undefined;
+                    only = ((match[4] !== undefined) && match[4].length);
 
                 delete token.match;
 
