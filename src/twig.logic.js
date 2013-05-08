@@ -545,7 +545,7 @@ var Twig = (function (Twig) {
                     includeMissing = match[1] !== undefined,
                     expression = match[2].trim(),
                     withContext = match[3],
-                    only = match[4] !== undefined;
+                    only = ((match[4] !== undefined) && match[4].length);
 
                 delete token.match;
 
