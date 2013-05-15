@@ -77,7 +77,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.token.type.raw,
             open: '{% raw %}',
-            close: '{% endraw %}',
+            close: '{% endraw %}'
         },
         // *Output type tokens*
         //
