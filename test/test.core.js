@@ -15,6 +15,31 @@ describe("Twig.js Core ->", function() {
                 .should.equal("test");
     });
 
+    it("should ignore comments", function() {
+        twig({data: 'good {# comment #}morning'}).render().should.equal("good morning");
+        twig({data: 'good{#comment#}morning'}).render().should.equal("goodmorning");
+    });
+
+    it("should ignore output tags within comments", function() {
+        twig({data: 'good {# {{ "Hello" }} #}morning'}).render().should.equal("good morning");
+        twig({data: 'good{#c}}om{{m{{ent#}morning'}).render().should.equal("goodmorning");
+    });
+
+    it("should ignore logic tags within comments", function() {
+        twig({data: 'test {# {% bad syntax if not in comment %} #}test'}).render().should.equal("test test");
+        twig({data: '{##}{##}test{# %}}}%}%{%{{% #}pass'}).render().should.equal("testpass");
+    });
+
+    // https://github.com/justjohn/twig.js/issues/95
+    it("should ignore quotation marks within comments", function() {
+        twig({data: "good {# don't stop #}morning"}).render().should.equal("good morning");
+        twig({data: 'good{#"dont stop"#}morning'}).render().should.equal("goodmorning");
+        twig({data: 'good {# "don\'t stop" #}morning'}).render().should.equal("good morning");
+        twig({data: 'good{#"\'#}morning'}).render().should.equal("goodmorning");
+        twig({data: 'good {#"\'"\'"\'#} day'}).render().should.equal("good  day");
+        twig({data: "a {# ' #}b{# ' #} c"}).render().should.equal("a b c");
+    });
+
     it("should be able to parse output tags with tag ends in strings", function() {
         // Really all we care about here is not throwing exceptions.
         twig({data: '{{ "test" }}'}).render().should.equal("test");
