@@ -37,6 +37,7 @@ describe("Twig.js Core ->", function() {
         twig({data: 'good {# "don\'t stop" #}morning'}).render().should.equal("good morning");
         twig({data: 'good{#"\'#}morning'}).render().should.equal("goodmorning");
         twig({data: 'good {#"\'"\'"\'#} day'}).render().should.equal("good  day");
+        twig({data: "a {# ' #}b{# ' #} c"}).render().should.equal("a b c");
     });
 
     it("should be able to parse output tags with tag ends in strings", function() {
