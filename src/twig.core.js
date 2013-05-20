@@ -157,6 +157,12 @@ var Twig = (function (Twig) {
                                 "'" + " opened near template position " + start);
             }
 
+            // Ignore quotes within comments; just look for the next comment close sequence,
+            // regardless of what comes before it. https://github.com/justjohn/twig.js/issues/95
+            if (token_def.type === Twig.token.type.comment) {
+              break;
+            }
+
             l = Twig.token.strings.length;
             for (i = 0; i < l; i += 1) {
                 this_str_pos = template.indexOf(Twig.token.strings[i], offset);
