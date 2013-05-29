@@ -58,7 +58,7 @@
 					return res;
 				};
 
-			walk( twigPhpDir + "/test/", function( err, files ) {
+			walk( twigPhpDir + "/test", function( err, files ) {
 				var testFiles = [];
 
 				files.forEach( function( filepath ) {
@@ -76,6 +76,25 @@
 					;
 
 					if ( !data.DATA || data.DATA.match( /^class|\$|^date_default_timezone_set|new Twig|new SimpleXMLElement|new ArrayObject|new ArrayIterator/ ) ) {
+						if ( data.EXCEPTION ) {
+							it( data.filepath + " -> " + data.TEST.trim( ), function( ) {
+								try {
+									twig( {
+										"data" : data.TEMPLATE.trim( )
+									} )
+									.render( res )
+									.trim( );
+								} catch( exp ) {
+									return;
+								}
+
+								throw "Should have thrown an exception: " + data.EXCEPTION;
+							} );
+						} else {
+							it( data.filepath + " -> " + data.TEST.trim( ), function( ) {
+								throw "Unsupported";
+							} );
+						}
 						delete testFiles[ idx ];
 						return;
 					}
