@@ -16,6 +16,21 @@ describe("Twig.js Browser Loading ->", function() {
             flag: false
         }).should.equal("Test template = reload\n\n");
     });
+    
+    it("Should trigger the error callback for a missing template", function(done) {
+
+        twig({
+            href: 'templates/notthere.twig',
+            load: function(template) {
+                // failure
+                throw "Template didn't trigger error callback";
+            },
+            error: function(err) {
+                console.log(err);
+                done();
+            }
+        });
+    });
 
     it("Should load a template asynchronously", function(done) {
 
