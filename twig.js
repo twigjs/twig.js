@@ -4440,7 +4440,7 @@ var Twig = (function (Twig) {
 
     Twig.compiler.module = {
         amd: function(id, tokens, pathToTwig) {
-            return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig = Twig.twig;\n' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
+            return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig, templates;\ntwig = Twig.twig;\ntemplates = ' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
         }
         , node: function(id, tokens) {
             return 'var twig = require("twig").twig;\n'
@@ -4459,7 +4459,8 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
-})(Twig || {});//     Twig.js
+})(Twig || {});
+//     Twig.js
 //     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
