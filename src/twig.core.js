@@ -570,21 +570,25 @@ var Twig = (function (Twig) {
                 var data = null;
 
                 if(xmlhttp.readyState == 4) {
-                    Twig.log.debug("Got template ", xmlhttp.responseText);
+                    if (xmlhttp.status == 200) {
+                        Twig.log.debug("Got template ", xmlhttp.responseText);
 
-                    if (precompiled === true) {
-                        data = JSON.parse(xmlhttp.responseText);
+                        if (precompiled === true) {
+                            data = JSON.parse(xmlhttp.responseText);
+                        } else {
+                            data = xmlhttp.responseText;
+                        }
+
+                        params.url = location;
+                        params.data = data;
+
+                        template = new Twig.Template(params);
+
+                        if (callback) {
+                            callback(template);
+                        }
                     } else {
-                        data = xmlhttp.responseText;
-                    }
-
-                    params.url = location;
-                    params.data = data;
-
-                    template = new Twig.Template(params);
-
-                    if (callback) {
-                        callback(template);
+                        error_callback(xmlhttp);
                     }
                 }
             };
