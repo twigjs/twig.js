@@ -1,10 +1,24 @@
 /*jshint node: true */
 
+/*global it: false, describe: false */
+
 ( function( ) {
 	"use strict";
+
 	var fs = require( "fs" ),
 		path = require("path"),
 		twigPhpDir = "test-ext/twig.php",
+	runStringTest = function( twig, data, res ) {
+		it( data.filepath + " -> " + data.TEST.trim( ), function( ) {
+			twig( {
+				"data" : data.TEMPLATE.trim( )
+			} )
+			.render( res )
+			.trim( )
+			.should
+			.equal( data.EXPECT );
+		} );
+	},
 
 	runTest = function( ) {
 		describe( "Twig original test ->", function( ) {
@@ -74,6 +88,16 @@
 						str = data.DATA,
 						currentObject
 					;
+				
+					if ( data.TEST === '"iterable" test' && data.filepath.indexOf( 'test/Twig/Tests/Fixtures/tests/iterable.test' ) !== -1 ) {
+						runStringTest( twig, data, {
+							'foo' : [],
+							'traversable' : [],
+							'obj' : {},
+							'val' : 'test'
+						} );
+						return;
+					}
 
 					if ( !data.DATA || data.DATA.match( /^class|\$|^date_default_timezone_set|new Twig|new SimpleXMLElement|new ArrayObject|new ArrayIterator/ ) ) {
 						if ( data.EXCEPTION ) {
@@ -256,15 +280,7 @@
 						}
 						*/
 
-						it( data.filepath + " -> " + data.TEST.trim( ), function( ) {
-							twig( {
-								"data" : data.TEMPLATE.trim( )
-							} )
-							.render( res )
-							.trim( )
-							.should
-							.equal( data.EXPECT );
-						} );
+						runStringTest( twig, data, res );
 					} );
 
 					t.on( "error", function( err ) {

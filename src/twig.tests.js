@@ -41,6 +41,9 @@ var Twig = (function (Twig) {
         },
         sameas: function(value, params) {
             return value === params[0];
+        },
+        'iterable' : function(value) {
+            return value instanceof Array;
         }
         /*
         constant ?
