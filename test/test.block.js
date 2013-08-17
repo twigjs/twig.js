@@ -2,24 +2,23 @@ var Twig = Twig || require("../twig"),
     twig = twig || Twig.twig;
 
 describe("Twig.js Blocks ->", function() {
-    it("Should load content in blocks that are not replaced", function() {
-
+    // Test loading a template from a remote endpoint
+    it("should load a parent template and render the default values", function() {
         twig({
             id:   'remote-no-extends',
-            href: 'templates/template.twig',
+            path: 'test/templates/template.twig',
             async: false
         });
 
         // Load the template
-        twig({ref: 'remote-no-extends'}).render({ }).should.equal("Default Title - body" );
+        twig({ref: 'remote-no-extends'}).render({ }).should.equal( "Default Title - body" );
     });
 
-
-    it("Should replace block content from a child template", function(done) {
+    it("should load a child template and replace the parent block's content", function(done) {
         // Test loading a template from a remote endpoint
         twig({
             id:   'child-extends',
-            href: 'templates/child.twig',
+            path: 'test/templates/child.twig',
 
             load: function(template) {
                 template.render({ base: "template.twig" }).should.equal( "Other Title - child" );
@@ -28,28 +27,46 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 
-    it("Should support horizontal reuse of blocks", function(done) {
-        // Test horizontal reuse
+    it("should have access to a parent block content", function(done) {
+        // Test loading a template from a remote endpoint
         twig({
-            id:   'use',
-            href: 'templates/use.twig',
+            id:   'child-parent',
+            path: 'test/templates/child-parent.twig',
 
             load: function(template) {
-                template.render({ place: "user" }).should.equal( "Coming soon to a user near you!" );
+                template.render({
+                    base: "template.twig",
+                    inner: ':value'
+                }).should.equal( "Other Title - body:value:child" );
                 done();
             }
         });
     });
 
-    it("Should give access to rendered blocks", function(done) {
+
+    it("should include blocks from another template for horizontal reuse", function(done) {
+        // Test horizontal reuse
+        twig({
+            id:   'use',
+            path: 'test/templates/use.twig',
+
+            load: function(template) {
+                // Load the template
+                template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
+                done();
+            }
+        });
+    });
+
+    it("should make the contents of blocks available after they're rendered", function(done) {
         // Test rendering and loading one block
         twig({
             id:   'blocks',
-            href: 'templates/blocks.twig',
+            path: 'test/templates/blocks.twig',
 
             load: function(template) {
                 // Render the template with the blocks parameter
-                template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal( "Coming soon to a block near you!" );
+                template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal("Coming soon to a block near you!" );
                 done();
             }
         });
@@ -59,7 +76,7 @@ describe("Twig.js Blocks ->", function() {
         // Test rendering of blocks within blocks
         twig({
             id:     'blocks-nested',
-            href:   'templates/blocks-nested.twig',
+            path:   'test/templates/blocks-nested.twig',
 
             load: function(template) {
                 template.render({ }).should.equal( "parent:child" )
@@ -72,20 +89,32 @@ describe("Twig.js Blocks ->", function() {
         // Test rendering of blocks within blocks
         twig({
             id:     'child-blocks-nested',
-            href:   'templates/child-blocks-nested.twig',
+            path:   'test/templates/child-blocks-nested.twig',
 
             load: function(template) {
-                template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" )
+                template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" );
                 done();
             }
         })
     });
+    
+    it("should be able to extend to a absolute template path", function(done) {
+        // Test loading a template from a remote endpoint
+        twig({
+            base: 'test/templates',
+            path: 'test/templates/a/child.twig',
 
+            load: function(template) {
+                template.render({ base: "b/template.twig" }).should.equal( "Other Title - child" );
+                done();
+            }
+        });
+    });
 
     describe("block function ->", function() {
         it("should render block content from an included block", function(done) {
             twig({
-                href:   'templates/block-function.twig',
+                path:   'test/templates/block-function.twig',
 
                 load: function(template) {
                     template.render({
@@ -93,7 +122,7 @@ describe("Twig.js Blocks ->", function() {
                         val: "abcd" 
                     })
                     .should.equal( "Child content = abcd / Result: Child content = abcd" );
-                    
+
                     done();
                 }
             })
@@ -101,7 +130,7 @@ describe("Twig.js Blocks ->", function() {
 
         it("should render block content from a parent block", function(done) {
             twig({
-                href:   'templates/block-parent.twig',
+                path:   'test/templates/block-parent.twig',
 
                 load: function(template) {
                     template.render({

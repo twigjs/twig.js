@@ -188,5 +188,12 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);
             });
         });
+
+        describe("block ->", function() {
+            it("should render the content of blocks", function() {
+                twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
+                    .should.equal("Content - test Title: Content - test");
+            });
+        });
     });
 });
