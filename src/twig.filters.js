@@ -91,7 +91,7 @@ var Twig = (function (Twig) {
             }
         },
         keys: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
            }
 
@@ -107,14 +107,14 @@ var Twig = (function (Twig) {
             return output;
         },
         url_encode: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
             return encodeURIComponent(value);
         },
         join: function(value, params) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
@@ -231,7 +231,7 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
-            if (value === undefined){
+            if (value === undefined||value === null){
                 return;
             }
 
@@ -240,7 +240,7 @@ var Twig = (function (Twig) {
         },
 
         replace: function(value, params) {
-            if (value === undefined){
+            if (value === undefined||value === null){
                 return;
             }
 
@@ -255,7 +255,7 @@ var Twig = (function (Twig) {
         },
 
         format: function(value, params) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
@@ -263,7 +263,7 @@ var Twig = (function (Twig) {
         },
 
         striptags: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
@@ -271,7 +271,7 @@ var Twig = (function (Twig) {
         },
 
         escape: function(value) {
-            if (value === undefined){
+            if (value === undefined|| value === null){
                 return;
             }
             return value.toString().replace(/&/g, "&amp;")
@@ -287,7 +287,7 @@ var Twig = (function (Twig) {
         },
 
         nl2br: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
             var linebreak_tag = "BACKSLASH_n_replace",
@@ -331,7 +331,7 @@ var Twig = (function (Twig) {
         },
 
 		trim: function(value, params) {
-			if (value === undefined){
+			if (value === undefined|| value === null){
 				return;
 			}
 
@@ -363,7 +363,7 @@ var Twig = (function (Twig) {
             throw "Unable to find filter " + filter;
         }
         return Twig.filters[filter].apply(this, [value, params]);
-    }
+    };
 
     Twig.filter.extend = function(filter, definition) {
         Twig.filters[filter] = definition;
