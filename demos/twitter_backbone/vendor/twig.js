@@ -4140,6 +4140,9 @@ var Twig = (function (Twig) {
             }
             return dateObj;
         },
+        block: function(block) {
+            return this.blocks[block];
+        },
         parent: function() {
             // Add a placeholder
             return Twig.placeholders.parent;

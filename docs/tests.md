@@ -234,6 +234,38 @@ should save and load a template by reference.
                 .should.equal("test");
 ```
 
+should ignore comments.
+
+```js
+twig({data: 'good {# comment #}morning'}).render().should.equal("good morning");
+twig({data: 'good{#comment#}morning'}).render().should.equal("goodmorning");
+```
+
+should ignore output tags within comments.
+
+```js
+twig({data: 'good {# {{ "Hello" }} #}morning'}).render().should.equal("good morning");
+twig({data: 'good{#c}}om{{m{{ent#}morning'}).render().should.equal("goodmorning");
+```
+
+should ignore logic tags within comments.
+
+```js
+twig({data: 'test {# {% bad syntax if not in comment %} #}test'}).render().should.equal("test test");
+twig({data: '{##}{##}test{# %}}}%}%{%{{% #}pass'}).render().should.equal("testpass");
+```
+
+should ignore quotation marks within comments.
+
+```js
+twig({data: "good {# don't stop #}morning"}).render().should.equal("good morning");
+twig({data: 'good{#"dont stop"#}morning'}).render().should.equal("goodmorning");
+twig({data: 'good {# "don\'t stop" #}morning'}).render().should.equal("good morning");
+twig({data: 'good{#"\'#}morning'}).render().should.equal("goodmorning");
+twig({data: 'good {#"\'"\'"\'#} day'}).render().should.equal("good  day");
+twig({data: "a {# ' #}b{# ' #} c"}).render().should.equal("a b c");
+```
+
 should be able to parse output tags with tag ends in strings.
 
 ```js
