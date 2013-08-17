@@ -330,32 +330,60 @@ var Twig = (function (Twig) {
             return s.join(dec);
         },
 
-		trim: function(value, params) {
-			if (value === undefined|| value === null){
-				return;
-			}
+        trim: function(value, params) {
+            if (value === undefined|| value === null){
+                return;
+            }
 
-			var str = Twig.filters.escape( '' + value ),
-				whitespace;
-			if ( params && params[0] ) {
-				whitespace = '' + params[0];
-			} else {
-				whitespace = ' \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000';
-			}
-			for (var i = 0; i < str.length; i++) {
-				if (whitespace.indexOf(str.charAt(i)) === -1) {
-					str = str.substring(i);
-					break;
-				}
-			}
-			for (i = str.length - 1; i >= 0; i--) {
-				if (whitespace.indexOf(str.charAt(i)) === -1) {
-					str = str.substring(0, i + 1);
-					break;
-				}
-			}
-			return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
-		}
+            var str = Twig.filters.escape( '' + value ),
+                whitespace;
+            if ( params && params[0] ) {
+                whitespace = '' + params[0];
+            } else {
+                whitespace = ' \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000';
+            }
+            for (var i = 0; i < str.length; i++) {
+                if (whitespace.indexOf(str.charAt(i)) === -1) {
+                    str = str.substring(i);
+                    break;
+                }
+            }
+            for (i = str.length - 1; i >= 0; i--) {
+                if (whitespace.indexOf(str.charAt(i)) === -1) {
+                    str = str.substring(0, i + 1);
+                    break;
+                }
+            }
+            return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
+        },
+
+        slice: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length < 1) {
+                throw new Twig.Error("slice filter expects at least 1 argument");
+            }
+
+            // default to start of string
+            var start = params[0] || 0; 
+            // default to length of string
+            var length = params.length > 1 ? params[1] : value.length; 
+            // handle negative start values
+            var startIndex = start >= 0 ? start : Math.max( value.length + start, 0 );
+
+            if (Twig.lib.is("Array", value)) {
+                var output = [];
+                for (var i = startIndex; i < startIndex + length && i < value.length; i++) {
+                    output.push(value[i]);
+                }
+                return output;
+            } else if (Twig.lib.is("String", value)) {
+                return value.substr(startIndex, length);
+            } else {
+                throw new Twig.Error("slice filter expects value to be an array or string");
+            }
+        }
     };
 
     Twig.filter = function(filter, value, params) {
