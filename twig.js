@@ -2513,7 +2513,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.comma,
             // Match a comma
             regex: /^,/,
-            next: Twig.expression.set.expressions,
+            next: Twig.expression.set.expressions.concat([Twig.expression.type.array.end, Twig.expression.type.object.end]),
             compile: function(token, stack, output) {
                 var i = stack.length - 1,
                     stack_token;
