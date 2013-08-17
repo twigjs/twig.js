@@ -35,7 +35,10 @@ twig.js: $(SRC)
 	cp $@ demos/twitter_backbone/vendor/
 
 twig.min.js: twig.js
-	$(UGLIFY) --source-map $@.map --comments "@license" $< > $@
+	$(UGLIFY) \
+		--source-map $@.map \
+		--comments "@license" \
+		$< > $@
 
 docs: test-docs annotated-docs
 
