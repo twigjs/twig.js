@@ -14,6 +14,18 @@ describe("Twig.js Blocks ->", function() {
         twig({ref: 'remote-no-extends'}).render({ }).should.equal( "Default Title - body" );
     });
 
+    // Test endblock extended syntax
+    it("should understand {% endblock title %} syntax", function() {
+        twig({
+            id:   'endblock-extended-syntax',
+            path: 'test/templates/blocks-extended-syntax.twig',
+            async: false
+        });
+
+        // Load the template
+        twig({ref: 'endblock-extended-syntax'}).render({ }).should.equal( "This is the only thing." );
+    });
+
     it("should load a child template and replace the parent block's content", function(done) {
         // Test loading a template from a remote endpoint
         twig({
