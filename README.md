@@ -51,7 +51,7 @@ Twig.js can be installed with NPM
 
 You can include twig in your app with
 
-    var twig = require('twig');
+    var Twig = require('twig');
 
 Twig is compatable with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
 
