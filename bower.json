@@ -1,14 +1,18 @@
 {
-  "name": "twig",
-  "version": "0.5.11",
+  "name": "twig.js",
+  "version": "0.5.12",
   "main": "twig.min.js",
   "ignore": [
+    "Makefile",
     "src",
     "demos",
+    "bin",
+    "lib",
     "**/.*",
     "node_modules",
     "bower_components",
-    "test"
+    "test",
+    "text-ext"
   ],
   "homepage": "https://github.com/justjohn/twig.js",
   "authors": [
