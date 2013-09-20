@@ -2016,12 +2016,12 @@ var Twig = (function (Twig) {
         },
         {
             /**
-             * End filter logic tokens.
+             * End block logic tokens.
              *
-             *  Format: {% endfilter %}
+             *  Format: {% endblock %}
              */
             type: Twig.logic.type.endblock,
-            regex: /^endblock$/,
+            regex: /^endblock(?:\s+([a-zA-Z0-9_]+))?$/,
             next: [ ],
             open: false
         },
