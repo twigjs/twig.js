@@ -1,4 +1,6 @@
 # TOC
+   - [Twig.js Blocks ->](#twigjs-blocks--)
+     - [block function ->](#twigjs-blocks---block-function--)
    - [Twig.js Control Structures ->](#twigjs-control-structures--)
      - [if tag ->](#twigjs-control-structures---if-tag--)
      - [for tag ->](#twigjs-control-structures---for-tag--)
@@ -33,8 +35,8 @@
      - [nl2br ->](#twigjs-filters---nl2br--)
      - [trim ->](#twigjs-filters---trim--)
      - [number_format ->](#twigjs-filters---number_format--)
+     - [slice ->](#twigjs-filters---slice--)
    - [Twig.js Loader ->](#twigjs-loader--)
-   - [Twig.js Blocks ->](#twigjs-blocks--)
    - [Twig.js Include ->](#twigjs-include--)
    - [Twig.js Functions ->](#twigjs-functions--)
      - [Built-in Functions ->](#twigjs-functions---built-in-functions--)
@@ -42,6 +44,7 @@
        - [cycle ->](#twigjs-functions---built-in-functions---cycle--)
        - [date ->](#twigjs-functions---built-in-functions---date--)
        - [dump ->](#twigjs-functions---built-in-functions---dump--)
+       - [block ->](#twigjs-functions---built-in-functions---block--)
    - [Twig.js Optional Functionality ->](#twigjs-optional-functionality--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
    - [Twig.js Tags ->](#twigjs-tags--)
@@ -55,6 +58,181 @@
      - [sameas test ->](#twigjs-tests---sameas-test--)
 <a name=""></a>
  
+<a name="twigjs-blocks--"></a>
+# Twig.js Blocks ->
+should load a parent template and render the default values.
+
+```js
+twig({
+    id:   'remote-no-extends',
+    path: 'test/templates/template.twig',
+    async: false
+});
+
+// Load the template
+twig({ref: 'remote-no-extends'}).render({ }).should.equal( "Default Title - body" );
+```
+
+should understand {% endblock title %} syntax.
+
+```js
+twig({
+    id:   'endblock-extended-syntax',
+    path: 'test/templates/blocks-extended-syntax.twig',
+    async: false
+});
+
+// Load the template
+twig({ref: 'endblock-extended-syntax'}).render({ }).should.equal( "This is the only thing." );
+```
+
+should load a child template and replace the parent block's content.
+
+```js
+// Test loading a template from a remote endpoint
+twig({
+    id:   'child-extends',
+    path: 'test/templates/child.twig',
+
+    load: function(template) {
+        template.render({ base: "template.twig" }).should.equal( "Other Title - child" );
+        done();
+    }
+});
+```
+
+should have access to a parent block content.
+
+```js
+// Test loading a template from a remote endpoint
+twig({
+    id:   'child-parent',
+    path: 'test/templates/child-parent.twig',
+
+    load: function(template) {
+        template.render({
+            base: "template.twig",
+            inner: ':value'
+        }).should.equal( "Other Title - body:value:child" );
+        done();
+    }
+});
+```
+
+should include blocks from another template for horizontal reuse.
+
+```js
+// Test horizontal reuse
+twig({
+    id:   'use',
+    path: 'test/templates/use.twig',
+
+    load: function(template) {
+        // Load the template
+        template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
+        done();
+    }
+});
+```
+
+should make the contents of blocks available after they're rendered.
+
+```js
+// Test rendering and loading one block
+twig({
+    id:   'blocks',
+    path: 'test/templates/blocks.twig',
+
+    load: function(template) {
+        // Render the template with the blocks parameter
+        template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal("Coming soon to a block near you!" );
+        done();
+    }
+});
+```
+
+should render nested blocks.
+
+```js
+// Test rendering of blocks within blocks
+twig({
+    id:     'blocks-nested',
+    path:   'test/templates/blocks-nested.twig',
+
+    load: function(template) {
+        template.render({ }).should.equal( "parent:child" )
+        done();
+    }
+})
+```
+
+should render extended nested blocks.
+
+```js
+// Test rendering of blocks within blocks
+twig({
+    id:     'child-blocks-nested',
+    path:   'test/templates/child-blocks-nested.twig',
+
+    load: function(template) {
+        template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" );
+        done();
+    }
+})
+```
+
+should be able to extend to a absolute template path.
+
+```js
+// Test loading a template from a remote endpoint
+twig({
+    base: 'test/templates',
+    path: 'test/templates/a/child.twig',
+
+    load: function(template) {
+        template.render({ base: "b/template.twig" }).should.equal( "Other Title - child" );
+        done();
+    }
+});
+```
+
+<a name="twigjs-blocks---block-function--"></a>
+## block function ->
+should render block content from an included block.
+
+```js
+twig({
+    path:   'test/templates/block-function.twig',
+
+    load: function(template) {
+        template.render({
+            base: "block-function-parent.twig",
+            val: "abcd" 
+        })
+        .should.equal( "Child content = abcd / Result: Child content = abcd" );
+
+        done();
+    }
+})
+```
+
+should render block content from a parent block.
+
+```js
+twig({
+    path:   'test/templates/block-parent.twig',
+
+    load: function(template) {
+        template.render({
+            base: "block-function-parent.twig"
+        })
+        .should.equal( "parent block / Result: parent block" );
+
+        done();
+    }
+})
+```
+
 <a name="twigjs-control-structures--"></a>
 # Twig.js Control Structures ->
 <a name="twigjs-control-structures---if-tag--"></a>
@@ -935,7 +1113,7 @@ should chain.
 
 ```js
 var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
-test_template.render().should.equal("2,1,0" );
+test_template.render().should.equal("2,1,0");
 ```
 
 <a name="twigjs-filters---url_encode--"></a>
@@ -1424,7 +1602,79 @@ should handle undefined.
 
 ```js
 var test_template = twig({data: '{{ undef|number_format }}' });
-test_template.render().should.equal("0" );
+test_template.render().should.equal("0");
+```
+
+<a name="twigjs-filters---slice--"></a>
+## slice ->
+should slice a string.
+
+```js
+var test_template = twig({data: "{{ '12345'|slice(1, 2) }}" });
+test_template.render().should.equal("23");
+```
+
+should slice a string to the end.
+
+```js
+var test_template = twig({data: "{{ '12345'|slice(2) }}" });
+test_template.render().should.equal("345");
+```
+
+should slice a string from the start.
+
+```js
+var test_template = twig({data: "{{ '12345'|slice(null, 2) }}" });
+test_template.render().should.equal("12");
+```
+
+should slice a string from a negative offset.
+
+```js
+var test_template = twig({data: "{{ '12345'|slice(-2, 1) }}" });
+test_template.render().should.equal("4");
+```
+
+should slice a string from a negative offset to end of string.
+
+```js
+var test_template = twig({data: "{{ '12345'|slice(-2) }}" });
+test_template.render().should.equal("45");
+```
+
+should slice an array.
+
+```js
+var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(1, 2)|join(',') }}" });
+test_template.render().should.equal("2,3");
+```
+
+should slice an array to the end.
+
+```js
+var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(2)|join(',') }}" });
+test_template.render().should.equal("3,4,5");
+```
+
+should slice an array from the start.
+
+```js
+var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(null, 2)|join(',') }}" });
+test_template.render().should.equal("1,2");
+```
+
+should slice an array from a negative offset.
+
+```js
+var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(-2, 1)|join(',') }}" });
+test_template.render().should.equal("4");
+```
+
+should slice an array from a negative offset to the end of the array.
+
+```js
+var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(-4)|join(',') }}" });
+test_template.render().should.equal("2,3,4,5");
 ```
 
 <a name="twigjs-loader--"></a>
@@ -1460,131 +1710,6 @@ template.render({
     test: "yes",
     flag: true
 }).should.equal("Test template = yes\n\nFlag set!");
-```
-
-<a name="twigjs-blocks--"></a>
-# Twig.js Blocks ->
-should load a parent template and render the default values.
-
-```js
-twig({
-    id:   'remote-no-extends',
-    path: 'test/templates/template.twig',
-    async: false
-});
-
-// Load the template
-twig({ref: 'remote-no-extends'}).render({ }).should.equal( "Default Title - body" );
-```
-
-should load a child template and replace the parent block's content.
-
-```js
-// Test loading a template from a remote endpoint
-twig({
-    id:   'child-extends',
-    path: 'test/templates/child.twig',
-
-    load: function(template) {
-        template.render({ base: "template.twig" }).should.equal( "Other Title - child" );
-        done();
-    }
-});
-```
-
-should have access to a parent block content.
-
-```js
-// Test loading a template from a remote endpoint
-twig({
-    id:   'child-parent',
-    path: 'test/templates/child-parent.twig',
-
-    load: function(template) {
-        template.render({
-            base: "template.twig",
-            inner: ':value'
-        }).should.equal( "Other Title - body:value:child" );
-        done();
-    }
-});
-```
-
-should include blocks from another template for horizontal reuse.
-
-```js
-// Test horizontal reuse
-twig({
-    id:   'use',
-    path: 'test/templates/use.twig',
-
-    load: function(template) {
-        // Load the template
-        template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
-        done();
-    }
-});
-```
-
-should make the contents of blocks available after they're rendered.
-
-```js
-// Test rendering and loading one block
-twig({
-    id:   'blocks',
-    path: 'test/templates/blocks.twig',
-
-    load: function(template) {
-        // Render the template with the blocks parameter
-        template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal("Coming soon to a block near you!" );
-        done();
-    }
-});
-```
-
-should render nested blocks.
-
-```js
-// Test rendering of blocks within blocks
-twig({
-    id:     'blocks-nested',
-    path:   'test/templates/blocks-nested.twig',
-
-    load: function(template) {
-        template.render({ }).should.equal( "parent:child" )
-        done();
-    }
-})
-```
-
-should render extended nested blocks.
-
-```js
-// Test rendering of blocks within blocks
-twig({
-    id:     'child-blocks-nested',
-    path:   'test/templates/child-blocks-nested.twig',
-
-    load: function(template) {
-        template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" )
-        done();
-    }
-})
-```
-
-should be able to extend to a absolute tempalte path.
-
-```js
-// Test loading a template from a remote endpoint
-twig({
-    base: 'test/templates',
-    path: 'test/templates/a/child.twig',
-
-    load: function(template) {
-        template.render({ base: "b/template.twig" }).should.equal( "Other Title - child" );
-        done();
-    }
-});
 ```
 
 <a name="twigjs-include--"></a>
@@ -1883,6 +2008,15 @@ should output formatted undefined.
 twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);
 ```
 
+<a name="twigjs-functions---built-in-functions---block--"></a>
+### block ->
+should render the content of blocks.
+
+```js
+twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
+    .should.equal("Content - test Title: Content - test");
+```
+
 <a name="twigjs-optional-functionality--"></a>
 # Twig.js Optional Functionality ->
 should support inline includes by ID.
@@ -1916,10 +2050,22 @@ twig({data: '{% for note in notes %}{{note}}{% endfor %}'}).render({notes:['a', 
 ```js
 // Define and save a template
 Twig.extendFunction('custom', function(value) {
-	return true;
+    return true;
 });
 
 twig({data: '{% if (custom("val") and custom("val")) %}out{% endif %}'}).render({}).should.equal("out");
+```
+
+#83 Support for trailing commas in arrays.
+
+```js
+twig({data: '{{ [1,2,3,4,] }}'}).render().should.equal("1,2,3,4");
+```
+
+#83 Support for trailing commas in objects.
+
+```js
+twig({data: '{{ {a:1, b:2, c:3, } }}'}).render();
 ```
 
 <a name="twigjs-tags--"></a>

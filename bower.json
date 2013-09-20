@@ -1,0 +1,24 @@
+{
+  "name": "twig",
+  "version": "0.5.11",
+  "main": "twig.min.js",
+  "ignore": [
+    "src",
+    "demos",
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ],
+  "homepage": "https://github.com/justjohn/twig.js",
+  "authors": [
+    "John Roepke <john@justjohn.us>"
+  ],
+  "description": "JS implementation of the Twig templating language.",
+  "keywords": [
+    "template",
+    "engine",
+    "twig"
+  ],
+  "license": "BSD 2 Clause"
+}
