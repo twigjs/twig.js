@@ -12,7 +12,7 @@
     "node_modules",
     "bower_components",
     "test",
-    "text-ext"
+    "test-ext"
   ],
   "homepage": "https://github.com/justjohn/twig.js",
   "authors": [
