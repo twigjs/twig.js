@@ -507,7 +507,7 @@ var Twig = (function (Twig) {
         context = context || { };
 
 
-        tokens.forEach(function parseToken(token) {
+        Twig.forEach(tokens, function parseToken(token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
             switch (token.type) {
@@ -900,7 +900,7 @@ var Twig = (function (Twig) {
         sub_template.render(context);
 
         // Mixin blocks
-        Object.keys(sub_template.blocks).forEach(function(key) {
+        Twig.forEach(Object.keys(sub_template.blocks), function(key) {
             if (override || that.blocks[key] === undefined) {
                 that.blocks[key] = sub_template.blocks[key];
             }

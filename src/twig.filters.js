@@ -98,7 +98,7 @@ var Twig = (function (Twig) {
             var keyset = value._keys || Object.keys(value),
                 output = [];
 
-            keyset.forEach(function(key) {
+            Twig.forEach(keyset, function(key) {
                 if (key === "_keys") return; // Ignore the _keys property
                 if (value.hasOwnProperty(key)) {
                     output.push(key);
@@ -129,7 +129,7 @@ var Twig = (function (Twig) {
                 output = value;
             } else {
                 keyset = value._keys || Object.keys(value);
-                keyset.forEach(function(key) {
+                Twig.forEach(keyset, function(key) {
                     if (key === "_keys") return; // Ignore the _keys property
                     if (value.hasOwnProperty(key)) {
                         output.push(value[key]);
@@ -167,7 +167,7 @@ var Twig = (function (Twig) {
                 // Create obj as an Object
                 obj = { };
             } else {
-                params.forEach(function(param) {
+                Twig.forEach(params, function(param) {
                     if (!(param instanceof Array)) {
                         obj = { };
                     }
@@ -178,14 +178,14 @@ var Twig = (function (Twig) {
             }
 
             if (value instanceof Array) {
-                value.forEach(function(val) {
+                Twig.forEach(value, function(val) {
                     if (obj._keys) obj._keys.push(arr_index);
                     obj[arr_index] = val;
                     arr_index++;
                 });
             } else {
                 keyset = value._keys || Object.keys(value);
-                keyset.forEach(function(key) {
+                Twig.forEach(keyset, function(key) {
                     obj[key] = value[key];
                     obj._keys.push(key);
 
@@ -204,16 +204,16 @@ var Twig = (function (Twig) {
             }
 
             // mixin the merge arrays
-            params.forEach(function(param) {
+            Twig.forEach(params, function(param) {
                 if (param instanceof Array) {
-                    param.forEach(function(val) {
+                    Twig.forEach(param, function(val) {
                         if (obj._keys) obj._keys.push(arr_index);
                         obj[arr_index] = val;
                         arr_index++;
                     });
                 } else {
                     keyset = param._keys || Object.keys(param);
-                    keyset.forEach(function(key) {
+                    Twig.forEach(keyset, function(key) {
                         if (!obj[key]) obj._keys.push(key);
                         obj[key] = param[key];
 

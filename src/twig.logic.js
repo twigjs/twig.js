@@ -274,7 +274,7 @@ var Twig = (function (Twig) {
 
                 if (result instanceof Array) {
                     len = result.length;
-                    result.forEach(function (value) {
+                    Twig.forEach(result, function (value) {
                         var key = index;
 
                         loop(key, value);
@@ -286,7 +286,7 @@ var Twig = (function (Twig) {
                         keyset = Object.keys(result);
                     }
 					len = keyset.length;
-                    keyset.forEach(function(key) {
+                    Twig.forEach(keyset, function(key) {
                         // Ignore the _keys property, it's internal to twig.js
                         if (key === "_keys") return;
 

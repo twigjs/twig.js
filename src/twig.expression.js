@@ -965,7 +965,7 @@ var Twig = (function (Twig) {
         var stack = [],
             token_template = null;
 
-        tokens.forEach(function (token) {
+        Twig.forEach(tokens, function (token) {
             token_template = Twig.expression.handler[token.type];
 
             token_template.parse && token_template.parse.apply(that, [token, stack, context]);
