@@ -593,7 +593,7 @@ var Twig = (function (Twig) {
                     Twig.expression.type.parameter.start]),
             compile: Twig.expression.fn.compile.push,
             validate: function(match, tokens) {
-                return Twig.expression.reservedWords.indexOf(match[0]) == -1;
+                return (Twig.indexOf(Twig.expression.reservedWords, match[0]) < 0);
             },
             parse: function(token, stack, context) {
                 // Get the variable from the context
@@ -819,7 +819,7 @@ var Twig = (function (Twig) {
             Twig.log.trace("Twig.expression.tokenize",
                            "Matched a ", type, " regular expression of ", match);
 
-            if (next && next.indexOf(type) < 0) {
+            if (next && Twig.indexOf(next, type) < 0) {
                 invalid_matches.push(
                     type + " cannot follow a " + tokens[tokens.length - 1].type +
                            " at template:" + exp_offset + " near '" + match[0].substring(0, 20) +

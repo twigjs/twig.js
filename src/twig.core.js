@@ -20,6 +20,22 @@ var Twig = (function (Twig) {
     };
 
     /**
+     * Fallback for Array.indexOf for IE8 et al
+     */
+    Twig.indexOf = function (arr, find, i /*opt*/) {
+        if (Array.prototype.hasOwnProperty("indexOf")) {
+            return arr.indexOf(find, i);
+        }
+        if (i===undefined) i= 0;
+        if (i<0) i+= arr.length;
+        if (i<0) i= 0;
+        for (var n= arr.length; i<n; i++)
+            if (i in arr && this[i]===find)
+                return i;
+        return -1;
+    };
+
+    /**
      * Exception thrown by twig.js.
      */
     Twig.Error = function(message) {

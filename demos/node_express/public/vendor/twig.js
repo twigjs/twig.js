@@ -34,6 +34,22 @@ var Twig = (function (Twig) {
     };
 
     /**
+     * Fallback for Array.indexOf for IE8 et al
+     */
+    Twig.indexOf = function (arr, find, i /*opt*/) {
+        if (Array.prototype.hasOwnProperty("indexOf")) {
+            return arr.indexOf(find, i);
+        }
+        if (i===undefined) i= 0;
+        if (i<0) i+= arr.length;
+        if (i<0) i= 0;
+        for (var n= arr.length; i<n; i++)
+            if (i in arr && this[i]===find)
+                return i;
+        return -1;
+    };
+
+    /**
      * Exception thrown by twig.js.
      */
     Twig.Error = function(message) {
@@ -2955,7 +2971,7 @@ var Twig = (function (Twig) {
                     Twig.expression.type.parameter.start]),
             compile: Twig.expression.fn.compile.push,
             validate: function(match, tokens) {
-                return Twig.expression.reservedWords.indexOf(match[0]) == -1;
+                return (Twig.indexOf(Twig.expression.reservedWords, match[0]) < 0);
             },
             parse: function(token, stack, context) {
                 // Get the variable from the context
@@ -3181,7 +3197,7 @@ var Twig = (function (Twig) {
             Twig.log.trace("Twig.expression.tokenize",
                            "Matched a ", type, " regular expression of ", match);
 
-            if (next && next.indexOf(type) < 0) {
+            if (next && Twig.indexOf(next, type) < 0) {
                 invalid_matches.push(
                     type + " cannot follow a " + tokens[tokens.length - 1].type +
                            " at template:" + exp_offset + " near '" + match[0].substring(0, 20) +
