@@ -572,18 +572,18 @@ var Twig = (function (Twig) {
                 if(xmlhttp.readyState == 4) {
                     if (xmlhttp.status == 200) {
                         Twig.log.debug("Got template ", xmlhttp.responseText);
-    
+
                         if (precompiled === true) {
                             data = JSON.parse(xmlhttp.responseText);
                         } else {
                             data = xmlhttp.responseText;
                         }
-    
+
                         params.url = location;
                         params.data = data;
-    
+
                         template = new Twig.Template(params);
-    
+
                         if (callback) {
                             callback(template);
                         }
@@ -741,16 +741,30 @@ var Twig = (function (Twig) {
 
         // Does this template extend another
         if (this.extend) {
-            url = relativePath(this, this.extend);
+            var ext_template;
 
-            // This template extends another, load it with this template's blocks
-            this.parent = Twig.Templates.loadRemote(url, {
-                method: this.url?'ajax':'fs',
-                base: this.base,
-                async:  false,
-                id:     url,
-                options: this.options
-            });
+            // check if the template is provided inline
+            if ( this.options.allowInlineIncludes ) {
+                ext_template = Twig.Templates.load(this.extend);
+                if ( ext_template ) {
+                    ext_template.options = this.options;
+                }
+            }
+
+            // check for the template file via include
+            if (!ext_template) {
+                url = relativePath(this, this.extend);
+
+                ext_template = Twig.Templates.loadRemote(url, {
+                    method: this.url?'ajax':'fs',
+                    base: this.base,
+                    async:  false,
+                    id:     url,
+                    options: this.options
+                });
+            }
+
+            this.parent = ext_template;
 
             return this.parent.render(this.context, {
                 blocks: this.blocks

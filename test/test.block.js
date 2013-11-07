@@ -109,7 +109,7 @@ describe("Twig.js Blocks ->", function() {
             }
         })
     });
-    
+
     it("should be able to extend to a absolute template path", function(done) {
         // Test loading a template from a remote endpoint
         twig({
@@ -123,6 +123,18 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 
+    it("should extends blocks inline", function() {
+        twig({
+            id: 'inline-parent-template',
+            data: 'Title: {% block title %}parent{% endblock %}'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% extends "inline-parent-template" %}{% block title %}child{% endblock %}'
+        }).render().should.equal("Title: child");
+    });
+
     describe("block function ->", function() {
         it("should render block content from an included block", function(done) {
             twig({
@@ -131,7 +143,7 @@ describe("Twig.js Blocks ->", function() {
                 load: function(template) {
                     template.render({
                         base: "block-function-parent.twig",
-                        val: "abcd" 
+                        val: "abcd"
                     })
                     .should.equal( "Child content = abcd / Result: Child content = abcd" );
 
