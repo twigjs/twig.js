@@ -400,17 +400,6 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
-    describe('last ->', function () {
-        it('should return last character in string', function () {
-            var test_template = twig({data: "{{ 'abcd'|last }}"});
-            test_template.render().should.equal("d");
-        });
-        it('should return last item in array', function () {
-            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|last }}"});
-            test_template.render().should.equal("d");
-        });
-    });
-
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0");
