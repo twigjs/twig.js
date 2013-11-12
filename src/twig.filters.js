@@ -391,6 +391,18 @@ var Twig = (function (Twig) {
             }
 
             return Math.abs(value);
+        },
+
+        first: function(value) {
+            // Check if value is an object
+            if (Twig.lib.is('Object', value)) {
+                for (var index in value) {
+                    return value[index];
+                }
+            }
+
+            // string|array
+            return value[0];
         }
     };
 
