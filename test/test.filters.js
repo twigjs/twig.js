@@ -400,17 +400,6 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
-    describe('first ->', function () {
-        it('should return first character in string', function () {
-            var test_template = twig({data: "{{ 'abcd'|first }}"});
-            test_template.render().should.equal("a");
-        });
-        it('should return first item in array', function () {
-            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|first }}"});
-            test_template.render().should.equal("a");
-        });
-    });
-
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0");
