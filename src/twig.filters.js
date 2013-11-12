@@ -391,6 +391,15 @@ var Twig = (function (Twig) {
             }
 
             return Math.abs(value);
+        },
+
+        last: function(value) {
+            if (Object.prototype.toString.call(value) === '[object Object]') {
+                return value[Object.keys(value)[Object.keys(value).length - 1]];
+            }
+
+            // string|array
+            return value[value.length - 1];
         }
     };
 
