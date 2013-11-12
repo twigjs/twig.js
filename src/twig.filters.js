@@ -394,7 +394,7 @@ var Twig = (function (Twig) {
         },
 
         last: function(value) {
-            if (Object.prototype.toString.call(value) === '[object Object]') {
+            if (Twig.lib.is('Object', value)) {
                 return value[Object.keys(value)[Object.keys(value).length - 1]];
             }
 
