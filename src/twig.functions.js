@@ -127,7 +127,7 @@ var Twig = (function (Twig) {
 			// handle no argument case by dumping the entire render context
 			if (args.length == 0) args.push(this.context);
 
-			args.forEach(function(variable) {
+			Twig.forEach(args, function(variable) {
 				dumpVar(variable);
 			});
 
