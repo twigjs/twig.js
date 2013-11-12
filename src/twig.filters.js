@@ -395,7 +395,7 @@ var Twig = (function (Twig) {
 
         first: function(value) {
             // Check if value is an object
-            if (Object.prototype.toString.call(value) === '[object Object]') {
+            if (Twig.lib.is('Object', value)) {
                 for (var index in value) {
                     return value[index];
                 }
