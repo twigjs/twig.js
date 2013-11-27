@@ -405,6 +405,20 @@ var Twig = (function (Twig) {
             }
             
             return;
+        },
+
+        split: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length !== 1) {
+                throw new Twig.Error("split filter expects 1 argument");
+            }
+            if (Twig.lib.is("String", value)) {
+                return value.split(params[0]);
+            } else {
+                throw new Twig.Error("split filter expects value to be a string");
+            }
         }
     };
 
