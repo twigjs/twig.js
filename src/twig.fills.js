@@ -3,9 +3,6 @@
 // [Public Domain](https://developer.mozilla.org/Project:Copyrights).
 //
 // See:
-//
-// * [Array.indexOf - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf)
-// * [Array.forEach - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach)
 // * [Object.keys - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
 
 // ## twig.fills.js
@@ -17,7 +14,7 @@
 
     if (!String.prototype.trim) {
         String.prototype.trim = function() {
-            return this.replace(/^\s+|\s+$/g,''); 
+            return this.replace(/^\s+|\s+$/g,'');
         }
     };
 
