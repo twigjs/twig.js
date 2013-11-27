@@ -383,6 +383,14 @@ var Twig = (function (Twig) {
             } else {
                 throw new Twig.Error("slice filter expects value to be an array or string");
             }
+        },
+
+        abs: function(value) {
+            if (value === undefined || value === null) {
+                return;
+            }
+
+            return Math.abs(value);
         }
     };
 
