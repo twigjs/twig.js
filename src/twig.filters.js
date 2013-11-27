@@ -391,6 +391,20 @@ var Twig = (function (Twig) {
             }
 
             return Math.abs(value);
+        },
+
+        first: function(value) {
+            if (value instanceof Array) {
+                return value[0];
+            } else if (value instanceof Object) {
+                if ('_keys' in value) {
+                    return value[value._keys[0]];
+                }
+            } else if ( typeof value === "string" ) {
+                return value.substr(0, 1);
+            }
+            
+            return;
         }
     };
 

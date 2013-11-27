@@ -400,6 +400,43 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe('abs ->', function () {
+        it('should convert negative numbers to its absolute value', function () {
+            var test_template = twig({data: "{{ '-7.365'|abs }}"});
+            test_template.render().should.equal("7.365");
+        });
+        it('should not alter absolute numbers', function () {
+            var test_template = twig({data: "{{ 95|abs }}"});
+            test_template.render().should.equal("95");
+        });
+    });
+
+    describe('first ->', function () {''
+        it('should return first item in array', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|first }}"});
+            test_template.render().should.equal("a");
+        });
+        it('should return first member of object', function () {
+            var test_template = twig({data: "{{ { item1: 'a', item2: 'b', item3: 'c', item4: 'd'}|first }}"});
+            test_template.render().should.equal("a");
+        });
+        it('should not fail when passed empty obj, arr or str', function () {
+            var test_template = twig({data: "{{ {}|first }}"});
+            test_template.render().should.equal("");
+
+            var test_template = twig({data: "{{ []|first }}"});
+            test_template.render().should.equal("");
+
+            myemptystr = "";
+            var test_template = twig({data: "{{ myemptystr|first }}"});
+            test_template.render().should.equal("");
+        });
+        it('should return first character in string', function () {
+            var test_template = twig({data: "{{ 'abcde'|first }}"});
+            test_template.render().should.equal("a");
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0");
