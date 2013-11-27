@@ -437,6 +437,29 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe('split ->', function () {
+        it('should split string with a separator', function () {
+            var test_template = twig({data: "{{ 'one-two-three'|split('-') }}"});
+            test_template.render().should.equal("one,two,three");
+        });
+        it('should split string with a separator and positive limit', function () {
+            var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', 3) }}"});
+            test_template.render().should.equal("one,two,three-four-five");
+        });
+        it('should split string with a separator and negative limit', function () {
+            var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', -2) }}"});
+            test_template.render().should.equal("one,two,three");
+        });
+        it('should split with empty separator', function () {
+            var test_template = twig({data: "{{ '123'|split('') }}"});
+            test_template.render().should.equal("1,2,3");
+        });
+        it('should split with empty separator and limit', function () {
+            var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
+            test_template.render().should.equal("aa,bb,cc");
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0");
