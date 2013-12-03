@@ -36,6 +36,9 @@
      - [trim ->](#twigjs-filters---trim--)
      - [number_format ->](#twigjs-filters---number_format--)
      - [slice ->](#twigjs-filters---slice--)
+     - [abs ->](#twigjs-filters---abs--)
+     - [first ->](#twigjs-filters---first--)
+     - [split ->](#twigjs-filters---split--)
    - [Twig.js Loader ->](#twigjs-loader--)
    - [Twig.js Include ->](#twigjs-include--)
    - [Twig.js Functions ->](#twigjs-functions--)
@@ -196,6 +199,20 @@ twig({
 });
 ```
 
+should extends blocks inline.
+
+```js
+twig({
+    id: 'inline-parent-template',
+    data: 'Title: {% block title %}parent{% endblock %}'
+});
+
+twig({
+    allowInlineIncludes: true,
+    data: '{% extends "inline-parent-template" %}{% block title %}child{% endblock %}'
+}).render().should.equal("Title: child");
+```
+
 <a name="twigjs-blocks---block-function--"></a>
 ## block function ->
 should render block content from an included block.
@@ -207,7 +224,7 @@ twig({
     load: function(template) {
         template.render({
             base: "block-function-parent.twig",
-            val: "abcd" 
+            val: "abcd"
         })
         .should.equal( "Child content = abcd / Result: Child content = abcd" );
 
@@ -406,8 +423,7 @@ should save and load a template by reference.
             id:   'test',
             data: '{{ "test" }}'
         });
-
-        // Load and render the template
+// Load and render the template
         twig({ref: 'test'}).render()
                 .should.equal("test");
 ```
@@ -653,9 +669,9 @@ var object = {
                     return "val";
                 }
             };
-			function Subobj() {};
-			Subobj.prototype = object;
-			var subobj = new Subobj();
+function Subobj() {};
+Subobj.prototype = object;
+var subobj = new Subobj();
 
             twig({data: '{{ obj.value }}'}).render({
                 obj: subobj
@@ -1007,8 +1023,8 @@ should be able to extend a meta-type tag.
 ```js
 var flags = {};
 
-	Twig.extend(function(Twig) {
-		Twig.exports.extendTag({
+Twig.extend(function(Twig) {
+	Twig.exports.extendTag({
 	            type: "flag",
 	            regex: /^flag\s+(.+)$/,
 		        next: [ ],
@@ -1036,29 +1052,29 @@ var flags = {};
 	                    output: output
 	                };
 	            }
-		});
 	});
+});
 
-	var template = twig({data:"{% flag 'enabled' %}"}).render();
-	flags.enabled.should.equal(true);
+var template = twig({data:"{% flag 'enabled' %}"}).render();
+flags.enabled.should.equal(true);
 ```
 
 should be able to extend paired tags.
 
 ```js
 // demo data
-	var App = {
-		user: "john",
-		users: {
-			john: {level: "admin"},
-			tom: {level: "user"}
-		}
-	};
+var App = {
+	user: "john",
+	users: {
+		john: {level: "admin"},
+		tom: {level: "user"}
+	}
+};
 
-	Twig.extend(function(Twig) {
-		// example of extending a tag type that would
-		// restrict content to the specified "level"
-		Twig.exports.extendTag({
+Twig.extend(function(Twig) {
+	// example of extending a tag type that would
+	// restrict content to the specified "level"
+	Twig.exports.extendTag({
 	            type: "auth",
 	            regex: /^auth\s+(.+)$/,
 	            next: ["endauth"], // match the type of the end tag
@@ -1089,19 +1105,19 @@ should be able to extend paired tags.
 	                    output: output
 	                };
 	            }
-		});
-		Twig.exports.extendTag({
+	});
+	Twig.exports.extendTag({
 	            type: "endauth",
 	            regex: /^endauth$/,
 	            next: [ ],
 	            open: false
 	        });
-	});
+});
 
-	var template = twig({data:"Welcome{% auth 'admin' %} ADMIN{% endauth %}!"});
+var template = twig({data:"Welcome{% auth 'admin' %} ADMIN{% endauth %}!"});
 
 		App.currentUser = "john";
-	template.render().should.equal("Welcome ADMIN!");
+template.render().should.equal("Welcome ADMIN!");
 
 		App.currentUser = "tom";
 		template.render().should.equal("Welcome!");
@@ -1675,6 +1691,96 @@ should slice an array from a negative offset to the end of the array.
 ```js
 var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(-4)|join(',') }}" });
 test_template.render().should.equal("2,3,4,5");
+```
+
+<a name="twigjs-filters---abs--"></a>
+## abs ->
+should convert negative numbers to its absolute value.
+
+```js
+var test_template = twig({data: "{{ '-7.365'|abs }}"});
+test_template.render().should.equal("7.365");
+```
+
+should not alter absolute numbers.
+
+```js
+var test_template = twig({data: "{{ 95|abs }}"});
+test_template.render().should.equal("95");
+```
+
+<a name="twigjs-filters---first--"></a>
+## first ->
+should return first item in array.
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|first }}"});
+test_template.render().should.equal("a");
+```
+
+should return first member of object.
+
+```js
+var test_template = twig({data: "{{ { item1: 'a', item2: 'b', item3: 'c', item4: 'd'}|first }}"});
+test_template.render().should.equal("a");
+```
+
+should not fail when passed empty obj, arr or str.
+
+```js
+var test_template = twig({data: "{{ {}|first }}"});
+test_template.render().should.equal("");
+
+var test_template = twig({data: "{{ []|first }}"});
+test_template.render().should.equal("");
+
+myemptystr = "";
+var test_template = twig({data: "{{ myemptystr|first }}"});
+test_template.render().should.equal("");
+```
+
+should return first character in string.
+
+```js
+var test_template = twig({data: "{{ 'abcde'|first }}"});
+test_template.render().should.equal("a");
+```
+
+<a name="twigjs-filters---split--"></a>
+## split ->
+should split string with a separator.
+
+```js
+var test_template = twig({data: "{{ 'one-two-three'|split('-') }}"});
+test_template.render().should.equal("one,two,three");
+```
+
+should split string with a separator and positive limit.
+
+```js
+var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', 3) }}"});
+test_template.render().should.equal("one,two,three-four-five");
+```
+
+should split string with a separator and negative limit.
+
+```js
+var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', -2) }}"});
+test_template.render().should.equal("one,two,three");
+```
+
+should split with empty separator.
+
+```js
+var test_template = twig({data: "{{ '123'|split('') }}"});
+test_template.render().should.equal("1,2,3");
+```
+
+should split with empty separator and limit.
+
+```js
+var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
+test_template.render().should.equal("aa,bb,cc");
 ```
 
 <a name="twigjs-loader--"></a>
