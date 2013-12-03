@@ -427,7 +427,6 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: "{{ []|first }}"});
             test_template.render().should.equal("");
 
-            myemptystr = "";
             var test_template = twig({data: "{{ myemptystr|first }}"});
             test_template.render().should.equal("");
         });
