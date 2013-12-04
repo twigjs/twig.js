@@ -239,6 +239,29 @@ var Twig = (function (Twig) {
             return Twig.lib.formatDate(date, params[0]);
         },
 
+        date_modify: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length !== 1) {
+                throw new Twig.Error("date_modify filter expects 1 argument");
+            }
+
+            var modifyText = params[0], time;
+
+            if (Twig.lib.is("Date", value)) {
+                time = Twig.lib.strtotime(modifyText, value.getTime() / 1000);
+            }
+            if (Twig.lib.is("String", value)) {
+                time = Twig.lib.strtotime(modifyText, Twig.lib.strtotime(value));
+            }
+            if (Twig.lib.is("Number", value)) {
+                time = Twig.lib.strtotime(modifyText, value);
+            }
+
+            return new Date(time * 1000);
+        },
+
         replace: function(value, params) {
             if (value === undefined||value === null){
                 return;
@@ -366,9 +389,9 @@ var Twig = (function (Twig) {
             }
 
             // default to start of string
-            var start = params[0] || 0; 
+            var start = params[0] || 0;
             // default to length of string
-            var length = params.length > 1 ? params[1] : value.length; 
+            var length = params.length > 1 ? params[1] : value.length;
             // handle negative start values
             var startIndex = start >= 0 ? start : Math.max( value.length + start, 0 );
 
