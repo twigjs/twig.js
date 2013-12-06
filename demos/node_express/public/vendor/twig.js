@@ -1009,9 +1009,6 @@ var Twig = (function (Twig) {
 // [Public Domain](https://developer.mozilla.org/Project:Copyrights).
 //
 // See:
-//
-// * [Array.indexOf - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf)
-// * [Array.forEach - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach)
 // * [Object.keys - MDN](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
 
 // ## twig.fills.js
@@ -1023,7 +1020,7 @@ var Twig = (function (Twig) {
 
     if (!String.prototype.trim) {
         String.prototype.trim = function() {
-            return this.replace(/^\s+|\s+$/g,''); 
+            return this.replace(/^\s+|\s+$/g,'');
         }
     };
 
@@ -1174,7 +1171,7 @@ var Twig = (function(Twig) {
     })();
 
     var vsprintf = function(fmt, argv) {
-     	argv.unshift(fmt);
+        argv.unshift(fmt);
         return sprintf.apply(null, argv);
     };
 
@@ -1262,6 +1259,7 @@ var Twig = (function(Twig) {
             ///     i - Minutes with leading zeros
             ///     s - Seconds, with leading zeros
             ///     u - Milliseconds
+            ///     U - Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
             /// </param>
             /// <returns type="String">
             ///   Returns the string for this date, formatted according to the given
@@ -1272,7 +1270,7 @@ var Twig = (function(Twig) {
                     return date + "";
             var jan1st = new Date(date.getFullYear(), 0, 1);
             var me = date;
-            return format.replace(/[dDjlNSwzWFmMntLoYyaABgGhHisu]/g, function(option) {
+            return format.replace(/[dDjlNSwzWFmMntLoYyaABgGhHisuU]/g, function(option) {
                 switch(option) {
                     // Day of the month, 2 digits with leading zeros
                     case "d": return ("0" + me.getDate()).replace(/^.+(..)$/, "$1");
@@ -1332,6 +1330,8 @@ var Twig = (function(Twig) {
                     case "s": return ("0" + me.getSeconds()).replace(/^.+(..)$/, "$1");
                     // Milliseconds
                     case "u": return me.getMilliseconds();
+                    // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
+                    case "U": return me.getTime() / 1000;
                 }
             });
         };
@@ -3947,6 +3947,29 @@ var Twig = (function (Twig) {
 
             var date = Twig.functions.date(value);
             return Twig.lib.formatDate(date, params[0]);
+        },
+
+        date_modify: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length !== 1) {
+                throw new Twig.Error("date_modify filter expects 1 argument");
+            }
+
+            var modifyText = params[0], time;
+
+            if (Twig.lib.is("Date", value)) {
+                time = Twig.lib.strtotime(modifyText, value.getTime() / 1000);
+            }
+            if (Twig.lib.is("String", value)) {
+                time = Twig.lib.strtotime(modifyText, Twig.lib.strtotime(value));
+            }
+            if (Twig.lib.is("Number", value)) {
+                time = Twig.lib.strtotime(modifyText, value);
+            }
+
+            return new Date(time * 1000);
         },
 
         replace: function(value, params) {
