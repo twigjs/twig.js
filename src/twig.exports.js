@@ -25,8 +25,10 @@ var Twig = (function (Twig) {
         var id = params.id,
             options = {
                 strict_variables: params.strict_variables || false,
-                allowInlineIncludes: params.allowInlineIncludes || false
+                allowInlineIncludes: params.allowInlineIncludes || false,
+                rethrow: params.rethrow || false
             };
+
         if (id) {
             Twig.validateId(id);
         }
@@ -48,7 +50,7 @@ var Twig = (function (Twig) {
 
         } else if (params.ref !== undefined) {
             if (params.id !== undefined) {
-                throw new Error("Both ref and id cannot be set on a twig.js template.");
+                throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
 
