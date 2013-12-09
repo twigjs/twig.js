@@ -385,7 +385,9 @@ argument list containing kValue, k, and O.</p>
      * Get the string representation of a Twig error.
      */</span>
     Twig.Error.prototype.toString = <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
-        <span class="keyword">return</span> <span class="keyword">this</span>.name + <span class="string">": "</span> + <span class="keyword">this</span>.message;
+        <span class="keyword">var</span> output = <span class="keyword">this</span>.name + <span class="string">": "</span> + <span class="keyword">this</span>.message;
+
+        <span class="keyword">return</span> output;
     };
 
     <span class="comment">/**
@@ -393,8 +395,15 @@ argument list containing kValue, k, and O.</p>
      */</span>
     Twig.log = {
         trace: <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span><span class="keyword">if</span> (Twig.trace &amp;&amp; console) {console.log(Array.prototype.slice.call(arguments));}},
-        debug: <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span><span class="keyword">if</span> (Twig.debug &amp;&amp; console) {console.log(Array.prototype.slice.call(arguments));}}
+        debug: <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span><span class="keyword">if</span> (Twig.debug &amp;&amp; console) {console.log(Array.prototype.slice.call(arguments));}},
     };
+
+    <span class="keyword">if</span> (<span class="keyword">typeof</span> console !== <span class="string">"undefined"</span> &amp;&amp; 
+        <span class="keyword">typeof</span> console.log !== <span class="string">"undefined"</span>) {
+        Twig.log.error = console.log;
+    } <span class="keyword">else</span> {
+        Twig.log.error = <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>};
+    }
 
     <span class="comment">/**
      * Container for methods related to handling high level template tokens
@@ -850,7 +859,8 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
     };
 
 
-    Twig.compile = <span class="function"><span class="keyword">function</span> <span class="params">(tokens)</span> {</span></pre></div></div>
+    Twig.compile = <span class="function"><span class="keyword">function</span> <span class="params">(tokens)</span> {</span>
+        <span class="keyword">try</span> {</pre></div></div>
             
         </li>
         
@@ -865,8 +875,8 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="keyword">var</span> output = [],
-            stack = [],</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="keyword">var</span> output = [],
+                stack = [],</pre></div></div>
             
         </li>
         
@@ -881,11 +891,11 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            intermediate_output = [],
+            <div class="content"><div class='highlight'><pre>                intermediate_output = [],
 
-            token = <span class="literal">null</span>,
-            logic_token = <span class="literal">null</span>,
-            unclosed_token = <span class="literal">null</span>,</pre></div></div>
+                token = <span class="literal">null</span>,
+                logic_token = <span class="literal">null</span>,
+                unclosed_token = <span class="literal">null</span>,</pre></div></div>
             
         </li>
         
@@ -900,7 +910,7 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            prev_token = <span class="literal">null</span>,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                prev_token = <span class="literal">null</span>,</pre></div></div>
             
         </li>
         
@@ -915,7 +925,7 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            prev_template = <span class="literal">null</span>,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                prev_template = <span class="literal">null</span>,</pre></div></div>
             
         </li>
         
@@ -930,7 +940,7 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            tok_output = <span class="literal">null</span>,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                tok_output = <span class="literal">null</span>,</pre></div></div>
             
         </li>
         
@@ -945,23 +955,23 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            type = <span class="literal">null</span>,
-            open = <span class="literal">null</span>,
-            next = <span class="literal">null</span>;
+            <div class="content"><div class='highlight'><pre>                type = <span class="literal">null</span>,
+                open = <span class="literal">null</span>,
+                next = <span class="literal">null</span>;
 
-        <span class="keyword">while</span> (tokens.length &gt; <span class="number">0</span>) {
-            token = tokens.shift();
-            Twig.log.trace(<span class="string">"Compiling token "</span>, token);
-            <span class="keyword">switch</span> (token.type) {
-                <span class="keyword">case</span> Twig.token.type.raw:
-                    <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
-                        intermediate_output.push(token);
-                    } <span class="keyword">else</span> {
-                        output.push(token);
-                    }
-                    <span class="keyword">break</span>;
+            <span class="keyword">while</span> (tokens.length &gt; <span class="number">0</span>) {
+                token = tokens.shift();
+                Twig.log.trace(<span class="string">"Compiling token "</span>, token);
+                <span class="keyword">switch</span> (token.type) {
+                    <span class="keyword">case</span> Twig.token.type.raw:
+                        <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
+                            intermediate_output.push(token);
+                        } <span class="keyword">else</span> {
+                            output.push(token);
+                        }
+                        <span class="keyword">break</span>;
 
-                <span class="keyword">case</span> Twig.token.type.logic:</pre></div></div>
+                    <span class="keyword">case</span> Twig.token.type.logic:</pre></div></div>
             
         </li>
         
@@ -976,14 +986,14 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    logic_token = Twig.logic.compile.apply(<span class="keyword">this</span>, [token]);
+            <div class="content"><div class='highlight'><pre>                        logic_token = Twig.logic.compile.apply(<span class="keyword">this</span>, [token]);
 
-                    type = logic_token.type;
-                    open = Twig.logic.handler[type].open;
-                    next = Twig.logic.handler[type].next;
+                        type = logic_token.type;
+                        open = Twig.logic.handler[type].open;
+                        next = Twig.logic.handler[type].next;
 
-                    Twig.log.trace(<span class="string">"Twig.compile: "</span>, <span class="string">"Compiled logic token to "</span>, logic_token,
-                                                     <span class="string">" next is: "</span>, next, <span class="string">" open is : "</span>, open);</pre></div></div>
+                        Twig.log.trace(<span class="string">"Twig.compile: "</span>, <span class="string">"Compiled logic token to "</span>, logic_token,
+                                                         <span class="string">" next is: "</span>, next, <span class="string">" open is : "</span>, open);</pre></div></div>
             
         </li>
         
@@ -998,29 +1008,29 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    <span class="keyword">if</span> (open !== <span class="literal">undefined</span> &amp;&amp; !open) {
-                        prev_token = stack.pop();
-                        prev_template = Twig.logic.handler[prev_token.type];
+            <div class="content"><div class='highlight'><pre>                        <span class="keyword">if</span> (open !== <span class="literal">undefined</span> &amp;&amp; !open) {
+                            prev_token = stack.pop();
+                            prev_template = Twig.logic.handler[prev_token.type];
 
-                        <span class="keyword">if</span> (Twig.indexOf(prev_template.next, type) &lt; <span class="number">0</span>) {
-                            <span class="keyword">throw</span> <span class="keyword">new</span> Error(type + <span class="string">" not expected after a "</span> + prev_token.type);
-                        }
+                            <span class="keyword">if</span> (Twig.indexOf(prev_template.next, type) &lt; <span class="number">0</span>) {
+                                <span class="keyword">throw</span> <span class="keyword">new</span> Error(type + <span class="string">" not expected after a "</span> + prev_token.type);
+                            }
 
-                        prev_token.output = prev_token.output || [];
+                            prev_token.output = prev_token.output || [];
 
-                        prev_token.output = prev_token.output.concat(intermediate_output);
-                        intermediate_output = [];
+                            prev_token.output = prev_token.output.concat(intermediate_output);
+                            intermediate_output = [];
 
-                        tok_output = {
-                            type: Twig.token.type.logic,
-                            token: prev_token
-                        };
-                        <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
-                            intermediate_output.push(tok_output);
-                        } <span class="keyword">else</span> {
-                            output.push(tok_output);
-                        }
-                    }</pre></div></div>
+                            tok_output = {
+                                type: Twig.token.type.logic,
+                                token: prev_token
+                            };
+                            <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
+                                intermediate_output.push(tok_output);
+                            } <span class="keyword">else</span> {
+                                output.push(tok_output);
+                            }
+                        }</pre></div></div>
             
         </li>
         
@@ -1035,10 +1045,10 @@ regardless of what comes before it. <a href="https://github.com/justjohn/twig.js
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    <span class="keyword">if</span> (next !== <span class="literal">undefined</span> &amp;&amp; next.length &gt; <span class="number">0</span>) {
-                        Twig.log.trace(<span class="string">"Twig.compile: "</span>, <span class="string">"Pushing "</span>, logic_token, <span class="string">" to logic stack."</span>);
+            <div class="content"><div class='highlight'><pre>                        <span class="keyword">if</span> (next !== <span class="literal">undefined</span> &amp;&amp; next.length &gt; <span class="number">0</span>) {
+                            Twig.log.trace(<span class="string">"Twig.compile: "</span>, <span class="string">"Pushing "</span>, logic_token, <span class="string">" to logic stack."</span>);
 
-                        <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {</pre></div></div>
+                            <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {</pre></div></div>
             
         </li>
         
@@ -1054,12 +1064,12 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                            prev_token = stack.pop();
-                            prev_token.output = prev_token.output || [];
-                            prev_token.output = prev_token.output.concat(intermediate_output);
-                            stack.push(prev_token);
-                            intermediate_output = [];
-                        }</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                                prev_token = stack.pop();
+                                prev_token.output = prev_token.output || [];
+                                prev_token.output = prev_token.output.concat(intermediate_output);
+                                stack.push(prev_token);
+                                intermediate_output = [];
+                            }</pre></div></div>
             
         </li>
         
@@ -1074,13 +1084,13 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                        stack.push(logic_token);
+            <div class="content"><div class='highlight'><pre>                            stack.push(logic_token);
 
-                    } <span class="keyword">else</span> <span class="keyword">if</span> (open !== <span class="literal">undefined</span> &amp;&amp; open) {
-                        tok_output = {
-                            type: Twig.token.type.logic,
-                            token: logic_token
-                        };</pre></div></div>
+                        } <span class="keyword">else</span> <span class="keyword">if</span> (open !== <span class="literal">undefined</span> &amp;&amp; open) {
+                            tok_output = {
+                                type: Twig.token.type.logic,
+                                token: logic_token
+                            };</pre></div></div>
             
         </li>
         
@@ -1095,13 +1105,13 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                        <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
-                            intermediate_output.push(tok_output);
-                        } <span class="keyword">else</span> {
-                            output.push(tok_output);
+            <div class="content"><div class='highlight'><pre>                            <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
+                                intermediate_output.push(tok_output);
+                            } <span class="keyword">else</span> {
+                                output.push(tok_output);
+                            }
                         }
-                    }
-                    <span class="keyword">break</span>;</pre></div></div>
+                        <span class="keyword">break</span>;</pre></div></div>
             
         </li>
         
@@ -1116,23 +1126,23 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="keyword">case</span> Twig.token.type.comment:
-                    <span class="keyword">break</span>;
+            <div class="content"><div class='highlight'><pre>                    <span class="keyword">case</span> Twig.token.type.comment:
+                        <span class="keyword">break</span>;
 
-                <span class="keyword">case</span> Twig.token.type.output:
-                    Twig.expression.compile.apply(<span class="keyword">this</span>, [token]);
-                    <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
-                        intermediate_output.push(token);
-                    } <span class="keyword">else</span> {
-                        output.push(token);
-                    }
-                    <span class="keyword">break</span>;
-            }
+                    <span class="keyword">case</span> Twig.token.type.output:
+                        Twig.expression.compile.apply(<span class="keyword">this</span>, [token]);
+                        <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
+                            intermediate_output.push(token);
+                        } <span class="keyword">else</span> {
+                            output.push(token);
+                        }
+                        <span class="keyword">break</span>;
+                }
 
-            Twig.log.trace(<span class="string">"Twig.compile: "</span>, <span class="string">" Output: "</span>, output,
-                                             <span class="string">" Logic Stack: "</span>, stack,
-                                             <span class="string">" Pending Output: "</span>, intermediate_output );
-        }</pre></div></div>
+                Twig.log.trace(<span class="string">"Twig.compile: "</span>, <span class="string">" Output: "</span>, output,
+                                                 <span class="string">" Logic Stack: "</span>, stack,
+                                                 <span class="string">" Pending Output: "</span>, intermediate_output );
+            }</pre></div></div>
             
         </li>
         
@@ -1147,12 +1157,22 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
-            unclosed_token = stack.pop();
-            <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Unable to find an end tag for "</span> + unclosed_token.type +
-                            <span class="string">", expecting one of "</span> + unclosed_token.next);
+            <div class="content"><div class='highlight'><pre>            <span class="keyword">if</span> (stack.length &gt; <span class="number">0</span>) {
+                unclosed_token = stack.pop();
+                <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Unable to find an end tag for "</span> + unclosed_token.type +
+                                <span class="string">", expecting one of "</span> + unclosed_token.next);
+            }
+            <span class="keyword">return</span> output;
+        } <span class="keyword">catch</span> (ex) {
+            Twig.log.error(<span class="string">"Error compiling twig template "</span> + <span class="keyword">this</span>.id + <span class="string">": "</span>);
+            <span class="keyword">if</span> (ex.stack) {
+                Twig.log.error(ex.stack);
+            } <span class="keyword">else</span> {
+                Twig.log.error(ex.toString());
+            }
+
+            <span class="keyword">if</span> (<span class="keyword">this</span>.options.rethrow) <span class="keyword">throw</span> ex;
         }
-        <span class="keyword">return</span> output;
     };
 
     <span class="comment">/**
@@ -1164,7 +1184,8 @@ currently at the head of the stack before we push a new one on.</p>
      * @return {string} The parsed template.
      */</span>
     Twig.parse = <span class="function"><span class="keyword">function</span> <span class="params">(tokens, context)</span> {</span>
-        <span class="keyword">var</span> output = [],</pre></div></div>
+        <span class="keyword">try</span> {
+            <span class="keyword">var</span> output = [],</pre></div></div>
             
         </li>
         
@@ -1179,8 +1200,8 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            chain = <span class="literal">true</span>,
-            that = <span class="keyword">this</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                chain = <span class="literal">true</span>,
+                that = <span class="keyword">this</span>;</pre></div></div>
             
         </li>
         
@@ -1195,33 +1216,33 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        context = context || { };
+            <div class="content"><div class='highlight'><pre>            context = context || { };
 
 
-        Twig.forEach(tokens, <span class="function"><span class="keyword">function</span> <span class="title">parseToken</span><span class="params">(token)</span> {</span>
-            Twig.log.debug(<span class="string">"Twig.parse: "</span>, <span class="string">"Parsing token: "</span>, token);
+            Twig.forEach(tokens, <span class="function"><span class="keyword">function</span> <span class="title">parseToken</span><span class="params">(token)</span> {</span>
+                Twig.log.debug(<span class="string">"Twig.parse: "</span>, <span class="string">"Parsing token: "</span>, token);
 
-            <span class="keyword">switch</span> (token.type) {
-                <span class="keyword">case</span> Twig.token.type.raw:
-                    output.push(token.value);
-                    <span class="keyword">break</span>;
+                <span class="keyword">switch</span> (token.type) {
+                    <span class="keyword">case</span> Twig.token.type.raw:
+                        output.push(token.value);
+                        <span class="keyword">break</span>;
 
-                <span class="keyword">case</span> Twig.token.type.logic:
-                    <span class="keyword">var</span> logic_token = token.token,
-                        logic = Twig.logic.parse.apply(that, [logic_token, context, chain]);
+                    <span class="keyword">case</span> Twig.token.type.logic:
+                        <span class="keyword">var</span> logic_token = token.token,
+                            logic = Twig.logic.parse.apply(that, [logic_token, context, chain]);
 
-                    <span class="keyword">if</span> (logic.chain !== <span class="literal">undefined</span>) {
-                        chain = logic.chain;
-                    }
-                    <span class="keyword">if</span> (logic.context !== <span class="literal">undefined</span>) {
-                        context = logic.context;
-                    }
-                    <span class="keyword">if</span> (logic.output !== <span class="literal">undefined</span>) {
-                        output.push(logic.output);
-                    }
-                    <span class="keyword">break</span>;
+                        <span class="keyword">if</span> (logic.chain !== <span class="literal">undefined</span>) {
+                            chain = logic.chain;
+                        }
+                        <span class="keyword">if</span> (logic.context !== <span class="literal">undefined</span>) {
+                            context = logic.context;
+                        }
+                        <span class="keyword">if</span> (logic.output !== <span class="literal">undefined</span>) {
+                            output.push(logic.output);
+                        }
+                        <span class="keyword">break</span>;
 
-                <span class="keyword">case</span> Twig.token.type.comment:</pre></div></div>
+                    <span class="keyword">case</span> Twig.token.type.comment:</pre></div></div>
             
         </li>
         
@@ -1236,10 +1257,10 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    <span class="keyword">break</span>;
+            <div class="content"><div class='highlight'><pre>                        <span class="keyword">break</span>;
 
-                <span class="keyword">case</span> Twig.token.type.output:
-                    Twig.log.debug(<span class="string">"Twig.parse: "</span>, <span class="string">"Output token: "</span>, token.stack);</pre></div></div>
+                    <span class="keyword">case</span> Twig.token.type.output:
+                        Twig.log.debug(<span class="string">"Twig.parse: "</span>, <span class="string">"Output token: "</span>, token.stack);</pre></div></div>
             
         </li>
         
@@ -1254,11 +1275,25 @@ currently at the head of the stack before we push a new one on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    output.push(Twig.expression.parse.apply(that, [token.stack, context]));
-                    <span class="keyword">break</span>;
+            <div class="content"><div class='highlight'><pre>                        output.push(Twig.expression.parse.apply(that, [token.stack, context]));
+                        <span class="keyword">break</span>;
+                }
+            });
+            <span class="keyword">return</span> output.join(<span class="string">""</span>);
+        } <span class="keyword">catch</span> (ex) {
+            Twig.log.error(<span class="string">"Error parsing twig template "</span> + <span class="keyword">this</span>.id + <span class="string">": "</span>);
+            <span class="keyword">if</span> (ex.stack) {
+                Twig.log.error(ex.stack);
+            } <span class="keyword">else</span> {
+                Twig.log.error(ex.toString());
             }
-        });
-        <span class="keyword">return</span> output.join(<span class="string">""</span>);
+
+            <span class="keyword">if</span> (<span class="keyword">this</span>.options.rethrow) <span class="keyword">throw</span> ex;
+
+            <span class="keyword">if</span> (Twig.debug) {
+                <span class="keyword">return</span> ex.toString();
+            }
+        }
     };
 
     <span class="comment">/**
@@ -7590,8 +7625,10 @@ https://github.com/justjohn/twig.js</code></pre>
         <span class="keyword">var</span> id = params.id,
             options = {
                 strict_variables: params.strict_variables || <span class="literal">false</span>,
-                allowInlineIncludes: params.allowInlineIncludes || <span class="literal">false</span>
+                allowInlineIncludes: params.allowInlineIncludes || <span class="literal">false</span>,
+                rethrow: params.rethrow || <span class="literal">false</span>
             };
+
         <span class="keyword">if</span> (id) {
             Twig.validateId(id);
         }
@@ -7613,7 +7650,7 @@ https://github.com/justjohn/twig.js</code></pre>
 
         } <span class="keyword">else</span> <span class="keyword">if</span> (params.ref !== <span class="literal">undefined</span>) {
             <span class="keyword">if</span> (params.id !== <span class="literal">undefined</span>) {
-                <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Both ref and id cannot be set on a twig.js template."</span>);
+                <span class="keyword">throw</span> <span class="keyword">new</span> Twig.Error(<span class="string">"Both ref and id cannot be set on a twig.js template."</span>);
             }
             <span class="keyword">return</span> Twig.Templates.load(params.ref);
 
