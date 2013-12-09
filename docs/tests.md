@@ -36,6 +36,10 @@
      - [trim ->](#twigjs-filters---trim--)
      - [number_format ->](#twigjs-filters---number_format--)
      - [slice ->](#twigjs-filters---slice--)
+     - [abs ->](#twigjs-filters---abs--)
+     - [first ->](#twigjs-filters---first--)
+     - [split ->](#twigjs-filters---split--)
+     - [last ->](#twigjs-filters---last--)
    - [Twig.js Loader ->](#twigjs-loader--)
    - [Twig.js Include ->](#twigjs-include--)
    - [Twig.js Functions ->](#twigjs-functions--)
@@ -196,6 +200,20 @@ twig({
 });
 ```
 
+should extends blocks inline.
+
+```js
+twig({
+    id: 'inline-parent-template',
+    data: 'Title: {% block title %}parent{% endblock %}'
+});
+
+twig({
+    allowInlineIncludes: true,
+    data: '{% extends "inline-parent-template" %}{% block title %}child{% endblock %}'
+}).render().should.equal("Title: child");
+```
+
 <a name="twigjs-blocks---block-function--"></a>
 ## block function ->
 should render block content from an included block.
@@ -207,7 +225,7 @@ twig({
     load: function(template) {
         template.render({
             base: "block-function-parent.twig",
-            val: "abcd" 
+            val: "abcd"
         })
         .should.equal( "Child content = abcd / Result: Child content = abcd" );
 
@@ -1675,6 +1693,118 @@ should slice an array from a negative offset to the end of the array.
 ```js
 var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(-4)|join(',') }}" });
 test_template.render().should.equal("2,3,4,5");
+```
+
+<a name="twigjs-filters---abs--"></a>
+## abs ->
+should convert negative numbers to its absolute value.
+
+```js
+var test_template = twig({data: "{{ '-7.365'|abs }}"});
+test_template.render().should.equal("7.365");
+```
+
+should not alter absolute numbers.
+
+```js
+var test_template = twig({data: "{{ 95|abs }}"});
+test_template.render().should.equal("95");
+```
+
+<a name="twigjs-filters---first--"></a>
+## first ->
+should return first item in array.
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|first }}"});
+test_template.render().should.equal("a");
+```
+
+should return first member of object.
+
+```js
+var test_template = twig({data: "{{ { item1: 'a', item2: 'b', item3: 'c', item4: 'd'}|first }}"});
+test_template.render().should.equal("a");
+```
+
+should not fail when passed empty obj, arr or str.
+
+```js
+var test_template = twig({data: "{{ {}|first }}"});
+test_template.render().should.equal("");
+
+var test_template = twig({data: "{{ []|first }}"});
+test_template.render().should.equal("");
+
+var test_template = twig({data: "{{ myemptystr|first }}"});
+test_template.render({myemptystr: ""}).should.equal("");
+```
+
+should return first character in string.
+
+```js
+var test_template = twig({data: "{{ 'abcde'|first }}"});
+test_template.render().should.equal("a");
+```
+
+<a name="twigjs-filters---split--"></a>
+## split ->
+should split string with a separator.
+
+```js
+var test_template = twig({data: "{{ 'one-two-three'|split('-') }}"});
+test_template.render().should.equal("one,two,three");
+```
+
+should split string with a separator and positive limit.
+
+```js
+var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', 3) }}"});
+test_template.render().should.equal("one,two,three-four-five");
+```
+
+should split string with a separator and negative limit.
+
+```js
+var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', -2) }}"});
+test_template.render().should.equal("one,two,three");
+```
+
+should split with empty separator.
+
+```js
+var test_template = twig({data: "{{ '123'|split('') }}"});
+test_template.render().should.equal("1,2,3");
+```
+
+should split with empty separator and limit.
+
+```js
+var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
+test_template.render().should.equal("aa,bb,cc");
+```
+
+<a name="twigjs-filters---last--"></a>
+## last ->
+should return last character in string.
+
+```js
+var test_template = twig({data: "{{ 'abcd'|last }}"});
+test_template.render().should.equal("d");
+```
+
+should return last item in array.
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|last }}"});
+test_template.render().should.equal("d");
+```
+
+should return last item in a sorted object.
+
+```js
+var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
+test_template.render().should.equal("5");
 ```
 
 <a name="twigjs-loader--"></a>
