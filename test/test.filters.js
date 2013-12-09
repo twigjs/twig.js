@@ -427,9 +427,8 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: "{{ []|first }}"});
             test_template.render().should.equal("");
 
-            myemptystr = "";
             var test_template = twig({data: "{{ myemptystr|first }}"});
-            test_template.render().should.equal("");
+            test_template.render({myemptystr: ""}).should.equal("");
         });
         it('should return first character in string', function () {
             var test_template = twig({data: "{{ 'abcde'|first }}"});
@@ -457,6 +456,21 @@ describe("Twig.js Filters ->", function() {
         it('should split with empty separator and limit', function () {
             var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
             test_template.render().should.equal("aa,bb,cc");
+        });
+    });
+
+    describe('last ->', function () {
+        it('should return last character in string', function () {
+            var test_template = twig({data: "{{ 'abcd'|last }}"});
+            test_template.render().should.equal("d");
+        });
+        it('should return last item in array', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|last }}"});
+            test_template.render().should.equal("d");
+        });
+        it('should return last item in a sorted object', function () {
+            var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
+            test_template.render().should.equal("5");
         });
     });
 
