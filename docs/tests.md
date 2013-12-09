@@ -424,8 +424,7 @@ should save and load a template by reference.
             id:   'test',
             data: '{{ "test" }}'
         });
-
-        // Load and render the template
+// Load and render the template
         twig({ref: 'test'}).render()
                 .should.equal("test");
 ```
@@ -671,9 +670,9 @@ var object = {
                     return "val";
                 }
             };
-			function Subobj() {};
-			Subobj.prototype = object;
-			var subobj = new Subobj();
+function Subobj() {};
+Subobj.prototype = object;
+var subobj = new Subobj();
 
             twig({data: '{{ obj.value }}'}).render({
                 obj: subobj
@@ -1025,8 +1024,8 @@ should be able to extend a meta-type tag.
 ```js
 var flags = {};
 
-	Twig.extend(function(Twig) {
-		Twig.exports.extendTag({
+Twig.extend(function(Twig) {
+	Twig.exports.extendTag({
 	            type: "flag",
 	            regex: /^flag\s+(.+)$/,
 		        next: [ ],
@@ -1054,29 +1053,29 @@ var flags = {};
 	                    output: output
 	                };
 	            }
-		});
 	});
+});
 
-	var template = twig({data:"{% flag 'enabled' %}"}).render();
-	flags.enabled.should.equal(true);
+var template = twig({data:"{% flag 'enabled' %}"}).render();
+flags.enabled.should.equal(true);
 ```
 
 should be able to extend paired tags.
 
 ```js
 // demo data
-	var App = {
-		user: "john",
-		users: {
-			john: {level: "admin"},
-			tom: {level: "user"}
-		}
-	};
+var App = {
+	user: "john",
+	users: {
+		john: {level: "admin"},
+		tom: {level: "user"}
+	}
+};
 
-	Twig.extend(function(Twig) {
-		// example of extending a tag type that would
-		// restrict content to the specified "level"
-		Twig.exports.extendTag({
+Twig.extend(function(Twig) {
+	// example of extending a tag type that would
+	// restrict content to the specified "level"
+	Twig.exports.extendTag({
 	            type: "auth",
 	            regex: /^auth\s+(.+)$/,
 	            next: ["endauth"], // match the type of the end tag
@@ -1107,19 +1106,19 @@ should be able to extend paired tags.
 	                    output: output
 	                };
 	            }
-		});
-		Twig.exports.extendTag({
+	});
+	Twig.exports.extendTag({
 	            type: "endauth",
 	            regex: /^endauth$/,
 	            next: [ ],
 	            open: false
 	        });
-	});
+});
 
-	var template = twig({data:"Welcome{% auth 'admin' %} ADMIN{% endauth %}!"});
+var template = twig({data:"Welcome{% auth 'admin' %} ADMIN{% endauth %}!"});
 
 		App.currentUser = "john";
-	template.render().should.equal("Welcome ADMIN!");
+template.render().should.equal("Welcome ADMIN!");
 
 		App.currentUser = "tom";
 		template.render().should.equal("Welcome!");

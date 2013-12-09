@@ -1,6 +1,6 @@
 {
   "name": "twig.js",
-  "version": "0.5.13",
+  "version": "0.6.0",
   "main": "twig.min.js",
   "ignore": [
     "Makefile",
