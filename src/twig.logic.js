@@ -33,7 +33,9 @@ var Twig = (function (Twig) {
         use:       'Twig.logic.type.use',
         include:   'Twig.logic.type.include',
         spaceless: 'Twig.logic.type.spaceless',
-        endspaceless: 'Twig.logic.type.endspaceless'
+        endspaceless: 'Twig.logic.type.endspaceless',
+        macro:     'Twig.logic.type.macro',
+        endmacro:  'Twig.logic.type.endmacro'
     };
 
 
@@ -630,6 +632,77 @@ var Twig = (function (Twig) {
             regex: /^endspaceless$/,
             next: [ ],
             open: false
+        },
+        {
+            /**
+             * Macro logic tokens.
+             *
+             * Format: {% maro input(name, value, type, size) %}
+             *
+             */ 
+            type: Twig.logic.type.macro,
+            regex: /^macro\s+([a-zA-Z0-9_]+)\s?\((([a-zA-Z0-9_]+(,\s?)?)*)\)$/,
+            next: [
+                Twig.logic.type.endmacro
+            ],
+            open: true,
+            compile: function (token) {
+                var macroName = token.match[1],
+                    parameters = token.match[2].split(/[ ,]+/);
+
+                //TODO: Clean up duplicate check
+                //Add reserved keywords check
+                for (var i=0; i<parameters.length; i++) {
+                    for (var j=0; j<parameters.length; j++){
+                        if (parameters[i] === parameters[j]) {
+                            throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
+                        }
+                    }
+                }
+
+                token.macroName = macroName;
+                token.parameters = parameters;
+
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var template = this;
+                this.macros[token.macroName] = function() {
+                    // Build macro context
+                    // Pass global context and other macros 
+                    var macroContext = {
+                        _context: context,
+                        _self: template.macros
+                    }
+                    // Add parameters from context to macroContext
+                    for (i in token. parameters) {
+                        if (context.hasOwnProperty(i)) {
+                            macroContext[i] = context[i];
+                        }
+                    }
+                    // Render
+                    return Twig.parse.apply(template, [token.output, macroContext])
+                }
+
+               return {
+                  chain: chain,
+                  output: this.macros[token.macroName]()
+               };
+
+            }
+            
+        },
+        {
+            /**
+             * End macro logic tokens.
+             *
+             * Format: {% endmacro %}
+             */ 
+             type: Twig.logic.type.endmacro,
+             regex: /^endmacro$/,
+             next: [ ],
+             open: false
         }
     ];
 
