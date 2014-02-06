@@ -719,6 +719,7 @@ var Twig = (function (Twig) {
                     contextName = token.match[2].trim();
                 delete token.match;
 
+                token.expression = expression;
                 token.contextName = contextName;
 
                 token.stack = Twig.expression.compile.apply(this, [{
@@ -729,10 +730,9 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var file = Twig.expression.parse.apply(this, [token.stack, context]);
-
-                if (typeof file === "string") {
-                    var template = this.importMacros(file);
+                if (token.expression !== "_self") {
+                    var file = Twig.expression.parse.apply(this, [token.stack, context]);
+                    var template = this.importMacros(file || token.expression);
                     context[token.contextName] = template.render({}, {output: 'macros'});
                 }
                 else {
