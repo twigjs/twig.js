@@ -35,7 +35,8 @@ var Twig = (function (Twig) {
         spaceless: 'Twig.logic.type.spaceless',
         endspaceless: 'Twig.logic.type.endspaceless',
         macro:     'Twig.logic.type.macro',
-        endmacro:  'Twig.logic.type.endmacro'
+        endmacro:  'Twig.logic.type.endmacro',
+        from:   'Twig.logic.type.from'
     };
 
 
@@ -654,7 +655,7 @@ var Twig = (function (Twig) {
                 //Add reserved keywords check
                 for (var i=0; i<parameters.length; i++) {
                     for (var j=0; j<parameters.length; j++){
-                        if (parameters[i] === parameters[j]) {
+                        if (parameters[i] === parameters[j] && i !== j) {
                             throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
                         }
                     }
@@ -676,19 +677,18 @@ var Twig = (function (Twig) {
                         _self: template.macros
                     }
                     // Add parameters from context to macroContext
-                    for (i in token. parameters) {
-                        if (context.hasOwnProperty(i)) {
-                            macroContext[i] = context[i];
-                        }
+                    for (var i=0; i<token.parameters.length; i++) {
+                        var prop = token.parameters[i];
+                        macroContext[prop] = arguments[i] || undefined;
                     }
                     // Render
                     return Twig.parse.apply(template, [token.output, macroContext])
-                }
+                };
 
-               return {
-                  chain: chain,
-                  output: this.macros[token.macroName]()
-               };
+                return {
+                    chain: chain,
+                    output: ''
+                };
 
             }
             
@@ -703,8 +703,51 @@ var Twig = (function (Twig) {
              regex: /^endmacro$/,
              next: [ ],
              open: false
+        },
+        {
+            /*
+            * import logic tokens.
+            *
+            * Format: {% from "template.twig" as form %}
+            */
+            type: Twig.logic.type.from,
+            regex: /^from\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim(),
+                    contextName = token.match[2].trim();
+                delete token.match;
+
+                token.contextName = contextName;
+
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var file = Twig.expression.parse.apply(this, [token.stack, context]);
+
+                if (typeof file === "string") {
+                    var template = this.importMacros(file);
+                    context[token.contextName] = template.render({}, {output: 'macros'});
+                }
+                else {
+                    context[token.contextName] = this.macros;
+                }
+
+                return {
+                    chain: chain,
+                    output: ''
+                }
+
+            }
         }
     ];
+
 
     /**
      * Registry for logic handlers.

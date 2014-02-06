@@ -806,7 +806,7 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
-            macros = params.macros,
+            macros = params.macros || {},
             base = params.base,
             path = params.path,
             url = params.url,
@@ -962,6 +962,19 @@ var Twig = (function (Twig) {
                 that.blocks[key] = sub_template.blocks[key];
             }
         });
+    };
+
+    Twig.Template.prototype.importMacros = function(file) {
+        var url = relativePath(this, file);
+
+        // load remote template
+        var remoteTemplate = Twig.Templates.loadRemote(url, {
+            method: this.url?'ajax':'fs',
+            async: false,
+            id: url
+        });
+
+        return remoteTemplate;
     };
 
     Twig.Template.prototype.compile = function(options) {
