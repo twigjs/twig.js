@@ -36,7 +36,7 @@ var Twig = (function (Twig) {
         endspaceless: 'Twig.logic.type.endspaceless',
         macro:     'Twig.logic.type.macro',
         endmacro:  'Twig.logic.type.endmacro',
-        from:   'Twig.logic.type.from'
+        import_:   'Twig.logic.type.import'
     };
 
 
@@ -708,10 +708,10 @@ var Twig = (function (Twig) {
             /*
             * import logic tokens.
             *
-            * Format: {% from "template.twig" as form %}
+            * Format: {% import "template.twig" as form %}
             */
-            type: Twig.logic.type.from,
-            regex: /^from\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,
+            type: Twig.logic.type.import_,
+            regex: /^import\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,
             next: [ ],
             open: true,
             compile: function (token) {
