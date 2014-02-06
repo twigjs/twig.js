@@ -820,7 +820,7 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
-            macros = params.macros,
+            macros = params.macros || {},
             base = params.base,
             path = params.path,
             url = params.url,
@@ -976,6 +976,19 @@ var Twig = (function (Twig) {
                 that.blocks[key] = sub_template.blocks[key];
             }
         });
+    };
+
+    Twig.Template.prototype.importMacros = function(file) {
+        var url = relativePath(this, file);
+
+        // load remote template
+        var remoteTemplate = Twig.Templates.loadRemote(url, {
+            method: this.url?'ajax':'fs',
+            async: false,
+            id: url
+        });
+
+        return remoteTemplate;
     };
 
     Twig.Template.prototype.compile = function(options) {
@@ -1731,7 +1744,8 @@ var Twig = (function (Twig) {
         spaceless: 'Twig.logic.type.spaceless',
         endspaceless: 'Twig.logic.type.endspaceless',
         macro:     'Twig.logic.type.macro',
-        endmacro:  'Twig.logic.type.endmacro'
+        endmacro:  'Twig.logic.type.endmacro',
+        import_:   'Twig.logic.type.import'
     };
 
 
@@ -2350,7 +2364,7 @@ var Twig = (function (Twig) {
                 //Add reserved keywords check
                 for (var i=0; i<parameters.length; i++) {
                     for (var j=0; j<parameters.length; j++){
-                        if (parameters[i] === parameters[j]) {
+                        if (parameters[i] === parameters[j] && i !== j) {
                             throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
                         }
                     }
@@ -2372,19 +2386,18 @@ var Twig = (function (Twig) {
                         _self: template.macros
                     }
                     // Add parameters from context to macroContext
-                    for (i in token. parameters) {
-                        if (context.hasOwnProperty(i)) {
-                            macroContext[i] = context[i];
-                        }
+                    for (var i=0; i<token.parameters.length; i++) {
+                        var prop = token.parameters[i];
+                        macroContext[prop] = arguments[i] || undefined;
                     }
                     // Render
                     return Twig.parse.apply(template, [token.output, macroContext])
-                }
+                };
 
-               return {
-                  chain: chain,
-                  output: this.macros[token.macroName]()
-               };
+                return {
+                    chain: chain,
+                    output: ''
+                };
 
             }
             
@@ -2399,8 +2412,51 @@ var Twig = (function (Twig) {
              regex: /^endmacro$/,
              next: [ ],
              open: false
+        },
+        {
+            /*
+            * import logic tokens.
+            *
+            * Format: {% import "template.twig" as form %}
+            */
+            type: Twig.logic.type.import_,
+            regex: /^import\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim(),
+                    contextName = token.match[2].trim();
+                delete token.match;
+
+                token.expression = expression;
+                token.contextName = contextName;
+
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                if (token.expression !== "_self") {
+                    var file = Twig.expression.parse.apply(this, [token.stack, context]);
+                    var template = this.importMacros(file || token.expression);
+                    context[token.contextName] = template.render({}, {output: 'macros'});
+                }
+                else {
+                    context[token.contextName] = this.macros;
+                }
+
+                return {
+                    chain: chain,
+                    output: ''
+                }
+
+            }
         }
     ];
+
 
     /**
      * Registry for logic handlers.
