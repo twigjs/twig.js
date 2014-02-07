@@ -652,7 +652,6 @@ var Twig = (function (Twig) {
                     parameters = token.match[2].split(/[ ,]+/);
 
                 //TODO: Clean up duplicate check
-                //Add reserved keywords check
                 for (var i=0; i<parameters.length; i++) {
                     for (var j=0; j<parameters.length; j++){
                         if (parameters[i] === parameters[j] && i !== j) {
@@ -670,10 +669,8 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 var template = this;
                 this.macros[token.macroName] = function() {
-                    // Build macro context
                     // Pass global context and other macros 
                     var macroContext = {
-                        _context: context,
                         _self: template.macros
                     }
                     // Add parameters from context to macroContext
