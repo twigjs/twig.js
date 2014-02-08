@@ -60,9 +60,17 @@ describe("Twig.js Macro ->", function() {
             async: false
         });
         // Load the template
-        twig({ref: 'import-macro-inside-block'}).render({}).trim().should.equal( 'Welcome <div class="name">Twig Js</div>' );
+        twig({ref: 'import-macro-inside-block'}).render({ }).trim().should.equal( 'Welcome <div class="name">Twig Js</div>' );
     });
 
-
+    it("it should import selected macros from template", function() {
+        twig({
+            id:   'from-macro-import',
+            path: 'test/templates/from.twig',
+            async: false
+        });
+        // Load the template
+        twig({ref: 'from-macro-import'}).render({ }).trim().should.equal( 'Twig.js<div class="field"><input type="text" name="text" value="" size="20" /></div><div class="field red"><input type="text" name="password" value="" size="20" /></div>' );
+    });
 
 });

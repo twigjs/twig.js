@@ -36,7 +36,8 @@ var Twig = (function (Twig) {
         endspaceless: 'Twig.logic.type.endspaceless',
         macro:     'Twig.logic.type.macro',
         endmacro:  'Twig.logic.type.endmacro',
-        import_:   'Twig.logic.type.import'
+        import_:   'Twig.logic.type.import',
+        from:      'Twig.logic.type.from'
     };
 
 
@@ -742,7 +743,78 @@ var Twig = (function (Twig) {
                 }
 
             }
+        },
+        {
+            /*
+            * from logic tokens.
+            *
+            * Format: {% from "template.twig" import func as form %}
+            */
+            type: Twig.logic.type.from,
+            regex: /^from\s+(.+)\s+import\s+([a-zA-Z0-9_, ]+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim(),
+                    macroExpressions = token.match[2].trim().split(/[ ,]+/),
+                    macroNames = {};
+                    
+
+                for (var i=0; i<macroExpressions.length; i++) {
+                    var res = macroExpressions[i];
+
+                    // match function as variable
+                    var macroMatch = res.match(/^([a-zA-Z0-9_]+)\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/);
+                    if (macroMatch) {
+                        macroNames[macroMatch[1].trim()] = macroMatch[2].trim();
+                    }
+                    else if (res.match(/^([a-zA-Z0-9_]+)$/)) {
+                        macroNames[res] = res;
+                    }
+                    else {
+                        // ignore import
+                    }
+
+                }
+
+                delete token.match;
+
+                token.expression = expression;
+                token.macroNames = macroNames;
+
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var macros;
+
+                if (token.expression !== "_self") {
+                    var file = Twig.expression.parse.apply(this, [token.stack, context]);
+                    var template = this.importMacros(file || token.expression);
+                    macros = template.render({}, {output: 'macros'});
+                }
+                else {
+                    macros = this.macros;
+                }
+
+                for (var macroName in token.macroNames) {
+                    if (macros.hasOwnProperty(macroName)) {
+                        context[token.macroNames[macroName]] = macros[macroName];
+                    }
+                }
+
+                return {
+                    chain: chain,
+                    output: ''
+                }
+
+            }
         }
+
     ];
 
 
