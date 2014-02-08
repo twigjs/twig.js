@@ -4423,6 +4423,20 @@ var Twig = (function (Twig) {
         parent: function() {
             // Add a placeholder
             return Twig.placeholders.parent;
+        },
+        attribute: function(object, method, params) {
+            if (object instanceof Object) {
+                if (object.hasOwnProperty(method)) {
+                    if (typeof object[method] === "function") {
+                        return object[method].apply(undefined, params);
+                    }
+                    else {
+                        return object[method];
+                    }
+                }
+            }
+            // Array will return element 0-index
+            return object[method] || undefined;
         }
     };
 
