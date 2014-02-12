@@ -25,6 +25,8 @@ var Twig = (function (Twig) {
         else_:     'Twig.logic.type.else',
         elseif:    'Twig.logic.type.elseif',
         set:       'Twig.logic.type.set',
+        setcapture:'Twig.logic.type.setcapture',
+        endset:    'Twig.logic.type.endset',
         filter:    'Twig.logic.type.filter',
         endfilter: 'Twig.logic.type.endfilter',
         block:     'Twig.logic.type.block',
@@ -352,6 +354,52 @@ var Twig = (function (Twig) {
                     context: context
                 };
             }
+        },
+        {
+            /**
+             * Set capture type logic tokens.
+             *
+             *  Format: {% set key %}
+             */
+            type: Twig.logic.type.setcapture,
+            regex: /^set\s+([a-zA-Z0-9_,\s]+)$/,
+            next: [
+                Twig.logic.type.endset
+            ],
+            open: true,
+            compile: function (token) {
+                var key = token.match[1].trim();
+
+                token.key = key;
+
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, continue_chain) {
+
+                var value = Twig.parse.apply(this, [token.output, context]),
+                    key = token.key;
+
+                // set on both the global and local context
+                this.context[key] = value;
+                context[key] = value;
+
+                return {
+                    chain: continue_chain,
+                    context: context
+                };
+            }
+        },
+        {
+            /**
+             * End set type block logic tokens.
+             *
+             *  Format: {% endset %}
+             */
+            type: Twig.logic.type.endset,
+            regex: /^endset$/,
+            next: [ ],
+            open: false
         },
         {
             /**
