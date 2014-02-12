@@ -108,7 +108,11 @@ describe("Twig.js Core ->", function() {
     it("should recognize null in an object", function() {
         twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
     });
-    
+
+    it("should support set capture", function() {
+        twig({data: '{% set foo %}bar{% endset %}{{foo}}'}).render().should.equal( "bar" );
+    });
+
     it("should support raw data", function() {
         twig({
         	data: "before {% raw %}{{ test }} {% test2 %} {{{% endraw %} after"
@@ -229,4 +233,3 @@ describe("Twig.js Core ->", function() {
         });
     });
 });
-
