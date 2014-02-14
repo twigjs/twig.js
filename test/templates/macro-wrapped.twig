@@ -1,0 +1,3 @@
+{% macro wrapped_input(name, value, type, size) %}{% import "macro-self.twig" as forms %}<div class="field">{{ forms.input(name, value, type, size) }}</div>{% endmacro %}
+{% macro red_input(name, value, type, size) %}{% import "macro-self.twig" as forms %}<div class="field red">{{ forms.input(name, value, type, size) }}</div>{% endmacro %}
+{% import _self as forms %}<p>{{ forms.wrapped_input('username') }}</p>

@@ -1,0 +1,4 @@
+{% extends "blocks.twig" %}
+{% block list %}{% endblock %}
+{% block msg %}{% macro fullname(first, last) %}<div class="name">{{ first }} {{ last }}</div>{% endmacro %}
+{% import _self as name %}Welcome {{ name.fullname('Twig', 'Js') }}{% endblock %}
