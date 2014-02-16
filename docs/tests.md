@@ -7,6 +7,7 @@
      - [set tag ->](#twigjs-control-structures---set-tag--)
    - [Twig.js Core ->](#twigjs-core--)
      - [Key Notation ->](#twigjs-core---key-notation--)
+     - [Context ->](#twigjs-core---context--)
    - [Twig.js Expressions ->](#twigjs-expressions--)
      - [Basic Operators ->](#twigjs-expressions---basic-operators--)
      - [Comparison Operators ->](#twigjs-expressions---comparison-operators--)
@@ -49,6 +50,7 @@
        - [date ->](#twigjs-functions---built-in-functions---date--)
        - [dump ->](#twigjs-functions---built-in-functions---dump--)
        - [block ->](#twigjs-functions---built-in-functions---block--)
+   - [Twig.js Macro ->](#twigjs-macro--)
    - [Twig.js Optional Functionality ->](#twigjs-optional-functionality--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
    - [Twig.js Tags ->](#twigjs-tags--)
@@ -551,6 +553,12 @@ should recognize null in an object.
 twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
 ```
 
+should support set capture.
+
+```js
+twig({data: '{% set foo %}bar{% endset %}{{foo}}'}).render().should.equal( "bar" );
+```
+
 should support raw data.
 
 ```js
@@ -693,6 +701,44 @@ should return null if a bracket key doesn't exist..
 twig({data: '{{ obj["value"] == null }}'}).render({
     obj: {}
 }).should.equal("true");
+```
+
+<a name="twigjs-core---context--"></a>
+## Context ->
+should be supported.
+
+```js
+twig({data: '{{ _context.value }}'}).render({
+    value: "test"
+}).should.equal("test");
+```
+
+should be an object even if it's not passed.
+
+```js
+twig({data: '{{ _context|json_encode }}'}).render().should.equal("{}");
+```
+
+should support {% set %} tag.
+
+```js
+twig({data: '{% set value = "test" %}{{ _context.value }}'}).render().should.equal("test");
+```
+
+should work correctly with properties named dynamically.
+
+```js
+twig({data: '{{ _context[key] }}'}).render({
+    key: "value",
+    value: "test"
+}).should.equal("test");
+```
+
+should not allow to override context using {% set %}.
+
+```js
+twig({data: '{% set _context = "test" %}{{ _context|json_encode }}'}).render().should.equal('{"_context":"test"}');
+twig({data: '{% set _context = "test" %}{{ _context._context }}'}).render().should.equal("test");
 ```
 
 <a name="twigjs-expressions--"></a>
@@ -2144,6 +2190,92 @@ should render the content of blocks.
 ```js
 twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
     .should.equal("Content - test Title: Content - test");
+```
+
+<a name="twigjs-macro--"></a>
+# Twig.js Macro ->
+it should load macro.
+
+```js
+twig({
+    id:   'macro',
+    path: 'test/templates/macro.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'macro'}).render({ }).should.equal( '' );
+```
+
+it should import macro.
+
+```js
+twig({
+    id:   'import-macro',
+    path: 'test/templates/import.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'import-macro'}).render({ }).trim().should.equal( "Hello World" );
+```
+
+it should run macro with self reference.
+
+```js
+twig({
+    id:   'import-macro-self',
+    path: 'test/templates/macro-self.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'import-macro-self'}).render({ }).trim().should.equal( '<p><input type="text" name="username" value="" size="20" /></p>' );
+```
+
+it should run wrapped macro with self reference.
+
+```js
+twig({
+    id:   'import-wrapped-macro-self',
+    path: 'test/templates/macro-wrapped.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'import-wrapped-macro-self'}).render({ }).trim().should.equal( '<p><div class="field"><input type="text" name="username" value="" size="20" /></div></p>' );
+```
+
+it should run wrapped macro with context and self reference.
+
+```js
+twig({
+    id:   'import-macro-context-self',
+    path: 'test/templates/macro-context.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'import-macro-context-self'}).render({ 'greetings': 'Howdy' }).trim().should.equal( 'Howdy Twigjs' );
+```
+
+it should run wrapped macro inside blocks.
+
+```js
+twig({
+    id:   'import-macro-inside-block',
+    path: 'test/templates/macro-blocks.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'import-macro-inside-block'}).render({ }).trim().should.equal( 'Welcome <div class="name">Twig Js</div>' );
+```
+
+it should import selected macros from template.
+
+```js
+twig({
+    id:   'from-macro-import',
+    path: 'test/templates/from.twig',
+    async: false
+});
+// Load the template
+twig({ref: 'from-macro-import'}).render({ }).trim().should.equal( 'Twig.js<div class="field"><input type="text" name="text" value="" size="20" /></div><div class="field red"><input type="text" name="password" value="" size="20" /></div>' );
 ```
 
 <a name="twigjs-optional-functionality--"></a>
