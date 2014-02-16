@@ -160,7 +160,9 @@ var Twig = (function (Twig) {
 
     if (typeof console !== "undefined" && 
         typeof console.log !== "undefined") {
-        Twig.log.error = console.log;
+        Twig.log.error = function() {
+            console.log.apply(console, arguments);
+        }
     } else {
         Twig.log.error = function(){};
     }
