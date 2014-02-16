@@ -50,6 +50,7 @@
        - [date ->](#twigjs-functions---built-in-functions---date--)
        - [dump ->](#twigjs-functions---built-in-functions---dump--)
        - [block ->](#twigjs-functions---built-in-functions---block--)
+       - [attribute ->](#twigjs-functions---built-in-functions---attribute--)
    - [Twig.js Macro ->](#twigjs-macro--)
    - [Twig.js Optional Functionality ->](#twigjs-optional-functionality--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
@@ -2190,6 +2191,66 @@ should render the content of blocks.
 ```js
 twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
     .should.equal("Content - test Title: Content - test");
+```
+
+<a name="twigjs-functions---built-in-functions---attribute--"></a>
+### attribute ->
+should access attribute of an object.
+
+```js
+twig({data: '{{ attribute(obj, key) }}' }).render({
+    obj: { name: "Twig.js"}, 
+    key: "name"
+})
+.should.equal("Twig.js");
+```
+
+should call function of attribute of an object.
+
+```js
+twig({data: '{{ attribute(obj, key, params) }}' }).render({ 
+    obj: {
+        name: function(first, last) { 
+            return first+'.'+last;
+        } 
+    },
+    key: "name",
+    params: ['Twig', 'js']
+  })
+  .should.equal("Twig.js");
+```
+
+should return undefined for missing attribute of an object.
+
+```js
+twig({data: '{{ attribute(obj, key, params) }}' }).render({ 
+    obj: {
+        name: function(first, last) { 
+            return first+'.'+last;
+        } 
+    },
+    key: "missing",
+    params: ['Twig', 'js']
+  })
+  .should.equal("");
+```
+
+should return element of an array.
+
+```js
+twig({data: '{{ attribute(arr, 0) }}' }).render({ 
+    arr: ['Twig', 'js']
+  })
+  .should.equal("Twig");
+```
+
+should return undef for array beyond index size.
+
+```js
+twig({data: '{{ attribute(arr, 100) }}' }).render({ 
+    arr: ['Twig', 'js']
+  })
+  .should.equal("");
 ```
 
 <a name="twigjs-macro--"></a>

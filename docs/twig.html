@@ -7896,6 +7896,33 @@ Used under an MIT License</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>            <span class="keyword">return</span> Twig.placeholders.parent;
+        },
+        attribute: <span class="function"><span class="keyword">function</span><span class="params">(object, method, params)</span> {</span>
+            <span class="keyword">if</span> (object <span class="keyword">instanceof</span> Object) {
+                <span class="keyword">if</span> (object.hasOwnProperty(method)) {
+                    <span class="keyword">if</span> (<span class="keyword">typeof</span> object[method] === <span class="string">"function"</span>) {
+                        <span class="keyword">return</span> object[method].apply(<span class="literal">undefined</span>, params);
+                    }
+                    <span class="keyword">else</span> {
+                        <span class="keyword">return</span> object[method];
+                    }
+                }
+            }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-257">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-257">&#182;</a>
+              </div>
+              <p>Array will return element 0-index</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="keyword">return</span> object[method] || <span class="literal">undefined</span>;
         }
     };
 
@@ -7917,11 +7944,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-257">
+        <li id="section-258">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-257">&#182;</a>
+                <a class="pilcrow" href="#section-258">&#182;</a>
               </div>
               <pre><code>Twig.js
 Copyright (c) 2011-2013 John Roepke
@@ -7941,11 +7968,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-258">
+        <li id="section-259">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-258">&#182;</a>
+                <a class="pilcrow" href="#section-259">&#182;</a>
               </div>
               <p>Handler numbers</p>
 
@@ -7956,11 +7983,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-259">
+        <li id="section-260">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-259">&#182;</a>
+                <a class="pilcrow" href="#section-260">&#182;</a>
               </div>
               <p>Handle strings and arrays</p>
 
@@ -7971,11 +7998,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-260">
+        <li id="section-261">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-260">&#182;</a>
+                <a class="pilcrow" href="#section-261">&#182;</a>
               </div>
               <p>Handle objects</p>
 
@@ -8029,11 +8056,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-261">
+        <li id="section-262">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-261">&#182;</a>
+                <a class="pilcrow" href="#section-262">&#182;</a>
               </div>
               <pre><code>Twig.js
 Copyright (c) 2011-2013 John Roepke
@@ -8120,11 +8147,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-262">
+        <li id="section-263">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-262">&#182;</a>
+                <a class="pilcrow" href="#section-263">&#182;</a>
               </div>
               <p>Extend Twig with a new filter.</p>
 
@@ -8137,11 +8164,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-263">
+        <li id="section-264">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-263">&#182;</a>
+                <a class="pilcrow" href="#section-264">&#182;</a>
               </div>
               <p>Extend Twig with a new function.</p>
 
@@ -8154,11 +8181,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-264">
+        <li id="section-265">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-264">&#182;</a>
+                <a class="pilcrow" href="#section-265">&#182;</a>
               </div>
               <p>Extend Twig with a new test.</p>
 
@@ -8171,11 +8198,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-265">
+        <li id="section-266">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-265">&#182;</a>
+                <a class="pilcrow" href="#section-266">&#182;</a>
               </div>
               <p>Extend Twig with a new definition.</p>
 
@@ -8188,11 +8215,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-266">
+        <li id="section-267">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-266">&#182;</a>
+                <a class="pilcrow" href="#section-267">&#182;</a>
               </div>
               <p>Provide an environment for extending Twig core.
 Calls fn with the internal Twig object.</p>
@@ -8220,11 +8247,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-267">
+        <li id="section-268">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-267">&#182;</a>
+                <a class="pilcrow" href="#section-268">&#182;</a>
               </div>
               <p>Try to load the template from the cache</p>
 
@@ -8255,11 +8282,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-268">
+        <li id="section-269">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-268">&#182;</a>
+                <a class="pilcrow" href="#section-269">&#182;</a>
               </div>
               <p>handle callback in options</p>
 
@@ -8280,11 +8307,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-269">
+        <li id="section-270">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-269">&#182;</a>
+                <a class="pilcrow" href="#section-270">&#182;</a>
               </div>
               <p>render and return template</p>
 
@@ -8297,11 +8324,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-270">
+        <li id="section-271">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-270">&#182;</a>
+                <a class="pilcrow" href="#section-271">&#182;</a>
               </div>
               <p>mixin any options provided to the express app.</p>
 
@@ -8321,11 +8348,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-271">
+        <li id="section-272">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-271">&#182;</a>
+                <a class="pilcrow" href="#section-272">&#182;</a>
               </div>
               <p>Express 3 handler</p>
 
@@ -8350,11 +8377,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-272">
+        <li id="section-273">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-272">&#182;</a>
+                <a class="pilcrow" href="#section-273">&#182;</a>
               </div>
               <pre><code>Twig.js
 Copyright (c) 2011-2013 John Roepke
@@ -8376,11 +8403,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-273">
+        <li id="section-274">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-273">&#182;</a>
+                <a class="pilcrow" href="#section-274">&#182;</a>
               </div>
               <p>Compile a Twig Template to output.</p>
 
@@ -8391,11 +8418,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-274">
+        <li id="section-275">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-274">&#182;</a>
+                <a class="pilcrow" href="#section-275">&#182;</a>
               </div>
               <p>Get tokens</p>
 
@@ -8442,11 +8469,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-275">
+        <li id="section-276">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-275">&#182;</a>
+                <a class="pilcrow" href="#section-276">&#182;</a>
               </div>
               <pre><code>Twig.js
 Copyright (c) 2011-2013 John Roepke
@@ -8462,11 +8489,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-276">
+        <li id="section-277">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-276">&#182;</a>
+                <a class="pilcrow" href="#section-277">&#182;</a>
               </div>
               <p>Provide a CommonJS Modules/2.0 draft 8 module</p>
 
@@ -8477,11 +8504,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-277">
+        <li id="section-278">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-277">&#182;</a>
+                <a class="pilcrow" href="#section-278">&#182;</a>
               </div>
               <p>Add exports from the Twig exports</p>
 
@@ -8502,11 +8529,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-278">
+        <li id="section-279">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-278">&#182;</a>
+                <a class="pilcrow" href="#section-279">&#182;</a>
               </div>
               <p>Provide a CommonJS Modules/1.1 module</p>
 
@@ -8518,11 +8545,11 @@ https://github.com/justjohn/twig.js</code></pre>
         </li>
         
         
-        <li id="section-279">
+        <li id="section-280">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-279">&#182;</a>
+                <a class="pilcrow" href="#section-280">&#182;</a>
               </div>
               <p>Export for browser use</p>
 
