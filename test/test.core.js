@@ -228,5 +228,33 @@ describe("Twig.js Core ->", function() {
             }).should.equal("true");
         });
     });
+
+    describe("Context ->", function() {
+        it("should be supported", function() {
+            twig({data: '{{ _context.value }}'}).render({
+                value: "test"
+            }).should.equal("test");
+        });
+
+        it("should be an object even if it's not passed", function() {
+            twig({data: '{{ _context|json_encode }}'}).render().should.equal("{}");
+        });
+
+        it("should support {% set %} tag", function() {
+            twig({data: '{% set value = "test" %}{{ _context.value }}'}).render().should.equal("test");
+        });
+
+        it("should work correctly with properties named dynamically", function() {
+            twig({data: '{{ _context[key] }}'}).render({
+                key: "value",
+                value: "test"
+            }).should.equal("test");
+        });
+
+        it("should not allow to override context using {% set %}", function() {
+            twig({data: '{% set _context = "test" %}{{ _context|json_encode }}'}).render().should.equal('{"_context":"test"}');
+            twig({data: '{% set _context = "test" %}{{ _context._context }}'}).render().should.equal("test");
+        });
+    });
 });
 

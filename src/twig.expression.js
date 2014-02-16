@@ -18,7 +18,7 @@ var Twig = (function (Twig) {
      * Reserved word that can't be used as variable names.
      */
     Twig.expression.reservedWords = [
-        "true", "false", "null"
+        "true", "false", "null", "_context"
     ];
 
     /**
@@ -53,6 +53,7 @@ var Twig = (function (Twig) {
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
         _null:     'Twig.expression.type.null',
+        context:    'Twig.expression.type.context',
         test:       'Twig.expression.type.test'
     };
 
@@ -75,6 +76,7 @@ var Twig = (function (Twig) {
             Twig.expression.type.variable,
             Twig.expression.type.number,
             Twig.expression.type._null,
+            Twig.expression.type.context,
             Twig.expression.type.parameter.start,
             Twig.expression.type.array.start,
             Twig.expression.type.object.start
@@ -697,6 +699,19 @@ var Twig = (function (Twig) {
                 output.push(token);
             },
             parse: Twig.expression.fn.parse.push_value
+        },
+        {
+            /**
+             * Match the context
+             */
+            type: Twig.expression.type.context,
+            regex: /^_context/,
+            next: Twig.expression.set.operations_extended.concat([
+                    Twig.expression.type.parameter.start]),
+            compile: Twig.expression.fn.compile.push,
+            parse: function(token, stack, context) {
+                stack.push(context);
+            }
         },
         {
             /**
