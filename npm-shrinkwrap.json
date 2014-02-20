@@ -1,0 +1,40 @@
+{
+  "name": "twig",
+  "version": "0.7.0",
+  "from": "https://registry.npmjs.org/twig/-/twig-0.7.0.tgz",
+  "resolved": "https://registry.npmjs.org/twig/-/twig-0.7.0.tgz",
+  "dependencies": {
+    "walk": {
+      "version": "2.1.1",
+      "from": "https://registry.npmjs.org/walk/-/walk-2.1.1.tgz",
+      "resolved": "https://registry.npmjs.org/walk/-/walk-2.1.1.tgz",
+      "dependencies": {
+        "forEachAsync": {
+          "version": "2.2.0",
+          "from": "forEachAsync@2.2.0",
+          "dependencies": {
+            "sequence": {
+              "version": "2.2.1",
+              "from": "sequence@2.2.1",
+              "resolved": "https://registry.npmjs.org/sequence/-/sequence-2.2.1.tgz"
+            }
+          }
+        }
+      }
+    },
+    "minimatch": {
+      "version": "0.2.14",
+      "from": "minimatch@0.2.14",
+      "dependencies": {
+        "lru-cache": {
+          "version": "2.5.0",
+          "from": "lru-cache@2.5.0"
+        },
+        "sigmund": {
+          "version": "1.0.0",
+          "from": "sigmund@1.0.0"
+        }
+      }
+    }
+  }
+}
