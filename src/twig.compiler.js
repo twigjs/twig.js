@@ -3,7 +3,7 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.tests.js
+// ## twig.compiler.js
 //
 // This file handles compiling templates into JS
 var Twig = (function (Twig) {
@@ -34,7 +34,7 @@ var Twig = (function (Twig) {
 
     Twig.compiler.module = {
         amd: function(id, tokens, pathToTwig) {
-            return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig = Twig.twig;\n' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
+            return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig, templates;\ntwig = Twig.twig;\ntemplates = ' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
         }
         , node: function(id, tokens) {
             return 'var twig = require("twig").twig;\n'

@@ -18,7 +18,7 @@ var Twig = (function (Twig) {
      * Reserved word that can't be used as variable names.
      */
     Twig.expression.reservedWords = [
-        "true", "false", "null", "TRUE", "FALSE", "NULL"
+        "true", "false", "null", "TRUE", "FALSE", "NULL", "_context"
     ];
 
     /**
@@ -53,6 +53,7 @@ var Twig = (function (Twig) {
         variable:   'Twig.expression.type.variable',
         number:     'Twig.expression.type.number',
         _null:     'Twig.expression.type.null',
+        context:    'Twig.expression.type.context',
         test:       'Twig.expression.type.test'
     };
 
@@ -75,6 +76,7 @@ var Twig = (function (Twig) {
             Twig.expression.type.variable,
             Twig.expression.type.number,
             Twig.expression.type._null,
+            Twig.expression.type.context,
             Twig.expression.type.parameter.start,
             Twig.expression.type.array.start,
             Twig.expression.type.object.start
@@ -151,7 +153,7 @@ var Twig = (function (Twig) {
             type: Twig.expression.type.comma,
             // Match a comma
             regex: /^,/,
-            next: Twig.expression.set.expressions,
+            next: Twig.expression.set.expressions.concat([Twig.expression.type.array.end, Twig.expression.type.object.end]),
             compile: function(token, stack, output) {
                 var i = stack.length - 1,
                     stack_token;
@@ -593,7 +595,7 @@ var Twig = (function (Twig) {
                     Twig.expression.type.parameter.start]),
             compile: Twig.expression.fn.compile.push,
             validate: function(match, tokens) {
-                return Twig.expression.reservedWords.indexOf(match[0]) == -1;
+                return (Twig.indexOf(Twig.expression.reservedWords, match[0]) < 0);
             },
             parse: function(token, stack, context) {
                 // Get the variable from the context
@@ -697,6 +699,19 @@ var Twig = (function (Twig) {
                 output.push(token);
             },
             parse: Twig.expression.fn.parse.push_value
+        },
+        {
+            /**
+             * Match the context
+             */
+            type: Twig.expression.type.context,
+            regex: /^_context/,
+            next: Twig.expression.set.operations_extended.concat([
+                    Twig.expression.type.parameter.start]),
+            compile: Twig.expression.fn.compile.push,
+            parse: function(token, stack, context) {
+                stack.push(context);
+            }
         },
         {
             /**
@@ -821,7 +836,7 @@ var Twig = (function (Twig) {
             Twig.log.trace("Twig.expression.tokenize",
                            "Matched a ", type, " regular expression of ", match);
 
-            if (next && next.indexOf(type) < 0) {
+            if (next && Twig.indexOf(next, type) < 0) {
                 invalid_matches.push(
                     type + " cannot follow a " + tokens[tokens.length - 1].type +
                            " at template:" + exp_offset + " near '" + match[0].substring(0, 20) +
@@ -967,7 +982,7 @@ var Twig = (function (Twig) {
         var stack = [],
             token_template = null;
 
-        tokens.forEach(function (token) {
+        Twig.forEach(tokens, function (token) {
             token_template = Twig.expression.handler[token.type];
 
             token_template.parse && token_template.parse.apply(that, [token, stack, context]);

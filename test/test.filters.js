@@ -352,12 +352,130 @@ describe("Twig.js Filters ->", function() {
 
         it("should handle undefined", function() {
             var test_template = twig({data: '{{ undef|number_format }}' });
-            test_template.render().should.equal("0" );
+            test_template.render().should.equal("0");
+        });
+    });
+
+    describe("slice ->", function() {
+        it("should slice a string", function() {
+            var test_template = twig({data: "{{ '12345'|slice(1, 2) }}" });
+            test_template.render().should.equal("23");
+        });
+        it("should slice a string to the end", function() {
+            var test_template = twig({data: "{{ '12345'|slice(2) }}" });
+            test_template.render().should.equal("345");
+        });
+        it("should slice a string from the start", function() {
+            var test_template = twig({data: "{{ '12345'|slice(null, 2) }}" });
+            test_template.render().should.equal("12");
+        });
+        it("should slice a string from a negative offset", function() {
+            var test_template = twig({data: "{{ '12345'|slice(-2, 1) }}" });
+            test_template.render().should.equal("4");
+        });
+        it("should slice a string from a negative offset to end of string", function() {
+            var test_template = twig({data: "{{ '12345'|slice(-2) }}" });
+            test_template.render().should.equal("45");
+        });
+
+        it("should slice an array", function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(1, 2)|join(',') }}" });
+            test_template.render().should.equal("2,3");
+        });
+        it("should slice an array to the end", function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(2)|join(',') }}" });
+            test_template.render().should.equal("3,4,5");
+        });
+        it("should slice an array from the start", function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(null, 2)|join(',') }}" });
+            test_template.render().should.equal("1,2");
+        });
+        it("should slice an array from a negative offset", function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(-2, 1)|join(',') }}" });
+            test_template.render().should.equal("4");
+        });
+        it("should slice an array from a negative offset to the end of the array", function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5]|slice(-4)|join(',') }}" });
+            test_template.render().should.equal("2,3,4,5");
+        });
+    });
+
+    describe('abs ->', function () {
+        it('should convert negative numbers to its absolute value', function () {
+            var test_template = twig({data: "{{ '-7.365'|abs }}"});
+            test_template.render().should.equal("7.365");
+        });
+        it('should not alter absolute numbers', function () {
+            var test_template = twig({data: "{{ 95|abs }}"});
+            test_template.render().should.equal("95");
+        });
+    });
+
+    describe('first ->', function () {''
+        it('should return first item in array', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|first }}"});
+            test_template.render().should.equal("a");
+        });
+        it('should return first member of object', function () {
+            var test_template = twig({data: "{{ { item1: 'a', item2: 'b', item3: 'c', item4: 'd'}|first }}"});
+            test_template.render().should.equal("a");
+        });
+        it('should not fail when passed empty obj, arr or str', function () {
+            var test_template = twig({data: "{{ {}|first }}"});
+            test_template.render().should.equal("");
+
+            var test_template = twig({data: "{{ []|first }}"});
+            test_template.render().should.equal("");
+
+            var test_template = twig({data: "{{ myemptystr|first }}"});
+            test_template.render({myemptystr: ""}).should.equal("");
+        });
+        it('should return first character in string', function () {
+            var test_template = twig({data: "{{ 'abcde'|first }}"});
+            test_template.render().should.equal("a");
+        });
+    });
+
+    describe('split ->', function () {
+        it('should split string with a separator', function () {
+            var test_template = twig({data: "{{ 'one-two-three'|split('-') }}"});
+            test_template.render().should.equal("one,two,three");
+        });
+        it('should split string with a separator and positive limit', function () {
+            var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', 3) }}"});
+            test_template.render().should.equal("one,two,three-four-five");
+        });
+        it('should split string with a separator and negative limit', function () {
+            var test_template = twig({data: "{{ 'one-two-three-four-five'|split('-', -2) }}"});
+            test_template.render().should.equal("one,two,three");
+        });
+        it('should split with empty separator', function () {
+            var test_template = twig({data: "{{ '123'|split('') }}"});
+            test_template.render().should.equal("1,2,3");
+        });
+        it('should split with empty separator and limit', function () {
+            var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
+            test_template.render().should.equal("aa,bb,cc");
+        });
+    });
+
+    describe('last ->', function () {
+        it('should return last character in string', function () {
+            var test_template = twig({data: "{{ 'abcd'|last }}"});
+            test_template.render().should.equal("d");
+        });
+        it('should return last item in array', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd']|last }}"});
+            test_template.render().should.equal("d");
+        });
+        it('should return last item in a sorted object', function () {
+            var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
+            test_template.render().should.equal("5");
         });
     });
 
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
-        test_template.render().should.equal("2,1,0" );
+        test_template.render().should.equal("2,1,0");
     });
 });

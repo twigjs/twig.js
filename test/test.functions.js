@@ -188,5 +188,63 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{{ dump(test) }}' }).render({ test: undefined }).should.equal('undefined' + EOL);
             });
         });
+
+        describe("block ->", function() {
+            it("should render the content of blocks", function() {
+                twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
+                    .should.equal("Content - test Title: Content - test");
+            });
+        });
+
+        describe("attribute ->", function() {
+            it("should access attribute of an object", function() {
+                twig({data: '{{ attribute(obj, key) }}' }).render({
+                    obj: { name: "Twig.js"}, 
+                    key: "name"
+                })
+                .should.equal("Twig.js");
+            });
+
+            it("should call function of attribute of an object", function() {
+                twig({data: '{{ attribute(obj, key, params) }}' }).render({ 
+                    obj: {
+                        name: function(first, last) { 
+                            return first+'.'+last;
+                        } 
+                    },
+                    key: "name",
+                    params: ['Twig', 'js']
+                  })
+                  .should.equal("Twig.js");
+            });
+            
+            it("should return undefined for missing attribute of an object", function() {
+                twig({data: '{{ attribute(obj, key, params) }}' }).render({ 
+                    obj: {
+                        name: function(first, last) { 
+                            return first+'.'+last;
+                        } 
+                    },
+                    key: "missing",
+                    params: ['Twig', 'js']
+                  })
+                  .should.equal("");
+            });
+
+            it("should return element of an array", function() {
+                twig({data: '{{ attribute(arr, 0) }}' }).render({ 
+                    arr: ['Twig', 'js']
+                  })
+                  .should.equal("Twig");
+            });
+
+            it("should return undef for array beyond index size", function() {
+                twig({data: '{{ attribute(arr, 100) }}' }).render({ 
+                    arr: ['Twig', 'js']
+                  })
+                  .should.equal("");
+            });
+ 
+        });
     });
 });

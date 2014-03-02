@@ -15,6 +15,31 @@ describe("Twig.js Core ->", function() {
                 .should.equal("test");
     });
 
+    it("should ignore comments", function() {
+        twig({data: 'good {# comment #}morning'}).render().should.equal("good morning");
+        twig({data: 'good{#comment#}morning'}).render().should.equal("goodmorning");
+    });
+
+    it("should ignore output tags within comments", function() {
+        twig({data: 'good {# {{ "Hello" }} #}morning'}).render().should.equal("good morning");
+        twig({data: 'good{#c}}om{{m{{ent#}morning'}).render().should.equal("goodmorning");
+    });
+
+    it("should ignore logic tags within comments", function() {
+        twig({data: 'test {# {% bad syntax if not in comment %} #}test'}).render().should.equal("test test");
+        twig({data: '{##}{##}test{# %}}}%}%{%{{% #}pass'}).render().should.equal("testpass");
+    });
+
+    // https://github.com/justjohn/twig.js/issues/95
+    it("should ignore quotation marks within comments", function() {
+        twig({data: "good {# don't stop #}morning"}).render().should.equal("good morning");
+        twig({data: 'good{#"dont stop"#}morning'}).render().should.equal("goodmorning");
+        twig({data: 'good {# "don\'t stop" #}morning'}).render().should.equal("good morning");
+        twig({data: 'good{#"\'#}morning'}).render().should.equal("goodmorning");
+        twig({data: 'good {#"\'"\'"\'#} day'}).render().should.equal("good  day");
+        twig({data: "a {# ' #}b{# ' #} c"}).render().should.equal("a b c");
+    });
+
     it("should be able to parse output tags with tag ends in strings", function() {
         // Really all we care about here is not throwing exceptions.
         twig({data: '{{ "test" }}'}).render().should.equal("test");
@@ -83,7 +108,11 @@ describe("Twig.js Core ->", function() {
     it("should recognize null in an object", function() {
         twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
     });
-    
+
+    it("should support set capture", function() {
+        twig({data: '{% set foo %}bar{% endset %}{{foo}}'}).render().should.equal( "bar" );
+    });
+
     it("should support raw data", function() {
         twig({
         	data: "before {% raw %}{{ test }} {% test2 %} {{{% endraw %} after"
@@ -201,6 +230,34 @@ describe("Twig.js Core ->", function() {
             twig({data: '{{ obj["value"] == null }}'}).render({
                 obj: {}
             }).should.equal("true");
+        });
+    });
+
+    describe("Context ->", function() {
+        it("should be supported", function() {
+            twig({data: '{{ _context.value }}'}).render({
+                value: "test"
+            }).should.equal("test");
+        });
+
+        it("should be an object even if it's not passed", function() {
+            twig({data: '{{ _context|json_encode }}'}).render().should.equal("{}");
+        });
+
+        it("should support {% set %} tag", function() {
+            twig({data: '{% set value = "test" %}{{ _context.value }}'}).render().should.equal("test");
+        });
+
+        it("should work correctly with properties named dynamically", function() {
+            twig({data: '{{ _context[key] }}'}).render({
+                key: "value",
+                value: "test"
+            }).should.equal("test");
+        });
+
+        it("should not allow to override context using {% set %}", function() {
+            twig({data: '{% set _context = "test" %}{{ _context|json_encode }}'}).render().should.equal('{"_context":"test"}');
+            twig({data: '{% set _context = "test" %}{{ _context._context }}'}).render().should.equal("test");
         });
     });
 });

@@ -1,14 +1,14 @@
 [![Build Status](https://secure.travis-ci.org/justjohn/twig.js.png)](http://travis-ci.org/#!/justjohn/twig.js)
+[![NPM version](https://badge.fury.io/js/twig.png)](http://badge.fury.io/js/twig)
 
 # About
 
 Twig.js is a pure JavaScript implementation of the Twig PHP templating language
 (<http://twig.sensiolabs.org/>)
 
-The goal is to provide a library that is compatible with both browsers and server side containers such as node.js.
+The goal is to provide a library that is compatible with both browsers and server side JavaScript environments such as node.js.
 
-Twig.js is currently a work in progress and supports a limited subset
-of the Twig templating language (with more coming).
+Twig.js is currently a work in progress and supports a limited subset of the Twig templating language (with more coming).
 
 ### Docs
 
@@ -24,18 +24,37 @@ If you have a change you want to make to twig.js, feel free to fork this reposit
 
 For more details on getting setup, see the [contributing page](https://github.com/justjohn/twig.js/wiki/Contributing) on the wiki.
 
+# Browser Usage
+
+Twig.js can be installed as a bower package with:
+
+    bower install twig.js
+
+Include twig.js or twig.min.js in your page, then:
+
+```js
+var template = twig({
+    data: 'The {{ baked_good }} is a lie.'
+});
+
+console.log(
+    template.render({baked_good: 'cupcake'})
+);
+// outputs: "The cupcake is a lie."
+```
+
 # Node Usage
 
 Twig.js can be installed with NPM
 
     npm install twig
 
-You can include twig in your app with
+You can use twig in your app with
 
-    var twig = require('twig');
+    var Twig = require('twig'), // Twig module
+        twig = Twig.twig;       // Render function
 
-Twig is compatable with express 2 and 3. You can create an express app using 
-the twig.js templating language by setting the view engine to twig.
+Twig is compatable with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
 
 ## app.js
 
@@ -47,7 +66,7 @@ var Twig = require("twig"),
     app = express();
 
 // This section is optional and used to configure twig.
-app.set("twig options", { 
+app.set("twig options", {
     strict_variables: false
 });
 
@@ -68,24 +87,9 @@ Message of the moment: <b>{{ message }}</b>
 
 An [Express 2 Example](https://github.com/justjohn/twig.js/wiki/Express-2) is available on the wiki.
 
-# Browser Usage
-
-Include twig.js or twig.min.js in your page, then:
-
-```js
-var template = twig({
-    data: 'The {{ baked_good }} is a lie.'
-});
-
-console.log(
-    template.render({baked_good: 'cupcake'})
-);
-// outputs: "The cupcake is a lie."
-```
-
 # Tests
 
-The twig.js tests are written in [Mocha][mocha] and can be invoked with `make test`. 
+The twig.js tests are written in [Mocha][mocha] and can be invoked with `make test`.
 
 # License
 

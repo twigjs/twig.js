@@ -3,7 +3,7 @@
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
-// ## twig.function.js
+// ## twig.exports.js
 //
 // This file provides extension points and other hooks into the twig functionality.
 
@@ -25,8 +25,10 @@ var Twig = (function (Twig) {
         var id = params.id,
             options = {
                 strict_variables: params.strict_variables || false,
-                allowInlineIncludes: params.allowInlineIncludes || false
+                allowInlineIncludes: params.allowInlineIncludes || false,
+                rethrow: params.rethrow || false
             };
+
         if (id) {
             Twig.validateId(id);
         }
@@ -48,7 +50,7 @@ var Twig = (function (Twig) {
 
         } else if (params.ref !== undefined) {
             if (params.id !== undefined) {
-                throw new Error("Both ref and id cannot be set on a twig.js template.");
+                throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
 
@@ -56,6 +58,7 @@ var Twig = (function (Twig) {
             return Twig.Templates.loadRemote(params.href, {
                 id: id,
                 method: 'ajax',
+                base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
                 async: params.async,

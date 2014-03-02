@@ -20,6 +20,105 @@ var Twig = (function (Twig) {
     };
 
     /**
+     * Fallback for Array.indexOf for IE8 et al
+     */
+    Twig.indexOf = function (arr, searchElement /*, fromIndex */ ) {
+        if (Array.prototype.hasOwnProperty("indexOf")) {
+            return arr.indexOf(searchElement);
+        }
+        if (arr === void 0 || arr === null) {
+            throw new TypeError();
+        }
+        var t = Object(arr);
+        var len = t.length >>> 0;
+        if (len === 0) {
+            return -1;
+        }
+        var n = 0;
+        if (arguments.length > 0) {
+            n = Number(arguments[1]);
+            if (n !== n) { // shortcut for verifying if it's NaN
+                n = 0;
+            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
+                n = (n > 0 || -1) * Math.floor(Math.abs(n));
+            }
+        }
+        if (n >= len) {
+            // console.log("indexOf not found1 ", JSON.stringify(searchElement), JSON.stringify(arr));
+            return -1;
+        }
+        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+        for (; k < len; k++) {
+            if (k in t && t[k] === searchElement) {
+                return k;
+            }
+        }
+        if (arr == searchElement) {
+            return 0;
+        }
+        // console.log("indexOf not found2 ", JSON.stringify(searchElement), JSON.stringify(arr));
+
+        return -1;
+    }
+
+    Twig.forEach = function (arr, callback, thisArg) {
+        if (Array.prototype.forEach ) {
+            return arr.forEach(callback, thisArg);
+        }
+
+        var T, k;
+
+        if ( arr == null ) {
+          throw new TypeError( " this is null or not defined" );
+        }
+
+        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
+        var O = Object(arr);
+
+        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = O.length >>> 0; // Hack to convert O.length to a UInt32
+
+        // 4. If IsCallable(callback) is false, throw a TypeError exception.
+        // See: http://es5.github.com/#x9.11
+        if ( {}.toString.call(callback) != "[object Function]" ) {
+          throw new TypeError( callback + " is not a function" );
+        }
+
+        // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
+        if ( thisArg ) {
+          T = thisArg;
+        }
+
+        // 6. Let k be 0
+        k = 0;
+
+        // 7. Repeat, while k < len
+        while( k < len ) {
+
+          var kValue;
+
+          // a. Let Pk be ToString(k).
+          //   This is implicit for LHS operands of the in operator
+          // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
+          //   This step can be combined with c
+          // c. If kPresent is true, then
+          if ( k in O ) {
+
+            // i. Let kValue be the result of calling the Get internal method of O with argument Pk.
+            kValue = O[ k ];
+
+            // ii. Call the Call internal method of callback with T as the this value and
+            // argument list containing kValue, k, and O.
+            callback.call( T, kValue, k, O );
+          }
+          // d. Increase k by 1.
+          k++;
+        }
+        // 8. return undefined
+    };
+
+    /**
      * Exception thrown by twig.js.
      */
     Twig.Error = function(message) {
@@ -32,7 +131,9 @@ var Twig = (function (Twig) {
      * Get the string representation of a Twig error.
      */
     Twig.Error.prototype.toString = function() {
-        return this.name + ": " + this.message;
+        var output = this.name + ": " + this.message;
+
+        return output;
     };
 
     /**
@@ -40,8 +141,17 @@ var Twig = (function (Twig) {
      */
     Twig.log = {
         trace: function() {if (Twig.trace && console) {console.log(Array.prototype.slice.call(arguments));}},
-        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
+        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
     };
+
+    if (typeof console !== "undefined" && 
+        typeof console.log !== "undefined") {
+        Twig.log.error = function() {
+            console.log.apply(console, arguments);
+        }
+    } else {
+        Twig.log.error = function(){};
+    }
 
     /**
      * Container for methods related to handling high level template tokens
@@ -66,7 +176,7 @@ var Twig = (function (Twig) {
         {
             type: Twig.token.type.raw,
             open: '{% raw %}',
-            close: '{% endraw %}',
+            close: '{% endraw %}'
         },
         // *Output type tokens*
         //
@@ -157,6 +267,12 @@ var Twig = (function (Twig) {
                                 "'" + " opened near template position " + start);
             }
 
+            // Ignore quotes within comments; just look for the next comment close sequence,
+            // regardless of what comes before it. https://github.com/justjohn/twig.js/issues/95
+            if (token_def.type === Twig.token.type.comment) {
+              break;
+            }
+
             l = Twig.token.strings.length;
             for (i = 0; i < l; i += 1) {
                 this_str_pos = template.indexOf(Twig.token.strings[i], offset);
@@ -231,6 +347,11 @@ var Twig = (function (Twig) {
                     value: template.substring(0, end).trim()
                 });
 
+                if ( found_token.def.type === "logic" && template.substr( end + found_token.def.close.length, 1 ) === "\n" ) {
+                    // Newlines directly after logic tokens are ignored
+                    end += 1;
+                }
+
                 template = template.substr(end + found_token.def.close.length);
 
                 // Increment the position in the template
@@ -251,132 +372,144 @@ var Twig = (function (Twig) {
 
 
     Twig.compile = function (tokens) {
-        // Output and intermediate stacks
-        var output = [],
-            stack = [],
-            // The tokens between open and close tags
-            intermediate_output = [],
+        try {
 
-            token = null,
-            logic_token = null,
-            unclosed_token = null,
-            // Temporary previous token.
-            prev_token = null,
-            // The previous token's template
-            prev_template = null,
-            // The output token
-            tok_output = null,
+            // Output and intermediate stacks
+            var output = [],
+                stack = [],
+                // The tokens between open and close tags
+                intermediate_output = [],
 
-            // Logic Token values
-            type = null,
-            open = null,
-            next = null;
+                token = null,
+                logic_token = null,
+                unclosed_token = null,
+                // Temporary previous token.
+                prev_token = null,
+                // The previous token's template
+                prev_template = null,
+                // The output token
+                tok_output = null,
 
-        while (tokens.length > 0) {
-            token = tokens.shift();
-            Twig.log.trace("Compiling token ", token);
-            switch (token.type) {
-                case Twig.token.type.raw:
-                    if (stack.length > 0) {
-                        intermediate_output.push(token);
-                    } else {
-                        output.push(token);
-                    }
-                    break;
+                // Logic Token values
+                type = null,
+                open = null,
+                next = null;
 
-                case Twig.token.type.logic:
-                    // Compile the logic token
-                    logic_token = Twig.logic.compile.apply(this, [token]);
-
-                    type = logic_token.type;
-                    open = Twig.logic.handler[type].open;
-                    next = Twig.logic.handler[type].next;
-
-                    Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
-                                                     " next is: ", next, " open is : ", open);
-
-                    // Not a standalone token, check logic stack to see if this is expected
-                    if (open !== undefined && !open) {
-                        prev_token = stack.pop();
-                        prev_template = Twig.logic.handler[prev_token.type];
-
-                        if (prev_template.next.indexOf(type) < 0) {
-                            throw new Error(type + " not expected after a " + prev_token.type);
-                        }
-
-                        prev_token.output = prev_token.output || [];
-
-                        prev_token.output = prev_token.output.concat(intermediate_output);
-                        intermediate_output = [];
-
-                        tok_output = {
-                            type: Twig.token.type.logic,
-                            token: prev_token
-                        };
+            while (tokens.length > 0) {
+                token = tokens.shift();
+                Twig.log.trace("Compiling token ", token);
+                switch (token.type) {
+                    case Twig.token.type.raw:
                         if (stack.length > 0) {
-                            intermediate_output.push(tok_output);
+                            intermediate_output.push(token);
                         } else {
-                            output.push(tok_output);
+                            output.push(token);
                         }
-                    }
+                        break;
 
-                    // This token requires additional tokens to complete the logic structure.
-                    if (next !== undefined && next.length > 0) {
-                        Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
+                    case Twig.token.type.logic:
+                        // Compile the logic token
+                        logic_token = Twig.logic.compile.apply(this, [token]);
 
-                        if (stack.length > 0) {
-                            // Put any currently held output into the output list of the logic operator
-                            // currently at the head of the stack before we push a new one on.
+                        type = logic_token.type;
+                        open = Twig.logic.handler[type].open;
+                        next = Twig.logic.handler[type].next;
+
+                        Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
+                                                         " next is: ", next, " open is : ", open);
+
+                        // Not a standalone token, check logic stack to see if this is expected
+                        if (open !== undefined && !open) {
                             prev_token = stack.pop();
+                            prev_template = Twig.logic.handler[prev_token.type];
+
+                            if (Twig.indexOf(prev_template.next, type) < 0) {
+                                throw new Error(type + " not expected after a " + prev_token.type);
+                            }
+
                             prev_token.output = prev_token.output || [];
+
                             prev_token.output = prev_token.output.concat(intermediate_output);
-                            stack.push(prev_token);
                             intermediate_output = [];
+
+                            tok_output = {
+                                type: Twig.token.type.logic,
+                                token: prev_token
+                            };
+                            if (stack.length > 0) {
+                                intermediate_output.push(tok_output);
+                            } else {
+                                output.push(tok_output);
+                            }
                         }
 
-                        // Push the new logic token onto the logic stack
-                        stack.push(logic_token);
+                        // This token requires additional tokens to complete the logic structure.
+                        if (next !== undefined && next.length > 0) {
+                            Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
 
-                    } else if (open !== undefined && open) {
-                        tok_output = {
-                            type: Twig.token.type.logic,
-                            token: logic_token
-                        };
-                        // Standalone token (like {% set ... %}
+                            if (stack.length > 0) {
+                                // Put any currently held output into the output list of the logic operator
+                                // currently at the head of the stack before we push a new one on.
+                                prev_token = stack.pop();
+                                prev_token.output = prev_token.output || [];
+                                prev_token.output = prev_token.output.concat(intermediate_output);
+                                stack.push(prev_token);
+                                intermediate_output = [];
+                            }
+
+                            // Push the new logic token onto the logic stack
+                            stack.push(logic_token);
+
+                        } else if (open !== undefined && open) {
+                            tok_output = {
+                                type: Twig.token.type.logic,
+                                token: logic_token
+                            };
+                            // Standalone token (like {% set ... %}
+                            if (stack.length > 0) {
+                                intermediate_output.push(tok_output);
+                            } else {
+                                output.push(tok_output);
+                            }
+                        }
+                        break;
+
+                    // Do nothing, comments should be ignored
+                    case Twig.token.type.comment:
+                        break;
+
+                    case Twig.token.type.output:
+                        Twig.expression.compile.apply(this, [token]);
                         if (stack.length > 0) {
-                            intermediate_output.push(tok_output);
+                            intermediate_output.push(token);
                         } else {
-                            output.push(tok_output);
+                            output.push(token);
                         }
-                    }
-                    break;
+                        break;
+                }
 
-                // Do nothing, comments should be ignored
-                case Twig.token.type.comment:
-                    break;
-
-                case Twig.token.type.output:
-                    Twig.expression.compile.apply(this, [token]);
-                    if (stack.length > 0) {
-                        intermediate_output.push(token);
-                    } else {
-                        output.push(token);
-                    }
-                    break;
+                Twig.log.trace("Twig.compile: ", " Output: ", output,
+                                                 " Logic Stack: ", stack,
+                                                 " Pending Output: ", intermediate_output );
             }
 
-            Twig.log.trace("Twig.compile: ", " Output: ", output,
-                                             " Logic Stack: ", stack,
-                                             " Pending Output: ", intermediate_output );
-        }
+            // Verify that there are no logic tokens left in the stack.
+            if (stack.length > 0) {
+                unclosed_token = stack.pop();
+                throw new Error("Unable to find an end tag for " + unclosed_token.type +
+                                ", expecting one of " + unclosed_token.next);
+            }
+            return output;
+        } catch (ex) {
+            Twig.log.error("Error compiling twig template " + this.id + ": ");
+            if (ex.stack) {
+                Twig.log.error(ex.stack);
+            } else {
+                Twig.log.error(ex.toString());
+            }
 
-        // Verify that there are no logic tokens left in the stack.
-        if (stack.length > 0) {
-            unclosed_token = stack.pop();
-            throw new Error("Unable to find an end tag for " + unclosed_token.type +
-                            ", expecting one of " + unclosed_token.next);
+            if (this.options.rethrow) throw ex;
         }
-        return output;
     };
 
     /**
@@ -388,50 +521,65 @@ var Twig = (function (Twig) {
      * @return {string} The parsed template.
      */
     Twig.parse = function (tokens, context) {
-        var output = [],
-            // Track logic chains
-            chain = true,
-            that = this;
+        try {
+            var output = [],
+                // Track logic chains
+                chain = true,
+                that = this;
 
-        // Default to an empty object if none provided
-        context = context || { };
+            // Default to an empty object if none provided
+            context = context || { };
 
 
-        tokens.forEach(function parseToken(token) {
-            Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
+            Twig.forEach(tokens, function parseToken(token) {
+                Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
-            switch (token.type) {
-                case Twig.token.type.raw:
-                    output.push(token.value);
-                    break;
+                switch (token.type) {
+                    case Twig.token.type.raw:
+                        output.push(token.value);
+                        break;
 
-                case Twig.token.type.logic:
-                    var logic_token = token.token,
-                        logic = Twig.logic.parse.apply(that, [logic_token, context, chain]);
+                    case Twig.token.type.logic:
+                        var logic_token = token.token,
+                            logic = Twig.logic.parse.apply(that, [logic_token, context, chain]);
 
-                    if (logic.chain !== undefined) {
-                        chain = logic.chain;
-                    }
-                    if (logic.context !== undefined) {
-                        context = logic.context;
-                    }
-                    if (logic.output !== undefined) {
-                        output.push(logic.output);
-                    }
-                    break;
+                        if (logic.chain !== undefined) {
+                            chain = logic.chain;
+                        }
+                        if (logic.context !== undefined) {
+                            context = logic.context;
+                        }
+                        if (logic.output !== undefined) {
+                            output.push(logic.output);
+                        }
+                        break;
 
-                case Twig.token.type.comment:
-                    // Do nothing, comments should be ignored
-                    break;
+                    case Twig.token.type.comment:
+                        // Do nothing, comments should be ignored
+                        break;
 
-                case Twig.token.type.output:
-                    Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
-                    // Parse the given expression in the given context
-                    output.push(Twig.expression.parse.apply(that, [token.stack, context]));
-                    break;
+                    case Twig.token.type.output:
+                        Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
+                        // Parse the given expression in the given context
+                        output.push(Twig.expression.parse.apply(that, [token.stack, context]));
+                        break;
+                }
+            });
+            return output.join("");
+        } catch (ex) {
+            Twig.log.error("Error parsing twig template " + this.id + ": ");
+            if (ex.stack) {
+                Twig.log.error(ex.stack);
+            } else {
+                Twig.log.error(ex.toString());
             }
-        });
-        return output.join("");
+
+            if (this.options.rethrow) throw ex;
+
+            if (Twig.debug) {
+                return ex.toString();
+            }
+        }
     };
 
     /**
@@ -559,21 +707,27 @@ var Twig = (function (Twig) {
                 var data = null;
 
                 if(xmlhttp.readyState == 4) {
-                    Twig.log.debug("Got template ", xmlhttp.responseText);
+                    if (xmlhttp.status == 200) {
+                        Twig.log.debug("Got template ", xmlhttp.responseText);
 
-                    if (precompiled === true) {
-                        data = JSON.parse(xmlhttp.responseText);
+                        if (precompiled === true) {
+                            data = JSON.parse(xmlhttp.responseText);
+                        } else {
+                            data = xmlhttp.responseText;
+                        }
+
+                        params.url = location;
+                        params.data = data;
+
+                        template = new Twig.Template(params);
+
+                        if (callback) {
+                            callback(template);
+                        }
                     } else {
-                        data = xmlhttp.responseText;
-                    }
-
-                    params.url = location;
-                    params.data = data;
-
-                    template = new Twig.Template(params);
-
-                    if (callback) {
-                        callback(template);
+                        if (error_callback) {
+                            error_callback(xmlhttp);
+                        }
                     }
                 }
             };
@@ -654,6 +808,7 @@ var Twig = (function (Twig) {
         var data = params.data,
             id = params.id,
             blocks = params.blocks,
+            macros = params.macros || {},
             base = params.base,
             path = params.path,
             url = params.url,
@@ -682,6 +837,7 @@ var Twig = (function (Twig) {
         this.base   = base;
         this.path   = path;
         this.url    = url;
+        this.macros = macros;
         this.options = options;
 
         this.reset(blocks);
@@ -719,21 +875,38 @@ var Twig = (function (Twig) {
         if (params.blocks) {
             this.blocks = params.blocks;
         }
+        if (params.macros) {
+            this.macros = params.macros;
+        }
 
         output = Twig.parse.apply(this, [this.tokens, this.context]);
 
         // Does this template extend another
         if (this.extend) {
-            url = relativePath(this, this.extend);
+            var ext_template;
 
-            // This template extends another, load it with this template's blocks
-            this.parent = Twig.Templates.loadRemote(url, {
-                method: this.url?'ajax':'fs',
-                base: this.base,
-                async:  false,
-                id:     url,
-                options: this.options
-            });
+            // check if the template is provided inline
+            if ( this.options.allowInlineIncludes ) {
+                ext_template = Twig.Templates.load(this.extend);
+                if ( ext_template ) {
+                    ext_template.options = this.options;
+                }
+            }
+
+            // check for the template file via include
+            if (!ext_template) {
+                url = relativePath(this, this.extend);
+
+                ext_template = Twig.Templates.loadRemote(url, {
+                    method: this.url?'ajax':'fs',
+                    base: this.base,
+                    async:  false,
+                    id:     url,
+                    options: this.options
+                });
+            }
+
+            this.parent = ext_template;
 
             return this.parent.render(this.context, {
                 blocks: this.blocks
@@ -742,6 +915,8 @@ var Twig = (function (Twig) {
 
         if (params.output == 'blocks') {
             return this.blocks;
+        } else if (params.output == 'macros') {
+            return this.macros;
         } else {
             return output;
         }
@@ -764,6 +939,7 @@ var Twig = (function (Twig) {
         // Load blocks from an external file
         sub_template = Twig.Templates.loadRemote(url, {
             method: this.url?'ajax':'fs',
+            base: this.base,
             async: false,
             options: this.options,
             id: url
@@ -783,11 +959,24 @@ var Twig = (function (Twig) {
         sub_template.render(context);
 
         // Mixin blocks
-        Object.keys(sub_template.blocks).forEach(function(key) {
+        Twig.forEach(Object.keys(sub_template.blocks), function(key) {
             if (override || that.blocks[key] === undefined) {
                 that.blocks[key] = sub_template.blocks[key];
             }
         });
+    };
+
+    Twig.Template.prototype.importMacros = function(file) {
+        var url = relativePath(this, file);
+
+        // load remote template
+        var remoteTemplate = Twig.Templates.loadRemote(url, {
+            method: this.url?'ajax':'fs',
+            async: false,
+            id: url
+        });
+
+        return remoteTemplate;
     };
 
     Twig.Template.prototype.compile = function(options) {
@@ -811,7 +1000,11 @@ var Twig = (function (Twig) {
             val;
 
         if (template.url) {
-            base = template.url;
+            if (typeof template.base !== 'undefined') {
+                base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
+            } else {
+                base = template.url;
+            }
         } else if (template.path) {
             // Get the system-specific path separator
             var path = require("path"),

@@ -127,7 +127,7 @@ var Twig = (function (Twig) {
 			// handle no argument case by dumping the entire render context
 			if (args.length == 0) args.push(this.context);
 
-			args.forEach(function(variable) {
+			Twig.forEach(args, function(variable) {
 				dumpVar(variable);
 			});
 
@@ -149,9 +149,26 @@ var Twig = (function (Twig) {
             }
             return dateObj;
         },
+        block: function(block) {
+            return this.blocks[block];
+        },
         parent: function() {
             // Add a placeholder
             return Twig.placeholders.parent;
+        },
+        attribute: function(object, method, params) {
+            if (object instanceof Object) {
+                if (object.hasOwnProperty(method)) {
+                    if (typeof object[method] === "function") {
+                        return object[method].apply(undefined, params);
+                    }
+                    else {
+                        return object[method];
+                    }
+                }
+            }
+            // Array will return element 0-index
+            return object[method] || undefined;
         }
     };
 

@@ -16,6 +16,21 @@ describe("Twig.js Browser Loading ->", function() {
             flag: false
         }).should.equal("Test template = reload\n\n");
     });
+    
+    it("Should trigger the error callback for a missing template", function(done) {
+
+        twig({
+            href: 'templates/notthere.twig',
+            load: function(template) {
+                // failure
+                throw "Template didn't trigger error callback";
+            },
+            error: function(err) {
+                console.log(err);
+                done();
+            }
+        });
+    });
 
     it("Should load a template asynchronously", function(done) {
 
@@ -41,4 +56,31 @@ describe("Twig.js Browser Loading ->", function() {
             }
         });
     });
+
+    it("should be able to extend to a relative tempalte path", function(done) {
+        // Test loading a template from a remote endpoint
+        twig({
+            href: 'templates/child.twig',
+
+            load: function(template) {
+                template.render({ base: "template.twig" }).should.equal( "Other Title - child" );
+                done();
+            }
+        });
+    });
+
+    it("should be able to extend to a absolute tempalte path", function(done) {
+        // Test loading a template from a remote endpoint
+        twig({
+            base: 'templates',
+            href: 'templates/a/child.twig',
+
+            load: function(template) {
+                template.render({ base: "b/template.twig" }).should.equal( "Other Title - child" );
+                done();
+            }
+        });
+    });
 });
+
+
