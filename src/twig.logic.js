@@ -240,6 +240,7 @@ var Twig = (function (Twig) {
             parse: function (token, context, continue_chain) {
                 // Parse expression
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
+                    inner_context = Twig.lib.copy(context),
                     output = [],
 					len,
 					index = 0,
@@ -260,8 +261,6 @@ var Twig = (function (Twig) {
                         };
                     },
                     loop = function(key, value) {
-                        var inner_context = Twig.lib.copy(context);
-
                         inner_context[token.value_var] = value;
                         if (token.key_var) {
                             inner_context[token.key_var] = key;
