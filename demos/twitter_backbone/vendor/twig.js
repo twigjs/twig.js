@@ -980,19 +980,6 @@ var Twig = (function (Twig) {
         });
     };
 
-    Twig.Template.prototype.importMacros = function(file) {
-        var url = relativePath(this, file);
-
-        // load remote template
-        var remoteTemplate = Twig.Templates.loadRemote(url, {
-            method: this.url?'ajax':'fs',
-            async: false,
-            id: url
-        });
-
-        return remoteTemplate;
-    };
-
     Twig.Template.prototype.compile = function(options) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
@@ -2489,7 +2476,7 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 if (token.expression !== "_self") {
                     var file = Twig.expression.parse.apply(this, [token.stack, context]);
-                    var template = this.importMacros(file || token.expression);
+                    var template = this.importFile(file || token.expression);
                     context[token.contextName] = template.render({}, {output: 'macros'});
                 }
                 else {
@@ -2553,7 +2540,7 @@ var Twig = (function (Twig) {
 
                 if (token.expression !== "_self") {
                     var file = Twig.expression.parse.apply(this, [token.stack, context]);
-                    var template = this.importMacros(file || token.expression);
+                    var template = this.importFile(file || token.expression);
                     macros = template.render({}, {output: 'macros'});
                 }
                 else {

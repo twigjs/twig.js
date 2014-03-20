@@ -966,19 +966,6 @@ var Twig = (function (Twig) {
         });
     };
 
-    Twig.Template.prototype.importMacros = function(file) {
-        var url = relativePath(this, file);
-
-        // load remote template
-        var remoteTemplate = Twig.Templates.loadRemote(url, {
-            method: this.url?'ajax':'fs',
-            async: false,
-            id: url
-        });
-
-        return remoteTemplate;
-    };
-
     Twig.Template.prototype.compile = function(options) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
