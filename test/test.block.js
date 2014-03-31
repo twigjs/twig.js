@@ -166,5 +166,22 @@ describe("Twig.js Blocks ->", function() {
                 }
             })
         });
+
+        it("should render block content with outer context", function(done) {
+            twig({
+                path:   'test/templates/block-outer-context.twig',
+
+                load: function(template) {
+                    template.render({
+                        base: "block-outer-context.twig",
+                        items: ["twig", "js", "rocks"]
+                    })
+                    .should.equal( "Hello twig!Hello js!Hello rocks!twigjsrocks" );
+
+                    done();
+                }
+            })
+        });
+
     });
 });
