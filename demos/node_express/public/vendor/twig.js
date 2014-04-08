@@ -4051,14 +4051,14 @@ var Twig = (function (Twig) {
                  return value;
             }
 
-            return value.substr(0, 1).toUpperCase() + value.substr(1);
+            return value.substr(0, 1).toUpperCase() + value.toLowerCase().substr(1);
         },
         title: function(value) {
             if ( typeof value !== "string" ) {
                return value;
             }
 
-            return value.replace( /(^|\s)([a-z])/g , function(m, p1, p2){
+            return value.toLowerCase().replace( /(^|\s)([a-z])/g , function(m, p1, p2){
                 return p1 + p2.toUpperCase();
             });
         },
