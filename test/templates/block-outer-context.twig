@@ -1,0 +1,4 @@
+{% for item in items %}
+{% block main %}Hello {{ item }}!{% endblock %}
+{% endfor %}
+{% block loopy %}{% for name in items %}{{ name }}{% endfor %}{% endblock %}

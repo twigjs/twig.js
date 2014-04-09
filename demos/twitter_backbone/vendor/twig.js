@@ -980,19 +980,6 @@ var Twig = (function (Twig) {
         });
     };
 
-    Twig.Template.prototype.importMacros = function(file) {
-        var url = relativePath(this, file);
-
-        // load remote template
-        var remoteTemplate = Twig.Templates.loadRemote(url, {
-            method: this.url?'ajax':'fs',
-            async: false,
-            id: url
-        });
-
-        return remoteTemplate;
-    };
-
     Twig.Template.prototype.compile = function(options) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
@@ -2187,7 +2174,8 @@ var Twig = (function (Twig) {
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
                 // Don't override previous blocks
-                if (this.blocks[token.block] === undefined || hasParent) {
+                // Loops should be exempted as well.
+                if (this.blocks[token.block] === undefined || hasParent || context.loop) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
@@ -2203,7 +2191,6 @@ var Twig = (function (Twig) {
                 // Check if a child block has been set from a template extending this one.
                 if (this.child.blocks[token.block]) {
                     output = this.child.blocks[token.block];
-
                 } else {
                     output = this.blocks[token.block];
                 }
@@ -2400,7 +2387,7 @@ var Twig = (function (Twig) {
              *
              * Format: {% maro input(name, value, type, size) %}
              *
-             */ 
+             */
             type: Twig.logic.type.macro,
             regex: /^macro\s+([a-zA-Z0-9_]+)\s?\((([a-zA-Z0-9_]+(,\s?)?)*)\)$/,
             next: [
@@ -2429,7 +2416,7 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 var template = this;
                 this.macros[token.macroName] = function() {
-                    // Pass global context and other macros 
+                    // Pass global context and other macros
                     var macroContext = {
                         _self: template.macros
                     }
@@ -2448,14 +2435,13 @@ var Twig = (function (Twig) {
                 };
 
             }
-            
         },
         {
             /**
              * End macro logic tokens.
              *
              * Format: {% endmacro %}
-             */ 
+             */
              type: Twig.logic.type.endmacro,
              regex: /^endmacro$/,
              next: [ ],
@@ -2489,7 +2475,7 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 if (token.expression !== "_self") {
                     var file = Twig.expression.parse.apply(this, [token.stack, context]);
-                    var template = this.importMacros(file || token.expression);
+                    var template = this.importFile(file || token.expression);
                     context[token.contextName] = template.render({}, {output: 'macros'});
                 }
                 else {
@@ -2517,7 +2503,6 @@ var Twig = (function (Twig) {
                 var expression = token.match[1].trim(),
                     macroExpressions = token.match[2].trim().split(/[ ,]+/),
                     macroNames = {};
-                    
 
                 for (var i=0; i<macroExpressions.length; i++) {
                     var res = macroExpressions[i];
@@ -2553,7 +2538,7 @@ var Twig = (function (Twig) {
 
                 if (token.expression !== "_self") {
                     var file = Twig.expression.parse.apply(this, [token.stack, context]);
-                    var template = this.importMacros(file || token.expression);
+                    var template = this.importFile(file || token.expression);
                     macros = template.render({}, {output: 'macros'});
                 }
                 else {
