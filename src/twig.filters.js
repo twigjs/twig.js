@@ -505,7 +505,7 @@ var Twig = (function (Twig) {
             return value[value.length - 1];
         },
         raw: function(value) {
-            //Dummy implementation for compatibility with
+            //Raw filter shim
             return value;
         }
     };
