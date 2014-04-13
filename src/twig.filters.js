@@ -503,6 +503,10 @@ var Twig = (function (Twig) {
 
             // string|array
             return value[value.length - 1];
+        },
+        raw: function(value) {
+            //Raw filter shim
+            return value;
         }
     };
 
