@@ -61,6 +61,9 @@ describe("Twig.js Filters ->", function() {
         it("should capitalize the first word in a string", function() {
             var test_template = twig({data: '{{ "hello world"|capitalize }}' });
             test_template.render().should.equal("Hello world" );
+
+            var test_template2 = twig({data: '{{ "HELLO WORLD"|capitalize }}' });
+            test_template2.render().should.equal("Hello world" );
         });
 
         it("should handle undefined", function() {
@@ -72,6 +75,9 @@ describe("Twig.js Filters ->", function() {
         it("should capitalize all the words in a string", function() {
             var test_template = twig({data: '{{ "hello world"|title }}' });
             test_template.render().should.equal("Hello World" );
+
+            var test_template2 = twig({data: '{{ "HELLO WORLD"|title }}' });
+            test_template2.render().should.equal("Hello World" );
         });
 
         it("should handle undefined", function() {

@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.7.0
+ * Twig.js 0.7.1
  *
  * @copyright 2011-2013 John Roepke
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.7.0";
+    Twig.VERSION = "0.7.1";
 
     return Twig;
 })(Twig || {});
@@ -4035,14 +4035,14 @@ var Twig = (function (Twig) {
                  return value;
             }
 
-            return value.substr(0, 1).toUpperCase() + value.substr(1);
+            return value.substr(0, 1).toUpperCase() + value.toLowerCase().substr(1);
         },
         title: function(value) {
             if ( typeof value !== "string" ) {
                return value;
             }
 
-            return value.replace( /(^|\s)([a-z])/g , function(m, p1, p2){
+            return value.toLowerCase().replace( /(^|\s)([a-z])/g , function(m, p1, p2){
                 return p1 + p2.toUpperCase();
             });
         },
@@ -4503,6 +4503,10 @@ var Twig = (function (Twig) {
 
             // string|array
             return value[value.length - 1];
+        },
+        raw: function(value) {
+            //Raw filter shim
+            return value;
         }
     };
 
