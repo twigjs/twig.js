@@ -80,4 +80,38 @@ describe("Twig.js Blocks ->", function() {
             }
         })
     });
+
+
+    describe("block function ->", function() {
+        it("should render block content from an included block", function(done) {
+            twig({
+                href:   'templates/block-function.twig',
+
+                load: function(template) {
+                    template.render({
+                        base: "block-function-parent.twig",
+                        val: "abcd" 
+                    })
+                    .should.equal( "Child content = abcd / Result: Child content = abcd" );
+                    
+                    done();
+                }
+            })
+        });
+
+        it("should render block content from a parent block", function(done) {
+            twig({
+                href:   'templates/block-parent.twig',
+
+                load: function(template) {
+                    template.render({
+                        base: "block-function-parent.twig"
+                    })
+                    .should.equal( "parent block / Result: parent block" );
+
+                    done();
+                }
+            })
+        });
+    });
 });

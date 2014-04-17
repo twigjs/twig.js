@@ -4,10 +4,14 @@ TESTS = test/*.js
 TESTSEXT = test-ext/*.js
 REPORTER = spec
 
+UGLIFY = ./node_modules/uglify-js/bin/uglifyjs
+DOCCO = ./node_modules/docco/bin/docco
+MOCHA = ./node_modules/mocha/bin/mocha
+
 all: twig.js twig.min.js
 
 test:
-	@NODE_ENV=test ./node_modules/.bin/mocha \
+	@NODE_ENV=test $(MOCHA) \
 		--require should \
 		--reporter $(REPORTER) \
 		--timeout 100 \
@@ -18,7 +22,7 @@ twig.php:
 	./test-ext/checkout.sh
 
 testphp: twig.php
-	@NODE_ENV=test ./node_modules/.bin/mocha \
+	@NODE_ENV=test $(MOCHA) \
 		--require should \
 		--reporter $(REPORTER) \
 		--timeout 100 \
@@ -31,12 +35,15 @@ twig.js: $(SRC)
 	cp $@ demos/twitter_backbone/vendor/
 
 twig.min.js: twig.js
-	./node_modules/.bin/uglifyjs $< > $@
+	$(UGLIFY) \
+		--source-map $@.map \
+		--comments "@license" \
+		$< > $@
 
 docs: test-docs annotated-docs
 
 test-docs:
-	@NODE_ENV=test ./node_modules/.bin/mocha \
+	@NODE_ENV=test $(MOCHA) \
 		--require should \
 		--reporter markdown \
 		--timeout 100 \
@@ -44,7 +51,7 @@ test-docs:
 		$(TESTS) > docs/tests.md
 
 annotated-docs: $(SRC)
-	node_modules/.bin/docco twig.js
+	$(DOCCO) twig.js
 
 clean:
 	rm -f twig.min.js twig.js

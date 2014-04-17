@@ -25,6 +25,8 @@ var Twig = (function (Twig) {
         else_:     'Twig.logic.type.else',
         elseif:    'Twig.logic.type.elseif',
         set:       'Twig.logic.type.set',
+        setcapture:'Twig.logic.type.setcapture',
+        endset:    'Twig.logic.type.endset',
         filter:    'Twig.logic.type.filter',
         endfilter: 'Twig.logic.type.endfilter',
         block:     'Twig.logic.type.block',
@@ -33,7 +35,11 @@ var Twig = (function (Twig) {
         use:       'Twig.logic.type.use',
         include:   'Twig.logic.type.include',
         spaceless: 'Twig.logic.type.spaceless',
-        endspaceless: 'Twig.logic.type.endspaceless'
+        endspaceless: 'Twig.logic.type.endspaceless',
+        macro:     'Twig.logic.type.macro',
+        endmacro:  'Twig.logic.type.endmacro',
+        import_:   'Twig.logic.type.import',
+        from:      'Twig.logic.type.from'
     };
 
 
@@ -274,7 +280,7 @@ var Twig = (function (Twig) {
 
                 if (result instanceof Array) {
                     len = result.length;
-                    result.forEach(function (value) {
+                    Twig.forEach(result, function (value) {
                         var key = index;
 
                         loop(key, value);
@@ -286,7 +292,7 @@ var Twig = (function (Twig) {
                         keyset = Object.keys(result);
                     }
 					len = keyset.length;
-                    keyset.forEach(function(key) {
+                    Twig.forEach(keyset, function(key) {
                         // Ignore the _keys property, it's internal to twig.js
                         if (key === "_keys") return;
 
@@ -352,6 +358,52 @@ var Twig = (function (Twig) {
                     context: context
                 };
             }
+        },
+        {
+            /**
+             * Set capture type logic tokens.
+             *
+             *  Format: {% set key %}
+             */
+            type: Twig.logic.type.setcapture,
+            regex: /^set\s+([a-zA-Z0-9_,\s]+)$/,
+            next: [
+                Twig.logic.type.endset
+            ],
+            open: true,
+            compile: function (token) {
+                var key = token.match[1].trim();
+
+                token.key = key;
+
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, continue_chain) {
+
+                var value = Twig.parse.apply(this, [token.output, context]),
+                    key = token.key;
+
+                // set on both the global and local context
+                this.context[key] = value;
+                context[key] = value;
+
+                return {
+                    chain: continue_chain,
+                    context: context
+                };
+            }
+        },
+        {
+            /**
+             * End set type block logic tokens.
+             *
+             *  Format: {% endset %}
+             */
+            type: Twig.logic.type.endset,
+            regex: /^endset$/,
+            next: [ ],
+            open: false
         },
         {
             /**
@@ -424,7 +476,8 @@ var Twig = (function (Twig) {
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
                 // Don't override previous blocks
-                if (this.blocks[token.block] === undefined || hasParent) {
+                // Loops should be exempted as well.
+                if (this.blocks[token.block] === undefined || hasParent || context.loop) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
@@ -440,7 +493,6 @@ var Twig = (function (Twig) {
                 // Check if a child block has been set from a template extending this one.
                 if (this.child.blocks[token.block]) {
                     output = this.child.blocks[token.block];
-
                 } else {
                     output = this.blocks[token.block];
                 }
@@ -453,12 +505,12 @@ var Twig = (function (Twig) {
         },
         {
             /**
-             * End filter logic tokens.
+             * End block logic tokens.
              *
-             *  Format: {% endfilter %}
+             *  Format: {% endblock %}
              */
             type: Twig.logic.type.endblock,
-            regex: /^endblock$/,
+            regex: /^endblock(?:\s+([a-zA-Z0-9_]+))?$/,
             next: [ ],
             open: false
         },
@@ -630,8 +682,187 @@ var Twig = (function (Twig) {
             regex: /^endspaceless$/,
             next: [ ],
             open: false
+        },
+        {
+            /**
+             * Macro logic tokens.
+             *
+             * Format: {% maro input(name, value, type, size) %}
+             *
+             */
+            type: Twig.logic.type.macro,
+            regex: /^macro\s+([a-zA-Z0-9_]+)\s?\((([a-zA-Z0-9_]+(,\s?)?)*)\)$/,
+            next: [
+                Twig.logic.type.endmacro
+            ],
+            open: true,
+            compile: function (token) {
+                var macroName = token.match[1],
+                    parameters = token.match[2].split(/[ ,]+/);
+
+                //TODO: Clean up duplicate check
+                for (var i=0; i<parameters.length; i++) {
+                    for (var j=0; j<parameters.length; j++){
+                        if (parameters[i] === parameters[j] && i !== j) {
+                            throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
+                        }
+                    }
+                }
+
+                token.macroName = macroName;
+                token.parameters = parameters;
+
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var template = this;
+                this.macros[token.macroName] = function() {
+                    // Pass global context and other macros
+                    var macroContext = {
+                        _self: template.macros
+                    }
+                    // Add parameters from context to macroContext
+                    for (var i=0; i<token.parameters.length; i++) {
+                        var prop = token.parameters[i];
+                        macroContext[prop] = arguments[i] || undefined;
+                    }
+                    // Render
+                    return Twig.parse.apply(template, [token.output, macroContext])
+                };
+
+                return {
+                    chain: chain,
+                    output: ''
+                };
+
+            }
+        },
+        {
+            /**
+             * End macro logic tokens.
+             *
+             * Format: {% endmacro %}
+             */
+             type: Twig.logic.type.endmacro,
+             regex: /^endmacro$/,
+             next: [ ],
+             open: false
+        },
+        {
+            /*
+            * import logic tokens.
+            *
+            * Format: {% import "template.twig" as form %}
+            */
+            type: Twig.logic.type.import_,
+            regex: /^import\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim(),
+                    contextName = token.match[2].trim();
+                delete token.match;
+
+                token.expression = expression;
+                token.contextName = contextName;
+
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                if (token.expression !== "_self") {
+                    var file = Twig.expression.parse.apply(this, [token.stack, context]);
+                    var template = this.importMacros(file || token.expression);
+                    context[token.contextName] = template.render({}, {output: 'macros'});
+                }
+                else {
+                    context[token.contextName] = this.macros;
+                }
+
+                return {
+                    chain: chain,
+                    output: ''
+                }
+
+            }
+        },
+        {
+            /*
+            * from logic tokens.
+            *
+            * Format: {% from "template.twig" import func as form %}
+            */
+            type: Twig.logic.type.from,
+            regex: /^from\s+(.+)\s+import\s+([a-zA-Z0-9_, ]+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                var expression = token.match[1].trim(),
+                    macroExpressions = token.match[2].trim().split(/[ ,]+/),
+                    macroNames = {};
+
+                for (var i=0; i<macroExpressions.length; i++) {
+                    var res = macroExpressions[i];
+
+                    // match function as variable
+                    var macroMatch = res.match(/^([a-zA-Z0-9_]+)\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/);
+                    if (macroMatch) {
+                        macroNames[macroMatch[1].trim()] = macroMatch[2].trim();
+                    }
+                    else if (res.match(/^([a-zA-Z0-9_]+)$/)) {
+                        macroNames[res] = res;
+                    }
+                    else {
+                        // ignore import
+                    }
+
+                }
+
+                delete token.match;
+
+                token.expression = expression;
+                token.macroNames = macroNames;
+
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                var macros;
+
+                if (token.expression !== "_self") {
+                    var file = Twig.expression.parse.apply(this, [token.stack, context]);
+                    var template = this.importMacros(file || token.expression);
+                    macros = template.render({}, {output: 'macros'});
+                }
+                else {
+                    macros = this.macros;
+                }
+
+                for (var macroName in token.macroNames) {
+                    if (macros.hasOwnProperty(macroName)) {
+                        context[token.macroNames[macroName]] = macros[macroName];
+                    }
+                }
+
+                return {
+                    chain: chain,
+                    output: ''
+                }
+
+            }
         }
+
     ];
+
 
     /**
      * Registry for logic handlers.

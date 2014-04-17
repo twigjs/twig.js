@@ -35,14 +35,14 @@ var Twig = (function (Twig) {
                  return value;
             }
 
-            return value.substr(0, 1).toUpperCase() + value.substr(1);
+            return value.substr(0, 1).toUpperCase() + value.toLowerCase().substr(1);
         },
         title: function(value) {
             if ( typeof value !== "string" ) {
                return value;
             }
 
-            return value.replace( /(^|\s)([a-z])/g , function(m, p1, p2){
+            return value.toLowerCase().replace( /(^|\s)([a-z])/g , function(m, p1, p2){
                 return p1 + p2.toUpperCase();
             });
         },
@@ -91,14 +91,14 @@ var Twig = (function (Twig) {
             }
         },
         keys: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
            }
 
             var keyset = value._keys || Object.keys(value),
                 output = [];
 
-            keyset.forEach(function(key) {
+            Twig.forEach(keyset, function(key) {
                 if (key === "_keys") return; // Ignore the _keys property
                 if (value.hasOwnProperty(key)) {
                     output.push(key);
@@ -107,14 +107,14 @@ var Twig = (function (Twig) {
             return output;
         },
         url_encode: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
             return encodeURIComponent(value);
         },
         join: function(value, params) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
@@ -129,7 +129,7 @@ var Twig = (function (Twig) {
                 output = value;
             } else {
                 keyset = value._keys || Object.keys(value);
-                keyset.forEach(function(key) {
+                Twig.forEach(keyset, function(key) {
                     if (key === "_keys") return; // Ignore the _keys property
                     if (value.hasOwnProperty(key)) {
                         output.push(value[key]);
@@ -167,7 +167,7 @@ var Twig = (function (Twig) {
                 // Create obj as an Object
                 obj = { };
             } else {
-                params.forEach(function(param) {
+                Twig.forEach(params, function(param) {
                     if (!(param instanceof Array)) {
                         obj = { };
                     }
@@ -178,14 +178,14 @@ var Twig = (function (Twig) {
             }
 
             if (value instanceof Array) {
-                value.forEach(function(val) {
+                Twig.forEach(value, function(val) {
                     if (obj._keys) obj._keys.push(arr_index);
                     obj[arr_index] = val;
                     arr_index++;
                 });
             } else {
                 keyset = value._keys || Object.keys(value);
-                keyset.forEach(function(key) {
+                Twig.forEach(keyset, function(key) {
                     obj[key] = value[key];
                     obj._keys.push(key);
 
@@ -204,16 +204,16 @@ var Twig = (function (Twig) {
             }
 
             // mixin the merge arrays
-            params.forEach(function(param) {
+            Twig.forEach(params, function(param) {
                 if (param instanceof Array) {
-                    param.forEach(function(val) {
+                    Twig.forEach(param, function(val) {
                         if (obj._keys) obj._keys.push(arr_index);
                         obj[arr_index] = val;
                         arr_index++;
                     });
                 } else {
                     keyset = param._keys || Object.keys(param);
-                    keyset.forEach(function(key) {
+                    Twig.forEach(keyset, function(key) {
                         if (!obj[key]) obj._keys.push(key);
                         obj[key] = param[key];
 
@@ -231,7 +231,7 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
-            if (value === undefined){
+            if (value === undefined||value === null){
                 return;
             }
 
@@ -239,8 +239,31 @@ var Twig = (function (Twig) {
             return Twig.lib.formatDate(date, params[0]);
         },
 
+        date_modify: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length !== 1) {
+                throw new Twig.Error("date_modify filter expects 1 argument");
+            }
+
+            var modifyText = params[0], time;
+
+            if (Twig.lib.is("Date", value)) {
+                time = Twig.lib.strtotime(modifyText, value.getTime() / 1000);
+            }
+            if (Twig.lib.is("String", value)) {
+                time = Twig.lib.strtotime(modifyText, Twig.lib.strtotime(value));
+            }
+            if (Twig.lib.is("Number", value)) {
+                time = Twig.lib.strtotime(modifyText, value);
+            }
+
+            return new Date(time * 1000);
+        },
+
         replace: function(value, params) {
-            if (value === undefined){
+            if (value === undefined||value === null){
                 return;
             }
 
@@ -255,7 +278,7 @@ var Twig = (function (Twig) {
         },
 
         format: function(value, params) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
@@ -263,7 +286,7 @@ var Twig = (function (Twig) {
         },
 
         striptags: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
 
@@ -271,7 +294,7 @@ var Twig = (function (Twig) {
         },
 
         escape: function(value) {
-            if (value === undefined){
+            if (value === undefined|| value === null){
                 return;
             }
             return value.toString().replace(/&/g, "&amp;")
@@ -287,7 +310,7 @@ var Twig = (function (Twig) {
         },
 
         nl2br: function(value) {
-            if (value === undefined){
+            if (value === undefined || value === null){
                 return;
             }
             var linebreak_tag = "BACKSLASH_n_replace",
@@ -330,32 +353,161 @@ var Twig = (function (Twig) {
             return s.join(dec);
         },
 
-		trim: function(value, params) {
-			if (value === undefined){
-				return;
-			}
+        trim: function(value, params) {
+            if (value === undefined|| value === null){
+                return;
+            }
 
-			var str = Twig.filters.escape( '' + value ),
-				whitespace;
-			if ( params && params[0] ) {
-				whitespace = '' + params[0];
-			} else {
-				whitespace = ' \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000';
-			}
-			for (var i = 0; i < str.length; i++) {
-				if (whitespace.indexOf(str.charAt(i)) === -1) {
-					str = str.substring(i);
-					break;
-				}
-			}
-			for (i = str.length - 1; i >= 0; i--) {
-				if (whitespace.indexOf(str.charAt(i)) === -1) {
-					str = str.substring(0, i + 1);
-					break;
-				}
-			}
-			return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
-		}
+            var str = Twig.filters.escape( '' + value ),
+                whitespace;
+            if ( params && params[0] ) {
+                whitespace = '' + params[0];
+            } else {
+                whitespace = ' \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000';
+            }
+            for (var i = 0; i < str.length; i++) {
+                if (whitespace.indexOf(str.charAt(i)) === -1) {
+                    str = str.substring(i);
+                    break;
+                }
+            }
+            for (i = str.length - 1; i >= 0; i--) {
+                if (whitespace.indexOf(str.charAt(i)) === -1) {
+                    str = str.substring(0, i + 1);
+                    break;
+                }
+            }
+            return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
+        },
+
+        slice: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length < 1) {
+                throw new Twig.Error("slice filter expects at least 1 argument");
+            }
+
+            // default to start of string
+            var start = params[0] || 0;
+            // default to length of string
+            var length = params.length > 1 ? params[1] : value.length;
+            // handle negative start values
+            var startIndex = start >= 0 ? start : Math.max( value.length + start, 0 );
+
+            if (Twig.lib.is("Array", value)) {
+                var output = [];
+                for (var i = startIndex; i < startIndex + length && i < value.length; i++) {
+                    output.push(value[i]);
+                }
+                return output;
+            } else if (Twig.lib.is("String", value)) {
+                return value.substr(startIndex, length);
+            } else {
+                throw new Twig.Error("slice filter expects value to be an array or string");
+            }
+        },
+
+        abs: function(value) {
+            if (value === undefined || value === null) {
+                return;
+            }
+
+            return Math.abs(value);
+        },
+
+        first: function(value) {
+            if (value instanceof Array) {
+                return value[0];
+            } else if (value instanceof Object) {
+                if ('_keys' in value) {
+                    return value[value._keys[0]];
+                }
+            } else if ( typeof value === "string" ) {
+                return value.substr(0, 1);
+            }
+
+            return;
+        },
+
+        split: function(value, params) {
+            if (value === undefined || value === null) {
+                return;
+            }
+            if (params === undefined || params.length < 1 || params.length > 2) {
+                throw new Twig.Error("split filter expects 1 or 2 argument");
+            }
+            if (Twig.lib.is("String", value)) {
+                var delimiter = params[0],
+                    limit = params[1],
+                    split = value.split(delimiter);
+
+                if (limit === undefined) {
+
+                    return split;
+
+                } else if (limit < 0) {
+
+                    return value.split(delimiter, split.length + limit);
+
+                } else {
+
+                    var limitedSplit = [];
+
+                    if (delimiter == '') {
+                        // empty delimiter
+                        // "aabbcc"|split('', 2)
+                        //     -> ['aa', 'bb', 'cc']
+
+                        while(split.length > 0) {
+                            var temp = "";
+                            for (var i=0; i<limit && split.length > 0; i++) {
+                                temp += split.shift();
+                            }
+                            limitedSplit.push(temp);
+                        }
+
+                    } else {
+                        // non-empty delimiter
+                        // "one,two,three,four,five"|split(',', 3)
+                        //     -> ['one', 'two', 'three,four,five']
+
+                        for (var i=0; i<limit-1 && split.length > 0; i++) {
+                            limitedSplit.push(split.shift());
+                        }
+
+                        if (split.length > 0) {
+                            limitedSplit.push(split.join(delimiter));
+                        }
+                    }
+
+                    return limitedSplit;
+                }
+
+            } else {
+                throw new Twig.Error("split filter expects value to be a string");
+            }
+        },
+        last: function(value) {
+            if (Twig.lib.is('Object', value)) {
+                var keys;
+
+                if (value._keys === undefined) {
+                    keys = Object.keys(value);
+                } else {
+                    keys = value._keys;
+                }
+
+                return value[keys[keys.length - 1]];
+            }
+
+            // string|array
+            return value[value.length - 1];
+        },
+        raw: function(value) {
+            //Raw filter shim
+            return value;
+        }
     };
 
     Twig.filter = function(filter, value, params) {
@@ -363,7 +515,7 @@ var Twig = (function (Twig) {
             throw "Unable to find filter " + filter;
         }
         return Twig.filters[filter].apply(this, [value, params]);
-    }
+    };
 
     Twig.filter.extend = function(filter, definition) {
         Twig.filters[filter] = definition;
