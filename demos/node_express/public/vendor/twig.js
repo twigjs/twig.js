@@ -4061,9 +4061,9 @@ var Twig = (function (Twig) {
             });
         },
         length: function(value) {
-            if (value instanceof Array || typeof value === "string") {
+            if (Twig.lib.is("Array", value) || typeof value === "string") {
                 return value.length;
-            } else if (value instanceof Object) {
+            } else if (Twig.lib.is("Object", value)) {
                 if (value._keys === undefined) {
                     return Object.keys(value).length;
                 } else {
