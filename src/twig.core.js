@@ -1009,7 +1009,7 @@ var Twig = (function (Twig) {
             // Get the system-specific path separator
             var path = require("path"),
                 sep = path.sep || sep_chr,
-                relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\"));
+                relative = new RegExp("^\\.{1,2}(?:\\\\|/)");
 
             if (template.base !== undefined && file.match(relative) == null) {
                 file = file.replace(template.base, '');
