@@ -727,6 +727,8 @@ var Twig = (function (Twig) {
                         var prop = token.parameters[i];
                         if(typeof arguments[i] !== 'undefined') {
                             macroContext[prop] = arguments[i];
+                        } else {
+                            macroContext[prop] = undefined;
                         }
                     }
                     // Render
