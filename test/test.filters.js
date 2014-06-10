@@ -503,6 +503,37 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe('round ->', function () {
+        it('should round up (common)', function () {
+            var test_template = twig({data: "{{ 2.7|round }}"});
+            test_template.render().should.equal("3");
+        });
+        it('should round down (common)', function () {
+            var test_template = twig({data: "{{ 2.1|round }}"});
+            test_template.render().should.equal("2");
+        });
+        it('should truncate input when input decimal places exceeds precision (floor)', function () {
+            var test_template = twig({data: "{{ 2.1234|round(3, 'floor') }}" });
+            test_template.render().should.equal("2.123");
+        });
+        it('should round up (ceil)', function () {
+            var test_template = twig({data: "{{ 2.1|round(0, 'ceil') }}" });
+            test_template.render().should.equal("3");
+        });
+        it('should truncate precision when a negative precision is passed (common)', function () {
+            var test_template = twig({data: "{{ 21.3|round(-1)}}" });
+            test_template.render().should.equal("20");
+        });
+        it('should round up and truncate precision when a negative precision is passed (ceil)', function () {
+            var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+            test_template.render().should.equal("30");
+        });
+        it('should round down and truncate precision when a negative precision is passed (floor)', function () {
+            var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+            test_template.render().should.equal("30");
+        });
+    });
+
     it("should chain", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0");

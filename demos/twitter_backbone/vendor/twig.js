@@ -1024,6 +1024,7 @@ var Twig = (function (Twig) {
             var path = require("path"),
                 sep = path.sep || sep_chr,
                 relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\"));
+            file = file.replace(/\//g, sep);
 
             if (template.base !== undefined && file.match(relative) == null) {
                 file = file.replace(template.base, '');
@@ -1705,6 +1706,77 @@ var Twig = (function(Twig) {
     Twig.lib.replaceAll = function(string, search, replace) {
         return string.split(search).join(replace);
     };
+
+    // chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
+    Twig.lib.chunkArray = function (arr, size) {
+        var returnVal = [],
+            x = 0,
+            len = arr.length;
+
+        if (size < 1 || !Twig.lib.is("Array", arr)) {
+            return [];
+        }
+
+        while (x < len) {
+            returnVal.push(arr.slice(x, x += size));
+        }
+
+        return returnVal;
+    };
+
+    Twig.lib.round = function round(value, precision, mode) {
+        //  discuss at: http://phpjs.org/functions/round/
+        // original by: Philip Peterson
+        //  revised by: Onno Marsman
+        //  revised by: T.Wild
+        //  revised by: Rafał Kukawski (http://blog.kukawski.pl/)
+        //    input by: Greenseed
+        //    input by: meo
+        //    input by: William
+        //    input by: Josep Sanz (http://www.ws3.es/)
+        // bugfixed by: Brett Zamir (http://brett-zamir.me)
+        //        note: Great work. Ideas for improvement:
+        //        note: - code more compliant with developer guidelines
+        //        note: - for implementing PHP constant arguments look at
+        //        note: the pathinfo() function, it offers the greatest
+        //        note: flexibility & compatibility possible
+        //   example 1: round(1241757, -3);
+        //   returns 1: 1242000
+        //   example 2: round(3.6);
+        //   returns 2: 4
+        //   example 3: round(2.835, 2);
+        //   returns 3: 2.84
+        //   example 4: round(1.1749999999999, 2);
+        //   returns 4: 1.17
+        //   example 5: round(58551.799999999996, 2);
+        //   returns 5: 58551.8
+
+        var m, f, isHalf, sgn; // helper variables
+        precision |= 0; // making sure precision is integer
+        m = Math.pow(10, precision);
+        value *= m;
+        sgn = (value > 0) | -(value < 0); // sign of the number
+        isHalf = value % 1 === 0.5 * sgn;
+        f = Math.floor(value);
+
+        if (isHalf) {
+            switch (mode) {
+                case 'PHP_ROUND_HALF_DOWN':
+                    value = f + (sgn < 0); // rounds .5 toward zero
+                    break;
+                case 'PHP_ROUND_HALF_EVEN':
+                    value = f + (f % 2 * sgn); // rouds .5 towards the next even integer
+                    break;
+                case 'PHP_ROUND_HALF_ODD':
+                    value = f + !(f % 2); // rounds .5 towards the next odd integer
+                    break;
+                default:
+                    value = f + (sgn > 0); // rounds .5 away from zero
+            }
+        }
+
+        return (isHalf ? value : Math.round(value)) / m;
+    }
 
     return Twig;
 
@@ -4525,6 +4597,60 @@ var Twig = (function (Twig) {
         raw: function(value) {
             //Raw filter shim
             return value;
+        },
+        batch: function(items, params) {
+            var size = params.shift(),
+                fill = params.shift(),
+                result,
+                last,
+                missing;
+
+            if (!Twig.lib.is("Array", items)) {
+                throw new Twig.Error("batch filter expects items to be an array");
+            }
+
+            if (!Twig.lib.is("Number", size)) {
+                throw new Twig.Error("batch filter expects size to be a number");
+            }
+
+            size = Math.ceil(size);
+
+            result = Twig.lib.chunkArray(items, size);
+
+            if (fill && items.length % size != 0) {
+                last = result.pop();
+                missing = size - last.length;
+
+                while (missing--) {
+                    last.push(fill);
+                }
+
+                result.push(last);
+            }
+
+            return result;
+        },
+        round: function(value, params) {
+            params = params || [];
+
+            var precision = params.length > 0 ? params[0] : 0,
+                method = params.length > 1 ? params[1] : "common";
+
+            value = parseFloat(value);
+
+            if(precision && !Twig.lib.is("Number", precision)) {
+                throw new Twig.Error("round filter expects precision to be a number");
+            }
+
+            if (method === "common") {
+                return Twig.lib.round(value, precision);
+            }
+
+            if(!Twig.lib.is("Function", Math[method])) {
+                throw new Twig.Error("round filter expects method to be 'floor', 'ceil', or 'common'");
+            }
+
+            return Math[method](value * Math.pow(10, precision)) / Math.pow(10, precision);
         }
     };
 
