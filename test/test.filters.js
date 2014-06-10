@@ -465,6 +465,29 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe('batch ->', function () {
+        it('should work with arrays that require filling (with fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3, 'x') }}"});
+            test_template.render().should.equal("a,b,c,d,e,f,g,x,x");
+        });
+        it('should work with arrays that require filling (without fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3) }}"});
+            test_template.render().should.equal("a,b,c,d,e,f,g");
+        });
+        it('should work with arrays that do not require filling (with fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3, 'x') }}"});
+            test_template.render().should.equal("a,b,c,d,e,f");
+        });
+        it('should work with arrays that do not require filling (without fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3) }}"});
+            test_template.render().should.equal("a,b,c,d,e,f");
+        });
+        it('should return an empty result for an empty array', function () {
+            var test_template = twig({data: "{{ []|batch(3, 'x') }}"});
+            test_template.render().should.equal("");
+        });
+    });
+
     describe('last ->', function () {
         it('should return last character in string', function () {
             var test_template = twig({data: "{{ 'abcd'|last }}"});
