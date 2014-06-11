@@ -169,6 +169,22 @@ var Twig = (function (Twig) {
             }
             // Array will return element 0-index
             return object[method] || undefined;
+        },
+        max: function(values) {
+            if(Twig.lib.is("Object", values)) {
+                delete values["_keys"];
+                return Twig.lib.max(values);
+            }
+
+            return Twig.lib.max.apply(null, arguments);
+        },
+        min: function(values) {
+            if(Twig.lib.is("Object", values)) {
+                delete values["_keys"];
+                return Twig.lib.min(values);
+            }
+
+            return Twig.lib.min.apply(null, arguments);
         }
     };
 

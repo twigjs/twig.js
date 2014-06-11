@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.7.2
+ * Twig.js 0.7.1
  *
  * @copyright 2011-2013 John Roepke
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.7.2";
+    Twig.VERSION = "0.7.1";
 
     return Twig;
 })(Twig || {});
@@ -1024,7 +1024,6 @@ var Twig = (function (Twig) {
             var path = require("path"),
                 sep = path.sep || sep_chr,
                 relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\"));
-            file = file.replace(/\//g, sep);
 
             if (template.base !== undefined && file.match(relative) == null) {
                 file = file.replace(template.base, '');
@@ -1707,76 +1706,226 @@ var Twig = (function(Twig) {
         return string.split(search).join(replace);
     };
 
-    // chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
-    Twig.lib.chunkArray = function (arr, size) {
-        var returnVal = [],
-            x = 0,
-            len = arr.length;
-
-        if (size < 1 || !Twig.lib.is("Array", arr)) {
-            return [];
-        }
-
-        while (x < len) {
-            returnVal.push(arr.slice(x, x += size));
-        }
-
-        return returnVal;
-    };
-
-    Twig.lib.round = function round(value, precision, mode) {
-        //  discuss at: http://phpjs.org/functions/round/
-        // original by: Philip Peterson
+    Twig.lib.max = function() {
+        //  discuss at: http://phpjs.org/functions/max/
+        // original by: Onno Marsman
         //  revised by: Onno Marsman
-        //  revised by: T.Wild
-        //  revised by: Rafał Kukawski (http://blog.kukawski.pl/)
-        //    input by: Greenseed
-        //    input by: meo
-        //    input by: William
-        //    input by: Josep Sanz (http://www.ws3.es/)
-        // bugfixed by: Brett Zamir (http://brett-zamir.me)
-        //        note: Great work. Ideas for improvement:
-        //        note: - code more compliant with developer guidelines
-        //        note: - for implementing PHP constant arguments look at
-        //        note: the pathinfo() function, it offers the greatest
-        //        note: flexibility & compatibility possible
-        //   example 1: round(1241757, -3);
-        //   returns 1: 1242000
-        //   example 2: round(3.6);
-        //   returns 2: 4
-        //   example 3: round(2.835, 2);
-        //   returns 3: 2.84
-        //   example 4: round(1.1749999999999, 2);
-        //   returns 4: 1.17
-        //   example 5: round(58551.799999999996, 2);
-        //   returns 5: 58551.8
+        // improved by: Jack
+        //        note: Long code cause we're aiming for maximum PHP compatibility
+        //   example 1: max(1, 3, 5, 6, 7);
+        //   returns 1: 7
+        //   example 2: max([2, 4, 5]);
+        //   returns 2: 5
+        //   example 3: max(0, 'hello');
+        //   returns 3: 0
+        //   example 4: max('hello', 0);
+        //   returns 4: 'hello'
+        //   example 5: max(-1, 'hello');
+        //   returns 5: 'hello'
+        //   example 6: max([2, 4, 8], [2, 5, 7]);
+        //   returns 6: [2, 5, 7]
 
-        var m, f, isHalf, sgn; // helper variables
-        precision |= 0; // making sure precision is integer
-        m = Math.pow(10, precision);
-        value *= m;
-        sgn = (value > 0) | -(value < 0); // sign of the number
-        isHalf = value % 1 === 0.5 * sgn;
-        f = Math.floor(value);
+        var ar, retVal, i = 0,
+            n = 0,
+            argv = arguments,
+            argc = argv.length,
+            _obj2Array = function(obj) {
+                if (Object.prototype.toString.call(obj) === '[object Array]') {
+                    return obj;
+                } else {
+                    var ar = [];
+                    for (var i in obj) {
+                        if (obj.hasOwnProperty(i)) {
+                            ar.push(obj[i]);
+                        }
+                    }
+                    return ar;
+                }
+            }; //function _obj2Array
+        _compare = function(current, next) {
+            var i = 0,
+                n = 0,
+                tmp = 0,
+                nl = 0,
+                cl = 0;
 
-        if (isHalf) {
-            switch (mode) {
-                case 'PHP_ROUND_HALF_DOWN':
-                    value = f + (sgn < 0); // rounds .5 toward zero
-                    break;
-                case 'PHP_ROUND_HALF_EVEN':
-                    value = f + (f % 2 * sgn); // rouds .5 towards the next even integer
-                    break;
-                case 'PHP_ROUND_HALF_ODD':
-                    value = f + !(f % 2); // rounds .5 towards the next odd integer
-                    break;
-                default:
-                    value = f + (sgn > 0); // rounds .5 away from zero
+            if (current === next) {
+                return 0;
+            } else if (typeof current === 'object') {
+                if (typeof next === 'object') {
+                    current = _obj2Array(current);
+                    next = _obj2Array(next);
+                    cl = current.length;
+                    nl = next.length;
+                    if (nl > cl) {
+                        return 1;
+                    } else if (nl < cl) {
+                        return -1;
+                    }
+                    for (i = 0, n = cl; i < n; ++i) {
+                        tmp = _compare(current[i], next[i]);
+                        if (tmp == 1) {
+                            return 1;
+                        } else if (tmp == -1) {
+                            return -1;
+                        }
+                    }
+                    return 0;
+                }
+                return -1;
+            } else if (typeof next === 'object') {
+                return 1;
+            } else if (isNaN(next) && !isNaN(current)) {
+                if (current == 0) {
+                    return 0;
+                }
+                return (current < 0 ? 1 : -1);
+            } else if (isNaN(current) && !isNaN(next)) {
+                if (next == 0) {
+                    return 0;
+                }
+                return (next > 0 ? 1 : -1);
+            }
+
+            if (next == current) {
+                return 0;
+            }
+            return (next > current ? 1 : -1);
+        }; //function _compare
+        if (argc === 0) {
+            throw new Error('At least one value should be passed to max()');
+        } else if (argc === 1) {
+            if (typeof argv[0] === 'object') {
+                ar = _obj2Array(argv[0]);
+            } else {
+                throw new Error('Wrong parameter count for max()');
+            }
+            if (ar.length === 0) {
+                throw new Error('Array must contain at least one element for max()');
+            }
+        } else {
+            ar = argv;
+        }
+
+        retVal = ar[0];
+        for (i = 1, n = ar.length; i < n; ++i) {
+            if (_compare(retVal, ar[i]) == 1) {
+                retVal = ar[i];
             }
         }
 
-        return (isHalf ? value : Math.round(value)) / m;
-    }
+        return retVal;
+    };
+
+    Twig.lib.min = function min() {
+        //  discuss at: http://phpjs.org/functions/min/
+        // original by: Onno Marsman
+        //  revised by: Onno Marsman
+        // improved by: Jack/home/jmealo/repos/chef-repo/resources/vagrant/environment vagrant
+        //        note: Long code cause we're aiming for maximum PHP compatibility
+        //   example 1: min(1, 3, 5, 6, 7);
+        //   returns 1: 1
+        //   example 2: min([2, 4, 5]);
+        //   returns 2: 2
+        //   example 3: min(0, 'hello');
+        //   returns 3: 0
+        //   example 4: min('hello', 0);
+        //   returns 4: 'hello'
+        //   example 5: min(-1, 'hello');
+        //   returns 5: -1
+        //   example 6: min([2, 4, 8], [2, 5, 7]);
+        //   returns 6: [2, 4, 8]
+
+        var ar, retVal, i = 0,
+            n = 0,
+            argv = arguments,
+            argc = argv.length,
+            _obj2Array = function(obj) {
+                if (Object.prototype.toString.call(obj) === '[object Array]') {
+                    return obj;
+                }
+                var ar = [];
+                for (var i in obj) {
+                    if (obj.hasOwnProperty(i)) {
+                        ar.push(obj[i]);
+                    }
+                }
+                return ar;
+            }; //function _obj2Array
+        _compare = function(current, next) {
+            var i = 0,
+                n = 0,
+                tmp = 0,
+                nl = 0,
+                cl = 0;
+
+            if (current === next) {
+                return 0;
+            } else if (typeof current === 'object') {
+                if (typeof next === 'object') {
+                    current = _obj2Array(current);
+                    next = _obj2Array(next);
+                    cl = current.length;
+                    nl = next.length;
+                    if (nl > cl) {
+                        return 1;
+                    } else if (nl < cl) {
+                        return -1;
+                    }
+                    for (i = 0, n = cl; i < n; ++i) {
+                        tmp = _compare(current[i], next[i]);
+                        if (tmp == 1) {
+                            return 1;
+                        } else if (tmp == -1) {
+                            return -1;
+                        }
+                    }
+                    return 0;
+                }
+                return -1;
+            } else if (typeof next === 'object') {
+                return 1;
+            } else if (isNaN(next) && !isNaN(current)) {
+                if (current == 0) {
+                    return 0;
+                }
+                return (current < 0 ? 1 : -1);
+            } else if (isNaN(current) && !isNaN(next)) {
+                if (next == 0) {
+                    return 0;
+                }
+                return (next > 0 ? 1 : -1);
+            }
+
+            if (next == current) {
+                return 0;
+            }
+            return (next > current ? 1 : -1);
+        }; //function _compare
+        if (argc === 0) {
+            throw new Error('At least one value should be passed to min()');
+        } else if (argc === 1) {
+            if (typeof argv[0] === 'object') {
+                ar = _obj2Array(argv[0]);
+            } else {
+                throw new Error('Wrong parameter count for min()');
+            }
+            if (ar.length === 0) {
+                throw new Error('Array must contain at least one element for min()');
+            }
+        } else {
+            ar = argv;
+        }
+
+        retVal = ar[0];
+        for (i = 1, n = ar.length; i < n; ++i) {
+            if (_compare(retVal, ar[i]) == -1) {
+                retVal = ar[i];
+            }
+        }
+
+        return retVal;
+    };
 
     return Twig;
 
@@ -2508,11 +2657,7 @@ var Twig = (function (Twig) {
                     // Add parameters from context to macroContext
                     for (var i=0; i<token.parameters.length; i++) {
                         var prop = token.parameters[i];
-                        if(typeof arguments[i] !== 'undefined') {
-                            macroContext[prop] = arguments[i];
-                        } else {
-                            macroContext[prop] = undefined;
-                        }
+                        macroContext[prop] = arguments[i] || undefined;
                     }
                     // Render
                     return Twig.parse.apply(template, [token.output, macroContext])
@@ -4137,9 +4282,9 @@ var Twig = (function (Twig) {
             });
         },
         length: function(value) {
-            if (Twig.lib.is("Array", value) || typeof value === "string") {
+            if (value instanceof Array || typeof value === "string") {
                 return value.length;
-            } else if (Twig.lib.is("Object", value)) {
+            } else if (value instanceof Object) {
                 if (value._keys === undefined) {
                     return Object.keys(value).length;
                 } else {
@@ -4597,60 +4742,6 @@ var Twig = (function (Twig) {
         raw: function(value) {
             //Raw filter shim
             return value;
-        },
-        batch: function(items, params) {
-            var size = params.shift(),
-                fill = params.shift(),
-                result,
-                last,
-                missing;
-
-            if (!Twig.lib.is("Array", items)) {
-                throw new Twig.Error("batch filter expects items to be an array");
-            }
-
-            if (!Twig.lib.is("Number", size)) {
-                throw new Twig.Error("batch filter expects size to be a number");
-            }
-
-            size = Math.ceil(size);
-
-            result = Twig.lib.chunkArray(items, size);
-
-            if (fill && items.length % size != 0) {
-                last = result.pop();
-                missing = size - last.length;
-
-                while (missing--) {
-                    last.push(fill);
-                }
-
-                result.push(last);
-            }
-
-            return result;
-        },
-        round: function(value, params) {
-            params = params || [];
-
-            var precision = params.length > 0 ? params[0] : 0,
-                method = params.length > 1 ? params[1] : "common";
-
-            value = parseFloat(value);
-
-            if(precision && !Twig.lib.is("Number", precision)) {
-                throw new Twig.Error("round filter expects precision to be a number");
-            }
-
-            if (method === "common") {
-                return Twig.lib.round(value, precision);
-            }
-
-            if(!Twig.lib.is("Function", Math[method])) {
-                throw new Twig.Error("round filter expects method to be 'floor', 'ceil', or 'common'");
-            }
-
-            return Math[method](value * Math.pow(10, precision)) / Math.pow(10, precision);
         }
     };
 
@@ -4839,7 +4930,9 @@ var Twig = (function (Twig) {
             }
             // Array will return element 0-index
             return object[method] || undefined;
-        }
+        },
+        max: Twig.lib.max,
+        min : Twig.lib.min
     };
 
     Twig._function = function(_function, value, params) {

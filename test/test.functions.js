@@ -196,6 +196,44 @@ describe("Twig.js Functions ->", function() {
             });
         });
 
+        describe("max ->", function() {
+            it("should accept a single array argument", function() {
+                twig({data: '{{ max([2, 1, 3, 5, 4]) }}'}).render()
+                    .should.equal("5");
+            });
+            it("should accept multiple arguments instead of an array", function() {
+                twig({data: '{{ max(2, 1, 3, 5, 4) }}'}).render()
+                    .should.equal("5");
+            });
+            it("should work with objects", function() {
+                twig({data: '{{ max({2:"two", 1:"one", 3:"three", 5:"five", 4:"four"}) }}'}).render()
+                    .should.equal("two");
+            });
+            it("should work with objects", function() {
+                twig({data: '{{ max({2: "e", 1: "a", 3: "b", 5: "d", 4: "c"}) }}'}).render()
+                    .should.equal("e");
+            });
+        });
+
+        describe("min ->", function() {
+            it("should accept a single array argument", function() {
+                twig({data: '{{ min([2, 1, 3, 5, 4]) }}'}).render()
+                    .should.equal("1");
+            });
+            it("should accept multiple arguments instead of an array", function() {
+                twig({data: '{{ min(2, 1, 3, 5, 4) }}'}).render()
+                    .should.equal("1");
+            });
+            it("should work with objects", function() {
+                twig({data: '{{ min({2:"two", 1:"one", 3:"three", 5:"five", 4:"four"}) }}'}).render()
+                    .should.equal("five");
+            });
+            it("should work with objects", function() {
+                twig({data: '{{ min({2: "e", 3: "a", 1: "b", 5: "d", 4: "c"}) }}'}).render()
+                    .should.equal("a");
+            });
+        });
+
         describe("attribute ->", function() {
             it("should access attribute of an object", function() {
                 twig({data: '{{ attribute(obj, key) }}' }).render({
