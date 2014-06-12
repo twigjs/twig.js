@@ -177,6 +177,28 @@ var Twig = (function (Twig) {
             return new Twig.Template({
                 data: template
             });
+        },
+        random: function(value) {
+            function getRandomNumber(n) {
+                return Math.floor((Math.random() * n) + 1);
+            }
+
+            if(Twig.lib.is("Number", value)) {
+                return getRandomNumber(value);
+            }
+
+            if(Twig.lib.is("String", value)) {
+                return value.charAt(getRandomNumber(value.length-1));
+            }
+
+            if(Twig.lib.is("Array", value)) {
+                return value[getRandomNumber(value.length-1)];
+            }
+
+            if(Twig.lib.is("Object", value)) {
+                var keys = Object.keys(value);
+                return value[keys[getRandomNumber(keys.length-1)]];
+            }
         }
     };
 

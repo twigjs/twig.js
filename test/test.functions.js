@@ -261,5 +261,29 @@ describe("Twig.js Functions ->", function() {
                 .should.equal('test');
             });
         });
+
+        describe("random ->", function() {
+            it("should return a random item from a traversable or array", function() {
+                var arr = "bcdefghij".split("");
+
+                for (var i = 1; i <= 1000; i++) {
+                    arr.should.containEql(twig({data: '{{ random(arr) }}'}).render({arr: arr}));
+                }
+            });
+
+            it("should return a random character from a string", function() {
+                var str = "abcdefghij";
+
+                for (var i = 1; i <= 1000; i++) {
+                    str.should.containEql(twig({data: '{{ random(str) }}'}).render({str: str}));
+                }
+            });
+
+            it("should return a random integer between 0 and the integer parameter", function() {
+                for (var i = 1; i <= 1000; i++) {
+                    twig({data: '{{ random(10) }}'}).render().should.be.within(0, 10);
+                }
+            });
+        });
     });
 });
