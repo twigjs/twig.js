@@ -40,7 +40,9 @@
      - [abs ->](#twigjs-filters---abs--)
      - [first ->](#twigjs-filters---first--)
      - [split ->](#twigjs-filters---split--)
+     - [batch ->](#twigjs-filters---batch--)
      - [last ->](#twigjs-filters---last--)
+     - [round ->](#twigjs-filters---round--)
    - [Twig.js Loader ->](#twigjs-loader--)
    - [Twig.js Include ->](#twigjs-include--)
    - [Twig.js Functions ->](#twigjs-functions--)
@@ -75,6 +77,7 @@ twig({
     path: 'test/templates/template.twig',
     async: false
 });
+
 // Load the template
 twig({ref: 'remote-no-extends'}).render({ }).should.equal( "Default Title - body" );
 ```
@@ -87,6 +90,7 @@ twig({
     path: 'test/templates/blocks-extended-syntax.twig',
     async: false
 });
+
 // Load the template
 twig({ref: 'endblock-extended-syntax'}).render({ }).should.equal( "This is the only thing." );
 ```
@@ -98,6 +102,7 @@ should load a child template and replace the parent block's content.
 twig({
     id:   'child-extends',
     path: 'test/templates/child.twig',
+
     load: function(template) {
         template.render({ base: "template.twig" }).should.equal( "Other Title - child" );
         done();
@@ -112,6 +117,7 @@ should have access to a parent block content.
 twig({
     id:   'child-parent',
     path: 'test/templates/child-parent.twig',
+
     load: function(template) {
         template.render({
             base: "template.twig",
@@ -129,6 +135,7 @@ should include blocks from another template for horizontal reuse.
 twig({
     id:   'use',
     path: 'test/templates/use.twig',
+
     load: function(template) {
         // Load the template
         template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
@@ -144,6 +151,7 @@ should make the contents of blocks available after they're rendered.
 twig({
     id:   'blocks',
     path: 'test/templates/blocks.twig',
+
     load: function(template) {
         // Render the template with the blocks parameter
         template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal("Coming soon to a block near you!" );
@@ -159,6 +167,7 @@ should render nested blocks.
 twig({
     id:     'blocks-nested',
     path:   'test/templates/blocks-nested.twig',
+
     load: function(template) {
         template.render({ }).should.equal( "parent:child" )
         done();
@@ -173,6 +182,7 @@ should render extended nested blocks.
 twig({
     id:     'child-blocks-nested',
     path:   'test/templates/child-blocks-nested.twig',
+
     load: function(template) {
         template.render({ base: "template.twig" }).should.equal( "Default Title - parent:child" );
         done();
@@ -187,6 +197,7 @@ should be able to extend to a absolute template path.
 twig({
     base: 'test/templates',
     path: 'test/templates/a/child.twig',
+
     load: function(template) {
         template.render({ base: "b/template.twig" }).should.equal( "Other Title - child" );
         done();
@@ -201,6 +212,7 @@ twig({
     id: 'inline-parent-template',
     data: 'Title: {% block title %}parent{% endblock %}'
 });
+
 twig({
     allowInlineIncludes: true,
     data: '{% extends "inline-parent-template" %}{% block title %}child{% endblock %}'
@@ -214,12 +226,14 @@ should render block content from an included block.
 ```js
 twig({
     path:   'test/templates/block-function.twig',
+
     load: function(template) {
         template.render({
             base: "block-function-parent.twig",
             val: "abcd"
         })
         .should.equal( "Child content = abcd / Result: Child content = abcd" );
+
         done();
     }
 })
@@ -230,11 +244,13 @@ should render block content from a parent block.
 ```js
 twig({
     path:   'test/templates/block-parent.twig',
+
     load: function(template) {
         template.render({
             base: "block-function-parent.twig"
         })
         .should.equal( "parent block / Result: parent block" );
+
         done();
     }
 })
@@ -245,12 +261,14 @@ should render block content with outer context.
 ```js
 twig({
     path:   'test/templates/block-outer-context.twig',
+
     load: function(template) {
         template.render({
             base: "block-outer-context.twig",
             items: ["twig", "js", "rocks"]
         })
         .should.equal( "Hello twig!Hello js!Hello rocks!twigjsrocks" );
+
         done();
     }
 })
@@ -396,10 +414,13 @@ should support conditionals on for loops.
 ```js
 var test_template = twig({data: '{% for value in test if false %}{{ value }},{% endfor %}'});
 test_template.render({test: ["one", "two", "a", "b", "other"]}).should.equal("");
+
 test_template = twig({data: '{% for value in test if true %}{{ value }}{% endfor %}'});
 test_template.render({test: ["a", "s", "d", "f"]}).should.equal("asdf");
+
 test_template = twig({data: '{% for value in test if value|length > 2 %}{{ value }},{% endfor %}'});
 test_template.render({test: ["one", "two", "a", "b", "other"]}).should.equal("one,two,other,");
+
 test_template = twig({data: '{% for key,item in test if item.show %}{{key}}:{{ item.value }},{% endfor %}'});
 test_template.render({test: {
     a: {show:true, value: "one"},
@@ -426,7 +447,7 @@ should save and load a template by reference.
             id:   'test',
             data: '{{ "test" }}'
         });
-        // Load and render the template
+// Load and render the template
         twig({ref: 'test'}).render()
                 .should.equal("test");
 ```
@@ -472,6 +493,7 @@ twig({data: '{{ " }} " }}'}).render().should.equal(" }} ");
 twig({data: '{{ " \\"}} " }}'}).render().should.equal(' "}} ');
 twig({data: "{{ ' }} ' }}"}).render().should.equal(" }} ");
 twig({data: "{{ ' \\'}} ' }}"}).render().should.equal(" '}} ");
+
 twig({data: '{{ " \'}} " }}'}).render().should.equal(" '}} ");
 twig({data: "{{ ' \"}} ' }}"}).render().should.equal(' "}} ');
 ```
@@ -534,6 +556,7 @@ should recognize null.
 ```js
 twig({data: '{{ null == val }}'}).render({val: null}).should.equal( "true" );
 twig({data: '{{ null == val }}'}).render({val: undefined}).should.equal( "true" );
+
 twig({data: '{{ null == val }}'}).render({val: "test"}).should.equal( "false" );
 twig({data: '{{ null == val }}'}).render({val: 0}).should.equal( "false" );
 twig({data: '{{ null == val }}'}).render({val: false}).should.equal( "false" );
@@ -749,6 +772,7 @@ should parse parenthesis.
 var test_template = twig({data: '{{ a - (b + c) }}'}),
     d = {a: 10, b: 4, c: 2},
     output = test_template.render(d);
+
 output.should.equal( (d.a - (d.b + d.c)).toString() );
 ```
 
@@ -758,6 +782,7 @@ should parse nested parenthesis.
 var test_template = twig({data: '{{ a - ((b) + (1 + c)) }}'}),
     d = {a: 10, b: 4, c: 2},
     output = test_template.render(d);
+
 output.should.equal( (d.a - (d.b + 1 + d.c)).toString() );
 ```
 
@@ -809,6 +834,7 @@ numeric_test_data.forEach(function(pair) {
     var output = test_template.render(pair);
     // Get expected truncated result
     var c = parseInt(pair.a/pair.b);
+
     output.should.equal(c.toString() );
 });
 ```
@@ -834,6 +860,7 @@ should concatanate values.
 twig({data: '{{ "test" ~ a }}'}).render({a:1234}).should.equal("test1234");
 twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}).should.equal("1234test1234");
 twig({data: '{{ "this" ~ "test" }}'}).render({a:1234}).should.equal("thistest");
+
 // Test numbers
 var test_template = twig({data: '{{ a ~ b }}'});
 numeric_test_data.forEach(function(pair) {
@@ -974,6 +1001,7 @@ should support the ternary operator.
 var test_template = twig({data: '{{ a ? b:c }}'})
     , output_t = test_template.render({a: true,  b: "one", c: "two"})
     , output_f = test_template.render({a: false, b: "one", c: "two"});
+
 output_t.should.equal( "one" );
 output_f.should.equal( "two" );
 ```
@@ -983,6 +1011,7 @@ should support the ternary operator with objects in it.
 ```js
 var test_template2 = twig({data: '{{ (a ? {"a":e+f}:{"a":1}).a }}'})
     , output2 = test_template2.render({a: true, b: false, e: 1, f: 2});
+
 output2.should.equal( "3" );
 ```
 
@@ -991,6 +1020,7 @@ should support the ternary operator inside objects.
 ```js
 var test_template2 = twig({data: '{{ {"b" : a or b ? {"a":e+f}:{"a":1} }.b.a }}'})
     , output2 = test_template2.render({a: false, b: false, e: 1, f: 2});
+
 output2.should.equal( "1" );
 ```
 
@@ -999,6 +1029,7 @@ should support in/containment functionality for arrays.
 ```js
 var test_template = twig({data: '{{ "a" in ["a", "b", "c"] }}'});
 test_template.render().should.equal(true.toString());
+
 var test_template = twig({data: '{{ "d" in ["a", "b", "c"] }}'});
 test_template.render().should.equal(false.toString());
 ```
@@ -1008,6 +1039,7 @@ should support not in/containment functionality for arrays.
 ```js
 var test_template = twig({data: '{{ "a" not in ["a", "b", "c"] }}'});
 test_template.render().should.equal(false.toString());
+
 var test_template = twig({data: '{{ "d" not in ["a", "b", "c"] }}'});
 test_template.render().should.equal(true.toString());
 ```
@@ -1017,6 +1049,7 @@ should support in/containment functionality for strings.
 ```js
 var test_template = twig({data: '{{ "at" in "hat" }}'});
 test_template.render().should.equal(true.toString());
+
 var test_template = twig({data: '{{ "d" in "not" }}'});
 test_template.render().should.equal(false.toString());
 ```
@@ -1026,6 +1059,7 @@ should support not in/containment functionality for strings.
 ```js
 var test_template = twig({data: '{{ "at" not in "hat" }}'});
 test_template.render().should.equal(false.toString());
+
 var test_template = twig({data: '{{ "d" not in "not" }}'});
 test_template.render().should.equal(true.toString());
 ```
@@ -1035,6 +1069,7 @@ should support in/containment functionality for objects.
 ```js
 var test_template = twig({data: '{{ "value" in {"key" : "value", "2": "other"} }}'});
 test_template.render().should.equal(true.toString());
+
 var test_template = twig({data: '{{ "d" in {"key_a" : "no"} }}'});
 test_template.render().should.equal(false.toString());
 ```
@@ -1044,6 +1079,7 @@ should support not in/containment functionality for objects.
 ```js
 var test_template = twig({data: '{{ "value" not in {"key" : "value", "2": "other"} }}'});
 test_template.render().should.equal(false.toString());
+
 var test_template = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
 test_template.render().should.equal(true.toString());
 ```
@@ -1054,8 +1090,9 @@ should be able to extend a meta-type tag.
 
 ```js
 var flags = {};
-	Twig.extend(function(Twig) {
-		Twig.exports.extendTag({
+
+Twig.extend(function(Twig) {
+	Twig.exports.extendTag({
 	            type: "flag",
 	            regex: /^flag\s+(.+)$/,
 		        next: [ ],
@@ -1083,27 +1120,29 @@ var flags = {};
 	                    output: output
 	                };
 	            }
-		});
 	});
-	var template = twig({data:"{% flag 'enabled' %}"}).render();
-	flags.enabled.should.equal(true);
+});
+
+var template = twig({data:"{% flag 'enabled' %}"}).render();
+flags.enabled.should.equal(true);
 ```
 
 should be able to extend paired tags.
 
 ```js
 // demo data
-	var App = {
-		user: "john",
-		users: {
-			john: {level: "admin"},
-			tom: {level: "user"}
-		}
-	};
-	Twig.extend(function(Twig) {
-		// example of extending a tag type that would
-		// restrict content to the specified "level"
-		Twig.exports.extendTag({
+var App = {
+	user: "john",
+	users: {
+		john: {level: "admin"},
+		tom: {level: "user"}
+	}
+};
+
+Twig.extend(function(Twig) {
+	// example of extending a tag type that would
+	// restrict content to the specified "level"
+	Twig.exports.extendTag({
 	            type: "auth",
 	            regex: /^auth\s+(.+)$/,
 	            next: ["endauth"], // match the type of the end tag
@@ -1134,18 +1173,19 @@ should be able to extend paired tags.
 	                    output: output
 	                };
 	            }
-		});
-		Twig.exports.extendTag({
+	});
+	Twig.exports.extendTag({
 	            type: "endauth",
 	            regex: /^endauth$/,
 	            next: [ ],
 	            open: false
 	        });
-	});
-	var template = twig({data:"Welcome{% auth 'admin' %} ADMIN{% endauth %}!"});
+});
+
+var template = twig({data:"Welcome{% auth 'admin' %} ADMIN{% endauth %}!"});
 
 		App.currentUser = "john";
-	template.render().should.equal("Welcome ADMIN!");
+template.render().should.equal("Welcome ADMIN!");
 
 		App.currentUser = "tom";
 		template.render().should.equal("Welcome!");
@@ -1252,6 +1292,7 @@ should capitalize the first word in a string.
 ```js
 var test_template = twig({data: '{{ "hello world"|capitalize }}' });
 test_template.render().should.equal("Hello world" );
+
 var test_template2 = twig({data: '{{ "HELLO WORLD"|capitalize }}' });
 test_template2.render().should.equal("Hello world" );
 ```
@@ -1270,6 +1311,7 @@ should capitalize all the words in a string.
 ```js
 var test_template = twig({data: '{{ "hello world"|title }}' });
 test_template.render().should.equal("Hello World" );
+
 var test_template2 = twig({data: '{{ "HELLO WORLD"|title }}' });
 test_template2.render().should.equal("Hello World" );
 ```
@@ -1318,6 +1360,7 @@ should sort an array.
 ```js
 var test_template = twig({data: '{{ [1,5,2,7]|sort }}' });
 test_template.render().should.equal("1,2,5,7" );
+
 test_template = twig({data: '{{ ["test","abc",2,7]|sort }}' });
 test_template.render().should.equal("2,7,abc,test" );
 ```
@@ -1327,6 +1370,7 @@ should sort an object.
 ```js
 var test_template = twig({data: "{% set obj =  {'c': 1,'d': 5,'t': 2,'e':7}|sort %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
 test_template.render().should.equal("c:1 t:2 d:5 e:7 " );
+
 test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
 test_template.render().should.equal("a:2 y:7 z:abc m:test " );
 ```
@@ -1374,6 +1418,7 @@ should return the keys of an object.
 ```js
 var test_template = twig({data: '{{ {"a": 1, "b": 4, "c": 5}|keys }}' });
 test_template.render().should.equal("a,b,c" );
+
 test_template = twig({data: '{{ {"0":"a", "1":"b", "2":"c"}|keys }}' });
 test_template.render().should.equal("0,1,2" );
 ```
@@ -1409,6 +1454,7 @@ should merge an object and an array into an object.
 // Mixed merging
 var test_template = twig({data: '{% set obj= ["a", "b"]|merge({"a": "c", "3":4}, ["c", "d"]) %}{% for key in obj|keys|sort %}{{key}}:{{obj[key]}} {%endfor %}' });
 test_template.render().should.equal('0:a 1:b 3:4 4:c 5:d a:c ' );
+
 // Mixed merging(2)
 test_template = twig({data: '{% set obj= {"1":"a", "a":"b"}|merge(["c", "d"]) %}{% for key in obj|keys %}{{key}}:{{obj[key]}} {%endfor %}' });
 test_template.render().should.equal('1:a a:b 2:c 3:d ' );
@@ -1460,6 +1506,7 @@ should provide a default value if a value is empty.
 ```js
 var test_template = twig({data: '{{ ""|default("Empty String") }}' });
 test_template.render().should.equal("Empty String" );
+
 test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
 test_template.render({'var':{}}).should.equal("Empty Key" );
 ```
@@ -1471,6 +1518,7 @@ should recognize timestamps.
 ```js
 var template = twig({data: '{{ 27571323556|date("d/m/Y @ H:i:s") }}'})
     , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
+
 template.render().should.equal( stringDate(date) );
 ```
 
@@ -1479,6 +1527,7 @@ should recognize string date formats.
 ```js
 var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'})
     , date = new Date(1187081535000); // 14/08/2007 @ 04:52:15 EST
+
 template.render().should.equal( stringDate(date) );
 ```
 
@@ -1755,8 +1804,10 @@ should not fail when passed empty obj, arr or str.
 ```js
 var test_template = twig({data: "{{ {}|first }}"});
 test_template.render().should.equal("");
+
 var test_template = twig({data: "{{ []|first }}"});
 test_template.render().should.equal("");
+
 var test_template = twig({data: "{{ myemptystr|first }}"});
 test_template.render({myemptystr: ""}).should.equal("");
 ```
@@ -1805,6 +1856,43 @@ var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
 test_template.render().should.equal("aa,bb,cc");
 ```
 
+<a name="twigjs-filters---batch--"></a>
+## batch ->
+should work with arrays that require filling (with fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3, 'x') }}"});
+test_template.render().should.equal("a,b,c,d,e,f,g,x,x");
+```
+
+should work with arrays that require filling (without fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3) }}"});
+test_template.render().should.equal("a,b,c,d,e,f,g");
+```
+
+should work with arrays that do not require filling (with fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3, 'x') }}"});
+test_template.render().should.equal("a,b,c,d,e,f");
+```
+
+should work with arrays that do not require filling (without fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3) }}"});
+test_template.render().should.equal("a,b,c,d,e,f");
+```
+
+should return an empty result for an empty array.
+
+```js
+var test_template = twig({data: "{{ []|batch(3, 'x') }}"});
+test_template.render().should.equal("");
+```
+
 <a name="twigjs-filters---last--"></a>
 ## last ->
 should return last character in string.
@@ -1828,6 +1916,57 @@ var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
 test_template.render().should.equal("5");
 ```
 
+<a name="twigjs-filters---round--"></a>
+## round ->
+should round up (common).
+
+```js
+var test_template = twig({data: "{{ 2.7|round }}"});
+test_template.render().should.equal("3");
+```
+
+should round down (common).
+
+```js
+var test_template = twig({data: "{{ 2.1|round }}"});
+test_template.render().should.equal("2");
+```
+
+should truncate input when input decimal places exceeds precision (floor).
+
+```js
+var test_template = twig({data: "{{ 2.1234|round(3, 'floor') }}" });
+test_template.render().should.equal("2.123");
+```
+
+should round up (ceil).
+
+```js
+var test_template = twig({data: "{{ 2.1|round(0, 'ceil') }}" });
+test_template.render().should.equal("3");
+```
+
+should truncate precision when a negative precision is passed (common).
+
+```js
+var test_template = twig({data: "{{ 21.3|round(-1)}}" });
+test_template.render().should.equal("20");
+```
+
+should round up and truncate precision when a negative precision is passed (ceil).
+
+```js
+var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+test_template.render().should.equal("30");
+```
+
+should round down and truncate precision when a negative precision is passed (floor).
+
+```js
+var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+test_template.render().should.equal("30");
+```
+
 <a name="twigjs-loader--"></a>
 # Twig.js Loader ->
 should load a template from the filesystem asynchronously.
@@ -1842,6 +1981,7 @@ twig({
             test: "yes",
             flag: true
         }).should.equal("Test template = yes\n\nFlag set!");
+
         done();
     }
 });
@@ -1872,6 +2012,7 @@ twig({
     path: 'test/templates/include.twig',
     async: false
 });
+
 // Load the template
 twig({ref: 'include'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
 ```
@@ -1884,6 +2025,7 @@ twig({
     path: 'test/templates/include-with.twig',
     async: false
 });
+
 // Load the template
 twig({ref: 'include-with'}).render({test: 'tst'}).should.equal( "template: before,tst-mid-template: after,tst" );
 ```
@@ -1896,6 +2038,7 @@ twig({
     path: 'test/templates/include-only.twig',
     async: false
 });
+
 // Load the template
 twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
 ```
@@ -2319,11 +2462,13 @@ twig({
     id:   'other',
     data: 'another template'
 });
+
 var template = twig({
         allowInlineIncludes: true,
         data: 'template with {% include "other" %}'
     }),
     output = template.render()
+
 output.should.equal("template with another template");
 ```
 
@@ -2343,6 +2488,7 @@ twig({data: '{% for note in notes %}{{note}}{% endfor %}'}).render({notes:['a', 
 Twig.extendFunction('custom', function(value) {
     return true;
 });
+
 twig({data: '{% if (custom("val") and custom("val")) %}out{% endif %}'}).render({}).should.equal("out");
 ```
 
