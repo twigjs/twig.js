@@ -47,9 +47,9 @@ var Twig = (function (Twig) {
             });
         },
         length: function(value) {
-            if (value instanceof Array || typeof value === "string") {
+            if (Twig.lib.is("Array", value) || typeof value === "string") {
                 return value.length;
-            } else if (value instanceof Object) {
+            } else if (Twig.lib.is("Object", value)) {
                 if (value._keys === undefined) {
                     return Object.keys(value).length;
                 } else {
@@ -507,6 +507,60 @@ var Twig = (function (Twig) {
         raw: function(value) {
             //Raw filter shim
             return value;
+        },
+        batch: function(items, params) {
+            var size = params.shift(),
+                fill = params.shift(),
+                result,
+                last,
+                missing;
+
+            if (!Twig.lib.is("Array", items)) {
+                throw new Twig.Error("batch filter expects items to be an array");
+            }
+
+            if (!Twig.lib.is("Number", size)) {
+                throw new Twig.Error("batch filter expects size to be a number");
+            }
+
+            size = Math.ceil(size);
+
+            result = Twig.lib.chunkArray(items, size);
+
+            if (fill && items.length % size != 0) {
+                last = result.pop();
+                missing = size - last.length;
+
+                while (missing--) {
+                    last.push(fill);
+                }
+
+                result.push(last);
+            }
+
+            return result;
+        },
+        round: function(value, params) {
+            params = params || [];
+
+            var precision = params.length > 0 ? params[0] : 0,
+                method = params.length > 1 ? params[1] : "common";
+
+            value = parseFloat(value);
+
+            if(precision && !Twig.lib.is("Number", precision)) {
+                throw new Twig.Error("round filter expects precision to be a number");
+            }
+
+            if (method === "common") {
+                return Twig.lib.round(value, precision);
+            }
+
+            if(!Twig.lib.is("Function", Math[method])) {
+                throw new Twig.Error("round filter expects method to be 'floor', 'ceil', or 'common'");
+            }
+
+            return Math[method](value * Math.pow(10, precision)) / Math.pow(10, precision);
         }
     };
 

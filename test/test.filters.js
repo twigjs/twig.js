@@ -465,6 +465,29 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe('batch ->', function () {
+        it('should work with arrays that require filling (with fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3, 'x') }}"});
+            test_template.render().should.equal("a,b,c,d,e,f,g,x,x");
+        });
+        it('should work with arrays that require filling (without fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3) }}"});
+            test_template.render().should.equal("a,b,c,d,e,f,g");
+        });
+        it('should work with arrays that do not require filling (with fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3, 'x') }}"});
+            test_template.render().should.equal("a,b,c,d,e,f");
+        });
+        it('should work with arrays that do not require filling (without fill specified)', function () {
+            var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3) }}"});
+            test_template.render().should.equal("a,b,c,d,e,f");
+        });
+        it('should return an empty result for an empty array', function () {
+            var test_template = twig({data: "{{ []|batch(3, 'x') }}"});
+            test_template.render().should.equal("");
+        });
+    });
+
     describe('last ->', function () {
         it('should return last character in string', function () {
             var test_template = twig({data: "{{ 'abcd'|last }}"});
@@ -477,6 +500,37 @@ describe("Twig.js Filters ->", function() {
         it('should return last item in a sorted object', function () {
             var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
             test_template.render().should.equal("5");
+        });
+    });
+
+    describe('round ->', function () {
+        it('should round up (common)', function () {
+            var test_template = twig({data: "{{ 2.7|round }}"});
+            test_template.render().should.equal("3");
+        });
+        it('should round down (common)', function () {
+            var test_template = twig({data: "{{ 2.1|round }}"});
+            test_template.render().should.equal("2");
+        });
+        it('should truncate input when input decimal places exceeds precision (floor)', function () {
+            var test_template = twig({data: "{{ 2.1234|round(3, 'floor') }}" });
+            test_template.render().should.equal("2.123");
+        });
+        it('should round up (ceil)', function () {
+            var test_template = twig({data: "{{ 2.1|round(0, 'ceil') }}" });
+            test_template.render().should.equal("3");
+        });
+        it('should truncate precision when a negative precision is passed (common)', function () {
+            var test_template = twig({data: "{{ 21.3|round(-1)}}" });
+            test_template.render().should.equal("20");
+        });
+        it('should round up and truncate precision when a negative precision is passed (ceil)', function () {
+            var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+            test_template.render().should.equal("30");
+        });
+        it('should round down and truncate precision when a negative precision is passed (floor)', function () {
+            var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+            test_template.render().should.equal("30");
         });
     });
 
