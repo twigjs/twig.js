@@ -246,5 +246,20 @@ describe("Twig.js Functions ->", function() {
             });
  
         });
+        describe("template_from_string ->", function() {
+            it("should load a template from a string", function() {
+                twig({data: '{% include template_from_string("{{ value }}") %}'}).render({
+                    value: 'test'
+                })
+                .should.equal('test');
+            });
+            it("should load a template from a variable", function() {
+                twig({data: '{% include template_from_string(template) %}'}).render({
+                    template: '{{ value }}',
+                    value: 'test'
+                })
+                .should.equal('test');
+            });
+        });
     });
 });
