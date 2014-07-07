@@ -2426,8 +2426,12 @@ var Twig = (function (Twig) {
 
                 var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
 
-                // Import file
-                template = this.importFile(file);
+                if (file instanceof Twig.Template) {
+                    template = file;
+                } else {
+                    // Import file
+                    template = this.importFile(file);
+                }
 
                 return {
                     chain: chain,
@@ -4839,6 +4843,11 @@ var Twig = (function (Twig) {
             }
             // Array will return element 0-index
             return object[method] || undefined;
+        },
+        template_from_string: function(template) {
+            return new Twig.Template({
+                data: template
+            });
         }
     };
 
