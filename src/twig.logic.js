@@ -642,8 +642,12 @@ var Twig = (function (Twig) {
 
                 var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
 
-                // Import file
-                template = this.importFile(file);
+                if (file instanceof Twig.Template) {
+                    template = file;
+                } else {
+                    // Import file
+                    template = this.importFile(file);
+                }
 
                 return {
                     chain: chain,
