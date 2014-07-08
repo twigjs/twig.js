@@ -171,6 +171,9 @@ var Twig = (function (Twig) {
             return object[method] || undefined;
         },
         template_from_string: function(template) {
+            if (template === undefined) {
+                template = '';
+            }
             return new Twig.Template({
                 data: template
             });
