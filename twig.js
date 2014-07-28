@@ -2474,7 +2474,7 @@ var Twig = (function (Twig) {
              *
              */
             type: Twig.logic.type.macro,
-            regex: /^macro\s+([a-zA-Z0-9_]+)\s?\((([a-zA-Z0-9_]+(,\s?)?)*)\)$/,
+            regex: /^macro\s+([a-zA-Z0-9_]+)\s?\(\s?(([a-zA-Z0-9_]+(,\s?)?)*)\s?\)$/,
             next: [
                 Twig.logic.type.endmacro
             ],
