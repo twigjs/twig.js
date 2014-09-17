@@ -2022,10 +2022,6 @@ var Twig = (function (Twig) {
             },
             parse: function (token, context, continue_chain) {
                 // Parse expression
-				if (!context) {
-					// make sure context is set
-					context = {};
-				}
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
 					len,
