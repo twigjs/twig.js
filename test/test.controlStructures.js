@@ -96,7 +96,7 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: {a:1,b:2,c:3,d:4}}).should.equal("falsefalsefalsetrue" );
         });
         it("should have a loop context item available in child loops objects", function() {
-            var test_template = twig({data: '{% for value in test %}{% for value2 in inner %}({{ loop.parent.loop.index }},{{ loop.index }}){% endfor %}{% endfor %}'});
+            var test_template = twig({data: '{% for value in test %}{% for value in inner %}({{ loop.parent.loop.index }},{{ loop.index }}){% endfor %}{% endfor %}'});
             test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1,1)(1,2)(1,3)(2,1)(2,2)(2,3)");
         });
 		it("should increment a single variable across nested loops", function() {
