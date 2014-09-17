@@ -2022,6 +2022,10 @@ var Twig = (function (Twig) {
             },
             parse: function (token, context, continue_chain) {
                 // Parse expression
+				if (!context) {
+					// make sure context is set
+					context = {};
+				}
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
 					len,
@@ -2043,22 +2047,23 @@ var Twig = (function (Twig) {
                         };
                     },
                     loop = function(key, value) {
-                        var inner_context = Twig.lib.copy(context);
+						context[token.value_var] = value;
+						if (token.key_var) {
+							context[token.key_var] = key;
+						}
 
-                        inner_context[token.value_var] = value;
-                        if (token.key_var) {
-                            inner_context[token.key_var] = key;
-                        }
+						// Loop object and add the data to our context
+						context.loop = buildLoop(index, len);
 
-                        // Loop object
-                        inner_context.loop = buildLoop(index, len);
+						if (conditional === undefined ||
+							Twig.expression.parse.apply(that, [conditional, context]))
+						{
+							output.push(Twig.parse.apply(that, [token.output, context]));
+							index += 1;
+						}
 
-                        if (conditional === undefined ||
-                            Twig.expression.parse.apply(that, [conditional, inner_context]))
-                        {
-                            output.push(Twig.parse.apply(that, [token.output, inner_context]));
-                            index += 1;
-                        }
+						// remove the loop data we created
+						delete context.loop;
                     };
 
                 if (result instanceof Array) {
