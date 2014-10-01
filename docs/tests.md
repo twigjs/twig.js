@@ -40,7 +40,9 @@
      - [abs ->](#twigjs-filters---abs--)
      - [first ->](#twigjs-filters---first--)
      - [split ->](#twigjs-filters---split--)
+     - [batch ->](#twigjs-filters---batch--)
      - [last ->](#twigjs-filters---last--)
+     - [round ->](#twigjs-filters---round--)
    - [Twig.js Loader ->](#twigjs-loader--)
    - [Twig.js Include ->](#twigjs-include--)
    - [Twig.js Functions ->](#twigjs-functions--)
@@ -248,6 +250,24 @@ twig({
             base: "block-function-parent.twig"
         })
         .should.equal( "parent block / Result: parent block" );
+
+        done();
+    }
+})
+```
+
+should render block content with outer context.
+
+```js
+twig({
+    path:   'test/templates/block-outer-context.twig',
+
+    load: function(template) {
+        template.render({
+            base: "block-outer-context.twig",
+            items: ["twig", "js", "rocks"]
+        })
+        .should.equal( "Hello twig!Hello js!Hello rocks!twigjsrocks" );
 
         done();
     }
@@ -1272,6 +1292,9 @@ should capitalize the first word in a string.
 ```js
 var test_template = twig({data: '{{ "hello world"|capitalize }}' });
 test_template.render().should.equal("Hello world" );
+
+var test_template2 = twig({data: '{{ "HELLO WORLD"|capitalize }}' });
+test_template2.render().should.equal("Hello world" );
 ```
 
 should handle undefined.
@@ -1288,6 +1311,9 @@ should capitalize all the words in a string.
 ```js
 var test_template = twig({data: '{{ "hello world"|title }}' });
 test_template.render().should.equal("Hello World" );
+
+var test_template2 = twig({data: '{{ "HELLO WORLD"|title }}' });
+test_template2.render().should.equal("Hello World" );
 ```
 
 should handle undefined.
@@ -1830,6 +1856,43 @@ var test_template = twig({data: "{{ 'aabbcc'|split('', 2) }}"});
 test_template.render().should.equal("aa,bb,cc");
 ```
 
+<a name="twigjs-filters---batch--"></a>
+## batch ->
+should work with arrays that require filling (with fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3, 'x') }}"});
+test_template.render().should.equal("a,b,c,d,e,f,g,x,x");
+```
+
+should work with arrays that require filling (without fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f', 'g']|batch(3) }}"});
+test_template.render().should.equal("a,b,c,d,e,f,g");
+```
+
+should work with arrays that do not require filling (with fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3, 'x') }}"});
+test_template.render().should.equal("a,b,c,d,e,f");
+```
+
+should work with arrays that do not require filling (without fill specified).
+
+```js
+var test_template = twig({data: "{{ ['a', 'b', 'c', 'd', 'e', 'f']|batch(3) }}"});
+test_template.render().should.equal("a,b,c,d,e,f");
+```
+
+should return an empty result for an empty array.
+
+```js
+var test_template = twig({data: "{{ []|batch(3, 'x') }}"});
+test_template.render().should.equal("");
+```
+
 <a name="twigjs-filters---last--"></a>
 ## last ->
 should return last character in string.
@@ -1851,6 +1914,57 @@ should return last item in a sorted object.
 ```js
 var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
 test_template.render().should.equal("5");
+```
+
+<a name="twigjs-filters---round--"></a>
+## round ->
+should round up (common).
+
+```js
+var test_template = twig({data: "{{ 2.7|round }}"});
+test_template.render().should.equal("3");
+```
+
+should round down (common).
+
+```js
+var test_template = twig({data: "{{ 2.1|round }}"});
+test_template.render().should.equal("2");
+```
+
+should truncate input when input decimal places exceeds precision (floor).
+
+```js
+var test_template = twig({data: "{{ 2.1234|round(3, 'floor') }}" });
+test_template.render().should.equal("2.123");
+```
+
+should round up (ceil).
+
+```js
+var test_template = twig({data: "{{ 2.1|round(0, 'ceil') }}" });
+test_template.render().should.equal("3");
+```
+
+should truncate precision when a negative precision is passed (common).
+
+```js
+var test_template = twig({data: "{{ 21.3|round(-1)}}" });
+test_template.render().should.equal("20");
+```
+
+should round up and truncate precision when a negative precision is passed (ceil).
+
+```js
+var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+test_template.render().should.equal("30");
+```
+
+should round down and truncate precision when a negative precision is passed (floor).
+
+```js
+var test_template = twig({data: "{{ 21.3|round(-1, 'ceil')}}" });
+test_template.render().should.equal("30");
 ```
 
 <a name="twigjs-loader--"></a>

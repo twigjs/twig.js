@@ -725,7 +725,11 @@ var Twig = (function (Twig) {
                     // Add parameters from context to macroContext
                     for (var i=0; i<token.parameters.length; i++) {
                         var prop = token.parameters[i];
-                        macroContext[prop] = arguments[i] || undefined;
+                        if(typeof arguments[i] !== 'undefined') {
+                            macroContext[prop] = arguments[i];
+                        } else {
+                            macroContext[prop] = undefined;
+                        }
                     }
                     // Render
                     return Twig.parse.apply(template, [token.output, macroContext])
