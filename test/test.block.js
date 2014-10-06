@@ -70,6 +70,20 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 
+    it("should allow overriding of included blocks", function(done) {
+        // Test overriding of included blocks
+        twig({
+            id:   'use-override-block',
+            path: 'test/templates/use-override-block.twig',
+
+            load: function(template) {
+                // Load the template
+                template.render({ place: "diner" }).should.equal("Sorry, can't come to a diner today." );
+                done();
+            }
+        });
+    });
+
     it("should make the contents of blocks available after they're rendered", function(done) {
         // Test rendering and loading one block
         twig({
