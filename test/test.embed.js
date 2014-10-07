@@ -10,7 +10,25 @@ describe("Twig.js Embed ->", function() {
             async: false
         });
         // Load the template
-        twig({ref: 'embed'}).render({ }).trim().should.equal( 'START\nA\nnew headerbase footer\nB\nA\nbase headerbase footer:extended\nB\nA\nbase header:extendedbase footer:extended\nB\nEND' );
+        twig({ref: 'embed'}).render({ }).trim().should.equal( ['START',
+                                                               'A',
+                                                               'new header',
+                                                               'base footer',
+                                                               'B',
+                                                               '',
+                                                               'A',
+                                                               'base header',
+                                                               'base footer',
+                                                               'extended',
+                                                               'B',
+                                                               '',
+                                                               'A',
+                                                               'base header',
+                                                               'extended',
+                                                               'base footer',
+                                                               'extended',
+                                                               'B',
+                                                               'END'].join('\n') );
     });
 
 });

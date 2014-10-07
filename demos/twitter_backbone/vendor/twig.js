@@ -2650,7 +2650,8 @@ var Twig = (function (Twig) {
         },
         {
             /**
-             * Block logic tokens.
+             * The embed tag combines the behaviour of include and extends.
+             * It allows you to include another template's contents, just like include does.
              *
              *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
              */
@@ -2718,6 +2719,7 @@ var Twig = (function (Twig) {
                     template = this.importFile(file);
                 }
 
+                // reset previous blocks
                 this.blocks = {};
 
                 var output = Twig.parse.apply(this, [token.output, innerContext]);
@@ -2734,7 +2736,9 @@ var Twig = (function (Twig) {
                 };
             }
         },
-        // Add the {% endembed %} token
+        /* Add the {% endembed %} token
+         *
+         */
         {
             type: Twig.logic.type.endembed,
             regex: /^endembed$/,

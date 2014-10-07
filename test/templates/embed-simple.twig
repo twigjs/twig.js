@@ -1,12 +1,23 @@
 START
 {% embed "embed-base.twig" %}
-{% block header %}new header{% endblock %}
+{% block header %}
+new header
+{% endblock %}
 {% endembed %}
+
 {% embed "embed-base.twig" %}
-{% block footer %}{{ parent() }}:extended{% endblock %}
+{% block footer %}
+{{ parent() }}extended
+{% endblock %}
 {% endembed %}
+
 {% embed "embed-base.twig" %}
-{% block header %}{{ parent() }}:extended{% endblock %}
-{% block footer %}{{ parent() }}:extended{% endblock %}
+{% block header %}
+{{ parent() }}extended
+{% endblock %}
+
+{% block footer %}
+{{ parent() }}extended
+{% endblock %}
 {% endembed %}
 END
