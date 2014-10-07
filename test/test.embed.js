@@ -10,7 +10,7 @@ describe("Twig.js Embed ->", function() {
             async: false
         });
         // Load the template
-        twig({ref: 'embed'}).render({ }).trim().should.equal( 'This is my new header\nThis is my old footer' );
+        twig({ref: 'embed'}).render({ }).trim().should.equal( 'START\nA\nnew headerbase footer\nB\nA\nbase headerbase footer:extended\nB\nA\nbase header:extendedbase footer:extended\nB\nEND' );
     });
 
 });

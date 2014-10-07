@@ -1,5 +1,12 @@
+START
 {% embed "embed-base.twig" %}
-{% block header %}
-This is my new header
-{% endblock %}
+{% block header %}new header{% endblock %}
 {% endembed %}
+{% embed "embed-base.twig" %}
+{% block footer %}{{ parent() }}:extended{% endblock %}
+{% endembed %}
+{% embed "embed-base.twig" %}
+{% block header %}{{ parent() }}:extended{% endblock %}
+{% block footer %}{{ parent() }}:extended{% endblock %}
+{% endembed %}
+END

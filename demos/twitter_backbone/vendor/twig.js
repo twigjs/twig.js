@@ -2249,6 +2249,7 @@ var Twig = (function (Twig) {
                     isImported = this.importedBlocks.indexOf(token.block) > -1,
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
+
                 // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
                 if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop) {
@@ -2515,7 +2516,7 @@ var Twig = (function (Twig) {
                         }
                     }
                     // Render
-                    return Twig.parse.apply(template, [token.output, macroContext])
+                    return Twig.parse.apply(template, [token.output, macroContext]);
                 };
 
                 return {
@@ -2709,8 +2710,17 @@ var Twig = (function (Twig) {
                 }
 
                 var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
-                // Import file
-                template = this.importFile(file);
+
+                if (file instanceof Twig.Template) {
+                    template = file;
+                } else {
+                    // Import file
+                    template = this.importFile(file);
+                }
+
+                this.blocks = {};
+
+                var output = Twig.parse.apply(this, [token.output, innerContext]);
 
                 //extend blocks
                 for (i in token.output) {
@@ -2720,7 +2730,7 @@ var Twig = (function (Twig) {
 
                 return {
                     chain: chain,
-                    output: template.render(innerContext)
+                    output: template.render(innerContext, {'blocks':this.blocks})
                 };
             }
         },
