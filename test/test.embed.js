@@ -28,6 +28,11 @@ describe("Twig.js Embed ->", function() {
                                                                'base footer',
                                                                'extended',
                                                                'B',
+                                                               '',
+                                                               'A',
+                                                               'Super cool new header',
+                                                               'Cool footer',
+                                                               'B',
                                                                'END'].join('\n') );
     });
 

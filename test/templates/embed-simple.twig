@@ -20,4 +20,15 @@ new header
 {{ parent() }}extended
 {% endblock %}
 {% endembed %}
+
+{% embed "embed-base.twig" %}
+{% embed "embed-include.twig" %}
+{% block header %}
+Super cool new header
+{% endblock %}
+{% endembed %}
+{% block footer%}
+Cool footer
+{% endblock %}
+{% endembed %}
 END
