@@ -2722,14 +2722,10 @@ var Twig = (function (Twig) {
                 // reset previous blocks
                 this.blocks = {};
 
+                // parse tokens. output will be not used
                 var output = Twig.parse.apply(this, [token.output, innerContext]);
 
-                //extend blocks
-                for (i in token.output) {
-                    template.tokens[i] = token.output[i];
-                }
-
-
+                // render tempalte with blocks defined in embed block
                 return {
                     chain: chain,
                     output: template.render(innerContext, {'blocks':this.blocks})
