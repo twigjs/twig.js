@@ -1,19 +1,19 @@
 /**
- * Twig.js 0.7.2
+ * Twig.js 0.8.0
  *
- * @copyright 2011-2013 John Roepke
+ * @copyright 2011-2014 John Roepke
  * @license   Available under the BSD 2-Clause License
  * @link      https://github.com/justjohn/twig.js
  */
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.7.2";
+    Twig.VERSION = "0.8.0";
 
     return Twig;
 })(Twig || {});
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -158,7 +158,7 @@ var Twig = (function (Twig) {
         debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
     };
 
-    if (typeof console !== "undefined" && 
+    if (typeof console !== "undefined" &&
         typeof console.log !== "undefined") {
         Twig.log.error = function() {
             console.log.apply(console, arguments);
@@ -180,7 +180,7 @@ var Twig = (function (Twig) {
         output:  'output',
         logic:   'logic',
         comment: 'comment',
-        raw:     'raw'
+        verbatim:     'verbatim'
     };
 
     /**
@@ -188,9 +188,9 @@ var Twig = (function (Twig) {
      */
     Twig.token.definitions = [
         {
-            type: Twig.token.type.raw,
-            open: '{% raw %}',
-            close: '{% endraw %}'
+            type: Twig.token.type.verbatim,
+            open: '{% verbatim %}',
+            close: '{% endverbatim %}'
         },
         // *Output type tokens*
         //
@@ -344,7 +344,7 @@ var Twig = (function (Twig) {
                 // Add a raw type token for anything before the start of the token
                 if (found_token.position > 0) {
                     tokens.push({
-                        type: Twig.token.type.raw,
+                        type: Twig.token.type.verbatim,
                         value: template.substring(0, found_token.position)
                     });
                 }
@@ -374,7 +374,7 @@ var Twig = (function (Twig) {
             } else {
                 // No more tokens -> add the rest of the template as a raw-type token
                 tokens.push({
-                    type: Twig.token.type.raw,
+                    type: Twig.token.type.verbatim,
                     value: template
                 });
                 template = '';
@@ -413,7 +413,7 @@ var Twig = (function (Twig) {
                 token = tokens.shift();
                 Twig.log.trace("Compiling token ", token);
                 switch (token.type) {
-                    case Twig.token.type.raw:
+                    case Twig.token.type.verbatim:
                         if (stack.length > 0) {
                             intermediate_output.push(token);
                         } else {
@@ -549,7 +549,7 @@ var Twig = (function (Twig) {
                 Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
                 switch (token.type) {
-                    case Twig.token.type.raw:
+                    case Twig.token.type.verbatim:
                         output.push(token.value);
                         break;
 
@@ -1062,7 +1062,6 @@ var Twig = (function (Twig) {
     return Twig;
 
 }) (Twig || { });
-
 // The following methods are from MDN and are available under a
 // [MIT License](http://www.opensource.org/licenses/mit-license.php) or are
 // [Public Domain](https://developer.mozilla.org/Project:Copyrights).
@@ -1782,7 +1781,7 @@ var Twig = (function(Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -2816,7 +2815,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3811,7 +3810,7 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4089,7 +4088,7 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4669,7 +4668,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //                   2012 Hadrien Lanneau
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
@@ -4857,7 +4856,7 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4919,7 +4918,7 @@ var Twig = (function (Twig) {
     return Twig;
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -5107,9 +5106,8 @@ var Twig = (function (Twig) {
 
     return Twig;
 }) (Twig || { });
-
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -5165,7 +5163,7 @@ var Twig = (function (Twig) {
     return Twig;
 })(Twig || {});
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -5194,4 +5192,3 @@ if (typeof module !== 'undefined' && module.declare) {
     window.twig = Twig.exports.twig;
     window.Twig = Twig.exports;
 }
-

@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -144,7 +144,7 @@ var Twig = (function (Twig) {
         debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
     };
 
-    if (typeof console !== "undefined" && 
+    if (typeof console !== "undefined" &&
         typeof console.log !== "undefined") {
         Twig.log.error = function() {
             console.log.apply(console, arguments);
@@ -166,7 +166,7 @@ var Twig = (function (Twig) {
         output:  'output',
         logic:   'logic',
         comment: 'comment',
-        raw:     'raw'
+        verbatim:     'verbatim'
     };
 
     /**
@@ -174,9 +174,9 @@ var Twig = (function (Twig) {
      */
     Twig.token.definitions = [
         {
-            type: Twig.token.type.raw,
-            open: '{% raw %}',
-            close: '{% endraw %}'
+            type: Twig.token.type.verbatim,
+            open: '{% verbatim %}',
+            close: '{% endverbatim %}'
         },
         // *Output type tokens*
         //
@@ -330,7 +330,7 @@ var Twig = (function (Twig) {
                 // Add a raw type token for anything before the start of the token
                 if (found_token.position > 0) {
                     tokens.push({
-                        type: Twig.token.type.raw,
+                        type: Twig.token.type.verbatim,
                         value: template.substring(0, found_token.position)
                     });
                 }
@@ -360,7 +360,7 @@ var Twig = (function (Twig) {
             } else {
                 // No more tokens -> add the rest of the template as a raw-type token
                 tokens.push({
-                    type: Twig.token.type.raw,
+                    type: Twig.token.type.verbatim,
                     value: template
                 });
                 template = '';
@@ -399,7 +399,7 @@ var Twig = (function (Twig) {
                 token = tokens.shift();
                 Twig.log.trace("Compiling token ", token);
                 switch (token.type) {
-                    case Twig.token.type.raw:
+                    case Twig.token.type.verbatim:
                         if (stack.length > 0) {
                             intermediate_output.push(token);
                         } else {
@@ -535,7 +535,7 @@ var Twig = (function (Twig) {
                 Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
                 switch (token.type) {
-                    case Twig.token.type.raw:
+                    case Twig.token.type.verbatim:
                         output.push(token.value);
                         break;
 
@@ -1048,4 +1048,3 @@ var Twig = (function (Twig) {
     return Twig;
 
 }) (Twig || { });
-

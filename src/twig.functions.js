@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //                   2012 Hadrien Lanneau
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js

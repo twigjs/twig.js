@@ -1,5 +1,5 @@
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
+//     Copyright (c) 2011-2014 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -28,4 +28,3 @@ if (typeof module !== 'undefined' && module.declare) {
     window.twig = Twig.exports.twig;
     window.Twig = Twig.exports;
 }
-
