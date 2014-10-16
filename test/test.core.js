@@ -109,6 +109,10 @@ describe("Twig.js Core ->", function() {
         twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
     });
 
+    it("should allow int 0 as a key in an object", function() {
+        twig({data: '{% set at = {0: "value"} %}{{ at.0 }}'}).render().should.equal( "value" );
+    });
+
     it("should support set capture", function() {
         twig({data: '{% set foo %}bar{% endset %}{{foo}}'}).render().should.equal( "bar" );
     });
