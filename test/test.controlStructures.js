@@ -103,7 +103,7 @@ describe("Twig.js Control Structures ->", function() {
 			var test_template = twig({data: '{% set iterator = 0 %}{% for value in test %}{% for value in inner %}{% set iterator = iterator + 1 %}({{ iterator }}){% endfor %}{% endfor %}'});
 			test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1)(2)(3)(4)(5)(6)");
 		});
-		it("set a variable in an outer loop and increment in a nested loop", function() {
+		it("should set a variable in an outer loop and increment in a nested loop", function() {
 			var test_template = twig({data: '{% for value in test %}{% set iterator = 0 %}{% for value in inner %}{% set iterator = iterator + 1 %}({{ iterator }}){% endfor %}{% endfor %}-({{ iterator }})'});
 			test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1)(2)(3)(1)(2)(3)-(3)");
 		});
