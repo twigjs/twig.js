@@ -259,24 +259,34 @@ var Twig = (function (Twig) {
                             parent: context
                         };
                     },
-                    loop = function(key, value) {
-                        var inner_context = Twig.lib.copy(context);
+					loop = function(key, value) {
 
-                        inner_context[token.value_var] = value;
-                        if (token.key_var) {
-                            inner_context[token.key_var] = key;
-                        }
+						// make a copy of the context for our loop
+						var innerContext = Twig.lib.copy(context);
 
-                        // Loop object
-                        inner_context.loop = buildLoop(index, len);
+						innerContext[token.value_var] = value;
+						if (token.key_var) {
+							innerContext[token.key_var] = key;
+						}
 
-                        if (conditional === undefined ||
-                            Twig.expression.parse.apply(that, [conditional, inner_context]))
-                        {
-                            output.push(Twig.parse.apply(that, [token.output, inner_context]));
-                            index += 1;
-                        }
-                    };
+						// Loop object and add the data to our context
+						innerContext.loop = buildLoop(index, len);
+
+						if (conditional === undefined ||
+							Twig.expression.parse.apply(that, [conditional, innerContext]))
+						{
+							output.push(Twig.parse.apply(that, [token.output, innerContext]));
+							index += 1;
+						}
+
+						// merge the main context with the loop's context to persist variable changes
+						for (var m in innerContext) {
+							if (m !== 'loop') {
+								context[m] = innerContext[m];
+							}
+						}
+
+					};
 
                 if (result instanceof Array) {
                     len = result.length;

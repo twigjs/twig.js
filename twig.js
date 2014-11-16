@@ -2042,10 +2042,10 @@ var Twig = (function (Twig) {
                             parent: context
                         };
                     },
-                    loop = function(key, value) {
+					loop = function(key, value) {
 
 						// make a copy of the context for our loop
-						var innerContext = Object.create(context);
+						var innerContext = Twig.lib.copy(context);
 
 						innerContext[token.value_var] = value;
 						if (token.key_var) {
@@ -2069,7 +2069,7 @@ var Twig = (function (Twig) {
 							}
 						}
 
-                    };
+					};
 
                 if (result instanceof Array) {
                     len = result.length;
