@@ -99,7 +99,14 @@ describe("Twig.js Control Structures ->", function() {
             var test_template = twig({data: '{% for value in test %}{% for value in inner %}({{ loop.parent.loop.index }},{{ loop.index }}){% endfor %}{% endfor %}'});
             test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1,1)(1,2)(1,3)(2,1)(2,2)(2,3)");
         });
-
+		it("should increment a single variable across nested loops", function() {
+			var test_template = twig({data: '{% set iterator = 0 %}{% for value in test %}{% for value in inner %}{% set iterator = iterator + 1 %}({{ iterator }}){% endfor %}{% endfor %}'});
+			test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1)(2)(3)(4)(5)(6)");
+		});
+		it("should set a variable in an outer loop and increment in a nested loop", function() {
+			var test_template = twig({data: '{% for value in test %}{% set iterator = 0 %}{% for value in inner %}{% set iterator = iterator + 1 %}({{ iterator }}){% endfor %}{% endfor %}-({{ iterator }})'});
+			test_template.render({test: {a:1,b:2}, inner:[1,2,3]}).should.equal("(1)(2)(3)(1)(2)(3)-(3)");
+		});
         it("should support conditionals on for loops", function() {
             var test_template = twig({data: '{% for value in test if false %}{{ value }},{% endfor %}'});
             test_template.render({test: ["one", "two", "a", "b", "other"]}).should.equal("");
