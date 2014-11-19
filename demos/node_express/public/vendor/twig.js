@@ -2044,8 +2044,10 @@ var Twig = (function (Twig) {
                     },
 					loop = function(key, value) {
 
-						// make a copy of the context for our loop
-						var innerContext = Twig.lib.copy(context);
+						// make a copy of the context for our loop and init variables
+						var m,
+							descriptor,
+							innerContext = Twig.lib.copy(context);
 
 						innerContext[token.value_var] = value;
 						if (token.key_var) {
@@ -2063,9 +2065,12 @@ var Twig = (function (Twig) {
 						}
 
 						// merge the main context with the loop's context to persist variable changes
-						for (var m in innerContext) {
+						for (m in innerContext) {
 							if (m !== 'loop') {
-								context[m] = innerContext[m];
+								descriptor = Object.getOwnPropertyDescriptor(context, m);
+								if (!descriptor || descriptor.writable) {
+									context[m] = innerContext[m];
+								}
 							}
 						}
 
