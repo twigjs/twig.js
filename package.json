@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git://github.com/justjohn/twig.js.git"
   },
-  "main": "twig.js",
+  "main": "twig.min.js",
   "engines": {
     "node": "*"
   },
