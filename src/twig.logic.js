@@ -261,7 +261,6 @@ var Twig = (function (Twig) {
                     },
 					loop = function(key, value) {
 
-						// make a copy of the context for our loop and init variables
 						var m,
 							descriptor,
 							innerContext = Twig.lib.copy(context);
