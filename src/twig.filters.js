@@ -386,7 +386,7 @@ var Twig = (function (Twig) {
                 separator = '...';
 
             value =  value + '';
-            if ( params ) {
+            if (params) {
                 if (params[0]) {
                     length = params[0];
                 }
