@@ -135,9 +135,11 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var output = '';
+                var output = '',
+                    // Parse the expression
+                    result = Twig.expression.parse.apply(this, [token.stack, context]);
 
-                if (chain && Twig.expression.parse.apply(this, [token.stack, context]) === true) {
+                if (chain && result) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
