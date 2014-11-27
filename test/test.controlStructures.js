@@ -29,6 +29,11 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: false, test2: true}).should.equal("not" );
             test_template.render({test: false, test2: false}).should.equal("not" );
         });
+        it("should support newlines in if statement", function() {
+            var test_template = twig({data: '{% if test or\r\nother %}true{% endif%}'});
+            test_template.render({test: true, other: false}).should.equal("true" );
+            test_template.render({test: false, other: false}).should.equal("" );
+        });
     });
 
     // {% for ... %}

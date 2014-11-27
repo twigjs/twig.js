@@ -71,6 +71,9 @@ describe("Twig.js Core ->", function() {
         twig({data: '{{ "dou\\"ble" }}'}).render().should.equal("dou\"ble");
         twig({data: "{{ 'sin\\'gle' }}"}).render().should.equal("sin'gle");
     });
+    it("should be able to output strings with newlines", function() {
+        twig({data: "{{ 'a\nb\rc\r\nd' }}"}).render().should.equal("a\nb\rc\r\nd");
+    });
     it("should be able to output arrays", function() {
          twig({data: '{{ [1] }}'}).render().should.equal("1" );
          twig({data: '{{ [1,2 ,3 ] }}'}).render().should.equal("1,2,3" );
@@ -103,6 +106,10 @@ describe("Twig.js Core ->", function() {
 
     it("should recognize object literals", function() {
         twig({data: '{% set at = {"foo": "test", bar: "other", 1:"zip"} %}{{ at.foo ~ at.bar ~ at.1 }}'}).render().should.equal( "testotherzip" );
+    });
+
+    it("should allow newlines in object literals", function() {
+        twig({data: '{% set at = {\n"foo": "test",\rbar: "other",\r\n1:"zip"\n} %}{{ at.foo ~ at.bar ~ at.1 }}'}).render().should.equal( "testotherzip" );
     });
 
     it("should recognize null in an object", function() {
