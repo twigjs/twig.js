@@ -1916,7 +1916,7 @@ var Twig = (function (Twig) {
              *  Format: {% if expression %}
              */
             type: Twig.logic.type.if_,
-            regex: /^if\s+([^\s].+)$/,
+            regex: /^if\s+([\s\S]+)$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.elseif,
@@ -2171,7 +2171,7 @@ var Twig = (function (Twig) {
              *  Format: {% set key = expression %}
              */
             type: Twig.logic.type.set,
-            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*(.+)$/,
+            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([\s\S]+)$/,
             next: [ ],
             open: true,
             compile: function (token) {
@@ -2439,7 +2439,7 @@ var Twig = (function (Twig) {
              *  Format: {% includes "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.include,
-            regex: /^include\s+(ignore missing\s+)?(.+?)\s*(?:with\s+(.+?))?\s*(only)?$/,
+            regex: /^include\s+(ignore missing\s+)?(.+?)\s*(?:with\s+([\S\s]+?))?\s*(only)?$/,
             next: [ ],
             open: true,
             compile: function (token) {
@@ -3258,7 +3258,7 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.string,
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
-            regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
+            regex: /^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 var value = token.value;
