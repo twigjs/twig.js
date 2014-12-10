@@ -494,6 +494,7 @@ var Twig = (function (Twig) {
 
                     case Twig.token.type.output:
                         Twig.expression.compile.apply(this, [token]);
+                        Twig.autoescape.apply(this, [token]);
                         if (stack.length > 0) {
                             intermediate_output.push(token);
                         } else {
@@ -618,6 +619,40 @@ var Twig = (function (Twig) {
 
         return tokens;
     };
+
+    /**
+     * Autoescape the output token if needed
+     *
+     * @param {Object} data The output token.
+     *
+     * @return {Object} The modified token.
+     */
+    Twig.autoescape = function(token) {
+        if (!this.options.autoescape) {
+            return token;
+        }
+
+        var raw_found = false;
+        var current_token;
+        for (var i=0, l=token.stack.length; i<l; i++) {
+            current_token = token.stack[i];
+            if (current_token.type === Twig.expression.type.filter
+                    && ["raw", "escape", "e"].indexOf(current_token.value) > -1) {
+                raw_found = true;
+                break;
+            }
+        }
+
+        if (!raw_found) {
+            token.stack.push({
+                type: Twig.expression.type.filter,
+                value: "escape",
+                match: ["|escape", "escape"]
+            });
+        }
+
+        return token;
+    }
 
     // Namespace for template storage and retrieval
     Twig.Templates = {
@@ -1907,9 +1942,11 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var output = '';
+                var output = '',
+                    // Parse the expression
+                    result = Twig.expression.parse.apply(this, [token.stack, context]);
 
-                if (chain && Twig.expression.parse.apply(this, [token.stack, context]) === true) {
+                if (chain && result) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
@@ -4939,6 +4976,7 @@ var Twig = (function (Twig) {
                 template = '';
             }
             return new Twig.Template({
+                options: this.options,
                 data: template
             });
         }
@@ -5047,6 +5085,8 @@ var Twig = (function (Twig) {
         var id = params.id,
             options = {
                 strict_variables: params.strict_variables || false,
+                // TODO: turn autoscape on in the next major version
+                autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
                 rethrow: params.rethrow || false
             };
