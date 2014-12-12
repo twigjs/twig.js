@@ -632,24 +632,33 @@ var Twig = (function (Twig) {
             return token;
         }
 
-        var raw_found = false;
+        if (token.stack.length === 0) {
+            return token;
+        }
+
         var current_token;
+
+        // Don't escape the output of "block" function
+        current_token = token.stack[0];
+        if (current_token.type === Twig.expression.type._function
+                && current_token.fn === "block") {
+            return token;
+        }
+
+        // Don't escape the output of filters "raw", "escape", "e"
         for (var i=0, l=token.stack.length; i<l; i++) {
             current_token = token.stack[i];
             if (current_token.type === Twig.expression.type.filter
                     && ["raw", "escape", "e"].indexOf(current_token.value) > -1) {
-                raw_found = true;
-                break;
+                return token;
             }
         }
 
-        if (!raw_found) {
-            token.stack.push({
-                type: Twig.expression.type.filter,
-                value: "escape",
-                match: ["|escape", "escape"]
-            });
-        }
+        token.stack.push({
+            type: Twig.expression.type.filter,
+            value: "escape",
+            match: ["|escape", "escape"]
+        });
 
         return token;
     }
