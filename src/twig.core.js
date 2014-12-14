@@ -485,7 +485,6 @@ var Twig = (function (Twig) {
 
                     case Twig.token.type.output:
                         Twig.expression.compile.apply(this, [token]);
-                        Twig.autoescape.apply(this, [token]);
                         if (stack.length > 0) {
                             intermediate_output.push(token);
                         } else {
@@ -542,7 +541,7 @@ var Twig = (function (Twig) {
 
                 switch (token.type) {
                     case Twig.token.type.raw:
-                        output.push(token.value);
+                        output.push(Twig.filters.raw(token.value));
                         break;
 
                     case Twig.token.type.logic:
@@ -571,7 +570,7 @@ var Twig = (function (Twig) {
                         break;
                 }
             });
-            return output.join("");
+            return Twig.output.apply(this, [output]);
         } catch (ex) {
             Twig.log.error("Error parsing twig template " + this.id + ": ");
             if (ex.stack) {
@@ -612,46 +611,26 @@ var Twig = (function (Twig) {
     };
 
     /**
-     * Autoescape the output token if needed
+     * Join the output token's stack and escape it if needed
      *
-     * @param {Object} data The output token.
+     * @param {Array} Output token's stack
      *
-     * @return {Object} The modified token.
+     * @return {string|String} Autoescaped output
      */
-    Twig.autoescape = function(token) {
+    Twig.output = function(output) {
         if (!this.options.autoescape) {
-            return token;
+            return output.join("");
         }
 
-        if (token.stack.length === 0) {
-            return token;
-        }
-
-        var current_token;
-
-        // Don't escape the output of "block" function
-        current_token = token.stack[0];
-        if (current_token.type === Twig.expression.type._function
-                && current_token.fn === "block") {
-            return token;
-        }
-
-        // Don't escape the output of filters "raw", "escape", "e"
-        for (var i=0, l=token.stack.length; i<l; i++) {
-            current_token = token.stack[i];
-            if (current_token.type === Twig.expression.type.filter
-                    && ["raw", "escape", "e"].indexOf(current_token.value) > -1) {
-                return token;
+        // [].map would be better but it's not supported by IE8-
+        var escaped_output = [];
+        Twig.forEach(output, function (str) {
+            if (str && !str.twig_markup) {
+                str = Twig.filters.escape(str);
             }
-        }
-
-        token.stack.push({
-            type: Twig.expression.type.filter,
-            value: "escape",
-            match: ["|escape", "escape"]
+            escaped_output.push(str);
         });
-
-        return token;
+        return Twig.Markup(escaped_output.join(""));
     }
 
     // Namespace for template storage and retrieval
@@ -1021,6 +1000,22 @@ var Twig = (function (Twig) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
     };
+
+    /**
+     * Create safe output
+     *
+     * @param {string} Content safe to output
+     *
+     * @return {String} Content wrapped into a String
+     */
+
+    Twig.Markup = function(content) {
+        if (typeof content === 'string' && content.length > 0) {
+            content = new String(content);
+            content.twig_markup = true;
+        }
+        return content;
+    }
 
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
