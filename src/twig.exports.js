@@ -27,7 +27,8 @@ var Twig = (function (Twig) {
                 // TODO: turn autoscape on in the next major version
                 autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
-                rethrow: params.rethrow || false
+                rethrow: params.rethrow || false,
+                namespaces: params.namespaces || undefined
             };
 
         if (id) {
