@@ -1008,9 +1008,13 @@ var Twig = (function (Twig) {
      * @return {string}          The canonical version of the path
      */
     function parsePath(template, file) {
-        var namespaces = template.options.namespaces;
+        var namespaces = null;
 
-        if (file.indexOf('::') > 0) {
+        if (typeof template === 'object' && typeof template.options === 'object') {
+            namespaces = template.options.namespaces;
+        }
+
+        if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
             for (var k in namespaces){
                 if (namespaces.hasOwnProperty(k)) {
                     file = file.replace(k+'::', namespaces[k]);
