@@ -158,7 +158,7 @@ var Twig = (function (Twig) {
         debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
     };
 
-    if (typeof console !== "undefined" && 
+    if (typeof console !== "undefined" &&
         typeof console.log !== "undefined") {
         Twig.log.error = function() {
             console.log.apply(console, arguments);
@@ -909,7 +909,7 @@ var Twig = (function (Twig) {
 
             // check for the template file via include
             if (!ext_template) {
-                url = relativePath(this, this.extend);
+                url = parsePath(this, this.extend);
 
                 ext_template = Twig.Templates.loadRemote(url, {
                     method: this.url?'ajax':'fs',
@@ -948,7 +948,7 @@ var Twig = (function (Twig) {
             throw new Twig.Error("Didn't find the inline template by id");
         }
 
-        url = relativePath(this, file);
+        url = parsePath(this, file);
 
         // Load blocks from an external file
         sub_template = Twig.Templates.loadRemote(url, {
@@ -981,7 +981,7 @@ var Twig = (function (Twig) {
     };
 
     Twig.Template.prototype.importMacros = function(file) {
-        var url = relativePath(this, file);
+        var url = parsePath(this, file);
 
         // load remote template
         var remoteTemplate = Twig.Templates.loadRemote(url, {
@@ -997,6 +997,31 @@ var Twig = (function (Twig) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
     };
+
+    /**
+     * Generate the canonical version of a url based on the given base path and file path and in
+     * the previously registered namespaces.
+     *
+     * @param  {string} template The Twig Template
+     * @param  {string} file     The file path, may be relative and may contain namespaces.
+     *
+     * @return {string}          The canonical version of the path
+     */
+    function parsePath(template, file) {
+        var namespaces = template.options.namespaces;
+
+        if (file.indexOf('::') > 0) {
+            for (var k in namespaces){
+                if (namespaces.hasOwnProperty(k)) {
+                    file = file.replace(k+'::', namespaces[k]);
+                }
+            }
+
+            return file;
+        }
+
+        return relativePath(template, file);
+    }
 
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
@@ -4946,7 +4971,8 @@ var Twig = (function (Twig) {
             options = {
                 strict_variables: params.strict_variables || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
-                rethrow: params.rethrow || false
+                rethrow: params.rethrow || false,
+                namespaces: params.namespaces || undefined
             };
 
         if (id) {
