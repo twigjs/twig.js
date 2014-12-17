@@ -946,8 +946,6 @@ var Twig = (function (Twig) {
             if (!ext_template) {
                 url = parsePath(this, this.extend);
 
-
-
                 ext_template = Twig.Templates.loadRemote(url, {
                     method: this.url?'ajax':'fs',
                     base: this.base,
@@ -1018,8 +1016,7 @@ var Twig = (function (Twig) {
         });
     };
 
-<<<<<<< HEAD
-=======
+
     Twig.Template.prototype.importMacros = function(file) {
         var url = parsePath(this, file);
 
@@ -1033,14 +1030,13 @@ var Twig = (function (Twig) {
         return remoteTemplate;
     };
 
->>>>>>> Encapsulated the relativePath function of core into parsePath function, that will handle namespaces
+
     Twig.Template.prototype.compile = function(options) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
     };
 
     /**
-<<<<<<< HEAD
      * Create safe output
      *
      * @param {string} Content safe to output
@@ -1054,7 +1050,9 @@ var Twig = (function (Twig) {
             content.twig_markup = true;
         }
         return content;
-=======
+    }
+
+    /**
      * Generate the canonical version of a url based on the given base path and file path and in
      * the previously registered namespaces.
      *
@@ -1064,8 +1062,20 @@ var Twig = (function (Twig) {
      * @return {string}          The canonical version of the path
      */
     function parsePath(template, file) {
-        var url = relativePath(template, file);
->>>>>>> Encapsulated the relativePath function of core into parsePath function, that will handle namespaces
+        var url = relativePath(template, file),
+            namespaces = template.options.namespaces;
+
+        if (file.indexOf('::') > 0) {
+            for (var k in namespaces){
+                if (namespaces.hasOwnProperty(k)) {
+                    file = file.replace(k+'::', namespaces[k]);
+                }
+            }
+
+            return file;
+        }
+
+        return relativePath(template, file);
     }
 
     /**
