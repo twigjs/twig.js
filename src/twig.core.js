@@ -897,8 +897,6 @@ var Twig = (function (Twig) {
             if (!ext_template) {
                 url = parsePath(this, this.extend);
 
-
-
                 ext_template = Twig.Templates.loadRemote(url, {
                     method: this.url?'ajax':'fs',
                     base: this.base,
@@ -996,7 +994,19 @@ var Twig = (function (Twig) {
      * @return {string}          The canonical version of the path
      */
     function parsePath(template, file) {
-        var url = relativePath(template, file);
+        var namespaces = template.options.namespaces;
+
+        if (file.indexOf('::') > 0) {
+            for (var k in namespaces){
+                if (namespaces.hasOwnProperty(k)) {
+                    file = file.replace(k+'::', namespaces[k]);
+                }
+            }
+
+            return file;
+        }
+
+        return relativePath(template, file);
     }
 
     /**
