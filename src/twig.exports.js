@@ -26,7 +26,8 @@ var Twig = (function (Twig) {
             options = {
                 strict_variables: params.strict_variables || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
-                rethrow: params.rethrow || false
+                rethrow: params.rethrow || false,
+                namespaces: params.namespaces || undefined
             };
 
         if (id) {
