@@ -109,6 +109,13 @@ describe("Twig.js Expressions ->", function() {
                 output.should.equal(pair.a.toString() + pair.b.toString());
             });
         });
+        it("should concatenate null and undefined values and not throw an exception", function() {
+            twig({data: '{{ a ~ b }}'}).render().should.equal("");
+            twig({data: '{{ a ~ b }}'}).render({
+                a: null,
+                b: null
+            }).should.equal("");
+        });
         it("should handle multiple chained operations", function() {
             var data = {a: 4.5, b: 10, c: 12,  d: -0.25, e:0, f: 65,  g: 21, h: -0.0002};
             var test_template = twig({data: '{{a/b+c*d-e+f/g*h}}'});
