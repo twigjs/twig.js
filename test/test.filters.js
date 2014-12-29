@@ -269,6 +269,36 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|format }}' });
             test_template.render().should.equal("" );
         });
+
+        it("should handle positive leading sign without padding", function() {
+            var template = twig({data: '{{ "I like positive numbers like %+d."|format(123) }}'});
+            template.render({foo: "foo"}).should.equal("I like positive numbers like +123." );
+        });
+
+        it("should handle negative leading sign without padding", function() {
+            var template = twig({data: '{{ "I like negative numbers like %+d."|format(-123) }}'});
+            template.render({foo: "foo"}).should.equal("I like negative numbers like -123." );
+        });
+
+        it("should handle positive leading sign with padding zero", function() {
+            var template = twig({data: '{{ "I like positive numbers like %+05d."|format(123) }}'});
+            template.render({foo: "foo"}).should.equal("I like positive numbers like +0123." );
+        });
+
+        it("should handle negative leading sign with padding zero", function() {
+            var template = twig({data: '{{ "I like negative numbers like %+05d."|format(-123) }}'});
+            template.render({foo: "foo"}).should.equal("I like negative numbers like -0123." );
+        });
+
+        it("should handle positive leading sign with padding space", function() {
+            var template = twig({data: '{{ "I like positive numbers like %+5d."|format(123) }}'});
+            template.render({foo: "foo"}).should.equal("I like positive numbers like  +123." );
+        });
+
+        it("should handle negative leading sign with padding space", function() {
+            var template = twig({data: '{{ "I like negative numbers like %+5d."|format(-123) }}'});
+            template.render({foo: "foo"}).should.equal("I like negative numbers like  -123." );
+        });
     });
 
     describe("striptags ->", function() {
