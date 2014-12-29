@@ -1166,11 +1166,37 @@ var Twig = (function(Twig) {
                                             case 'x': arg = arg.toString(16); break;
                                             case 'X': arg = arg.toString(16).toUpperCase(); break;
                                     }
-                                    arg = (/[def]/.test(match[8]) && match[3] && arg >= 0 ? '+'+ arg : arg);
+
+                                    var sign = '';
+                                    if (/[def]/.test(match[8])) {
+                                        if (match[3]) {
+                                            sign = arg >= 0 ? '+' : '-';
+                                        } else {
+                                            sign = arg >= 0 ? '' : '-';
+                                        }
+                                        arg = Math.abs(arg);
+                                    }
+
                                     pad_character = match[4] ? match[4] == '0' ? '0' : match[4].charAt(1) : ' ';
-                                    pad_length = match[6] - String(arg).length;
+                                    pad_length = match[6] - String(arg).length - sign.length;
                                     pad = match[6] ? str_repeat(pad_character, pad_length) : '';
-                                    output.push(match[5] ? arg + pad : pad + arg);
+
+                                    if (match[5]) {
+                                        // trailing padding
+                                        output.push(sign);
+                                        output.push(arg);
+                                        output.push(pad);
+                                    } else if ('0' == pad_character) {
+                                        // leading zero padding
+                                        output.push(sign);
+                                        output.push(pad);
+                                        output.push(arg);
+                                    } else {
+                                        // leading padding
+                                        output.push(pad);
+                                        output.push(sign);
+                                        output.push(arg);
+                                    }
                             }
                     }
                     return output.join('');
