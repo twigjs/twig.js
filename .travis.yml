@@ -6,4 +6,4 @@ node_js:
 before_install:
   - npm install -g npm@1.4
 before_script:
-  - make
+  - make --always-make
