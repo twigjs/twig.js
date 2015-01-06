@@ -199,6 +199,8 @@ var Twig = (function (Twig) {
                 var keys = Object.keys(value);
                 return value[keys[getRandomNumber(keys.length-1)]];
             }
+
+            return getRandomNumber(2147483647);
         }
     };
 

@@ -284,6 +284,12 @@ describe("Twig.js Functions ->", function() {
                     twig({data: '{{ random(10) }}'}).render().should.be.within(0, 10);
                 }
             });
+
+            it("should return a random integer between 0 and 2147483647 when no parameters are passed", function() {
+                for (var i = 1; i <= 1000; i++) {
+                    twig({data: '{{ random() }}'}).render().should.be.within(0, 2147483647);
+                }
+            });
         });
     });
 });
