@@ -158,10 +158,15 @@ var Twig = (function (Twig) {
         debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
     };
 
-    if (typeof console !== "undefined" && 
-        typeof console.log !== "undefined") {
-        Twig.log.error = function() {
-            console.log.apply(console, arguments);
+    if (typeof console !== "undefined") {
+        if (typeof console.error !== "undefined") {
+            Twig.log.error = function() {
+                console.error.apply(console, arguments);
+            }
+        } else if (typeof console.log !== "undefined") {
+            Twig.log.error = function() {
+                console.log.apply(console, arguments);
+            }
         }
     } else {
         Twig.log.error = function(){};
