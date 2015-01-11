@@ -739,9 +739,7 @@ var Twig = (function (Twig) {
                 delete token.match;
                 output.push(token);
             },
-            parse: function(token, stack, context) {
-                stack.push(token.value === true ? "1" : "" );
-            }
+            parse: Twig.expression.fn.parse.push_value
         }
     ];
 
