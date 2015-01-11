@@ -785,7 +785,7 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 if (token.expression !== "_self") {
                     var file = Twig.expression.parse.apply(this, [token.stack, context]);
-                    var template = this.importMacros(file || token.expression);
+                    var template = this.importFile(file || token.expression);
                     context[token.contextName] = template.render({}, {output: 'macros'});
                 }
                 else {
@@ -848,7 +848,7 @@ var Twig = (function (Twig) {
 
                 if (token.expression !== "_self") {
                     var file = Twig.expression.parse.apply(this, [token.stack, context]);
-                    var template = this.importMacros(file || token.expression);
+                    var template = this.importFile(file || token.expression);
                     macros = template.render({}, {output: 'macros'});
                 }
                 else {
