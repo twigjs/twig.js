@@ -178,6 +178,36 @@ var Twig = (function (Twig) {
                 options: this.options,
                 data: template
             });
+        },
+        random: function(value) {
+            var LIMIT_INT31 = 0x80000000;
+
+            function getRandomNumber(n) {
+                var random = Math.floor(Math.random() * LIMIT_INT31);
+                var limits = [0, n];
+                var min = Math.min.apply(null, limits),
+                    max = Math.max.apply(null, limits);
+                return min + Math.floor((max - min + 1) * random / LIMIT_INT31);
+            }
+
+            if(Twig.lib.is("Number", value)) {
+                return getRandomNumber(value);
+            }
+
+            if(Twig.lib.is("String", value)) {
+                return value.charAt(getRandomNumber(value.length-1));
+            }
+
+            if(Twig.lib.is("Array", value)) {
+                return value[getRandomNumber(value.length-1)];
+            }
+
+            if(Twig.lib.is("Object", value)) {
+                var keys = Object.keys(value);
+                return value[keys[getRandomNumber(keys.length-1)]];
+            }
+
+            return getRandomNumber(LIMIT_INT31-1);
         }
     };
 

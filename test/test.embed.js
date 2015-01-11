@@ -3,7 +3,7 @@ var Twig = Twig || require("../twig"),
 
 describe("Twig.js Embed ->", function() {
     // Test loading a template from a remote endpoint
-    it("it should load embed", function() {
+    it("it should load embed and render", function() {
         twig({
             id:   'embed',
             path: 'test/templates/embed-simple.twig',

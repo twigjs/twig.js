@@ -135,11 +135,9 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var output = '',
-                    // Parse the expression
-                    result = Twig.expression.parse.apply(this, [token.stack, context]);
+                var output = '';
 
-                if (chain && result) {
+                if (chain && Twig.expression.parse.apply(this, [token.stack, context]) === true) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
@@ -244,7 +242,6 @@ var Twig = (function (Twig) {
             parse: function (token, context, continue_chain) {
                 // Parse expression
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
-                    inner_context = Twig.lib.copy(context),
                     output = [],
 					len,
 					index = 0,
@@ -265,6 +262,8 @@ var Twig = (function (Twig) {
                         };
                     },
                     loop = function(key, value) {
+                        var inner_context = Twig.lib.copy(context);
+
                         inner_context[token.value_var] = value;
                         if (token.key_var) {
                             inner_context[token.key_var] = key;
@@ -308,7 +307,7 @@ var Twig = (function (Twig) {
 
                 return {
                     chain: continue_chain,
-                    output: output.join("")
+                    output: Twig.output.apply(this, [output])
                 };
             }
         },
@@ -478,7 +477,6 @@ var Twig = (function (Twig) {
                     output = "",
                     isImported = this.importedBlocks.indexOf(token.block) > -1,
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
-
 
                 // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
@@ -746,7 +744,7 @@ var Twig = (function (Twig) {
                         }
                     }
                     // Render
-                    return Twig.parse.apply(template, [token.output, macroContext]);
+                    return Twig.parse.apply(template, [token.output, macroContext])
                 };
 
                 return {
