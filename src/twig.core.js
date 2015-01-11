@@ -861,6 +861,7 @@ var Twig = (function (Twig) {
     Twig.Template.prototype.reset = function(blocks) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
         this.blocks = {};
+        this.importedBlocks = [];
         this.child = {
             blocks: blocks || {}
         };
@@ -967,6 +968,7 @@ var Twig = (function (Twig) {
         Twig.forEach(Object.keys(sub_template.blocks), function(key) {
             if (override || that.blocks[key] === undefined) {
                 that.blocks[key] = sub_template.blocks[key];
+                that.importedBlocks.push(key);
             }
         });
     };

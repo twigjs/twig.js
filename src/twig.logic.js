@@ -475,15 +475,21 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 var block_output = "",
                     output = "",
+                    isImported = this.importedBlocks.indexOf(token.block) > -1,
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
-                // Don't override previous blocks
+                // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
-                if (this.blocks[token.block] === undefined || hasParent || context.loop) {
+                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
                     }, context]);
+
+                    if (isImported) {
+                        // once the block is overridden, remove it from the list of imported blocks
+                        this.importedBlocks.splice(this.importedBlocks.indexOf(token.block));
+                    }
 
                     if (hasParent) {
                         this.blocks[token.block] =  this.blocks[token.block].replace(Twig.placeholders.parent, block_output);
@@ -554,7 +560,7 @@ var Twig = (function (Twig) {
             /**
              * Block logic tokens.
              *
-             *  Format: {% extends "template.twig" %}
+             *  Format: {% use "template.twig" %}
              */
             type: Twig.logic.type.use,
             regex: /^use\s+(.+)$/,
