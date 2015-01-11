@@ -194,6 +194,15 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
                     .should.equal("Content - test Title: Content - test");
             });
+
+            it("shouldn't escape the content of blocks twice", function() {
+                twig({
+                    autoescape: true,
+                    data: '{% block test %}{{ val }}{% endblock %} {{ block("test") }}'
+                }).render({
+                    val: "te&st"
+                }).should.equal("te&amp;st te&amp;st");
+            });
         });
 
         describe("attribute ->", function() {

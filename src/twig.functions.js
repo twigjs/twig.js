@@ -175,6 +175,7 @@ var Twig = (function (Twig) {
                 template = '';
             }
             return new Twig.Template({
+                options: this.options,
                 data: template
             });
         },

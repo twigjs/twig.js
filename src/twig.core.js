@@ -541,7 +541,7 @@ var Twig = (function (Twig) {
 
                 switch (token.type) {
                     case Twig.token.type.raw:
-                        output.push(token.value);
+                        output.push(Twig.filters.raw(token.value));
                         break;
 
                     case Twig.token.type.logic:
@@ -570,7 +570,7 @@ var Twig = (function (Twig) {
                         break;
                 }
             });
-            return output.join("");
+            return Twig.output.apply(this, [output]);
         } catch (ex) {
             Twig.log.error("Error parsing twig template " + this.id + ": ");
             if (ex.stack) {
@@ -609,6 +609,29 @@ var Twig = (function (Twig) {
 
         return tokens;
     };
+
+    /**
+     * Join the output token's stack and escape it if needed
+     *
+     * @param {Array} Output token's stack
+     *
+     * @return {string|String} Autoescaped output
+     */
+    Twig.output = function(output) {
+        if (!this.options.autoescape) {
+            return output.join("");
+        }
+
+        // [].map would be better but it's not supported by IE8-
+        var escaped_output = [];
+        Twig.forEach(output, function (str) {
+            if (str && !str.twig_markup) {
+                str = Twig.filters.escape(str);
+            }
+            escaped_output.push(str);
+        });
+        return Twig.Markup(escaped_output.join(""));
+    }
 
     // Namespace for template storage and retrieval
     Twig.Templates = {
@@ -977,6 +1000,22 @@ var Twig = (function (Twig) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
     };
+
+    /**
+     * Create safe output
+     *
+     * @param {string} Content safe to output
+     *
+     * @return {String} Content wrapped into a String
+     */
+
+    Twig.Markup = function(content) {
+        if (typeof content === 'string' && content.length > 0) {
+            content = new String(content);
+            content.twig_markup = true;
+        }
+        return content;
+    }
 
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.

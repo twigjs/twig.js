@@ -297,11 +297,12 @@ var Twig = (function (Twig) {
             if (value === undefined|| value === null){
                 return;
             }
-            return value.toString().replace(/&/g, "&amp;")
+            var raw_value = value.toString().replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
                         .replace(/>/g, "&gt;")
                         .replace(/"/g, "&quot;")
                         .replace(/'/g, "&#039;");
+            return Twig.Markup(raw_value);
         },
 
         /* Alias of escape */
@@ -505,8 +506,7 @@ var Twig = (function (Twig) {
             return value[value.length - 1];
         },
         raw: function(value) {
-            //Raw filter shim
-            return value;
+            return Twig.Markup(value);
         },
         batch: function(items, params) {
             var size = params.shift(),

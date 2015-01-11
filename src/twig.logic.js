@@ -307,7 +307,7 @@ var Twig = (function (Twig) {
 
                 return {
                     chain: continue_chain,
-                    output: output.join("")
+                    output: Twig.output.apply(this, [output])
                 };
             }
         },
