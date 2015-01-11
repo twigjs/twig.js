@@ -555,7 +555,7 @@ var Twig = (function (Twig) {
 
                 switch (token.type) {
                     case Twig.token.type.raw:
-                        output.push(token.value);
+                        output.push(Twig.filters.raw(token.value));
                         break;
 
                     case Twig.token.type.logic:
@@ -584,7 +584,7 @@ var Twig = (function (Twig) {
                         break;
                 }
             });
-            return output.join("");
+            return Twig.output.apply(this, [output]);
         } catch (ex) {
             Twig.log.error("Error parsing twig template " + this.id + ": ");
             if (ex.stack) {
@@ -623,6 +623,29 @@ var Twig = (function (Twig) {
 
         return tokens;
     };
+
+    /**
+     * Join the output token's stack and escape it if needed
+     *
+     * @param {Array} Output token's stack
+     *
+     * @return {string|String} Autoescaped output
+     */
+    Twig.output = function(output) {
+        if (!this.options.autoescape) {
+            return output.join("");
+        }
+
+        // [].map would be better but it's not supported by IE8-
+        var escaped_output = [];
+        Twig.forEach(output, function (str) {
+            if (str && !str.twig_markup) {
+                str = Twig.filters.escape(str);
+            }
+            escaped_output.push(str);
+        });
+        return Twig.Markup(escaped_output.join(""));
+    }
 
     // Namespace for template storage and retrieval
     Twig.Templates = {
@@ -875,6 +898,7 @@ var Twig = (function (Twig) {
     Twig.Template.prototype.reset = function(blocks) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
         this.blocks = {};
+        this.importedBlocks = [];
         this.child = {
             blocks: blocks || {}
         };
@@ -981,6 +1005,7 @@ var Twig = (function (Twig) {
         Twig.forEach(Object.keys(sub_template.blocks), function(key) {
             if (override || that.blocks[key] === undefined) {
                 that.blocks[key] = sub_template.blocks[key];
+                that.importedBlocks.push(key);
             }
         });
     };
@@ -989,6 +1014,22 @@ var Twig = (function (Twig) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
     };
+
+    /**
+     * Create safe output
+     *
+     * @param {string} Content safe to output
+     *
+     * @return {String} Content wrapped into a String
+     */
+
+    Twig.Markup = function(content) {
+        if (typeof content === 'string' && content.length > 0) {
+            content = new String(content);
+            content.twig_markup = true;
+        }
+        return content;
+    }
 
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
@@ -2108,7 +2149,7 @@ var Twig = (function (Twig) {
 
                 return {
                     chain: continue_chain,
-                    output: output.join("")
+                    output: Twig.output.apply(this, [output])
                 };
             }
         },
@@ -2276,15 +2317,21 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 var block_output = "",
                     output = "",
+                    isImported = this.importedBlocks.indexOf(token.block) > -1,
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
-                // Don't override previous blocks
+                // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
-                if (this.blocks[token.block] === undefined || hasParent || context.loop) {
+                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
                     }, context]);
+
+                    if (isImported) {
+                        // once the block is overridden, remove it from the list of imported blocks
+                        this.importedBlocks.splice(this.importedBlocks.indexOf(token.block));
+                    }
 
                     if (hasParent) {
                         this.blocks[token.block] =  this.blocks[token.block].replace(Twig.placeholders.parent, block_output);
@@ -2355,7 +2402,7 @@ var Twig = (function (Twig) {
             /**
              * Block logic tokens.
              *
-             *  Format: {% extends "template.twig" %}
+             *  Format: {% use "template.twig" %}
              */
             type: Twig.logic.type.use,
             regex: /^use\s+(.+)$/,
@@ -4504,11 +4551,12 @@ var Twig = (function (Twig) {
             if (value === undefined|| value === null){
                 return;
             }
-            return value.toString().replace(/&/g, "&amp;")
+            var raw_value = value.toString().replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
                         .replace(/>/g, "&gt;")
                         .replace(/"/g, "&quot;")
                         .replace(/'/g, "&#039;");
+            return Twig.Markup(raw_value);
         },
 
         /* Alias of escape */
@@ -4712,8 +4760,7 @@ var Twig = (function (Twig) {
             return value[value.length - 1];
         },
         raw: function(value) {
-            //Raw filter shim
-            return value;
+            return Twig.Markup(value);
         },
         batch: function(items, params) {
             var size = params.shift(),
@@ -4962,6 +5009,7 @@ var Twig = (function (Twig) {
                 template = '';
             }
             return new Twig.Template({
+                options: this.options,
                 data: template
             });
         },
@@ -5100,6 +5148,8 @@ var Twig = (function (Twig) {
         var id = params.id,
             options = {
                 strict_variables: params.strict_variables || false,
+                // TODO: turn autoscape on in the next major version
+                autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
                 rethrow: params.rethrow || false
             };
