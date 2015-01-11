@@ -39,7 +39,9 @@ var Twig = (function (Twig) {
         macro:     'Twig.logic.type.macro',
         endmacro:  'Twig.logic.type.endmacro',
         import_:   'Twig.logic.type.import',
-        from:      'Twig.logic.type.from'
+        from:      'Twig.logic.type.from',
+        embed:     'Twig.logic.type.embed',
+        endembed:  'Twig.logic.type.endembed'
     };
 
 
@@ -867,6 +869,99 @@ var Twig = (function (Twig) {
                 }
 
             }
+        },
+        {
+            /**
+             * The embed tag combines the behaviour of include and extends.
+             * It allows you to include another template's contents, just like include does.
+             *
+             *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
+             */
+            type: Twig.logic.type.embed,
+            regex: /^embed\s+(ignore missing\s+)?(.+?)\s*(?:with\s+(.+?))?\s*(only)?$/,
+            next: [
+                Twig.logic.type.endembed
+            ],
+            open: true,
+            compile: function (token) {
+                var match = token.match,
+                    includeMissing = match[1] !== undefined,
+                    expression = match[2].trim(),
+                    withContext = match[3],
+                    only = ((match[4] !== undefined) && match[4].length);
+
+                delete token.match;
+
+                token.only = only;
+                token.includeMissing = includeMissing;
+
+                token.stack = Twig.expression.compile.apply(this, [{
+                    type:  Twig.expression.type.expression,
+                    value: expression
+                }]).stack;
+
+                if (withContext !== undefined) {
+                    token.withStack = Twig.expression.compile.apply(this, [{
+                        type:  Twig.expression.type.expression,
+                        value: withContext.trim()
+                    }]).stack;
+                }
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                // Resolve filename
+                var innerContext = {},
+                    withContext,
+                    i,
+                    template;
+
+                if (!token.only) {
+                    for (i in context) {
+                        if (context.hasOwnProperty(i))
+                            innerContext[i] = context[i];
+                    }
+                }
+
+                if (token.withStack !== undefined) {
+                    withContext = Twig.expression.parse.apply(this, [token.withStack, context]);
+
+                    for (i in withContext) {
+                        if (withContext.hasOwnProperty(i))
+                            innerContext[i] = withContext[i];
+                    }
+                }
+
+                var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
+
+                if (file instanceof Twig.Template) {
+                    template = file;
+                } else {
+                    // Import file
+                    template = this.importFile(file);
+                }
+
+                // reset previous blocks
+                this.blocks = {};
+
+                // parse tokens. output will be not used
+                var output = Twig.parse.apply(this, [token.output, innerContext]);
+
+                // render tempalte with blocks defined in embed block
+                return {
+                    chain: chain,
+                    output: template.render(innerContext, {'blocks':this.blocks})
+                };
+            }
+        },
+        /* Add the {% endembed %} token
+         *
+         */
+        {
+            type: Twig.logic.type.endembed,
+            regex: /^endembed$/,
+            next: [ ],
+            open: false
         }
 
     ];
