@@ -691,7 +691,7 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type._null,
             // match a number
-            regex: /^null/i,
+            regex: /^(null|NULL|none|NONE)/,
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 delete token.match;
@@ -732,7 +732,7 @@ var Twig = (function (Twig) {
              * Match a boolean
              */
             type: Twig.expression.type.bool,
-            regex: /^(true|false)/i,
+            regex: /^(true|TRUE|false|FALSE)/,
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 token.value = (token.match[0].toLowerCase( ) === "true");
