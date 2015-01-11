@@ -179,8 +179,14 @@ var Twig = (function (Twig) {
             });
         },
         random: function(value) {
+            var LIMIT_INT31 = 0x80000000;
+
             function getRandomNumber(n) {
-                return Math.floor((Math.random() * n) + 1);
+                var random = Math.floor(Math.random() * LIMIT_INT31);
+                var limits = [0, n];
+                var min = Math.min.apply(null, limits),
+                    max = Math.max.apply(null, limits);
+                return min + Math.floor((max - min + 1) * random / LIMIT_INT31);
             }
 
             if(Twig.lib.is("Number", value)) {
@@ -200,7 +206,7 @@ var Twig = (function (Twig) {
                 return value[keys[getRandomNumber(keys.length-1)]];
             }
 
-            return getRandomNumber(2147483647);
+            return getRandomNumber(LIMIT_INT31-1);
         }
     };
 
