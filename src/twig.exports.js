@@ -28,7 +28,7 @@ var Twig = (function (Twig) {
                 autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
                 rethrow: params.rethrow || false,
-                namespaces: params.namespaces || undefined
+                namespaces: params.namespaces
             };
 
         if (id) {
