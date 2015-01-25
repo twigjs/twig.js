@@ -174,8 +174,8 @@ var Twig = (function (Twig) {
             case '~':
                 b = stack.pop();
                 a = stack.pop();
-                stack.push( (a !== undefined ? a.toString() : "")
-                          + (b !== undefined ? b.toString() : "") );
+                stack.push( (a != null ? a.toString() : "")
+                          + (b != null ? b.toString() : "") );
                 break;
 
             case 'not':

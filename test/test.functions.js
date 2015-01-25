@@ -194,6 +194,15 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{% block title %}Content - {{ val }}{% endblock %} Title: {{ block("title") }}'}).render({ val: "test" })
                     .should.equal("Content - test Title: Content - test");
             });
+
+            it("shouldn't escape the content of blocks twice", function() {
+                twig({
+                    autoescape: true,
+                    data: '{% block test %}{{ val }}{% endblock %} {{ block("test") }}'
+                }).render({
+                    val: "te&st"
+                }).should.equal("te&amp;st te&amp;st");
+            });
         });
 
         describe("attribute ->", function() {
@@ -245,6 +254,51 @@ describe("Twig.js Functions ->", function() {
                   .should.equal("");
             });
  
+        });
+        describe("template_from_string ->", function() {
+            it("should load a template from a string", function() {
+                twig({data: '{% include template_from_string("{{ value }}") %}'}).render({
+                    value: 'test'
+                })
+                .should.equal('test');
+            });
+            it("should load a template from a variable", function() {
+                twig({data: '{% include template_from_string(template) %}'}).render({
+                    template: '{{ value }}',
+                    value: 'test'
+                })
+                .should.equal('test');
+            });
+        });
+
+        describe("random ->", function() {
+            it("should return a random item from a traversable or array", function() {
+                var arr = "bcdefghij".split("");
+
+                for (var i = 1; i <= 1000; i++) {
+                    arr.should.containEql(twig({data: '{{ random(arr) }}'}).render({arr: arr}));
+                }
+            });
+
+            it("should return a random character from a string", function() {
+                var str = "abcdefghij";
+
+                for (var i = 1; i <= 1000; i++) {
+                    str.should.containEql(twig({data: '{{ random(str) }}'}).render({str: str}));
+                }
+            });
+
+            it("should return a random integer between 0 and the integer parameter", function() {
+                for (var i = 1; i <= 1000; i++) {
+                    twig({data: '{{ random(10) }}'}).render().should.be.within(0, 10);
+                }
+            });
+
+            it("should return a random integer between 0 and 2147483647 when no parameters are passed", function() {
+                for (var i = 1; i <= 1000; i++) {
+                    twig({data: '{{ random() }}'}).render().should.be.within(0, 2147483647);
+                }
+            });
         });
     });
 });

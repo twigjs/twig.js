@@ -259,6 +259,15 @@ describe("Twig.js Core ->", function() {
             twig({data: '{% set _context = "test" %}{{ _context|json_encode }}'}).render().should.equal('{"_context":"test"}');
             twig({data: '{% set _context = "test" %}{{ _context._context }}'}).render().should.equal("test");
         });
+
+        it("should support autoescape option", function() {
+            twig({
+                autoescape: true,
+                data: '{{ value }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
+        });
     });
 });
 

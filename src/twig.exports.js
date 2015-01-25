@@ -25,6 +25,8 @@ var Twig = (function (Twig) {
         var id = params.id,
             options = {
                 strict_variables: params.strict_variables || false,
+                // TODO: turn autoscape on in the next major version
+                autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
                 rethrow: params.rethrow || false,
                 namespaces: params.namespaces

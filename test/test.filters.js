@@ -269,6 +269,36 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|format }}' });
             test_template.render().should.equal("" );
         });
+
+        it("should handle positive leading sign without padding", function() {
+            var template = twig({data: '{{ "I like positive numbers like %+d."|format(123) }}'});
+            template.render({foo: "foo"}).should.equal("I like positive numbers like +123." );
+        });
+
+        it("should handle negative leading sign without padding", function() {
+            var template = twig({data: '{{ "I like negative numbers like %+d."|format(-123) }}'});
+            template.render({foo: "foo"}).should.equal("I like negative numbers like -123." );
+        });
+
+        it("should handle positive leading sign with padding zero", function() {
+            var template = twig({data: '{{ "I like positive numbers like %+05d."|format(123) }}'});
+            template.render({foo: "foo"}).should.equal("I like positive numbers like +0123." );
+        });
+
+        it("should handle negative leading sign with padding zero", function() {
+            var template = twig({data: '{{ "I like negative numbers like %+05d."|format(-123) }}'});
+            template.render({foo: "foo"}).should.equal("I like negative numbers like -0123." );
+        });
+
+        it("should handle positive leading sign with padding space", function() {
+            var template = twig({data: '{{ "I like positive numbers like %+5d."|format(123) }}'});
+            template.render({foo: "foo"}).should.equal("I like positive numbers like  +123." );
+        });
+
+        it("should handle negative leading sign with padding space", function() {
+            var template = twig({data: '{{ "I like negative numbers like %+5d."|format(-123) }}'});
+            template.render({foo: "foo"}).should.equal("I like negative numbers like  -123." );
+        });
     });
 
     describe("striptags ->", function() {
@@ -293,6 +323,15 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|escape }}' });
             test_template.render().should.equal("" );
         });
+
+        it("should not escape twice if autoescape is on", function() {
+            twig({
+                autoescape: true,
+                data: '{{ value }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
+        });
     });
 
     describe("e ->", function() {
@@ -304,6 +343,16 @@ describe("Twig.js Filters ->", function() {
         it("should handle undefined", function() {
             var test_template = twig({data: '{{ undef|e }}' });
             test_template.render().should.equal("" );
+        });
+
+        it("should not escape twice if autoescape is on", function() {
+            var template = twig({
+                autoescape: true,
+                data: '{{ value }}'
+            });
+            template.render({
+                value: "<test>&</test>"
+            }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
         });
     });
 
@@ -500,6 +549,28 @@ describe("Twig.js Filters ->", function() {
         it('should return last item in a sorted object', function () {
             var test_template = twig({data: "{{ {'m':1, 'z':5, 'a':3}|sort|last }}" });
             test_template.render().should.equal("5");
+        });
+    });
+
+    describe('raw ->', function () {
+        it('should output the raw value if autoescape is on', function () {
+            var template = twig({
+                autoescape: true,
+                data: '{{ value|raw }}'
+            });
+            template.render({
+                value: "<test>&</test>"
+            }).should.equal('<test>&</test>');
+        });
+
+        it('should output the raw value if autoescape is off', function () {
+            var template = twig({
+                autoescape: false,
+                data: '{{ value|raw }}'
+            });
+            template.render({
+                value: "<test>&</test>"
+            }).should.equal('<test>&</test>');
         });
     });
 

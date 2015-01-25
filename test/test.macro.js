@@ -12,7 +12,7 @@ describe("Twig.js Macro ->", function() {
         // Load the template
         twig({ref: 'macro'}).render({ }).should.equal( '' );
     });
-    
+
     it("it should import macro", function() {
         twig({
             id:   'import-macro',
@@ -71,6 +71,21 @@ describe("Twig.js Macro ->", function() {
         });
         // Load the template
         twig({ref: 'from-macro-import'}).render({ }).trim().should.equal( 'Twig.js<div class="field"><input type="text" name="text" value="" size="20" /></div><div class="field red"><input type="text" name="password" value="" size="20" /></div>' );
+    });
+
+    it("should support inline includes by ID", function() {
+        twig({
+            id:   'hello',
+            data: '{% macro echo(name) %}Hello {{ name }}{% endmacro %}'
+        });
+
+        var template = twig({
+                allowInlineIncludes: true,
+                data: 'template with {% from "hello" import echo %}{{ echo("Twig.js") }}'
+            }),
+            output = template.render()
+
+        output.should.equal("template with Twig.js");
     });
 
 });
