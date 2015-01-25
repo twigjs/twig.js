@@ -1085,7 +1085,7 @@ var Twig = (function (Twig) {
         if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
             for (var k in namespaces){
                 if (namespaces.hasOwnProperty(k)) {
-                    file = file.replace(k+'::', namespaces[k]);
+                    file = file.replace(k + '::', namespaces[k]);
                 }
             }
 
@@ -1566,8 +1566,8 @@ var Twig = (function(Twig) {
     Twig.lib.parseISO8601Date = function (s){
         // Taken from http://n8v.enteuxis.org/2010/12/parsing-iso-8601-dates-in-javascript/
         // parenthese matches:
-        // year month day    hours minutes seconds  
-        // dotmilliseconds 
+        // year month day    hours minutes seconds
+        // dotmilliseconds
         // tzstring plusminus hours minutes
         var re = /(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(\.\d+)?(Z|([+-])(\d\d):(\d\d))/;
 
@@ -1578,7 +1578,7 @@ var Twig = (function(Twig) {
         //  ["2010-12-07T11:00:00.000-09:00", "2010", "12", "07", "11",
         //     "00", "00", ".000", "-09:00", "-", "09", "00"]
         // "2010-12-07T11:00:00.000Z" parses to:
-        //  ["2010-12-07T11:00:00.000Z",      "2010", "12", "07", "11", 
+        //  ["2010-12-07T11:00:00.000Z",      "2010", "12", "07", "11",
         //     "00", "00", ".000", "Z", undefined, undefined, undefined]
 
         if (! d) {
@@ -1598,7 +1598,7 @@ var Twig = (function(Twig) {
         var ms = Date.UTC(d[1], d[2] - 1, d[3], d[4], d[5], d[6]);
 
         // if there are milliseconds, add them
-        if (d[7] > 0) {  
+        if (d[7] > 0) {
             ms += Math.round(d[7] * 1000);
         }
 

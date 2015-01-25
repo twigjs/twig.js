@@ -1071,7 +1071,7 @@ var Twig = (function (Twig) {
         if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
             for (var k in namespaces){
                 if (namespaces.hasOwnProperty(k)) {
-                    file = file.replace(k+'::', namespaces[k]);
+                    file = file.replace(k + '::', namespaces[k]);
                 }
             }
 
