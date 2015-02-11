@@ -488,7 +488,7 @@ var Twig = (function (Twig) {
 
                     if (isImported) {
                         // once the block is overridden, remove it from the list of imported blocks
-                        this.importedBlocks.splice(this.importedBlocks.indexOf(token.block));
+                        this.importedBlocks.splice(this.importedBlocks.indexOf(token.block), 1);
                     }
 
                     if (hasParent) {
