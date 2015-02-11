@@ -84,6 +84,20 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 
+    it("should allow overriding of included nested blocks", function(done) {
+        // Test overriding of included blocks
+        twig({
+            id:   'use-override-nested-block',
+            path: 'test/templates/use-override-nested-block.twig',
+
+            load: function(template) {
+                // Load the template
+                template.render().should.equal("parent:new-child1:new-child2");
+                done();
+            }
+        });
+    });
+
     it("should make the contents of blocks available after they're rendered", function(done) {
         // Test rendering and loading one block
         twig({
