@@ -369,6 +369,27 @@ describe("Twig.js Filters ->", function() {
         });
     });
 
+    describe("truncate ->", function() {
+        it("should truncate string to default size(20) and add default separator", function() {
+            var template = twig({data: '{{ test|truncate }}'});
+            template.render({test: '01234567890123456789012345678901234567890123456789'}).should.equal("012345678901234567890123456789...");
+        });
+
+        it("should truncate string to custom size(10) and add default separator", function() {
+            var template = twig({data: '{{ test|truncate(10) }}'});
+            template.render({test: '01234567890123456789012345678901234567890123456789'}).should.equal("0123456789...");
+        });
+
+        it("should truncate string to custom size(15) with preserve and add default separator", function() {
+            var template = twig({data: '{{ test|truncate(15, true) }}'});
+            template.render({test: '0123456789 0123456789 0123456789 0123456789 0123456789'}).should.equal("0123456789 0123456789...");
+        });
+
+        it("should truncate string to custom size(15) with preserve and add custom(*) separator", function() {
+            var template = twig({data: '{{ test|truncate(15, true, "*") }}'});
+            template.render({test: '0123456789 0123456789 0123456789 0123456789 0123456789'}).should.equal("0123456789 0123456789*");
+        });
+    });
 
     describe("trim ->", function() {
         it("should trim whitespace from strings", function() {
