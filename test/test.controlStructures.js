@@ -121,9 +121,9 @@ describe("Twig.js Control Structures ->", function() {
 
     // {% set thing='value' %}
     describe("set tag ->", function() {
-        it("should set the global context from within a for loop", function() {
-            var test_template = twig({data: '{% set value="wrong" %}{% for value in [1] %}{% set value="right" %}{% endfor %}{{value}}'});
-            test_template.render().should.equal("right");
+        it("should not set the global context from within a for loop", function() {
+            var test_template = twig({data: '{% for value in [1] %}{% set foo="right" %}{% endfor %}{{ foo }}'});
+            test_template.render().should.equal("");
         });
     });
 });

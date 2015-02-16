@@ -351,8 +351,6 @@ var Twig = (function (Twig) {
                 var value = Twig.expression.parse.apply(this, [token.expression, context]),
                     key = token.key;
 
-                // set on both the global and local context
-                this.context[key] = value;
                 context[key] = value;
 
                 return {
