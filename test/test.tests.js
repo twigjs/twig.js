@@ -65,6 +65,7 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ key is null }}'}).render({key: null}).should.equal("true");
         });
     });
+
     describe("sameas test ->", function() {
         it("should identify the exact same type as true", function() {
             twig({data: '{{ true is sameas(true) }}'}).render().should.equal("true");
@@ -77,6 +78,26 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ true is sameas(1) }}'}).render().should.equal("false");
             twig({data: '{{ false is sameas("") }}'}).render().should.equal("false");
             twig({data: '{{ a is sameas(1) }}'}).render({a: "1"}).should.equal("false");
+        });
+    });
+
+    describe("iterable test ->", function() {
+        var data = {
+                foo: [],
+                traversable: 15,
+                obj: {},
+                val: "test"
+        };
+
+        it("should fail on non-iterable data types", function() {
+            twig({data: "{{ val is iterable ? 'ok' : 'ko' }}"}).render(data).should.equal("ko");
+            twig({data: "{{ val is iterable ? 'ok' : 'ko' }}"}).render({val: null}).should.equal("ko");
+            twig({data: "{{ val is iterable ? 'ok' : 'ko' }}"}).render({}).should.equal("ko");
+        });
+
+        it("should pass on iterable data types", function() {
+            twig({data: "{{ foo is iterable ? 'ok' : 'ko' }}"}).render(data).should.equal("ok");
+            twig({data: "{{ obj is iterable ? 'ok' : 'ko' }}"}).render(data).should.equal("ok");
         });
     });
 });
