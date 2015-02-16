@@ -41,6 +41,9 @@ var Twig = (function (Twig) {
         },
         sameas: function(value, params) {
             return value === params[0];
+        },
+        iterable: function(value) {
+            return value && (Twig.lib.is("Array", value) || Twig.lib.is("Object", value));
         }
         /*
         constant ?
