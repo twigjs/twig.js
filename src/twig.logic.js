@@ -242,10 +242,9 @@ var Twig = (function (Twig) {
             parse: function (token, context, continue_chain) {
                 // Parse expression
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
-                    parent = context,
                     output = [],
-					len,
-					index = 0,
+                    len,
+                    index = 0,
                     keyset,
                     that = this,
                     conditional = token.conditional,
@@ -259,13 +258,15 @@ var Twig = (function (Twig) {
                             first: (index === 0),
                             last: isConditional?undefined:(index === len-1),
                             length: isConditional?undefined:len,
-                            parent: parent
+                            parent: context
                         };
                     },
+                    // run once for each iteration of the loop
                     loop = function(key, value) {
-                        var inner_context = context;
+                        var inner_context = context._twig_create();
 
                         inner_context[token.value_var] = value;
+
                         if (token.key_var) {
                             inner_context[token.key_var] = key;
                         }
@@ -279,13 +280,17 @@ var Twig = (function (Twig) {
                             output.push(Twig.parse.apply(that, [token.output, inner_context]));
                             index += 1;
                         }
+
+                        // Delete loop-related variables from the context
+                        delete inner_context['loop'];
+                        delete inner_context[token.value_var];
+                        delete inner_context[token.key_var];
+
+                        // Merge in values that exist in context but have changed 
+                        // in inner_context.
+                        context._twig_merge(inner_context, true);
                     };
 
-                // Store the parent as a prototype of the context
-                // It's probably the easiest and most natural way to split scopes
-                function Context() {}
-                Context.prototype = parent;
-                context = new Context();
 
                 if (result instanceof Array) {
                     len = result.length;
@@ -308,18 +313,6 @@ var Twig = (function (Twig) {
                         loop(key,  result[key]);
                     });
                 }
-
-                // Delete loop-related variables from the context
-                delete context['loop'];
-                delete context[token.value_var];
-                delete context[token.key_var];
-
-                // Merge changed context properties back to the parent
-                Twig.forEach(Object.keys(context), function (key) {
-                    if (key in parent) {
-                        parent[key] = context[key];
-                    }
-                });
 
                 // Only allow else statements if no output was generated
                 continue_chain = (output.length === 0);
