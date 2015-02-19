@@ -447,11 +447,25 @@ test_template.render({test: {
 
 <a name="twigjs-control-structures---set-tag--"></a>
 ## set tag ->
-should set the global context from within a for loop.
+should not set the global context from within a for loop.
 
 ```js
-var test_template = twig({data: '{% set value="wrong" %}{% for value in [1] %}{% set value="right" %}{% endfor %}{{value}}'});
+var test_template = twig({data: '{% for value in [1] %}{% set foo="right" %}{% endfor %}{{ foo }}'});
+test_template.render().should.equal("");
+```
+
+should set the global context from within a for loop when the variable is initialized outside of the loop.
+
+```js
+var test_template = twig({data: '{% set foo="wrong" %}{% for value in [1] %}{% set foo="right" %}{% endfor %}{{ foo }}'});
 test_template.render().should.equal("right");
+```
+
+should set the global context from within a nested for loop when the variable is initialized outside of the loop.
+
+```js
+var test_template = twig({data: '{% set k = 0 %}{% for i in 0..2 %}{% for j in 0..2 %}{{ k }}{% set k = k + 1 %}{% endfor %}{% endfor %}'});
+test_template.render().should.equal("012345678");
 ```
 
 <a name="twigjs-core--"></a>

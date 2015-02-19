@@ -173,6 +173,67 @@ var Twig = (function (Twig) {
     }
 
     /**
+     * Wrapper for context objects in Twig.
+     *
+     * @param {Object} context Values to initialize the context with. If another 
+     *        Twig.Context is provided, it will be returned instead of creating 
+     *        a new context.
+     */
+    Twig.Context = function(context) {
+        // initializing Twig.Context over an existing context 
+        // should return that context.
+        if (context instanceof Twig.Context) {
+            return context;
+        }
+
+        // If the provided context is a plain object, merge it 
+        // into the new Twig.Context
+        if (context) {
+            this._twig_merge(context);
+        }
+    };
+
+    Twig.Context.prototype = {
+        /**
+         * Create a new context that extends off of this one.
+         *
+         * The new context will have it's prototype set to this context and the 
+         * _twig_ methods will be available on the child context.
+         */
+        _twig_create: function() {
+            var ChildContext = function ChildContext() {};
+            ChildContext.prototype = this;
+            return new ChildContext();
+        },
+        /**
+         * Merge another context object into this one.
+         *
+         * @param {Object} context The context object to merge in. Can be a Twig.Context or a 
+         *        plain JS object.
+         * @param {boolean} onlyChanged If true, this will only merge in keys that already 
+         *        exist in the context, no new keys will be added.
+         */
+        _twig_merge: function(context, onlyChanged) {
+            var that = this;
+
+            Twig.forEach(Object.keys(context), function (key) {
+                if (onlyChanged && !(key in that)) {
+                    return;
+                }
+
+                // prevent context methods from being overwitten
+                if (!(key in Twig.Context.prototype)) {
+                    that[key] = context[key];
+                } else {
+                    Twig.warn(key + ' is not allowed on a Twig.Context, method name is reserved');
+                }
+            });
+
+            return this;
+        }
+    };
+
+    /**
      * Container for methods related to handling high level template tokens
      *      (for example: {{ expression }}, {% logic %}, {# comment #}, raw data)
      */
@@ -547,7 +608,7 @@ var Twig = (function (Twig) {
                 that = this;
 
             // Default to an empty object if none provided
-            context = context || { };
+            context = new Twig.Context(context || {});
 
 
             Twig.forEach(tokens, function parseToken(token) {
@@ -2085,8 +2146,8 @@ var Twig = (function (Twig) {
                 // Parse expression
                 var result = Twig.expression.parse.apply(this, [token.expression, context]),
                     output = [],
-					len,
-					index = 0,
+                    len,
+                    index = 0,
                     keyset,
                     that = this,
                     conditional = token.conditional,
@@ -2103,10 +2164,12 @@ var Twig = (function (Twig) {
                             parent: context
                         };
                     },
+                    // run once for each iteration of the loop
                     loop = function(key, value) {
-                        var inner_context = Twig.lib.copy(context);
+                        var inner_context = context._twig_create();
 
                         inner_context[token.value_var] = value;
+
                         if (token.key_var) {
                             inner_context[token.key_var] = key;
                         }
@@ -2120,7 +2183,17 @@ var Twig = (function (Twig) {
                             output.push(Twig.parse.apply(that, [token.output, inner_context]));
                             index += 1;
                         }
+
+                        // Delete loop-related variables from the context
+                        delete inner_context['loop'];
+                        delete inner_context[token.value_var];
+                        delete inner_context[token.key_var];
+
+                        // Merge in values that exist in context but have changed 
+                        // in inner_context.
+                        context._twig_merge(inner_context, true);
                     };
+
 
                 if (result instanceof Array) {
                     len = result.length;
@@ -2193,8 +2266,6 @@ var Twig = (function (Twig) {
                 var value = Twig.expression.parse.apply(this, [token.expression, context]),
                     key = token.key;
 
-                // set on both the global and local context
-                this.context[key] = value;
                 context[key] = value;
 
                 return {
