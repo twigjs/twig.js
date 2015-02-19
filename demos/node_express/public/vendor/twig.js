@@ -225,7 +225,7 @@ var Twig = (function (Twig) {
                 if (!(key in Twig.Context.prototype)) {
                     that[key] = context[key];
                 } else {
-                    Twig.warn(key + ' is not allowed on a Twig.Context, method name is reserved');
+                    Twig.log.error(key + ' is not allowed on a Twig.Context, method name is reserved');
                 }
             });
 
