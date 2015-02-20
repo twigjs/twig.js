@@ -268,6 +268,14 @@ describe("Twig.js Core ->", function() {
                 value: "<test>&</test>"
             }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
         });
+
+        it("should use a correct context in the extended template", function() {
+            twig({id: 'parent', data: '{% block body %}{{ value }}{% endblock body %}'});
+            twig({
+                allowInlineIncludes: true,
+                data: '{% extends "parent" %}{% set value = "test" %}{% block body %}{{ parent() }}{% endblock %}'
+            }).render().should.equal("test");
+        });
     });
 });
 

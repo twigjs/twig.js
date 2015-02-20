@@ -593,10 +593,6 @@ var Twig = (function (Twig) {
                 chain = true,
                 that = this;
 
-            // Default to an empty object if none provided
-            context = new Twig.Context(context || {});
-
-
             Twig.forEach(tokens, function parseToken(token) {
                 Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
