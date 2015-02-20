@@ -31,7 +31,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
- * Twig.js 0.7.2
+ * Twig.js 0.8.0
  *
  * @copyright 2011-2013 John Roepke
  * @license   Available under the BSD 2-Clause License
@@ -40,7 +40,7 @@
 
 <span class="hljs-keyword">var</span> Twig = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(Twig)</span> </span>{
 
-    Twig.VERSION = <span class="hljs-string">"0.7.2"</span>;
+    Twig.VERSION = <span class="hljs-string">"0.8.0"</span>;
 
     <span class="hljs-keyword">return</span> Twig;
 })(Twig || {});</pre></div></div>
@@ -505,7 +505,7 @@ into the new Twig.Context</p>
             <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> (!(key <span class="hljs-keyword">in</span> Twig.Context.prototype)) {
                     that[key] = context[key];
                 } <span class="hljs-keyword">else</span> {
-                    Twig.warn(key + <span class="hljs-string">' is not allowed on a Twig.Context, method name is reserved'</span>);
+                    Twig.log.error(key + <span class="hljs-string">' is not allowed on a Twig.Context, method name is reserved'</span>);
                 }
             });
 

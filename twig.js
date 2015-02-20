@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.7.2
+ * Twig.js 0.8.0
  *
  * @copyright 2011-2013 John Roepke
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.7.2";
+    Twig.VERSION = "0.8.0";
 
     return Twig;
 })(Twig || {});
