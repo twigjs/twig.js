@@ -958,7 +958,7 @@ var Twig = (function (Twig) {
         var output,
             url;
 
-        this.context = context || {};
+        this.context = new Twig.Context(context);
 
         // Clear any previous state
         this.reset();
