@@ -1,14 +1,14 @@
 /**
- * Twig.js 0.8.0
+ * Twig.js 0.8.1
  *
- * @copyright 2011-2013 John Roepke
+ * @copyright 2011-2014 John Roepke
  * @license   Available under the BSD 2-Clause License
  * @link      https://github.com/justjohn/twig.js
  */
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.8.0";
+    Twig.VERSION = "0.8.1";
 
     return Twig;
 })(Twig || {});
@@ -607,10 +607,6 @@ var Twig = (function (Twig) {
                 chain = true,
                 that = this;
 
-            // Default to an empty object if none provided
-            context = new Twig.Context(context || {});
-
-
             Twig.forEach(tokens, function parseToken(token) {
                 Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
@@ -972,7 +968,7 @@ var Twig = (function (Twig) {
         var output,
             url;
 
-        this.context = context || {};
+        this.context = new Twig.Context(context);
 
         // Clear any previous state
         this.reset();

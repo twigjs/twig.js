@@ -802,6 +802,16 @@ twig({
 }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
 ```
 
+should use a correct context in the extended template.
+
+```js
+twig({id: 'parent', data: '{% block body %}{{ value }}{% endblock body %}'});
+twig({
+    allowInlineIncludes: true,
+    data: '{% extends "parent" %}{% set value = "test" %}{% block body %}{{ parent() }}{% endblock %}'
+}).render().should.equal("test");
+```
+
 <a name="twigjs-embed--"></a>
 # Twig.js Embed ->
 it should load embed and render.
