@@ -118,6 +118,21 @@ var Twig = (function (Twig) {
         // 8. return undefined
     };
 
+    Twig.merge = function(target, source, onlyChanged, exclude) {
+        Twig.forEach(Object.keys(source), function (key) {
+            if (onlyChanged && !(key in target)) {
+                return;
+            }
+
+            // prevent context methods from being overwitten
+            if (!exclude || exclude.indexOf(key) === -1) {
+                target[key] = source[key];
+            }
+        });
+
+        return target;
+    };
+
     /**
      * Exception thrown by twig.js.
      */
@@ -166,20 +181,20 @@ var Twig = (function (Twig) {
      *        a new context.
      */
     Twig.Context = function(context) {
+        context = context || {};
+
         // initializing Twig.Context over an existing context 
         // should return that context.
-        if (context instanceof Twig.Context) {
-            return context;
+        if (!context._twig_merge) {
+            for (var key in Twig.Context.Utils) {
+                context[key] = Twig.Context.Utils[key].bind(context);
+            }
         }
 
-        // If the provided context is a plain object, merge it 
-        // into the new Twig.Context
-        if (context) {
-            this._twig_merge(context);
-        }
+        return context;
     };
 
-    Twig.Context.prototype = {
+    Twig.Context.Utils = {
         /**
          * Create a new context that extends off of this one.
          *
@@ -200,22 +215,7 @@ var Twig = (function (Twig) {
          *        exist in the context, no new keys will be added.
          */
         _twig_merge: function(context, onlyChanged) {
-            var that = this;
-
-            Twig.forEach(Object.keys(context), function (key) {
-                if (onlyChanged && !(key in that)) {
-                    return;
-                }
-
-                // prevent context methods from being overwitten
-                if (!(key in Twig.Context.prototype)) {
-                    that[key] = context[key];
-                } else {
-                    Twig.log.error(key + ' is not allowed on a Twig.Context, method name is reserved');
-                }
-            });
-
-            return this;
+            return Twig.merge(this, context, onlyChanged, Object.keys(Twig.Context.Utils));
         }
     };
 
@@ -954,7 +954,7 @@ var Twig = (function (Twig) {
         var output,
             url;
 
-        this.context = new Twig.Context(context);
+        this.context = Twig.Context(context);
 
         // Clear any previous state
         this.reset();
