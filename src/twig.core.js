@@ -141,7 +141,7 @@ var Twig = (function (Twig) {
      */
     Twig.log = {
         trace: function() {if (Twig.trace && console) {console.log(Array.prototype.slice.call(arguments));}},
-        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
+        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
     };
 
     if (typeof console !== "undefined") {
