@@ -502,7 +502,7 @@ var Twig = (function (Twig) {
                     }
 
                     if (hasParent) {
-                        this.blocks[token.block] =  this.blocks[token.block].replace(Twig.placeholders.parent, block_output);
+                        this.blocks[token.block] = Twig.Markup(this.blocks[token.block].replace(Twig.placeholders.parent, block_output));
                     } else {
                         this.blocks[token.block] = block_output;
                     }
