@@ -277,7 +277,7 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.string,
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
-            regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
+            regex: /^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 var value = token.value;
