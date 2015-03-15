@@ -269,6 +269,17 @@ describe("Twig.js Core ->", function() {
             }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
         });
 
+        it("should autoescape parent() output correctly", function() {
+            twig({id: 'parent1', data: '{% block body %}<p>{{ value }}</p>{% endblock body %}'});
+            twig({
+                allowInlineIncludes: true,
+                autoescape: true,
+                data: '{% extends "parent1" %}{% block body %}{{ parent() }}{% endblock %}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('<p>&lt;test&gt;&amp;&lt;/test&gt;</p>');
+        });
+
         it("should use a correct context in the extended template", function() {
             twig({id: 'parent', data: '{% block body %}{{ value }}{% endblock body %}'});
             twig({
