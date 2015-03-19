@@ -263,7 +263,7 @@ var Twig = (function (Twig) {
                     },
                     // run once for each iteration of the loop
                     loop = function(key, value) {
-                        var inner_context = context._twig_create();
+                        var inner_context = Twig.ChildContext(context);
 
                         inner_context[token.value_var] = value;
 
@@ -286,9 +286,9 @@ var Twig = (function (Twig) {
                         delete inner_context[token.value_var];
                         delete inner_context[token.key_var];
 
-                        // Merge in values that exist in context but have changed 
+                        // Merge in values that exist in context but have changed
                         // in inner_context.
-                        context._twig_merge(inner_context, true);
+                        Twig.merge(context, inner_context, true);
                     };
 
 
