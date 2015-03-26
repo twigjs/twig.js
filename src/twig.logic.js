@@ -644,10 +644,7 @@ var Twig = (function (Twig) {
                     template;
 
                 if (!token.only) {
-                    for (i in context) {
-                        if (context.hasOwnProperty(i))
-                            innerContext[i] = context[i];
-                    }
+                    innerContext = Twig.ChildContext(context);
                 }
 
                 if (token.withStack !== undefined) {

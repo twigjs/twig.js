@@ -294,6 +294,14 @@ describe("Twig.js Core ->", function() {
                 data: '{% extends "parent" %}{% set value = "test" %}{% block body %}{{ parent() }}{% endblock %}'
             }).render().should.equal("test");
         });
+
+        it("should use a correct context in the included template", function() {
+            twig({id: 'included', data: '{{ value }}\n{% set value = "inc" %}{{ value }}\n'});
+            twig({
+                allowInlineIncludes: true,
+                data: '{% set value = "test" %}{% for i in [0, 1] %}{% include "included" %}{% endfor %}{{ value }}'
+            }).render().should.equal("test\ninc\ntest\ninc\ntest");
+        });
     });
 });
 
