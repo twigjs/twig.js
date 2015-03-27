@@ -1,19 +1,18 @@
 /**
- * Twig.js 0.8.1
+ * Twig.js 0.8.2
  *
- * @copyright 2011-2014 John Roepke
+ * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
  * @link      https://github.com/justjohn/twig.js
  */
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.8.1";
+    Twig.VERSION = "0.8.2";
 
     return Twig;
 })(Twig || {});
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -132,6 +131,18 @@ var Twig = (function (Twig) {
         // 8. return undefined
     };
 
+    Twig.merge = function(target, source, onlyChanged) {
+        Twig.forEach(Object.keys(source), function (key) {
+            if (onlyChanged && !(key in target)) {
+                return;
+            }
+
+            target[key] = source[key]
+        });
+
+        return target;
+    };
+
     /**
      * Exception thrown by twig.js.
      */
@@ -155,7 +166,7 @@ var Twig = (function (Twig) {
      */
     Twig.log = {
         trace: function() {if (Twig.trace && console) {console.log(Array.prototype.slice.call(arguments));}},
-        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}},
+        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
     };
 
     if (typeof console !== "undefined") {
@@ -173,64 +184,14 @@ var Twig = (function (Twig) {
     }
 
     /**
-     * Wrapper for context objects in Twig.
+     * Wrapper for child context objects in Twig.
      *
-     * @param {Object} context Values to initialize the context with. If another 
-     *        Twig.Context is provided, it will be returned instead of creating 
-     *        a new context.
+     * @param {Object} context Values to initialize the context with.
      */
-    Twig.Context = function(context) {
-        // initializing Twig.Context over an existing context 
-        // should return that context.
-        if (context instanceof Twig.Context) {
-            return context;
-        }
-
-        // If the provided context is a plain object, merge it 
-        // into the new Twig.Context
-        if (context) {
-            this._twig_merge(context);
-        }
-    };
-
-    Twig.Context.prototype = {
-        /**
-         * Create a new context that extends off of this one.
-         *
-         * The new context will have it's prototype set to this context and the 
-         * _twig_ methods will be available on the child context.
-         */
-        _twig_create: function() {
-            var ChildContext = function ChildContext() {};
-            ChildContext.prototype = this;
-            return new ChildContext();
-        },
-        /**
-         * Merge another context object into this one.
-         *
-         * @param {Object} context The context object to merge in. Can be a Twig.Context or a 
-         *        plain JS object.
-         * @param {boolean} onlyChanged If true, this will only merge in keys that already 
-         *        exist in the context, no new keys will be added.
-         */
-        _twig_merge: function(context, onlyChanged) {
-            var that = this;
-
-            Twig.forEach(Object.keys(context), function (key) {
-                if (onlyChanged && !(key in that)) {
-                    return;
-                }
-
-                // prevent context methods from being overwitten
-                if (!(key in Twig.Context.prototype)) {
-                    that[key] = context[key];
-                } else {
-                    Twig.log.error(key + ' is not allowed on a Twig.Context, method name is reserved');
-                }
-            });
-
-            return this;
-        }
+    Twig.ChildContext = function(context) {
+        var ChildContext = function ChildContext() {};
+        ChildContext.prototype = context;
+        return new ChildContext();
     };
 
     /**
@@ -968,7 +929,7 @@ var Twig = (function (Twig) {
         var output,
             url;
 
-        this.context = new Twig.Context(context);
+        this.context = context || {};
 
         // Clear any previous state
         this.reset();
@@ -1612,196 +1573,273 @@ var Twig = (function(Twig) {
         return new Date(ms);
     };
 
-    Twig.lib.strtotime = function (str, now) {
-        // http://kevin.vanzonneveld.net
-        // +   original by: Caio Ariede (http://caioariede.com)
-        // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-        // +      input by: David
-        // +   improved by: Caio Ariede (http://caioariede.com)
-        // +   improved by: Brett Zamir (http://brett-zamir.me)
-        // +   bugfixed by: Wagner B. Soares
-        // +   bugfixed by: Artur Tchernychev
-        // %        note 1: Examples all have a fixed timestamp to prevent tests to fail because of variable time(zones)
-        // *     example 1: strtotime('+1 day', 1129633200);
-        // *     returns 1: 1129719600
-        // *     example 2: strtotime('+1 week 2 days 4 hours 2 seconds', 1129633200);
-        // *     returns 2: 1130425202
-        // *     example 3: strtotime('last month', 1129633200);
-        // *     returns 3: 1127041200
-        // *     example 4: strtotime('2009-05-04 08:30:00');
-        // *     returns 4: 1241418600
-        var i, l, match, s, parse = '';
+    Twig.lib.strtotime = function (text, now) {
+        //  discuss at: http://phpjs.org/functions/strtotime/
+        //     version: 1109.2016
+        // original by: Caio Ariede (http://caioariede.com)
+        // improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // improved by: Caio Ariede (http://caioariede.com)
+        // improved by: A. Matías Quezada (http://amatiasq.com)
+        // improved by: preuter
+        // improved by: Brett Zamir (http://brett-zamir.me)
+        // improved by: Mirko Faber
+        //    input by: David
+        // bugfixed by: Wagner B. Soares
+        // bugfixed by: Artur Tchernychev
+        //        note: Examples all have a fixed timestamp to prevent tests to fail because of variable time(zones)
+        //   example 1: strtotime('+1 day', 1129633200);
+        //   returns 1: 1129719600
+        //   example 2: strtotime('+1 week 2 days 4 hours 2 seconds', 1129633200);
+        //   returns 2: 1130425202
+        //   example 3: strtotime('last month', 1129633200);
+        //   returns 3: 1127041200
+        //   example 4: strtotime('2009-05-04 08:30:00 GMT');
+        //   returns 4: 1241425800
 
-        str = str.replace(/\s{2,}|^\s|\s$/g, ' '); // unecessary spaces
-        str = str.replace(/[\t\r\n]/g, ''); // unecessary chars
-        if (str === 'now') {
-            return now === null || isNaN(now) ? new Date().getTime() / 1000 | 0 : now | 0;
-        } else if (!isNaN(parse = Date.parse(str))) {
-            return parse / 1000 | 0;
-        } else if (now) {
-            now = new Date(now * 1000); // Accept PHP-style seconds
-        } else {
-            now = new Date();
+        var parsed, match, today, year, date, days, ranges, len, times, regex, i, fail = false;
+
+        if (!text) {
+            return fail;
         }
 
-        var upperCaseStr = str;
+        // Unecessary spaces
+        text = text.replace(/^\s+|\s+$/g, '')
+            .replace(/\s{2,}/g, ' ')
+            .replace(/[\t\r\n]/g, '')
+            .toLowerCase();
 
-        str = str.toLowerCase();
+        // in contrast to php, js Date.parse function interprets:
+        // dates given as yyyy-mm-dd as in timezone: UTC,
+        // dates with "." or "-" as MDY instead of DMY
+        // dates with two-digit years differently
+        // etc...etc...
+        // ...therefore we manually parse lots of common date formats
+        match = text.match(
+            /^(\d{1,4})([\-\.\/\:])(\d{1,2})([\-\.\/\:])(\d{1,4})(?:\s(\d{1,2}):(\d{2})?:?(\d{2})?)?(?:\s([A-Z]+)?)?$/);
 
-        var __is = {
-            day: {
-                'sun': 0,
-                'mon': 1,
-                'tue': 2,
-                'wed': 3,
-                'thu': 4,
-                'fri': 5,
-                'sat': 6
-            },
-            mon: [
-                'jan',
-                'feb',
-                'mar',
-                'apr',
-                'may',
-                'jun',
-                'jul',
-                'aug',
-                'sep',
-                'oct',
-                'nov',
-                'dec'
-            ]
-        };
-
-        var process = function (m) {
-            var ago = (m[2] && m[2] === 'ago');
-            var num = (num = m[0] === 'last' ? -1 : 1) * (ago ? -1 : 1);
-
-            switch (m[0]) {
-            case 'last':
-            case 'next':
-                switch (m[1].substring(0, 3)) {
-                case 'yea':
-                    now.setFullYear(now.getFullYear() + num);
-                    break;
-                case 'wee':
-                    now.setDate(now.getDate() + (num * 7));
-                    break;
-                case 'day':
-                    now.setDate(now.getDate() + num);
-                    break;
-                case 'hou':
-                    now.setHours(now.getHours() + num);
-                    break;
-                case 'min':
-                    now.setMinutes(now.getMinutes() + num);
-                    break;
-                case 'sec':
-                    now.setSeconds(now.getSeconds() + num);
-                    break;
-                case 'mon':
-                    if (m[1] === "month") {
-                        now.setMonth(now.getMonth() + num);
-                        break;
-                    }
-                    // fall through
-                default:
-                    var day = __is.day[m[1].substring(0, 3)];
-                    if (typeof day !== 'undefined') {
-                        var diff = day - now.getDay();
-                        if (diff === 0) {
-                            diff = 7 * num;
-                        } else if (diff > 0) {
-                            if (m[0] === 'last') {
-                                diff -= 7;
-                            }
-                        } else {
-                            if (m[0] === 'next') {
-                                diff += 7;
-                            }
+        if (match && match[2] === match[4]) {
+            if (match[1] > 1901) {
+                switch (match[2]) {
+                case '-':
+                    {
+                        // YYYY-M-D
+                        if (match[3] > 12 || match[5] > 31) {
+                            return fail;
                         }
-                        now.setDate(now.getDate() + diff);
-                        now.setHours(0, 0, 0, 0); // when jumping to a specific last/previous day of week, PHP sets the time to 00:00:00
+
+                        return new Date(match[1], parseInt(match[3], 10) - 1, match[5],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+                    }
+                case '.':
+                    {
+                        // YYYY.M.D is not parsed by strtotime()
+                        return fail;
+                    }
+                case '/':
+                    {
+                        // YYYY/M/D
+                        if (match[3] > 12 || match[5] > 31) {
+                            return fail;
+                        }
+
+                        return new Date(match[1], parseInt(match[3], 10) - 1, match[5],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
                     }
                 }
-                break;
+            } else if (match[5] > 1901) {
+                switch (match[2]) {
+                case '-':
+                    {
+                        // D-M-YYYY
+                        if (match[3] > 12 || match[1] > 31) {
+                            return fail;
+                        }
 
-            default:
-                if (/\d+/.test(m[0])) {
-                    num *= parseInt(m[0], 10);
-
-                    switch (m[1].substring(0, 3)) {
-                    case 'yea':
-                        now.setFullYear(now.getFullYear() + num);
-                        break;
-                    case 'mon':
-                        now.setMonth(now.getMonth() + num);
-                        break;
-                    case 'wee':
-                        now.setDate(now.getDate() + (num * 7));
-                        break;
-                    case 'day':
-                        now.setDate(now.getDate() + num);
-                        break;
-                    case 'hou':
-                        now.setHours(now.getHours() + num);
-                        break;
-                    case 'min':
-                        now.setMinutes(now.getMinutes() + num);
-                        break;
-                    case 'sec':
-                        now.setSeconds(now.getSeconds() + num);
-                        break;
+                        return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
                     }
-                } else {
-                    return false;
+                case '.':
+                    {
+                        // D.M.YYYY
+                        if (match[3] > 12 || match[1] > 31) {
+                            return fail;
+                        }
+
+                        return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+                    }
+                case '/':
+                    {
+                        // M/D/YYYY
+                        if (match[1] > 12 || match[3] > 31) {
+                            return fail;
+                        }
+
+                        return new Date(match[5], parseInt(match[1], 10) - 1, match[3],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+                    }
                 }
-                break;
+            } else {
+                switch (match[2]) {
+                case '-':
+                    {
+                        // YY-M-D
+                        if (match[3] > 12 || match[5] > 31 || (match[1] < 70 && match[1] > 38)) {
+                            return fail;
+                        }
+
+                        year = match[1] >= 0 && match[1] <= 38 ? +match[1] + 2000 : match[1];
+                        return new Date(year, parseInt(match[3], 10) - 1, match[5],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+                    }
+                case '.':
+                    {
+                        // D.M.YY or H.MM.SS
+                        if (match[5] >= 70) {
+                            // D.M.YY
+                            if (match[3] > 12 || match[1] > 31) {
+                                return fail;
+                            }
+
+                            return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
+                                match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+                        }
+                        if (match[5] < 60 && !match[6]) {
+                            // H.MM.SS
+                            if (match[1] > 23 || match[3] > 59) {
+                                return fail;
+                            }
+
+                            today = new Date();
+                            return new Date(today.getFullYear(), today.getMonth(), today.getDate(),
+                                match[1] || 0, match[3] || 0, match[5] || 0, match[9] || 0) / 1000;
+                        }
+
+                        // invalid format, cannot be parsed
+                        return fail;
+                    }
+                case '/':
+                    {
+                        // M/D/YY
+                        if (match[1] > 12 || match[3] > 31 || (match[5] < 70 && match[5] > 38)) {
+                            return fail;
+                        }
+
+                        year = match[5] >= 0 && match[5] <= 38 ? +match[5] + 2000 : match[5];
+                        return new Date(year, parseInt(match[1], 10) - 1, match[3],
+                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+                    }
+                case ':':
+                    {
+                        // HH:MM:SS
+                        if (match[1] > 23 || match[3] > 59 || match[5] > 59) {
+                            return fail;
+                        }
+
+                        today = new Date();
+                        return new Date(today.getFullYear(), today.getMonth(), today.getDate(),
+                            match[1] || 0, match[3] || 0, match[5] || 0) / 1000;
+                    }
+                }
             }
-            return true;
+        }
+
+        // other formats and "now" should be parsed by Date.parse()
+        if (text === 'now') {
+            return now === null || isNaN(now) ? new Date()
+                .getTime() / 1000 | 0 : now | 0;
+        }
+        if (!isNaN(parsed = Date.parse(text))) {
+            return parsed / 1000 | 0;
+        }
+
+        date = now ? new Date(now * 1000) : new Date();
+        days = {
+            'sun': 0,
+            'mon': 1,
+            'tue': 2,
+            'wed': 3,
+            'thu': 4,
+            'fri': 5,
+            'sat': 6
+        };
+        ranges = {
+            'yea': 'FullYear',
+            'mon': 'Month',
+            'day': 'Date',
+            'hou': 'Hours',
+            'min': 'Minutes',
+            'sec': 'Seconds'
         };
 
-        match = str.match(/^(\d{2,4}-\d{2}-\d{2})(?:\s(\d{1,2}:\d{2}(:\d{2})?)?(?:\.(\d+))?)?$/);
-        if (match !== null) {
-            if (!match[2]) {
-                match[2] = '00:00:00';
-            } else if (!match[3]) {
-                match[2] += ':00';
+        function lastNext(type, range, modifier) {
+            var diff, day = days[range];
+
+            if (typeof day !== 'undefined') {
+                diff = day - date.getDay();
+
+                if (diff === 0) {
+                    diff = 7 * modifier;
+                } else if (diff > 0 && type === 'last') {
+                    diff -= 7;
+                } else if (diff < 0 && type === 'next') {
+                    diff += 7;
+                }
+
+                date.setDate(date.getDate() + diff);
             }
-
-            s = match[1].split(/-/g);
-
-            s[1] = __is.mon[s[1] - 1] || s[1];
-            s[0] = +s[0];
-
-            s[0] = (s[0] >= 0 && s[0] <= 69) ? '20' + (s[0] < 10 ? '0' + s[0] : s[0] + '') : (s[0] >= 70 && s[0] <= 99) ? '19' + s[0] : s[0] + '';
-            return parseInt(this.strtotime(s[2] + ' ' + s[1] + ' ' + s[0] + ' ' + match[2]) + (match[4] ? match[4] / 1000 : ''), 10);
         }
 
-        var regex = '([+-]?\\d+\\s' + '(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?' + '|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday' + '|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday)' + '|(last|next)\\s' + '(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?' + '|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday' + '|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday))' + '(\\sago)?';
+        function process(val) {
+            var splt = val.split(' '), // Todo: Reconcile this with regex using \s, taking into account browser issues with split and regexes
+                type = splt[0],
+                range = splt[1].substring(0, 3),
+                typeIsNumber = /\d+/.test(type),
+                ago = splt[2] === 'ago',
+                num = (type === 'last' ? -1 : 1) * (ago ? -1 : 1);
 
-        match = str.match(new RegExp(regex, 'gi')); // Brett: seems should be case insensitive per docs, so added 'i'
-        if (match === null) {
-            // Try to parse ISO8601 in IE8
-            try {
-                num = Twig.lib.parseISO8601Date(upperCaseStr);
-                if (num) {
-                    return num / 1000 | 0;
-               }
-            } catch (err) {
+            if (typeIsNumber) {
+                num *= parseInt(type, 10);
+            }
+
+            if (ranges.hasOwnProperty(range) && !splt[1].match(/^mon(day|\.)?$/i)) {
+                return date['set' + ranges[range]](date['get' + ranges[range]]() + num);
+            }
+
+            if (range === 'wee') {
+                return date.setDate(date.getDate() + (num * 7));
+            }
+
+            if (type === 'next' || type === 'last') {
+                lastNext(type, range, num);
+            } else if (!typeIsNumber) {
                 return false;
             }
-            return false;
+
+            return true;
         }
 
-        for (i = 0, l = match.length; i < l; i++) {
-            if (!process(match[i].split(' '))) {
-                return false;
+        times = '(years?|months?|weeks?|days?|hours?|minutes?|min|seconds?|sec' +
+            '|sunday|sun\\.?|monday|mon\\.?|tuesday|tue\\.?|wednesday|wed\\.?' +
+            '|thursday|thu\\.?|friday|fri\\.?|saturday|sat\\.?)';
+        regex = '([+-]?\\d+\\s' + times + '|' + '(last|next)\\s' + times + ')(\\sago)?';
+
+        match = text.match(new RegExp(regex, 'gi'));
+        if (!match) {
+            return fail;
+        }
+
+        for (i = 0, len = match.length; i < len; i++) {
+            if (!process(match[i])) {
+                return fail;
             }
         }
 
-        return now.getTime() / 1000 | 0;
+        // ECMAScript 5 only
+        // if (!match.every(process))
+        //    return false;
+
+        return (date.getTime() / 1000);
     };
 
     Twig.lib.is = function(type, obj) {
@@ -1898,7 +1936,6 @@ var Twig = (function(Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -1973,7 +2010,7 @@ var Twig = (function (Twig) {
              *  Format: {% if expression %}
              */
             type: Twig.logic.type.if_,
-            regex: /^if\s+([^\s].+)$/,
+            regex: /^if\s+([\s\S]+)$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.elseif,
@@ -2162,7 +2199,7 @@ var Twig = (function (Twig) {
                     },
                     // run once for each iteration of the loop
                     loop = function(key, value) {
-                        var inner_context = context._twig_create();
+                        var inner_context = Twig.ChildContext(context);
 
                         inner_context[token.value_var] = value;
 
@@ -2185,9 +2222,9 @@ var Twig = (function (Twig) {
                         delete inner_context[token.value_var];
                         delete inner_context[token.key_var];
 
-                        // Merge in values that exist in context but have changed 
+                        // Merge in values that exist in context but have changed
                         // in inner_context.
-                        context._twig_merge(inner_context, true);
+                        Twig.merge(context, inner_context, true);
                     };
 
 
@@ -2240,7 +2277,7 @@ var Twig = (function (Twig) {
              *  Format: {% set key = expression %}
              */
             type: Twig.logic.type.set,
-            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*(.+)$/,
+            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([\s\S]+)$/,
             next: [ ],
             open: true,
             compile: function (token) {
@@ -2401,7 +2438,7 @@ var Twig = (function (Twig) {
                     }
 
                     if (hasParent) {
-                        this.blocks[token.block] =  this.blocks[token.block].replace(Twig.placeholders.parent, block_output);
+                        this.blocks[token.block] = Twig.Markup(this.blocks[token.block].replace(Twig.placeholders.parent, block_output));
                     } else {
                         this.blocks[token.block] = block_output;
                     }
@@ -2506,7 +2543,7 @@ var Twig = (function (Twig) {
              *  Format: {% includes "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.include,
-            regex: /^include\s+(ignore missing\s+)?(.+?)\s*(?:with\s+(.+?))?\s*(only)?$/,
+            regex: /^include\s+(ignore missing\s+)?(.+?)\s*(?:with\s+([\S\s]+?))?\s*(only)?$/,
             next: [ ],
             open: true,
             compile: function (token) {
@@ -2543,10 +2580,7 @@ var Twig = (function (Twig) {
                     template;
 
                 if (!token.only) {
-                    for (i in context) {
-                        if (context.hasOwnProperty(i))
-                            innerContext[i] = context[i];
-                    }
+                    innerContext = Twig.ChildContext(context);
                 }
 
                 if (token.withStack !== undefined) {
@@ -2612,14 +2646,14 @@ var Twig = (function (Twig) {
              *
              */
             type: Twig.logic.type.macro,
-            regex: /^macro\s+([a-zA-Z0-9_]+)\s?\((([a-zA-Z0-9_]+(,\s?)?)*)\)$/,
+            regex: /^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:,\s*)?)*)\s*\)$/,
             next: [
                 Twig.logic.type.endmacro
             ],
             open: true,
             compile: function (token) {
                 var macroName = token.match[1],
-                    parameters = token.match[2].split(/[ ,]+/);
+                    parameters = token.match[2].split(/[\s,]+/);
 
                 //TODO: Clean up duplicate check
                 for (var i=0; i<parameters.length; i++) {
@@ -3047,7 +3081,6 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -3325,7 +3358,7 @@ var Twig = (function (Twig) {
              */
             type: Twig.expression.type.string,
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
-            regex: /^(["'])(?:(?=(\\?))\2.)*?\1/,
+            regex: /^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,
             next: Twig.expression.set.operations,
             compile: function(token, stack, output) {
                 var value = token.value;
@@ -4042,7 +4075,6 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4320,7 +4352,6 @@ var Twig = (function (Twig) {
 
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -4933,7 +4964,6 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //                   2012 Hadrien Lanneau
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
@@ -5160,7 +5190,6 @@ var Twig = (function (Twig) {
 
 })(Twig || { });
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -5225,7 +5254,6 @@ var Twig = (function (Twig) {
     return Twig;
 })( Twig || { } );
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -5417,7 +5445,6 @@ var Twig = (function (Twig) {
 }) (Twig || { });
 
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
@@ -5473,7 +5500,6 @@ var Twig = (function (Twig) {
     return Twig;
 })(Twig || {});
 //     Twig.js
-//     Copyright (c) 2011-2013 John Roepke
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
 
