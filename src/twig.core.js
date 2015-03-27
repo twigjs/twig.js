@@ -118,6 +118,18 @@ var Twig = (function (Twig) {
         // 8. return undefined
     };
 
+    Twig.merge = function(target, source, onlyChanged) {
+        Twig.forEach(Object.keys(source), function (key) {
+            if (onlyChanged && !(key in target)) {
+                return;
+            }
+
+            target[key] = source[key]
+        });
+
+        return target;
+    };
+
     /**
      * Exception thrown by twig.js.
      */
@@ -159,64 +171,14 @@ var Twig = (function (Twig) {
     }
 
     /**
-     * Wrapper for context objects in Twig.
+     * Wrapper for child context objects in Twig.
      *
-     * @param {Object} context Values to initialize the context with. If another 
-     *        Twig.Context is provided, it will be returned instead of creating 
-     *        a new context.
+     * @param {Object} context Values to initialize the context with.
      */
-    Twig.Context = function(context) {
-        // initializing Twig.Context over an existing context 
-        // should return that context.
-        if (context instanceof Twig.Context) {
-            return context;
-        }
-
-        // If the provided context is a plain object, merge it 
-        // into the new Twig.Context
-        if (context) {
-            this._twig_merge(context);
-        }
-    };
-
-    Twig.Context.prototype = {
-        /**
-         * Create a new context that extends off of this one.
-         *
-         * The new context will have it's prototype set to this context and the 
-         * _twig_ methods will be available on the child context.
-         */
-        _twig_create: function() {
-            var ChildContext = function ChildContext() {};
-            ChildContext.prototype = this;
-            return new ChildContext();
-        },
-        /**
-         * Merge another context object into this one.
-         *
-         * @param {Object} context The context object to merge in. Can be a Twig.Context or a 
-         *        plain JS object.
-         * @param {boolean} onlyChanged If true, this will only merge in keys that already 
-         *        exist in the context, no new keys will be added.
-         */
-        _twig_merge: function(context, onlyChanged) {
-            var that = this;
-
-            Twig.forEach(Object.keys(context), function (key) {
-                if (onlyChanged && !(key in that)) {
-                    return;
-                }
-
-                // prevent context methods from being overwitten
-                if (!(key in Twig.Context.prototype)) {
-                    that[key] = context[key];
-                } else {
-                    Twig.log.error(key + ' is not allowed on a Twig.Context, method name is reserved');
-                }
-            });
-
-            return this;
-        }
+    Twig.ChildContext = function(context) {
+        var ChildContext = function ChildContext() {};
+        ChildContext.prototype = context;
+        return new ChildContext();
     };
 
     /**
@@ -954,7 +916,7 @@ var Twig = (function (Twig) {
         var output,
             url;
 
-        this.context = new Twig.Context(context);
+        this.context = context || {};
 
         // Clear any previous state
         this.reset();
