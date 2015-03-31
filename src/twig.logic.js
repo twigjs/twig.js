@@ -304,7 +304,7 @@ var Twig = (function (Twig) {
                     } else {
                         keyset = Object.keys(result);
                     }
-					len = keyset.length;
+                    len = keyset.length;
                     Twig.forEach(keyset, function(key) {
                         // Ignore the _keys property, it's internal to twig.js
                         if (key === "_keys") return;
