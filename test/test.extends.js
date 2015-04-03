@@ -102,4 +102,44 @@ describe("Twig.js Extensions ->", function() {
 		App.currentUser = "tom";
 		template.render().should.equal("Welcome!");
     });
+
+    it("should be able to extend the same tag twice, replacing it", function() {
+        var flags = {};
+
+        Twig.extend(function(Twig) {
+            Twig.exports.extendTag({
+                type: "noop",
+                regex: /^noop$/,
+                next: [ ],
+                open: true,
+                parse: function (token, context, chain) {
+                    return {
+                        chain: false,
+                        output: "noop1"
+                    };
+                }
+            });
+        });
+
+        var result = twig({data:"{% noop %}"}).render();
+        result.should.equal("noop1");
+
+        Twig.extend(function(Twig) {
+            Twig.exports.extendTag({
+                type: "noop",
+                regex: /^noop$/,
+                next: [ ],
+                open: true,
+                parse: function (token, context, chain) {
+                    return {
+                        chain: false,
+                        output: "noop2"
+                    };
+                }
+            });
+        });
+
+        var result = twig({data:"{% noop %}"}).render();
+        result.should.equal("noop2");
+    });
 });
