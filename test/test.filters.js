@@ -246,6 +246,11 @@ describe("Twig.js Filters ->", function() {
             var date = new Date();
             test_template.render().should.equal(stringDate(date));
         });
+
+        it("should work with no parameters", function() {
+            var test_template = twig({data: '{{ 27571323556|date }}' });
+            test_template.render().should.equal("September 13, 2843 15:59");
+        });
     });
 
     describe("replace ->", function() {

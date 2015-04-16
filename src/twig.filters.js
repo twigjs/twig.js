@@ -231,7 +231,8 @@ var Twig = (function (Twig) {
         },
         date: function(value, params) {
             var date = Twig.functions.date(value);
-            return Twig.lib.formatDate(date, params[0]);
+            var format = params && params.length ? params[0] : 'F j, Y H:i';
+            return Twig.lib.formatDate(date, format);
         },
 
         date_modify: function(value, params) {
