@@ -230,10 +230,6 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
-            if (value === undefined||value === null){
-                return;
-            }
-
             var date = Twig.functions.date(value);
             return Twig.lib.formatDate(date, params[0]);
         },
