@@ -116,6 +116,14 @@ describe("Twig.js Core ->", function() {
         twig({data: '{% set at = {"foo": null} %}{{ at.foo == val }}'}).render({val: null}).should.equal( "true" );
     });
 
+    it("should retain key order in an object", function() {
+        twig({data: '{{ { "foo": 1, "bar": 2, "baz": 3 }|json_encode }}'}).render().should.equal( '{"foo":1,"bar":2,"baz":3}' );
+    });
+
+    it("should not add additional information to objects", function() {
+        twig({data: '{{ { "foo": 1, "bar": [1, 2, 3], "baz": { "a": "a", "b": "b" } }|json_encode }}'}).render().should.equal( '{"foo":1,"bar":[1,2,3],"baz":{"a":"a","b":"b"}}' );
+    });
+
     it("should support set capture", function() {
         twig({data: '{% set foo %}bar{% endset %}{{foo}}'}).render().should.equal( "bar" );
     });
