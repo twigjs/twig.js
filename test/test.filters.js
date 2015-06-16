@@ -30,6 +30,12 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
             test_template.render().should.equal('{"a":[1,"b",3]}' );
         });
+        it("should retain key order in an object", function() {
+            twig({data: '{{ { "foo": 1, "bar": 2, "baz": 3 }|json_encode }}'}).render().should.equal( '{"foo":1,"bar":2,"baz":3}' );
+        });
+        it("should not add additional information to objects", function() {
+            twig({data: '{{ { "foo": 1, "bar": [1, 2, 3], "baz": { "a": "a", "b": "b" } }|json_encode }}'}).render().should.equal( '{"foo":1,"bar":[1,2,3],"baz":{"a":"a","b":"b"}}' );
+        });
         it("should handle undefined", function() {
             var test_template = twig({data: '{{ undef|json_encode }}' });
             test_template.render().should.equal("null" );
