@@ -373,6 +373,15 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|nl2br }}' });
             test_template.render().should.equal("" );
         });
+
+        it("should not escape br tags if autoescape is on", function() {
+            twig({
+                autoescape: true,
+                data: '{{ test|nl2br }}'
+            }).render({
+                test: '<test>Line 1\nLine2</test>'
+            }).should.equal("&lt;test&gt;Line 1<br />\nLine2&lt;/test&gt;");
+        });
     });
 
     describe("truncate ->", function() {
