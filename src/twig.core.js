@@ -753,7 +753,7 @@ var Twig = (function (Twig) {
                 var data = null;
 
                 if(xmlhttp.readyState == 4) {
-                    if (xmlhttp.status == 200) {
+                    if (xmlhttp.status == 200 || (window.cordova && xmlhttp.status == 0)) {
                         Twig.log.debug("Got template ", xmlhttp.responseText);
 
                         if (precompiled === true) {

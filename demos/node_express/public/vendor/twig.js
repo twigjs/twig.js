@@ -767,7 +767,7 @@ var Twig = (function (Twig) {
                 var data = null;
 
                 if(xmlhttp.readyState == 4) {
-                    if (xmlhttp.status == 200) {
+                    if (xmlhttp.status == 200 || (window.cordova && xmlhttp.status == 0)) {
                         Twig.log.debug("Got template ", xmlhttp.responseText);
 
                         if (precompiled === true) {
@@ -4583,12 +4583,9 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
-            if (value === undefined||value === null){
-                return;
-            }
-
             var date = Twig.functions.date(value);
-            return Twig.lib.formatDate(date, params[0]);
+            var format = params && params.length ? params[0] : 'F j, Y H:i';
+            return Twig.lib.formatDate(date, format);
         },
 
         date_modify: function(value, params) {
