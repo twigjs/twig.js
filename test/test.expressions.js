@@ -216,6 +216,16 @@ describe("Twig.js Expressions ->", function() {
             test_template.render({a:false}).should.equal(true.toString());
             test_template.render({a:true}).should.equal(false.toString());
         });
+        it("should correctly cast arrays", function () {
+            var test_template = twig({data: '{{ a == true }}'});
+            test_template.render({a:['value']}).should.equal('true');
+            test_template.render({a:[]}).should.equal('false');
+        });
+        it("should correctly cast arrays", function () {
+            var test_template = twig({data: '{{ (a and a) }}'});
+            test_template.render({a:[]}).should.equal('false');
+            test_template.render({a:['value']}).should.equal('true');
+        });
     });
 
     describe("Other Operators ->", function() {
