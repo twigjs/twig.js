@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.8.2
+ * Twig.js 0.8.3
  *
  * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.8.2";
+    Twig.VERSION = "0.8.3";
 
     return Twig;
 })(Twig || {});
@@ -917,6 +917,7 @@ var Twig = (function (Twig) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
         this.blocks = {};
         this.importedBlocks = [];
+        this.originalBlockTokens = {};
         this.child = {
             blocks: blocks || {}
         };
@@ -2426,7 +2427,7 @@ var Twig = (function (Twig) {
 
                 // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
-                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop) {
+                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop || token.overwrite) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
@@ -2442,6 +2443,13 @@ var Twig = (function (Twig) {
                     } else {
                         this.blocks[token.block] = block_output;
                     }
+
+                    this.originalBlockTokens[token.block] = {
+                        type: token.type,
+                        block: token.block,
+                        output: token.output,
+                        overwrite: true
+                    };
                 }
 
                 // Check if a child block has been set from a template extending this one.
@@ -4583,12 +4591,9 @@ var Twig = (function (Twig) {
             return obj;
         },
         date: function(value, params) {
-            if (value === undefined||value === null){
-                return;
-            }
-
             var date = Twig.functions.date(value);
-            return Twig.lib.formatDate(date, params[0]);
+            var format = params && params.length ? params[0] : 'F j, Y H:i';
+            return Twig.lib.formatDate(date, format);
         },
 
         date_modify: function(value, params) {
@@ -5114,7 +5119,11 @@ var Twig = (function (Twig) {
             return dateObj;
         },
         block: function(block) {
-            return this.blocks[block];
+            if (this.originalBlockTokens[block]) {
+                return Twig.logic.parse.apply(this, [this.originalBlockTokens[block], this.context]).output;
+            } else {
+                return this.blocks[block];
+            }
         },
         parent: function() {
             // Add a placeholder
