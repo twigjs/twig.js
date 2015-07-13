@@ -211,5 +211,12 @@ describe("Twig.js Blocks ->", function() {
             })
         });
 
+        it("should respect changes of the context made before calling the function", function() {
+            twig({
+                data: '{% set foo = "original" %}{% block test %}{{ foo }}{% endblock %} {% set foo = "changed" %}{{ block("test") }}'
+            }).render()
+            .should.equal("original changed");
+        });
+
     });
 });
