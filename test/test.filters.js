@@ -243,7 +243,13 @@ describe("Twig.js Filters ->", function() {
 
         it("should handle undefined", function() {
             var test_template = twig({data: '{{ undef|date("d/m/Y @ H:i:s") }}' });
-            test_template.render().should.equal( "" );
+            var date = new Date();
+            test_template.render().should.equal(stringDate(date));
+        });
+
+        it("should work with no parameters", function() {
+            var test_template = twig({data: '{{ 27571323556|date }}' });
+            test_template.render().should.equal(twig({data: '{{ 27571323556|date("F j, Y H:i") }}'}).render());
         });
     });
 

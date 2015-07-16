@@ -489,7 +489,7 @@ var Twig = (function (Twig) {
 
                 // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
-                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop) {
+                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop || token.overwrite) {
                     block_output = Twig.expression.parse.apply(this, [{
                         type: Twig.expression.type.string,
                         value: Twig.parse.apply(this, [token.output, context])
@@ -505,6 +505,13 @@ var Twig = (function (Twig) {
                     } else {
                         this.blocks[token.block] = block_output;
                     }
+
+                    this.originalBlockTokens[token.block] = {
+                        type: token.type,
+                        block: token.block,
+                        output: token.output,
+                        overwrite: true
+                    };
                 }
 
                 // Check if a child block has been set from a template extending this one.

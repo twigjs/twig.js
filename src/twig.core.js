@@ -903,6 +903,7 @@ var Twig = (function (Twig) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
         this.blocks = {};
         this.importedBlocks = [];
+        this.originalBlockTokens = {};
         this.child = {
             blocks: blocks || {}
         };
