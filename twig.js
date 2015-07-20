@@ -2957,13 +2957,8 @@ var Twig = (function (Twig) {
      * @param {Object} definition The new logic expression.
      */
     Twig.logic.extend = function (definition) {
-
         if (!definition.type) {
             throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
-        }
-        if (Twig.logic.type[definition.type]) {
-            throw new Twig.Error("Unable to extend logic definitions. Type " +
-                                 definition.type + " is already defined.");
         } else {
             Twig.logic.extendType(definition.type);
         }
