@@ -65,7 +65,7 @@ var Twig = (function (Twig) {
                 return value.reverse();
             } else if (is("String", value)) {
                 return value.split("").reverse().join("");
-            } else if (value instanceof Object) {
+            } else if (is("Object", value)) {
                 var keys = value._keys || Object.keys(value).reverse();
                 value._keys = keys;
                 return value;
@@ -74,7 +74,7 @@ var Twig = (function (Twig) {
         sort: function(value) {
             if (is("Array", value)) {
                 return value.sort();
-            } else if (value instanceof Object) {
+            } else if (is('Object', value)) {
                 // Sorting objects isn't obvious since the order of
                 // returned keys isn't guaranteedin JavaScript.
                 // Because of this we use a "hidden" key called _keys to
@@ -124,7 +124,7 @@ var Twig = (function (Twig) {
             if (params && params[0]) {
                 join_str = params[0];
             }
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 output = value;
             } else {
                 keyset = value._keys || Object.keys(value);
@@ -162,21 +162,21 @@ var Twig = (function (Twig) {
                 keyset = [];
 
             // Check to see if all the objects being merged are arrays
-            if (!(value instanceof Array)) {
+            if (!is("Array", value)) {
                 // Create obj as an Object
                 obj = { };
             } else {
                 Twig.forEach(params, function(param) {
-                    if (!(param instanceof Array)) {
+                    if (!is("Array", param)) {
                         obj = { };
                     }
                 });
             }
-            if (!(obj instanceof Array)) {
+            if (!is("Array", obj)) {
                 obj._keys = [];
             }
 
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 Twig.forEach(value, function(val) {
                     if (obj._keys) obj._keys.push(arr_index);
                     obj[arr_index] = val;
@@ -204,7 +204,7 @@ var Twig = (function (Twig) {
 
             // mixin the merge arrays
             Twig.forEach(params, function(param) {
-                if (param instanceof Array) {
+                if (is("Array", param)) {
                     Twig.forEach(param, function(val) {
                         if (obj._keys) obj._keys.push(arr_index);
                         obj[arr_index] = val;
@@ -447,9 +447,9 @@ var Twig = (function (Twig) {
         },
 
         first: function(value) {
-            if (value instanceof Array) {
+            if (is("Array", value)) {
                 return value[0];
-            } else if (value instanceof Object) {
+            } else if (is("Object", value)) {
                 if ('_keys' in value) {
                     return value[value._keys[0]];
                 }

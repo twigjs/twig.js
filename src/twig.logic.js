@@ -298,7 +298,7 @@ var Twig = (function (Twig) {
 
                         loop(key, value);
                     });
-                } else if (result instanceof Object) {
+                } else if (Twig.lib.is('Object', result)) {
                     if (result._keys !== undefined) {
                         keyset = result._keys;
                     } else {

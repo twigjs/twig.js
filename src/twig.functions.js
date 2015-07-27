@@ -160,7 +160,7 @@ var Twig = (function (Twig) {
             return Twig.placeholders.parent;
         },
         attribute: function(object, method, params) {
-            if (object instanceof Object) {
+            if (Twig.lib.is('Object', object)) {
                 if (object.hasOwnProperty(method)) {
                     if (typeof object[method] === "function") {
                         return object[method].apply(undefined, params);
