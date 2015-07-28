@@ -1,5 +1,5 @@
-[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.png)](http://travis-ci.org/#!/justjohn/twig.js)
-[![NPM version](https://badge.fury.io/js/twig.png)](http://badge.fury.io/js/twig)
+[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.svg)](http://travis-ci.org/#!/justjohn/twig.js)
+[![NPM version](https://badge.fury.io/js/twig.svg)](http://badge.fury.io/js/twig)
 
 # About
 
