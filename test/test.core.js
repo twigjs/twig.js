@@ -128,6 +128,14 @@ describe("Twig.js Core ->", function() {
         );
     });
 
+    it("should support raw data using 'verbatim' tag", function() {
+        twig({
+            data: "before {% verbatim %}{{ test }} {% test2 %} {{{% endverbatim %} after"
+        }).render().should.equal(
+            "before {{ test }} {% test2 %} {{ after"
+        );
+    });
+
     describe("Key Notation ->", function() {
         it("should support dot key notation", function() {
             twig({data: '{{ key.value }} {{ key.sub.test }}'}).render({

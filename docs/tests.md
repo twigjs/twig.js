@@ -613,7 +613,7 @@ should support raw data.
 
 ```js
 twig({
-	data: "before {% raw %}{{ test }} {% test2 %} {{{% endraw %} after"
+	data: "before {% verbatim %}{{ test }} {% test2 %} {{{% endverbatim %} after"
 }).render().should.equal(
 	"before {{ test }} {% test2 %} {{ after"
 );
