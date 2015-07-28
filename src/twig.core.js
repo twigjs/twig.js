@@ -205,6 +205,11 @@ var Twig = (function (Twig) {
             open: '{% raw %}',
             close: '{% endraw %}'
         },
+        {
+            type: Twig.token.type.raw,
+            open: '{% verbatim %}',
+            close: '{% endverbatim %}'
+        },
         // *Output type tokens*
         //
         // These typically take the form `{{ expression }}`.
