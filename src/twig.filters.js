@@ -318,7 +318,9 @@ var Twig = (function (Twig) {
                         .replace(/\r/g, br)
                         .replace(/\n/g, br);
 
-            return Twig.lib.replaceAll(value, linebreak_tag, "\n");
+            value = Twig.lib.replaceAll(value, linebreak_tag, "\n");
+
+            return Twig.Markup(value);
         },
 
         /**
