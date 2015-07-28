@@ -294,6 +294,15 @@ twig({
 })
 ```
 
+should respect changes of the context made before calling the function.
+
+```js
+twig({
+    data: '{% set foo = "original" %}{% block test %}{{ foo }}{% endblock %} {% set foo = "changed" %}{{ block("test") }}'
+}).render()
+.should.equal("original changed");
+```
+
 <a name="twigjs-control-structures--"></a>
 # Twig.js Control Structures ->
 <a name="twigjs-control-structures---if-tag--"></a>
@@ -332,6 +341,14 @@ test_template.render({test: true, test2: true}).should.equal("true" );
 test_template.render({test: true, test2: false}).should.equal("false" );
 test_template.render({test: false, test2: true}).should.equal("not" );
 test_template.render({test: false, test2: false}).should.equal("not" );
+```
+
+should support newlines in if statement.
+
+```js
+var test_template = twig({data: '{% if test or\r\nother %}true{% endif%}'});
+test_template.render({test: true, other: false}).should.equal("true" );
+test_template.render({test: false, other: false}).should.equal("" );
 ```
 
 <a name="twigjs-control-structures---for-tag--"></a>
@@ -554,6 +571,12 @@ twig({data: '{{ "dou\\"ble" }}'}).render().should.equal("dou\"ble");
 twig({data: "{{ 'sin\\'gle' }}"}).render().should.equal("sin'gle");
 ```
 
+should be able to output strings with newlines.
+
+```js
+twig({data: "{{ 'a\nb\rc\r\nd' }}"}).render().should.equal("a\nb\rc\r\nd");
+```
+
 should be able to output arrays.
 
 ```js
@@ -597,6 +620,12 @@ should recognize object literals.
 twig({data: '{% set at = {"foo": "test", bar: "other", 1:"zip"} %}{{ at.foo ~ at.bar ~ at.1 }}'}).render().should.equal( "testotherzip" );
 ```
 
+should allow newlines in object literals.
+
+```js
+twig({data: '{% set at = {\n"foo": "test",\rbar: "other",\r\n1:"zip"\n} %}{{ at.foo ~ at.bar ~ at.1 }}'}).render().should.equal( "testotherzip" );
+```
+
 should recognize null in an object.
 
 ```js
@@ -613,9 +642,19 @@ should support raw data.
 
 ```js
 twig({
-	data: "before {% verbatim %}{{ test }} {% test2 %} {{{% endverbatim %} after"
+	data: "before {% raw %}{{ test }} {% test2 %} {{{% endraw %} after"
 }).render().should.equal(
 	"before {{ test }} {% test2 %} {{ after"
+);
+```
+
+should support raw data using 'verbatim' tag.
+
+```js
+twig({
+    data: "before {% verbatim %}{{ test }} {% test2 %} {{{% endverbatim %} after"
+}).render().should.equal(
+    "before {{ test }} {% test2 %} {{ after"
 );
 ```
 
@@ -802,6 +841,19 @@ twig({
 }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
 ```
 
+should autoescape parent() output correctly.
+
+```js
+twig({id: 'parent1', data: '{% block body %}<p>{{ value }}</p>{% endblock body %}'});
+twig({
+    allowInlineIncludes: true,
+    autoescape: true,
+    data: '{% extends "parent1" %}{% block body %}{{ parent() }}{% endblock %}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('<p>&lt;test&gt;&amp;&lt;/test&gt;</p>');
+```
+
 should use a correct context in the extended template.
 
 ```js
@@ -810,6 +862,16 @@ twig({
     allowInlineIncludes: true,
     data: '{% extends "parent" %}{% set value = "test" %}{% block body %}{{ parent() }}{% endblock %}'
 }).render().should.equal("test");
+```
+
+should use a correct context in the included template.
+
+```js
+twig({id: 'included', data: '{{ value }}\n{% set value = "inc" %}{{ value }}\n'});
+twig({
+    allowInlineIncludes: true,
+    data: '{% set value = "test" %}{% for i in [0, 1] %}{% include "included" %}{% endfor %}{{ value }}'
+}).render().should.equal("test\ninc\ntest\ninc\ntest");
 ```
 
 <a name="twigjs-embed--"></a>
@@ -1271,6 +1333,44 @@ should be able to extend paired tags.
 		template.render().should.equal("Welcome!");
 ```
 
+should be able to extend the same tag twice, replacing it.
+
+```js
+var flags = {};
+Twig.extend(function(Twig) {
+    Twig.exports.extendTag({
+        type: "noop",
+        regex: /^noop$/,
+        next: [ ],
+        open: true,
+        parse: function (token, context, chain) {
+            return {
+                chain: false,
+                output: "noop1"
+            };
+        }
+    });
+});
+var result = twig({data:"{% noop %}"}).render();
+result.should.equal("noop1");
+Twig.extend(function(Twig) {
+    Twig.exports.extendTag({
+        type: "noop",
+        regex: /^noop$/,
+        next: [ ],
+        open: true,
+        parse: function (token, context, chain) {
+            return {
+                chain: false,
+                output: "noop2"
+            };
+        }
+    });
+});
+var result = twig({data:"{% noop %}"}).render();
+result.should.equal("noop2");
+```
+
 <a name="twigjs-filters--"></a>
 # Twig.js Filters ->
 should chain.
@@ -1606,7 +1706,15 @@ should handle undefined.
 
 ```js
 var test_template = twig({data: '{{ undef|date("d/m/Y @ H:i:s") }}' });
-test_template.render().should.equal( "" );
+var date = new Date();
+test_template.render().should.equal(stringDate(date));
+```
+
+should work with no parameters.
+
+```js
+var test_template = twig({data: '{{ 27571323556|date }}' });
+test_template.render().should.equal(twig({data: '{{ 27571323556|date("F j, Y H:i") }}'}).render());
 ```
 
 <a name="twigjs-filters---replace--"></a>
@@ -1769,6 +1877,17 @@ should handle undefined.
 ```js
 var test_template = twig({data: '{{ undef|nl2br }}' });
 test_template.render().should.equal("" );
+```
+
+should not escape br tags if autoescape is on.
+
+```js
+twig({
+    autoescape: true,
+    data: '{{ test|nl2br }}'
+}).render({
+    test: '<test>Line 1\nLine2</test>'
+}).should.equal("&lt;test&gt;Line 1<br />\nLine2&lt;/test&gt;");
 ```
 
 <a name="twigjs-filters---truncate--"></a>
