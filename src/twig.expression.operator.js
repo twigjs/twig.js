@@ -33,7 +33,7 @@ var Twig = (function (Twig) {
     };
 
     /**
-     * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
+     * Get the precedence and associativity of an operator. These follow the order that C/C++ use.
      * See http://en.wikipedia.org/wiki/Operators_in_C_and_C++ for the table of values.
      */
     Twig.expression.operator.lookup = function (operator, token) {
@@ -41,35 +41,35 @@ var Twig = (function (Twig) {
             case "..":
             case 'not in':
             case 'in':
-                token.precidence = 20;
+                token.precedence = 20;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case ',':
-                token.precidence = 18;
+                token.precedence = 18;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             // Ternary
             case '?':
             case ':':
-                token.precidence = 16;
+                token.precedence = 16;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
             case 'or':
-                token.precidence = 14;
+                token.precedence = 14;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'and':
-                token.precidence = 13;
+                token.precedence = 13;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case '==':
             case '!=':
-                token.precidence = 9;
+                token.precedence = 9;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
@@ -77,7 +77,7 @@ var Twig = (function (Twig) {
             case '<=':
             case '>':
             case '>=':
-                token.precidence = 8;
+                token.precedence = 8;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
@@ -85,7 +85,7 @@ var Twig = (function (Twig) {
             case '~': // String concatination
             case '+':
             case '-':
-                token.precidence = 6;
+                token.precedence = 6;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
@@ -94,12 +94,12 @@ var Twig = (function (Twig) {
             case '*':
             case '/':
             case '%':
-                token.precidence = 5;
+                token.precedence = 5;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'not':
-                token.precidence = 3;
+                token.precedence = 3;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 

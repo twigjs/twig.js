@@ -192,10 +192,10 @@ var Twig = (function (Twig) {
                        (stack[stack.length-1].type == Twig.expression.type.operator.unary || stack[stack.length-1].type == Twig.expression.type.operator.binary) &&
                             (
                                 (operator.associativity === Twig.expression.operator.leftToRight &&
-                                 operator.precidence    >= stack[stack.length-1].precidence) ||
+                                 operator.precedence    >= stack[stack.length-1].precedence) ||
 
                                 (operator.associativity === Twig.expression.operator.rightToLeft &&
-                                 operator.precidence    >  stack[stack.length-1].precidence)
+                                 operator.precedence    >  stack[stack.length-1].precedence)
                             )
                        ) {
                      var temp = stack.pop();
@@ -254,10 +254,10 @@ var Twig = (function (Twig) {
                        (stack[stack.length-1].type == Twig.expression.type.operator.unary || stack[stack.length-1].type == Twig.expression.type.operator.binary) &&
                             (
                                 (operator.associativity === Twig.expression.operator.leftToRight &&
-                                 operator.precidence    >= stack[stack.length-1].precidence) ||
+                                 operator.precedence    >= stack[stack.length-1].precedence) ||
 
                                 (operator.associativity === Twig.expression.operator.rightToLeft &&
-                                 operator.precidence    >  stack[stack.length-1].precidence)
+                                 operator.precedence    >  stack[stack.length-1].precedence)
                             )
                        ) {
                      var temp = stack.pop();
