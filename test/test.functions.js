@@ -300,5 +300,19 @@ describe("Twig.js Functions ->", function() {
                 }
             });
         });
+
+        describe("min, max ->", function() {
+            it("should support the 'min' function", function() {
+                twig({data: '{{ min(2, 1, 3, 5, 4) }}'}).render().should.equal('1');
+                twig({data: '{{ min([2, 1, 3, 5, 4]) }}'}).render().should.equal('1');
+                twig({data: '{{ min({2:"two", 1:"one", 3:"three", 5:"five", 4:"four"}) }}'}).render().should.equal('five');
+            });
+
+            it("should support the 'max' function", function() {
+                twig({data: '{{ max([2, 1, 3, 5, 4]) }}'}).render().should.equal('5');
+                twig({data: '{{ max(2, 1, 3, 5, 4) }}'}).render().should.equal('5');
+                twig({data: '{{ max({2:"two", 1:"one", 3:"three", 5:"five", 4:"four"}) }}'}).render().should.equal('two');
+            });
+        });
     });
 });
