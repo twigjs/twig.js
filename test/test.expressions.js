@@ -91,6 +91,10 @@ describe("Twig.js Expressions ->", function() {
             });
         });
 
+        it("should use right associativity of the power operator", function() {
+            twig({data: '{{ a ** b ** c }}'}).render({a:2, b:1, c:2}).should.equal('2');
+        });
+
         it("should concatanate values", function() {
             twig({data: '{{ "test" ~ a }}'}).render({a:1234}).should.equal("test1234");
             twig({data: '{{ a ~ "test" ~ a }}'}).render({a:1234}).should.equal("1234test1234");
