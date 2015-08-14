@@ -177,12 +177,13 @@ var Twig = (function (Twig) {
         {
             type: Twig.expression.type.operator.binary,
             // Match any of +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, not
-            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
+            regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.|^starts\s+with\s+|^ends\s+with\s+|^matches\s+)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
             compile: function(token, stack, output) {
                 delete token.match;
 
                 token.value = token.value.trim();
+                token.value = token.value.replace(/\s+/, ' ');
                 var value = token.value,
                     operator = Twig.expression.operator.lookup(value, token);
 

@@ -61,6 +61,13 @@ var Twig = (function (Twig) {
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
+            case 'starts with':
+            case 'ends with':
+            case 'matches':
+                token.precedence = 20;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
             case 'or':
                 token.precedence = 10;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -272,6 +279,49 @@ var Twig = (function (Twig) {
                 b = stack.pop();
                 a = stack.pop();
                 stack.push( Twig.functions.range(a, b) );
+                break;
+
+            case 'starts with':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(Twig.lib.is('String', a)
+                    && Twig.lib.is('String', b)
+                    && a.indexOf(b) === 0);
+                break;
+
+            case 'ends with':
+                b = stack.pop();
+                a = stack.pop();
+                stack.push(Twig.lib.is('String', a)
+                    && Twig.lib.is('String', b)
+                    && (b === '' || a.substr(-b.length) === b));
+                break;
+
+            case 'matches':
+                b = stack.pop();
+                a = stack.pop();
+
+                // TODO: remove this block when
+                // we start casting to string the PHP way:
+                // true => '1'
+                // null, undefined, false => ''
+                if (a == null || a === 0 || a === false) {
+                    a = '';
+                } else if (a === true) {
+                    a = '1';
+                }
+
+                // PHP supports different delimiters
+                // We need to care of quoted chars
+                var delimiter = b[0];
+                var parts = b.split(delimiter);
+                var flags = parts.pop();
+                parts.shift();
+                var pattern = parts.join(delimiter);
+                pattern = pattern.replace('\\'+delimiter, delimiter);
+                var regexp = new RegExp(pattern, flags);
+
+                stack.push(regexp.exec(a));
                 break;
 
             default:

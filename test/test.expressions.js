@@ -292,5 +292,40 @@ describe("Twig.js Expressions ->", function() {
             var test_template = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
             test_template.render().should.equal(true.toString());
         });
+
+        it("should support the 'starts with' operator", function() {
+            twig({data: "{{ 'foo' starts with 'f' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ not ('foo' starts with 'oo') ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ not ('foo' starts with 'foowaytoolong') ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' starts      with 'f' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' starts\nwith 'f' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' starts with '' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ '1' starts with true ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ '' starts with false ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ 'a' starts with false ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ false starts with '' ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+        });
+
+        it("should support the 'ends with' operator", function() {
+            twig({data: "{{ 'foo' ends with 'o' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ not ('foo' ends with 'f') ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ not ('foo' ends with 'foowaytoolong') ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' ends with '' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ '1' ends with true ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ 1 ends with true ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ 0 ends with false ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ '' ends with false ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ false ends with false ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+            twig({data: "{{ false ends with '' ? 'OK' : 'KO' }}"}).render().should.equal('KO');
+        });
+
+        it("should support the 'matches' operator", function() {
+            twig({data: "{{ 'foo' matches '/o/' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' matches '/^fo/' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' matches '/O/i' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'foo' matches '#O#i' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'fo#o' matches '#O\##i' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+            twig({data: "{{ 'http://example.com' matches '/^http:\/\//' ? 'OK' : 'KO' }}"}).render().should.equal('OK');
+        });
     });
 });
