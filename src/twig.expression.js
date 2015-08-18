@@ -216,6 +216,8 @@ var Twig = (function (Twig) {
                                 key_token.type === Twig.expression.type.number) {
                             token.key = key_token.value;
 
+                        } else if (key_token.type === Twig.expression.type.parameter.end) {
+                            token.key_token = key_token;
                         } else {
                             throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
                         }
@@ -228,6 +230,9 @@ var Twig = (function (Twig) {
                 }
             },
             parse: function(token, stack, context) {
+                if (token.key_token) {
+                    token.key = Twig.expression.parse.apply(this, [token.key_token, context])
+                }
                 if (token.key) {
                     // handle ternary ':' operator
                     stack.push(token);
