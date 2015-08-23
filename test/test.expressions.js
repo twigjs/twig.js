@@ -244,6 +244,11 @@ describe("Twig.js Expressions ->", function() {
             output2.should.equal( "1" );
         });
 
+        it("should have the lowest precedence for the ternary operator", function() {
+            twig({data: '{{ 1 in [1] ? 2 : 3 }}'}).render().should.equal('2');
+            twig({data: '{{ 1 or 2 ? 3 : 4 }}'}).render().should.equal('3');
+        });
+
         it("should support in/containment functionality for arrays", function() {
             var test_template = twig({data: '{{ "a" in ["a", "b", "c"] }}'});
             test_template.render().should.equal(true.toString());

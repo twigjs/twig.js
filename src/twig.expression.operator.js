@@ -57,7 +57,7 @@ var Twig = (function (Twig) {
             // Ternary
             case '?':
             case ':':
-                token.precedence = 16;
+                token.precedence = 0;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
