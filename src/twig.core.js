@@ -977,7 +977,8 @@ var Twig = (function (Twig) {
 
     Twig.Template.prototype.importFile = function(file) {
         var url, sub_template;
-        if ( !this.url && !this.path && this.options.allowInlineIncludes ) {
+        if (!this.url && this.options.allowInlineIncludes) {
+            file = this.path ? this.path + '/' + file : file;
             sub_template = Twig.Templates.load(file);
             sub_template.options = this.options;
             if ( sub_template ) {
