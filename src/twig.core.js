@@ -990,7 +990,7 @@ var Twig = (function (Twig) {
                 });
 
                 if (!sub_template) {
-                    throw new Twig.Error("Didn't find the template");
+                    throw new Twig.Error("Unable to find the template " + file);
                 }
             }
 
