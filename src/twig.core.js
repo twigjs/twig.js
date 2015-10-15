@@ -194,6 +194,8 @@ var Twig = (function (Twig) {
         logic:          'logic',
         comment:        'comment',
         raw:            'raw',
+        whitespace_pre:  'whitespace_pre',
+        whitespace_post: 'whitespace_post',
         whitespace_both: 'whitespace_both'
     };
 
@@ -211,6 +213,24 @@ var Twig = (function (Twig) {
             open: '{% verbatim %}',
             close: '{% endverbatim %}'
         },
+        // *Whitespace type tokens*
+        //
+        // These typically take the form `{{- expression -}}` or `{{- expression }}` or `{{ expression -}}`.
+        {
+            type: Twig.token.type.whitespace_pre,
+            open: '{{-',
+            close: '}}'
+        },
+        {
+            type: Twig.token.type.whitespace_post,
+            open: '{{',
+            close: '-}}'
+        },
+        {
+            type: Twig.token.type.whitespace_both,
+            open: '{{-',
+            close: '-}}'
+        },
         // *Output type tokens*
         //
         // These typically take the form `{{ expression }}`.
@@ -218,11 +238,6 @@ var Twig = (function (Twig) {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
-        },
-        {
-            type: Twig.token.type.whitespace_both,
-            open: '{{-',
-            close: '-}}'
         },
         // *Logic type tokens*
         //
@@ -562,31 +577,35 @@ var Twig = (function (Twig) {
                         break;
 
                     //Kill whitespace ahead and behind this token
+                    case Twig.token.type.whitespace_pre:
+                    case Twig.token.type.whitespace_post:
                     case Twig.token.type.whitespace_both:
-                        if (prev_output) {
-                            //If the previous output is raw, pop it off
-                            if (prev_output.type === Twig.token.type.raw) {
-                                output.pop();
+                        if (token.type !== Twig.token.type.whitespace_post) {
+                            if (prev_output) {
+                                //If the previous output is raw, pop it off
+                                if (prev_output.type === Twig.token.type.raw) {
+                                    output.pop();
 
-                                //If the previous output is not just whitespace, trim it
-                                if (prev_output.value.match(/^\W*$/) === null) {
-                                    prev_output.value = prev_output.value.trim();
-                                    //Repush the previous output
-                                    output.push(prev_output);
+                                    //If the previous output is not just whitespace, trim it
+                                    if (prev_output.value.match(/^\W*$/) === null) {
+                                        prev_output.value = prev_output.value.trim();
+                                        //Repush the previous output
+                                        output.push(prev_output);
+                                    }
                                 }
                             }
-                        }
 
-                        if (prev_intermediate_output) {
-                            //If the previous intermediate output is raw, pop it off
-                            if (prev_intermediate_output.type === Twig.token.type.raw) {
-                                intermediate_output.pop();
+                            if (prev_intermediate_output) {
+                                //If the previous intermediate output is raw, pop it off
+                                if (prev_intermediate_output.type === Twig.token.type.raw) {
+                                    intermediate_output.pop();
 
-                                //If the previous output is not just whitespace, trim it
-                                if (prev_intermediate_output.value.match(/^\W*$/) === null) {
-                                    prev_intermediate_output.value = prev_intermediate_output.value.trim();
-                                    //Repush the previous intermediate output
-                                    intermediate_output.push(prev_intermediate_output);
+                                    //If the previous output is not just whitespace, trim it
+                                    if (prev_intermediate_output.value.match(/^\W*$/) === null) {
+                                        prev_intermediate_output.value = prev_intermediate_output.value.trim();
+                                        //Repush the previous intermediate output
+                                        intermediate_output.push(prev_intermediate_output);
+                                    }
                                 }
                             }
                         }
@@ -599,16 +618,18 @@ var Twig = (function (Twig) {
                             output.push(token);
                         }
 
-                        if (next_token) {
-                            //If the next token is raw, shift it out
-                            if (next_token.type === Twig.token.type.raw) {
-                                tokens.shift();
+                        if (token.type !== Twig.token.type.whitespace_pre) {
+                            if (next_token) {
+                                //If the next token is raw, shift it out
+                                if (next_token.type === Twig.token.type.raw) {
+                                    tokens.shift();
 
-                                //If the next token is not just whitespace, trim it
-                                if (next_token.value.match(/^\W*$/) === null) {
-                                    next_token.value = next_token.value.trim();
-                                    //Unshift the next token
-                                    tokens.unshift(next_token);
+                                    //If the next token is not just whitespace, trim it
+                                    if (next_token.value.match(/^\W*$/) === null) {
+                                        next_token.value = next_token.value.trim();
+                                        //Unshift the next token
+                                        tokens.unshift(next_token);
+                                    }
                                 }
                             }
                         }
@@ -683,6 +704,8 @@ var Twig = (function (Twig) {
                         break;
 
                     //Fall through whitespace to output
+                    case Twig.token.type.whitespace_pre:
+                    case Twig.token.type.whitespace_post:
                     case Twig.token.type.whitespace_both:
                     case Twig.token.type.output:
                         Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
