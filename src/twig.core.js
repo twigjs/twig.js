@@ -190,10 +190,11 @@ var Twig = (function (Twig) {
      * Token types.
      */
     Twig.token.type = {
-        output:  'output',
-        logic:   'logic',
-        comment: 'comment',
-        raw:     'raw'
+        output:         'output',
+        logic:          'logic',
+        comment:        'comment',
+        raw:            'raw',
+        whitespace_both: 'whitespace_both'
     };
 
     /**
@@ -217,6 +218,11 @@ var Twig = (function (Twig) {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
+        },
+        {
+            type: Twig.token.type.whitespace_both,
+            open: '{{-',
+            close: '-}}'
         },
         // *Logic type tokens*
         //
@@ -424,8 +430,14 @@ var Twig = (function (Twig) {
                 unclosed_token = null,
                 // Temporary previous token.
                 prev_token = null,
+                // Temporary previous output.
+                prev_output = null,
+                // Temporary previous intermediate output.
+                prev_intermediate_output = null,
                 // The previous token's template
                 prev_template = null,
+                // Token lookahead
+                next_token = null,
                 // The output token
                 tok_output = null,
 
@@ -436,6 +448,9 @@ var Twig = (function (Twig) {
 
             while (tokens.length > 0) {
                 token = tokens.shift();
+                prev_output = output[output.length - 1];
+                prev_intermediate_output = intermediate_output[intermediate_output.length - 1];
+                next_token = tokens[0];
                 Twig.log.trace("Compiling token ", token);
                 switch (token.type) {
                     case Twig.token.type.raw:
@@ -525,6 +540,60 @@ var Twig = (function (Twig) {
                             output.push(token);
                         }
                         break;
+
+                    //Kill whitespace ahead and behind this token
+                    case Twig.token.type.whitespace_both:
+                        if (prev_output) {
+                            //If the previous output is raw, pop it off
+                            if (prev_output.type === Twig.token.type.raw) {
+                                output.pop();
+
+                                //If the previous output is not just whitespace, trim it
+                                if (prev_output.value.match(/^\W*$/) === null) {
+                                    prev_output.value = prev_output.value.trim();
+                                    //Repush the previous output
+                                    output.push(prev_output);
+                                }
+                            }
+                        }
+
+                        if (prev_intermediate_output) {
+                            //If the previous intermediate output is raw, pop it off
+                            if (prev_intermediate_output.type === Twig.token.type.raw) {
+                                intermediate_output.pop();
+
+                                //If the previous output is not just whitespace, trim it
+                                if (prev_intermediate_output.value.match(/^\W*$/) === null) {
+                                    prev_intermediate_output.value = prev_intermediate_output.value.trim();
+                                    //Repush the previous intermediate output
+                                    intermediate_output.push(prev_intermediate_output);
+                                }
+                            }
+                        }
+
+                        //Compile this token
+                        Twig.expression.compile.apply(this, [token]);
+                        if (stack.length > 0) {
+                            intermediate_output.push(token);
+                        } else {
+                            output.push(token);
+                        }
+
+                        if (next_token) {
+                            //If the next token is raw, shift it out
+                            if (next_token.type === Twig.token.type.raw) {
+                                tokens.shift();
+
+                                //If the next token is not just whitespace, trim it
+                                if (next_token.value.match(/^\W*$/) === null) {
+                                    next_token.value = next_token.value.trim();
+                                    //Unshift the next token
+                                    tokens.unshift(next_token);
+                                }
+                            }
+                        }
+
+                        break;
                 }
 
                 Twig.log.trace("Twig.compile: ", " Output: ", output,
@@ -593,6 +662,8 @@ var Twig = (function (Twig) {
                         // Do nothing, comments should be ignored
                         break;
 
+                    //Fall through whitespace to output
+                    case Twig.token.type.whitespace_both:
                     case Twig.token.type.output:
                         Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                         // Parse the given expression in the given context

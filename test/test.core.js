@@ -52,6 +52,19 @@ describe("Twig.js Core ->", function() {
         twig({data: "{{ ' \"}} ' }}"}).render().should.equal(' "}} ');
     });
 
+    it("should be able to parse whitespace control output tags", function() {
+        twig({data: ' {{- "test" -}}'}).render().should.equal("test");
+        twig({data: ' {{- "test" -}} '}).render().should.equal("test");
+        twig({data: '\n{{- "test" -}}'}).render().should.equal("test");
+        twig({data: '{{- "test" -}}\n'}).render().should.equal("test");
+        twig({data: '\n{{- "test" -}}\n'}).render().should.equal("test");
+        twig({data: '\t{{- "test" -}}\t'}).render().should.equal("test");
+        twig({data: '\n\t{{- "test" -}}\n\t'}).render().should.equal("test");
+        twig({data: '123\n\t{{- "test" -}}\n\t456'}).render().should.equal("123test456");
+        twig({data: '\n{{- orp -}}\n'}).render({ orp: "test"}).should.equal("test");
+        twig({data: '\n{{- [1,2 ,1+2 ] -}}\n'}).render().should.equal("1,2,3");
+    });
+
     it("should be able to output numbers", function() {
         twig({data: '{{ 12 }}'}).render().should.equal( "12" );
         twig({data: '{{ 12.64 }}'}).render().should.equal( "12.64" );
