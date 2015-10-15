@@ -208,6 +208,8 @@ var Twig = (function (Twig) {
         logic:          'logic',
         comment:        'comment',
         raw:            'raw',
+        whitespace_pre:  'whitespace_pre',
+        whitespace_post: 'whitespace_post',
         whitespace_both: 'whitespace_both'
     };
 
@@ -225,6 +227,24 @@ var Twig = (function (Twig) {
             open: '{% verbatim %}',
             close: '{% endverbatim %}'
         },
+        // *Whitespace type tokens*
+        //
+        // These typically take the form `{{- expression -}}` or `{{- expression }}` or `{{ expression -}}`.
+        {
+            type: Twig.token.type.whitespace_pre,
+            open: '{{-',
+            close: '}}'
+        },
+        {
+            type: Twig.token.type.whitespace_post,
+            open: '{{',
+            close: '-}}'
+        },
+        {
+            type: Twig.token.type.whitespace_both,
+            open: '{{-',
+            close: '-}}'
+        },
         // *Output type tokens*
         //
         // These typically take the form `{{ expression }}`.
@@ -232,11 +252,6 @@ var Twig = (function (Twig) {
             type: Twig.token.type.output,
             open: '{{',
             close: '}}'
-        },
-        {
-            type: Twig.token.type.whitespace_both,
-            open: '{{-',
-            close: '-}}'
         },
         // *Logic type tokens*
         //
@@ -278,6 +293,17 @@ var Twig = (function (Twig) {
 
             Twig.log.trace("Twig.token.findStart: ", "Searching for ", token_template.open, " found at ", first_key_position);
 
+            //Special handling for mismatched tokens
+            if (first_key_position >= 0) {
+                //This token matches the template
+                if (token_template.open.length !== token_template.close.length) {
+                    //This token has mismatched closing and opening tags
+                    if (template.indexOf(token_template.close) < 0) {
+                        //This token's closing tag does not match the template
+                        continue;
+                    }
+                }
+            }
             // Does this token occur before any other types?
             if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
                 output.position = first_key_position;
@@ -286,8 +312,17 @@ var Twig = (function (Twig) {
                 /*This token exactly matches another token,
                 greedily match to check if this token has a greater specificity*/
                 if (token_template.open.length > output.def.open.length) {
+                    //This token's opening tag is more specific than the previous match
                     output.position = first_key_position;
                     output.def = token_template;
+                } else if (token_template.open.length === output.def.open.length && token_template.close.length > output.def.close.length) {
+                    //This token's opening tag is as specific as the previous match,
+                    //but the closing tag has greater specificity
+                    if (template.indexOf(token_template.close) >= 0) {
+                        //This token's closing tag exists in the template
+                        output.position = first_key_position;
+                        output.def = token_template;
+                    }
                 }
             }
         }
@@ -556,31 +591,35 @@ var Twig = (function (Twig) {
                         break;
 
                     //Kill whitespace ahead and behind this token
+                    case Twig.token.type.whitespace_pre:
+                    case Twig.token.type.whitespace_post:
                     case Twig.token.type.whitespace_both:
-                        if (prev_output) {
-                            //If the previous output is raw, pop it off
-                            if (prev_output.type === Twig.token.type.raw) {
-                                output.pop();
+                        if (token.type !== Twig.token.type.whitespace_post) {
+                            if (prev_output) {
+                                //If the previous output is raw, pop it off
+                                if (prev_output.type === Twig.token.type.raw) {
+                                    output.pop();
 
-                                //If the previous output is not just whitespace, trim it
-                                if (prev_output.value.match(/^\W*$/) === null) {
-                                    prev_output.value = prev_output.value.trim();
-                                    //Repush the previous output
-                                    output.push(prev_output);
+                                    //If the previous output is not just whitespace, trim it
+                                    if (prev_output.value.match(/^\W*$/) === null) {
+                                        prev_output.value = prev_output.value.trim();
+                                        //Repush the previous output
+                                        output.push(prev_output);
+                                    }
                                 }
                             }
-                        }
 
-                        if (prev_intermediate_output) {
-                            //If the previous intermediate output is raw, pop it off
-                            if (prev_intermediate_output.type === Twig.token.type.raw) {
-                                intermediate_output.pop();
+                            if (prev_intermediate_output) {
+                                //If the previous intermediate output is raw, pop it off
+                                if (prev_intermediate_output.type === Twig.token.type.raw) {
+                                    intermediate_output.pop();
 
-                                //If the previous output is not just whitespace, trim it
-                                if (prev_intermediate_output.value.match(/^\W*$/) === null) {
-                                    prev_intermediate_output.value = prev_intermediate_output.value.trim();
-                                    //Repush the previous intermediate output
-                                    intermediate_output.push(prev_intermediate_output);
+                                    //If the previous output is not just whitespace, trim it
+                                    if (prev_intermediate_output.value.match(/^\W*$/) === null) {
+                                        prev_intermediate_output.value = prev_intermediate_output.value.trim();
+                                        //Repush the previous intermediate output
+                                        intermediate_output.push(prev_intermediate_output);
+                                    }
                                 }
                             }
                         }
@@ -593,16 +632,18 @@ var Twig = (function (Twig) {
                             output.push(token);
                         }
 
-                        if (next_token) {
-                            //If the next token is raw, shift it out
-                            if (next_token.type === Twig.token.type.raw) {
-                                tokens.shift();
+                        if (token.type !== Twig.token.type.whitespace_pre) {
+                            if (next_token) {
+                                //If the next token is raw, shift it out
+                                if (next_token.type === Twig.token.type.raw) {
+                                    tokens.shift();
 
-                                //If the next token is not just whitespace, trim it
-                                if (next_token.value.match(/^\W*$/) === null) {
-                                    next_token.value = next_token.value.trim();
-                                    //Unshift the next token
-                                    tokens.unshift(next_token);
+                                    //If the next token is not just whitespace, trim it
+                                    if (next_token.value.match(/^\W*$/) === null) {
+                                        next_token.value = next_token.value.trim();
+                                        //Unshift the next token
+                                        tokens.unshift(next_token);
+                                    }
                                 }
                             }
                         }
@@ -677,6 +718,8 @@ var Twig = (function (Twig) {
                         break;
 
                     //Fall through whitespace to output
+                    case Twig.token.type.whitespace_pre:
+                    case Twig.token.type.whitespace_post:
                     case Twig.token.type.whitespace_both:
                     case Twig.token.type.output:
                         Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
