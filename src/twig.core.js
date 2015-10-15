@@ -262,6 +262,13 @@ var Twig = (function (Twig) {
             if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
                 output.position = first_key_position;
                 output.def = token_template;
+            } else if (first_key_position >= 0 && output.position !== null && first_key_position === output.position) {
+                /*This token exactly matches another token,
+                greedily match to check if this token has a greater specificity*/
+                if (token_template.open.length > output.def.open.length) {
+                    output.position = first_key_position;
+                    output.def = token_template;
+                }
             }
         }
 
