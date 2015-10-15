@@ -264,6 +264,17 @@ var Twig = (function (Twig) {
 
             Twig.log.trace("Twig.token.findStart: ", "Searching for ", token_template.open, " found at ", first_key_position);
 
+            //Special handling for mismatched tokens
+            if (first_key_position >= 0) {
+                //This token matches the template
+                if (token_template.open.length !== token_template.close.length) {
+                    //This token has mismatched closing and opening tags
+                    if (template.indexOf(token_template.close) < 0) {
+                        //This token's closing tag does not match the template
+                        continue;
+                    }
+                }
+            }
             // Does this token occur before any other types?
             if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
                 output.position = first_key_position;
@@ -272,8 +283,17 @@ var Twig = (function (Twig) {
                 /*This token exactly matches another token,
                 greedily match to check if this token has a greater specificity*/
                 if (token_template.open.length > output.def.open.length) {
+                    //This token's opening tag is more specific than the previous match
                     output.position = first_key_position;
                     output.def = token_template;
+                } else if (token_template.open.length === output.def.open.length && token_template.close.length > output.def.close.length) {
+                    //This token's opening tag is as specific as the previous match,
+                    //but the closing tag has greater specificity
+                    if (template.indexOf(token_template.close) >= 0) {
+                        //This token's closing tag exists in the template
+                        output.position = first_key_position;
+                        output.def = token_template;
+                    }
                 }
             }
         }
