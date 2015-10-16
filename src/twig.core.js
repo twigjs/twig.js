@@ -498,6 +498,82 @@ var Twig = (function (Twig) {
                 open = null,
                 next = null;
 
+            var compile_output = function(token) {
+                Twig.expression.compile.apply(this, [token]);
+                if (stack.length > 0) {
+                    intermediate_output.push(token);
+                } else {
+                    output.push(token);
+                }
+            };
+
+            var compile_logic = function(token) {
+                // Compile the logic token
+                logic_token = Twig.logic.compile.apply(this, [token]);
+
+                type = logic_token.type;
+                open = Twig.logic.handler[type].open;
+                next = Twig.logic.handler[type].next;
+
+                Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
+                                                 " next is: ", next, " open is : ", open);
+
+                // Not a standalone token, check logic stack to see if this is expected
+                if (open !== undefined && !open) {
+                    prev_token = stack.pop();
+                    prev_template = Twig.logic.handler[prev_token.type];
+
+                    if (Twig.indexOf(prev_template.next, type) < 0) {
+                        throw new Error(type + " not expected after a " + prev_token.type);
+                    }
+
+                    prev_token.output = prev_token.output || [];
+
+                    prev_token.output = prev_token.output.concat(intermediate_output);
+                    intermediate_output = [];
+
+                    tok_output = {
+                        type: Twig.token.type.logic,
+                        token: prev_token
+                    };
+                    if (stack.length > 0) {
+                        intermediate_output.push(tok_output);
+                    } else {
+                        output.push(tok_output);
+                    }
+                }
+
+                // This token requires additional tokens to complete the logic structure.
+                if (next !== undefined && next.length > 0) {
+                    Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
+
+                    if (stack.length > 0) {
+                        // Put any currently held output into the output list of the logic operator
+                        // currently at the head of the stack before we push a new one on.
+                        prev_token = stack.pop();
+                        prev_token.output = prev_token.output || [];
+                        prev_token.output = prev_token.output.concat(intermediate_output);
+                        stack.push(prev_token);
+                        intermediate_output = [];
+                    }
+
+                    // Push the new logic token onto the logic stack
+                    stack.push(logic_token);
+
+                } else if (open !== undefined && open) {
+                    tok_output = {
+                        type: Twig.token.type.logic,
+                        token: logic_token
+                    };
+                    // Standalone token (like {% set ... %}
+                    if (stack.length > 0) {
+                        intermediate_output.push(tok_output);
+                    } else {
+                        output.push(tok_output);
+                    }
+                }
+            };
+
             while (tokens.length > 0) {
                 token = tokens.shift();
                 prev_output = output[output.length - 1];
@@ -514,70 +590,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.logic:
-                        // Compile the logic token
-                        logic_token = Twig.logic.compile.apply(this, [token]);
-
-                        type = logic_token.type;
-                        open = Twig.logic.handler[type].open;
-                        next = Twig.logic.handler[type].next;
-
-                        Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
-                                                         " next is: ", next, " open is : ", open);
-
-                        // Not a standalone token, check logic stack to see if this is expected
-                        if (open !== undefined && !open) {
-                            prev_token = stack.pop();
-                            prev_template = Twig.logic.handler[prev_token.type];
-
-                            if (Twig.indexOf(prev_template.next, type) < 0) {
-                                throw new Error(type + " not expected after a " + prev_token.type);
-                            }
-
-                            prev_token.output = prev_token.output || [];
-
-                            prev_token.output = prev_token.output.concat(intermediate_output);
-                            intermediate_output = [];
-
-                            tok_output = {
-                                type: Twig.token.type.logic,
-                                token: prev_token
-                            };
-                            if (stack.length > 0) {
-                                intermediate_output.push(tok_output);
-                            } else {
-                                output.push(tok_output);
-                            }
-                        }
-
-                        // This token requires additional tokens to complete the logic structure.
-                        if (next !== undefined && next.length > 0) {
-                            Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
-
-                            if (stack.length > 0) {
-                                // Put any currently held output into the output list of the logic operator
-                                // currently at the head of the stack before we push a new one on.
-                                prev_token = stack.pop();
-                                prev_token.output = prev_token.output || [];
-                                prev_token.output = prev_token.output.concat(intermediate_output);
-                                stack.push(prev_token);
-                                intermediate_output = [];
-                            }
-
-                            // Push the new logic token onto the logic stack
-                            stack.push(logic_token);
-
-                        } else if (open !== undefined && open) {
-                            tok_output = {
-                                type: Twig.token.type.logic,
-                                token: logic_token
-                            };
-                            // Standalone token (like {% set ... %}
-                            if (stack.length > 0) {
-                                intermediate_output.push(tok_output);
-                            } else {
-                                output.push(tok_output);
-                            }
-                        }
+                        compile_logic(token);
                         break;
 
                     // Do nothing, comments should be ignored
@@ -585,12 +598,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.output:
-                        Twig.expression.compile.apply(this, [token]);
-                        if (stack.length > 0) {
-                            intermediate_output.push(token);
-                        } else {
-                            output.push(token);
-                        }
+                        compile_output(token);
                         break;
 
                     //Kill whitespace ahead and behind this token
