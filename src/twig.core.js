@@ -190,13 +190,16 @@ var Twig = (function (Twig) {
      * Token types.
      */
     Twig.token.type = {
-        output:         'output',
-        logic:          'logic',
-        comment:        'comment',
-        raw:            'raw',
-        whitespace_pre:  'whitespace_pre',
-        whitespace_post: 'whitespace_post',
-        whitespace_both: 'whitespace_both'
+        output:                 'output',
+        logic:                  'logic',
+        comment:                'comment',
+        raw:                    'raw',
+        output_whitespace_pre:  'output_whitespace_pre',
+        output_whitespace_post: 'output_whitespace_post',
+        output_whitespace_both: 'output_whitespace_both',
+        logic_whitespace_pre:   'logic_whitespace_pre',
+        logic_whitespace_post:  'logic_whitespace_post',
+        logic_whitespace_both:  'logic_whitespace_both'
     };
 
     /**
@@ -217,19 +220,34 @@ var Twig = (function (Twig) {
         //
         // These typically take the form `{{- expression -}}` or `{{- expression }}` or `{{ expression -}}`.
         {
-            type: Twig.token.type.whitespace_pre,
+            type: Twig.token.type.output_whitespace_pre,
             open: '{{-',
             close: '}}'
         },
         {
-            type: Twig.token.type.whitespace_post,
+            type: Twig.token.type.output_whitespace_post,
             open: '{{',
             close: '-}}'
         },
         {
-            type: Twig.token.type.whitespace_both,
+            type: Twig.token.type.output_whitespace_both,
             open: '{{-',
             close: '-}}'
+        },
+        {
+            type: Twig.token.type.logic_whitespace_pre,
+            open: '{%-',
+            close: '%}'
+        },
+        {
+            type: Twig.token.type.logic_whitespace_post,
+            open: '{%',
+            close: '-%}'
+        },
+        {
+            type: Twig.token.type.logic_whitespace_both,
+            open: '{%-',
+            close: '-%}'
         },
         // *Output type tokens*
         //
@@ -444,9 +462,16 @@ var Twig = (function (Twig) {
                     value: template.substring(0, end).trim()
                 });
 
-                if ( found_token.def.type === "logic" && template.substr( end + found_token.def.close.length, 1 ) === "\n" ) {
-                    // Newlines directly after logic tokens are ignored
-                    end += 1;
+                if (template.substr( end + found_token.def.close.length, 1 ) === "\n") {
+                    switch (found_token.def.type) {
+                        case "logic_whitespace_pre":
+                        case "logic_whitespace_post":
+                        case "logic_whitespace_both":
+                        case "logic":
+                            // Newlines directly after logic tokens are ignored
+                            end += 1;
+                            break;
+                    }
                 }
 
                 template = template.substr(end + found_token.def.close.length);
@@ -602,10 +627,13 @@ var Twig = (function (Twig) {
                         break;
 
                     //Kill whitespace ahead and behind this token
-                    case Twig.token.type.whitespace_pre:
-                    case Twig.token.type.whitespace_post:
-                    case Twig.token.type.whitespace_both:
-                        if (token.type !== Twig.token.type.whitespace_post) {
+                    case Twig.token.type.logic_whitespace_pre:
+                    case Twig.token.type.logic_whitespace_post:
+                    case Twig.token.type.logic_whitespace_both:
+                    case Twig.token.type.output_whitespace_pre:
+                    case Twig.token.type.output_whitespace_post:
+                    case Twig.token.type.output_whitespace_both:
+                        if (token.type !== Twig.token.type.output_whitespace_post && token.type !== Twig.token.type.logic_whitespace_post) {
                             if (prev_output) {
                                 //If the previous output is raw, pop it off
                                 if (prev_output.type === Twig.token.type.raw) {
@@ -636,14 +664,20 @@ var Twig = (function (Twig) {
                         }
 
                         //Compile this token
-                        Twig.expression.compile.apply(this, [token]);
-                        if (stack.length > 0) {
-                            intermediate_output.push(token);
-                        } else {
-                            output.push(token);
+                        switch (token.type) {
+                            case Twig.token.type.output_whitespace_pre:
+                            case Twig.token.type.output_whitespace_post:
+                            case Twig.token.type.output_whitespace_both:
+                                compile_output(token);
+                                break;
+                            case Twig.token.type.logic_whitespace_pre:
+                            case Twig.token.type.logic_whitespace_post:
+                            case Twig.token.type.logic_whitespace_both:
+                                compile_logic(token);
+                                break;
                         }
 
-                        if (token.type !== Twig.token.type.whitespace_pre) {
+                        if (token.type !== Twig.token.type.output_whitespace_pre && token.type !== Twig.token.type.logic_whitespace_pre) {
                             if (next_token) {
                                 //If the next token is raw, shift it out
                                 if (next_token.type === Twig.token.type.raw) {
@@ -729,9 +763,9 @@ var Twig = (function (Twig) {
                         break;
 
                     //Fall through whitespace to output
-                    case Twig.token.type.whitespace_pre:
-                    case Twig.token.type.whitespace_post:
-                    case Twig.token.type.whitespace_both:
+                    case Twig.token.type.output_whitespace_pre:
+                    case Twig.token.type.output_whitespace_post:
+                    case Twig.token.type.output_whitespace_both:
                     case Twig.token.type.output:
                         Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                         // Parse the given expression in the given context

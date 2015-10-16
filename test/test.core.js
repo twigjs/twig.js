@@ -92,6 +92,42 @@ describe("Twig.js Core ->", function() {
         twig({data: ' {{ "test" -}} {{- "test" -}}'}).render().should.equal(" testtest");
     });
 
+    it("should be able to parse whitespace control logic tags", function() {
+        // Newlines directly after logic tokens are ignored
+        // So use double newlines
+        twig({data: '{%- if true -%}{{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: '{%- if true -%}{{ "test" }}{%- endif -%}'}).render().should.equal("test");
+        twig({data: ' {%- if true -%} {{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: '\n{%- if true -%}\n\n{{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: '\n\t{%- if true -%}\n\n\t{{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: '123\n\t{%- if true -%}\n\n\t{{ "test" }}{% endif %}456'}).render().should.equal("123test456");
+        twig({data: '\n\t{%- if true -%}\n\n\t{{ [1,2 ,1+2 ] }}{% endif %}'}).render().should.equal("1,2,3");
+    });
+
+    it("should be able to parse mismatched opening whitespace control logic tags", function() {
+        twig({data: '{%- if true %}{{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: '{%- if true %}{{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: ' {% if true %} {{ "test" }}{% endif %}'}).render().should.equal("  test");
+        twig({data: ' {%- if true %} {{ "test" }}{% endif %}'}).render().should.equal(" test");
+        twig({data: '\n{% if true %}\n\n{{ "test" }}{% endif %}'}).render().should.equal("\n\ntest");
+        twig({data: '\n{%- if true %}\n\n{{ "test" }}{% endif %}'}).render().should.equal("\ntest");
+        twig({data: '\n\t{%- if true %}\n\n\t{{ "test" }}{% endif %}'}).render().should.equal("\n\ttest");
+        twig({data: '123\n\t{%- if true %}\n\n\t{{ "test" }}{% endif %}456'}).render().should.equal("123\n\ttest456");
+        twig({data: '\n\t{%- if true %}\n\n\t{{ [1,2 ,1+2 ] }}{% endif %}'}).render().should.equal("\n\t1,2,3");
+    });
+
+    it("should be able to parse mismatched closing whitespace control logic tags", function() {
+        twig({data: '{% if true %}{{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: '{% if true -%} {{ "test" }}{% endif %}'}).render().should.equal("test");
+        twig({data: ' {% if true -%} {{ "test" }}{% endif %}'}).render().should.equal(" test");
+        twig({data: ' {% if true -%} {{ "test" }}{% endif %}'}).render().should.equal(" test");
+        twig({data: '\n{% if true %}\n\n{{ "test" }}{% endif %}'}).render().should.equal("\n\ntest");
+        twig({data: '\n{% if true -%}\n\n{{ "test" }}{% endif %}'}).render().should.equal("\ntest");
+        twig({data: '\n\t{% if true -%}\n\n\t{{ "test" }}{% endif %}'}).render().should.equal("\n\ttest");
+        twig({data: '123\n\t{% if true -%}\n\n\t{{ "test" }}{% endif %}456'}).render().should.equal("123\n\ttest456");
+        twig({data: '\n\t{% if true -%}\n\n\t{{ [1,2 ,1+2 ] }}{% endif %}'}).render().should.equal("\n\t1,2,3");
+    });
+
     it("should be able to output numbers", function() {
         twig({data: '{{ 12 }}'}).render().should.equal( "12" );
         twig({data: '{{ 12.64 }}'}).render().should.equal( "12.64" );
