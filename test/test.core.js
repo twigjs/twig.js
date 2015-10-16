@@ -64,6 +64,8 @@ describe("Twig.js Core ->", function() {
         twig({data: '\n{{- orp -}}\n'}).render({ orp: "test"}).should.equal("test");
         twig({data: '\n{{- [1,2 ,1+2 ] -}}\n'}).render().should.equal("1,2,3");
         twig({data: ' {{- "test" -}} {{- "test" -}}'}).render().should.equal("testtest");
+        twig({data: '{{ "test" }} {{- "test" -}}'}).render().should.equal("testtest");
+        twig({data: '{{- "test" -}} {{ "test" }}'}).render().should.equal("testtest");
     });
 
     it("should be able to parse mismatched opening whitespace control output tags", function() {
@@ -73,6 +75,9 @@ describe("Twig.js Core ->", function() {
         twig({data: '123\n\t{{- "test" }}\n\t456'}).render().should.equal("123test\n\t456");
         twig({data: '\n{{- [1,2 ,1+2 ] }}\n'}).render().should.equal("1,2,3\n");
         twig({data: ' {{- "test" }} {{- "test" }}'}).render().should.equal("testtest");
+        twig({data: '{{ "test" }} {{- "test" }}'}).render().should.equal("testtest");
+        twig({data: ' {{- "test" }} {{ "test" }}'}).render().should.equal("test test");
+        twig({data: ' {{- "test" }} {{- "test" -}}'}).render().should.equal("testtest");
     });
 
     it("should be able to parse mismatched closing whitespace control output tags", function() {
@@ -82,6 +87,9 @@ describe("Twig.js Core ->", function() {
         twig({data: '123\n\t{{ "test" -}}\n\t456'}).render().should.equal("123\n\ttest456");
         twig({data: '\n{{ [1,2 ,1+2 ] -}}\n'}).render().should.equal("\n1,2,3");
         twig({data: ' {{ "test" -}} {{ "test" -}}'}).render().should.equal(" testtest");
+        twig({data: '{{ "test" }} {{ "test" -}} '}).render().should.equal("test test");
+        twig({data: ' {{ "test" -}} {{ "test" }} '}).render().should.equal(" testtest ");
+        twig({data: ' {{ "test" -}} {{- "test" -}}'}).render().should.equal(" testtest");
     });
 
     it("should be able to output numbers", function() {
