@@ -138,11 +138,15 @@ var Twig = (function (Twig) {
             return output.join(join_str);
         },
         "default": function(value, params) {
-            if (params === undefined || params.length !== 1) {
+            if (params !== undefined && params.length > 1) {
                 throw new Twig.Error("default filter expects one argument");
             }
             if (value === undefined || value === null || value === '' ) {
-                return params[0];
+                if (params === undefined) {
+                    return '';
+                } else {
+                    return params[0];
+                }
             } else {
                 return value;
             }
