@@ -640,7 +640,7 @@ var Twig = (function (Twig) {
                                     output.pop();
 
                                     //If the previous output is not just whitespace, trim it
-                                    if (prev_output.value.match(/^\W*$/) === null) {
+                                    if (prev_output.value.match(/^\s*$/) === null) {
                                         prev_output.value = prev_output.value.trim();
                                         //Repush the previous output
                                         output.push(prev_output);
@@ -654,7 +654,7 @@ var Twig = (function (Twig) {
                                     intermediate_output.pop();
 
                                     //If the previous output is not just whitespace, trim it
-                                    if (prev_intermediate_output.value.match(/^\W*$/) === null) {
+                                    if (prev_intermediate_output.value.match(/^\s*$/) === null) {
                                         prev_intermediate_output.value = prev_intermediate_output.value.trim();
                                         //Repush the previous intermediate output
                                         intermediate_output.push(prev_intermediate_output);
@@ -684,7 +684,7 @@ var Twig = (function (Twig) {
                                     tokens.shift();
 
                                     //If the next token is not just whitespace, trim it
-                                    if (next_token.value.match(/^\W*$/) === null) {
+                                    if (next_token.value.match(/^\s*$/) === null) {
                                         next_token.value = next_token.value.trim();
                                         //Unshift the next token
                                         tokens.unshift(next_token);
