@@ -593,7 +593,7 @@ var Twig = (function (Twig) {
                         break;
                 }
             });
-            return Twig.output.apply(this, [output]);
+            return '' + Twig.output.apply(this, [output]);
         } catch (ex) {
             Twig.log.error("Error parsing twig template " + this.id + ": ");
             if (ex.stack) {
