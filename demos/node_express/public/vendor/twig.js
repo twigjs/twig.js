@@ -1629,272 +1629,299 @@ var Twig = (function(Twig) {
     };
 
     Twig.lib.strtotime = function (text, now) {
-        //  discuss at: http://phpjs.org/functions/strtotime/
-        //     version: 1109.2016
-        // original by: Caio Ariede (http://caioariede.com)
-        // improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-        // improved by: Caio Ariede (http://caioariede.com)
-        // improved by: A. Matías Quezada (http://amatiasq.com)
-        // improved by: preuter
-        // improved by: Brett Zamir (http://brett-zamir.me)
-        // improved by: Mirko Faber
-        //    input by: David
-        // bugfixed by: Wagner B. Soares
-        // bugfixed by: Artur Tchernychev
-        //        note: Examples all have a fixed timestamp to prevent tests to fail because of variable time(zones)
-        //   example 1: strtotime('+1 day', 1129633200);
-        //   returns 1: 1129719600
-        //   example 2: strtotime('+1 week 2 days 4 hours 2 seconds', 1129633200);
-        //   returns 2: 1130425202
-        //   example 3: strtotime('last month', 1129633200);
-        //   returns 3: 1127041200
-        //   example 4: strtotime('2009-05-04 08:30:00 GMT');
-        //   returns 4: 1241425800
+      //  discuss at: http://phpjs.org/functions/strtotime/
+      //     version: 1109.2016
+      // original by: Caio Ariede (http://caioariede.com)
+      // improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+      // improved by: Caio Ariede (http://caioariede.com)
+      // improved by: A. Matías Quezada (http://amatiasq.com)
+      // improved by: preuter
+      // improved by: Brett Zamir (http://brett-zamir.me)
+      // improved by: Mirko Faber
+      //    input by: David
+      // bugfixed by: Wagner B. Soares
+      // bugfixed by: Artur Tchernychev
+      // bugfixed by: Stephan Bösch-Plepelits (http://github.com/plepe)
+      //        note: Examples all have a fixed timestamp to prevent tests to fail because of variable time(zones)
+      //   example 1: strtotime('+1 day', 1129633200);
+      //   returns 1: 1129719600
+      //   example 2: strtotime('+1 week 2 days 4 hours 2 seconds', 1129633200);
+      //   returns 2: 1130425202
+      //   example 3: strtotime('last month', 1129633200);
+      //   returns 3: 1127041200
+      //   example 4: strtotime('2009-05-04 08:30:00 GMT');
+      //   returns 4: 1241425800
+      //   example 5: strtotime('2009-05-04 08:30:00+00');
+      //   returns 5: 1241425800
+      //   example 6: strtotime('2009-05-04 08:30:00+02:00');
+      //   returns 6: 1241418600
+      //   example 7: strtotime('2009-05-04T08:30:00Z');
+      //   returns 7: 1241425800
 
-        var parsed, match, today, year, date, days, ranges, len, times, regex, i, fail = false;
+      var parsed, match, today, year, date, days, ranges, len, times, regex, i, fail = false;
 
-        if (!text) {
-            return fail;
-        }
+      if (!text) {
+	return fail;
+      }
 
-        // Unecessary spaces
-        text = text.replace(/^\s+|\s+$/g, '')
-            .replace(/\s{2,}/g, ' ')
-            .replace(/[\t\r\n]/g, '')
-            .toLowerCase();
+      // Unecessary spaces
+      text = text.replace(/^\s+|\s+$/g, '')
+	.replace(/\s{2,}/g, ' ')
+	.replace(/[\t\r\n]/g, '')
+	.toLowerCase();
 
-        // in contrast to php, js Date.parse function interprets:
-        // dates given as yyyy-mm-dd as in timezone: UTC,
-        // dates with "." or "-" as MDY instead of DMY
-        // dates with two-digit years differently
-        // etc...etc...
-        // ...therefore we manually parse lots of common date formats
-        match = text.match(
-            /^(\d{1,4})([\-\.\/\:])(\d{1,2})([\-\.\/\:])(\d{1,4})(?:\s(\d{1,2}):(\d{2})?:?(\d{2})?)?(?:\s([A-Z]+)?)?$/);
+      // in contrast to php, js Date.parse function interprets:
+      // dates given as yyyy-mm-dd as in timezone: UTC,
+      // dates with "." or "-" as MDY instead of DMY
+      // dates with two-digit years differently
+      // etc...etc...
+      // ...therefore we manually parse lots of common date formats
+      match = text.match(
+	/^(\d{1,4})([\-\.\/\:])(\d{1,2})([\-\.\/\:])(\d{1,4})(?:\s(\d{1,2}):(\d{2})?:?(\d{2})?)?(?:\s([A-Z]+)?)?$/);
 
-        if (match && match[2] === match[4]) {
-            if (match[1] > 1901) {
-                switch (match[2]) {
-                case '-':
-                    {
-                        // YYYY-M-D
-                        if (match[3] > 12 || match[5] > 31) {
-                            return fail;
-                        }
+      if (match && match[2] === match[4]) {
+	if (match[1] > 1901) {
+	  switch (match[2]) {
+	  case '-':
+	    {
+	      // YYYY-M-D
+	      if (match[3] > 12 || match[5] > 31) {
+		return fail;
+	      }
 
-                        return new Date(match[1], parseInt(match[3], 10) - 1, match[5],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                case '.':
-                    {
-                        // YYYY.M.D is not parsed by strtotime()
-                        return fail;
-                    }
-                case '/':
-                    {
-                        // YYYY/M/D
-                        if (match[3] > 12 || match[5] > 31) {
-                            return fail;
-                        }
+	      return new Date(match[1], parseInt(match[3], 10) - 1, match[5],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  case '.':
+	    {
+	      // YYYY.M.D is not parsed by strtotime()
+	      return fail;
+	    }
+	  case '/':
+	    {
+	      // YYYY/M/D
+	      if (match[3] > 12 || match[5] > 31) {
+		return fail;
+	      }
 
-                        return new Date(match[1], parseInt(match[3], 10) - 1, match[5],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                }
-            } else if (match[5] > 1901) {
-                switch (match[2]) {
-                case '-':
-                    {
-                        // D-M-YYYY
-                        if (match[3] > 12 || match[1] > 31) {
-                            return fail;
-                        }
+	      return new Date(match[1], parseInt(match[3], 10) - 1, match[5],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  }
+	} else if (match[5] > 1901) {
+	  switch (match[2]) {
+	  case '-':
+	    {
+	      // D-M-YYYY
+	      if (match[3] > 12 || match[1] > 31) {
+		return fail;
+	      }
 
-                        return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                case '.':
-                    {
-                        // D.M.YYYY
-                        if (match[3] > 12 || match[1] > 31) {
-                            return fail;
-                        }
+	      return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  case '.':
+	    {
+	      // D.M.YYYY
+	      if (match[3] > 12 || match[1] > 31) {
+		return fail;
+	      }
 
-                        return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                case '/':
-                    {
-                        // M/D/YYYY
-                        if (match[1] > 12 || match[3] > 31) {
-                            return fail;
-                        }
+	      return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  case '/':
+	    {
+	      // M/D/YYYY
+	      if (match[1] > 12 || match[3] > 31) {
+		return fail;
+	      }
 
-                        return new Date(match[5], parseInt(match[1], 10) - 1, match[3],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                }
-            } else {
-                switch (match[2]) {
-                case '-':
-                    {
-                        // YY-M-D
-                        if (match[3] > 12 || match[5] > 31 || (match[1] < 70 && match[1] > 38)) {
-                            return fail;
-                        }
+	      return new Date(match[5], parseInt(match[1], 10) - 1, match[3],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  }
+	} else {
+	  switch (match[2]) {
+	  case '-':
+	    {
+	      // YY-M-D
+	      if (match[3] > 12 || match[5] > 31 || (match[1] < 70 && match[1] > 38)) {
+		return fail;
+	      }
 
-                        year = match[1] >= 0 && match[1] <= 38 ? +match[1] + 2000 : match[1];
-                        return new Date(year, parseInt(match[3], 10) - 1, match[5],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                case '.':
-                    {
-                        // D.M.YY or H.MM.SS
-                        if (match[5] >= 70) {
-                            // D.M.YY
-                            if (match[3] > 12 || match[1] > 31) {
-                                return fail;
-                            }
+	      year = match[1] >= 0 && match[1] <= 38 ? +match[1] + 2000 : match[1];
+	      return new Date(year, parseInt(match[3], 10) - 1, match[5],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  case '.':
+	    {
+	      // D.M.YY or H.MM.SS
+	      if (match[5] >= 70) {
+		// D.M.YY
+		if (match[3] > 12 || match[1] > 31) {
+		  return fail;
+		}
 
-                            return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
-                                match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                        }
-                        if (match[5] < 60 && !match[6]) {
-                            // H.MM.SS
-                            if (match[1] > 23 || match[3] > 59) {
-                                return fail;
-                            }
+		return new Date(match[5], parseInt(match[3], 10) - 1, match[1],
+		  match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	      }
+	      if (match[5] < 60 && !match[6]) {
+		// H.MM.SS
+		if (match[1] > 23 || match[3] > 59) {
+		  return fail;
+		}
 
-                            today = new Date();
-                            return new Date(today.getFullYear(), today.getMonth(), today.getDate(),
-                                match[1] || 0, match[3] || 0, match[5] || 0, match[9] || 0) / 1000;
-                        }
+		today = new Date();
+		return new Date(today.getFullYear(), today.getMonth(), today.getDate(),
+		  match[1] || 0, match[3] || 0, match[5] || 0, match[9] || 0) / 1000;
+	      }
 
-                        // invalid format, cannot be parsed
-                        return fail;
-                    }
-                case '/':
-                    {
-                        // M/D/YY
-                        if (match[1] > 12 || match[3] > 31 || (match[5] < 70 && match[5] > 38)) {
-                            return fail;
-                        }
+	      // invalid format, cannot be parsed
+	      return fail;
+	    }
+	  case '/':
+	    {
+	      // M/D/YY
+	      if (match[1] > 12 || match[3] > 31 || (match[5] < 70 && match[5] > 38)) {
+		return fail;
+	      }
 
-                        year = match[5] >= 0 && match[5] <= 38 ? +match[5] + 2000 : match[5];
-                        return new Date(year, parseInt(match[1], 10) - 1, match[3],
-                            match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-                    }
-                case ':':
-                    {
-                        // HH:MM:SS
-                        if (match[1] > 23 || match[3] > 59 || match[5] > 59) {
-                            return fail;
-                        }
+	      year = match[5] >= 0 && match[5] <= 38 ? +match[5] + 2000 : match[5];
+	      return new Date(year, parseInt(match[1], 10) - 1, match[3],
+		match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
+	    }
+	  case ':':
+	    {
+	      // HH:MM:SS
+	      if (match[1] > 23 || match[3] > 59 || match[5] > 59) {
+		return fail;
+	      }
 
-                        today = new Date();
-                        return new Date(today.getFullYear(), today.getMonth(), today.getDate(),
-                            match[1] || 0, match[3] || 0, match[5] || 0) / 1000;
-                    }
-                }
-            }
-        }
+	      today = new Date();
+	      return new Date(today.getFullYear(), today.getMonth(), today.getDate(),
+		match[1] || 0, match[3] || 0, match[5] || 0) / 1000;
+	    }
+	  }
+	}
+      }
 
-        // other formats and "now" should be parsed by Date.parse()
-        if (text === 'now') {
-            return now === null || isNaN(now) ? new Date()
-                .getTime() / 1000 | 0 : now | 0;
-        }
-        if (!isNaN(parsed = Date.parse(text))) {
-            return parsed / 1000 | 0;
-        }
+      // other formats and "now" should be parsed by Date.parse()
+      if (text === 'now') {
+	return now === null || isNaN(now) ? new Date()
+	  .getTime() / 1000 | 0 : now | 0;
+      }
+      if (!isNaN(parsed = Date.parse(text))) {
+	return parsed / 1000 | 0;
+      }
+      // Browsers != Chrome have problems parsing ISO 8601 date strings, as they do
+      // not accept lower case characters, space, or shortened time zones.
+      // Therefore, fix these problems and try again.
+      // Examples:
+      //   2015-04-15 20:33:59+02
+      //   2015-04-15 20:33:59z
+      //   2015-04-15t20:33:59+02:00
+      if (match = text.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})[ t]([0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?)([\+-][0-9]{2}(:[0-9]{2})?|z)/)) {
+	// fix time zone information
+	if (match[4] == 'z') {
+	  match[4] = 'Z';
+	}
+	else if (match[4].match(/^([\+-][0-9]{2})$/)) {
+	  match[4] = match[4] + ':00';
+	}
 
-        date = now ? new Date(now * 1000) : new Date();
-        days = {
-            'sun': 0,
-            'mon': 1,
-            'tue': 2,
-            'wed': 3,
-            'thu': 4,
-            'fri': 5,
-            'sat': 6
-        };
-        ranges = {
-            'yea': 'FullYear',
-            'mon': 'Month',
-            'day': 'Date',
-            'hou': 'Hours',
-            'min': 'Minutes',
-            'sec': 'Seconds'
-        };
+	if (!isNaN(parsed = Date.parse(match[1] + 'T' + match[2] + match[4]))) {
+	  return parsed / 1000 | 0;
+	}
+      }
 
-        function lastNext(type, range, modifier) {
-            var diff, day = days[range];
+      date = now ? new Date(now * 1000) : new Date();
+      days = {
+	'sun': 0,
+	'mon': 1,
+	'tue': 2,
+	'wed': 3,
+	'thu': 4,
+	'fri': 5,
+	'sat': 6
+      };
+      ranges = {
+	'yea': 'FullYear',
+	'mon': 'Month',
+	'day': 'Date',
+	'hou': 'Hours',
+	'min': 'Minutes',
+	'sec': 'Seconds'
+      };
 
-            if (typeof day !== 'undefined') {
-                diff = day - date.getDay();
+      function lastNext(type, range, modifier) {
+	var diff, day = days[range];
 
-                if (diff === 0) {
-                    diff = 7 * modifier;
-                } else if (diff > 0 && type === 'last') {
-                    diff -= 7;
-                } else if (diff < 0 && type === 'next') {
-                    diff += 7;
-                }
+	if (typeof day !== 'undefined') {
+	  diff = day - date.getDay();
 
-                date.setDate(date.getDate() + diff);
-            }
-        }
+	  if (diff === 0) {
+	    diff = 7 * modifier;
+	  } else if (diff > 0 && type === 'last') {
+	    diff -= 7;
+	  } else if (diff < 0 && type === 'next') {
+	    diff += 7;
+	  }
 
-        function process(val) {
-            var splt = val.split(' '), // Todo: Reconcile this with regex using \s, taking into account browser issues with split and regexes
-                type = splt[0],
-                range = splt[1].substring(0, 3),
-                typeIsNumber = /\d+/.test(type),
-                ago = splt[2] === 'ago',
-                num = (type === 'last' ? -1 : 1) * (ago ? -1 : 1);
+	  date.setDate(date.getDate() + diff);
+	}
+      }
 
-            if (typeIsNumber) {
-                num *= parseInt(type, 10);
-            }
+      function process(val) {
+	var splt = val.split(' '), // Todo: Reconcile this with regex using \s, taking into account browser issues with split and regexes
+	  type = splt[0],
+	  range = splt[1].substring(0, 3),
+	  typeIsNumber = /\d+/.test(type),
+	  ago = splt[2] === 'ago',
+	  num = (type === 'last' ? -1 : 1) * (ago ? -1 : 1);
 
-            if (ranges.hasOwnProperty(range) && !splt[1].match(/^mon(day|\.)?$/i)) {
-                return date['set' + ranges[range]](date['get' + ranges[range]]() + num);
-            }
+	if (typeIsNumber) {
+	  num *= parseInt(type, 10);
+	}
 
-            if (range === 'wee') {
-                return date.setDate(date.getDate() + (num * 7));
-            }
+	if (ranges.hasOwnProperty(range) && !splt[1].match(/^mon(day|\.)?$/i)) {
+	  return date['set' + ranges[range]](date['get' + ranges[range]]() + num);
+	}
 
-            if (type === 'next' || type === 'last') {
-                lastNext(type, range, num);
-            } else if (!typeIsNumber) {
-                return false;
-            }
+	if (range === 'wee') {
+	  return date.setDate(date.getDate() + (num * 7));
+	}
 
-            return true;
-        }
+	if (type === 'next' || type === 'last') {
+	  lastNext(type, range, num);
+	} else if (!typeIsNumber) {
+	  return false;
+	}
 
-        times = '(years?|months?|weeks?|days?|hours?|minutes?|min|seconds?|sec' +
-            '|sunday|sun\\.?|monday|mon\\.?|tuesday|tue\\.?|wednesday|wed\\.?' +
-            '|thursday|thu\\.?|friday|fri\\.?|saturday|sat\\.?)';
-        regex = '([+-]?\\d+\\s' + times + '|' + '(last|next)\\s' + times + ')(\\sago)?';
+	return true;
+      }
 
-        match = text.match(new RegExp(regex, 'gi'));
-        if (!match) {
-            return fail;
-        }
+      times = '(years?|months?|weeks?|days?|hours?|minutes?|min|seconds?|sec' +
+	'|sunday|sun\\.?|monday|mon\\.?|tuesday|tue\\.?|wednesday|wed\\.?' +
+	'|thursday|thu\\.?|friday|fri\\.?|saturday|sat\\.?)';
+      regex = '([+-]?\\d+\\s' + times + '|' + '(last|next)\\s' + times + ')(\\sago)?';
 
-        for (i = 0, len = match.length; i < len; i++) {
-            if (!process(match[i])) {
-                return fail;
-            }
-        }
+      match = text.match(new RegExp(regex, 'gi'));
+      if (!match) {
+	return fail;
+      }
 
-        // ECMAScript 5 only
-        // if (!match.every(process))
-        //    return false;
+      for (i = 0, len = match.length; i < len; i++) {
+	if (!process(match[i])) {
+	  return fail;
+	}
+      }
 
-        return (date.getTime() / 1000);
+      // ECMAScript 5 only
+      // if (!match.every(process))
+      //    return false;
+
+      return (date.getTime() / 1000);
     };
 
     Twig.lib.is = function(type, obj) {
@@ -3267,7 +3294,7 @@ var Twig = (function (Twig) {
     Twig.expression.definitions = [
         {
             type: Twig.expression.type.test,
-            regex: /^is\s+(not)?\s*([a-zA-Z_][a-zA-Z0-9_]*)/,
+            regex: /^is\s+(not)?\s*(same\ as|[a-zA-Z_][a-zA-Z0-9_]*)/,
             next: Twig.expression.set.operations.concat([Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 token.filter   = token.match[2];
@@ -4147,7 +4174,9 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator = {
         leftToRight: 'leftToRight',
-        rightToLeft: 'rightToLeft'
+        rightToLeft: 'rightToLeft',
+        left: 1,
+        right: 2
     };
 
     var containment = function(a, b) {
@@ -4165,6 +4194,177 @@ var Twig = (function (Twig) {
             return false;
         }
     };
+
+    function parseTestExpression()
+    {
+        
+    }
+    
+    function parseNotTestExpression()
+    {
+        
+    }
+
+    // TODO: init this in extension logic core
+    Twig.expression.operators = {
+        unary: {
+            'not': {
+                precedence: 50,
+                'class': 'Twig_Node_Expression_Unary_Not'
+            },
+            '-': {
+                precedence: 500,
+                'class': 'Twig_Node_Expression_Unary_Neg'
+            },
+            '+': {
+                precedence: 500,
+                'class': 'Twig_Node_Expression_Unary_Pos'
+            }
+        },
+        binary: {
+            'or': {
+                precedence: 10, 
+                'class': 'Twig_Node_Expression_Binary_Or', 
+                associativity: Twig.expression.operator.left
+            },
+            'and': {
+                precedence: 15, 
+                'class': 'Twig_Node_Expression_Binary_And', 
+                associativity: Twig.expression.operator.left
+            },
+            'b-or': {
+                precedence: 16, 
+                'class': 'Twig_Node_Expression_Binary_BitwiseOr', 
+                associativity: Twig.expression.operator.left
+            },
+            'b-xor': {
+                precedence: 17, 
+                'class':'Twig_Node_Expression_Binary_BitwiseXor', 
+                associativity: Twig.expression.operator.left
+            },
+            'b-and': {
+                precedence: 18, 
+                'class':'Twig_Node_Expression_Binary_BitwiseAnd', 
+                associativity: Twig.expression.operator.left
+            },
+            '==': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Equal', 
+                associativity: Twig.expression.operator.left
+            },
+            '!=': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_NotEqual', 
+                associativity: Twig.expression.operator.left
+            },
+            '<': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Less', 
+                associativity: Twig.expression.operator.left
+            },
+            '>': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Greater', 
+                associativity: Twig.expression.operator.left
+            },
+            '>=': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_GreaterEqual', 
+                associativity: Twig.expression.operator.left
+            },
+            '<=': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_LessEqual', 
+                associativity: Twig.expression.operator.left
+            },
+            'not in': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_NotIn', 
+                associativity: Twig.expression.operator.left
+            },
+            'in': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_In', 
+                associativity: Twig.expression.operator.left
+            },
+            'matches': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Matches', 
+                associativity: Twig.expression.operator.left
+            },
+            'starts with': {
+                precedence: 20, 
+                'class': 'Twig_Node_Expression_Binary_StartsWith', 
+                associativity: Twig.expression.operator.left
+            },
+            'ends with': {
+                precedence: 20, 
+                'class': 'Twig_Node_Expression_Binary_EndsWith', 
+                associativity: Twig.expression.operator.left
+            },
+            '..': {
+                precedence: 25, 
+                'class': 'Twig_Node_Expression_Binary_Range', 
+                associativity: Twig.expression.operator.left
+            },
+            '+': {
+                precedence: 30, 
+                'class': 'Twig_Node_Expression_Binary_Add', 
+                associativity: Twig.expression.operator.left
+            },
+            '-': {
+                precedence: 30, 
+                'class': 'Twig_Node_Expression_Binary_Sub', 
+                associativity: Twig.expression.operator.left
+            },
+            '~': {
+                precedence: 40, 
+                'class': 'Twig_Node_Expression_Binary_Concat', 
+                associativity: Twig.expression.operator.left
+            },
+            '*': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_Mul', 
+                associativity: Twig.expression.operator.left
+            },
+            '/': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_Div', 
+                associativity: Twig.expression.operator.left
+            },
+            '//': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_FloorDiv', 
+                associativity: Twig.expression.operator.left
+            },
+            '%': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_Mod', 
+                associativity: Twig.expression.operator.left
+            },
+            'is': {
+                precedence: 100,
+                'callable': parseTestExpression, 
+                associativity: Twig.expression.operator.left
+            },
+            'is not': {
+                precedence:100,
+                'callable': parseNotTestExpression, 
+                associativity: Twig.expression.operator.left
+            },
+            '**': {
+                precedence:200, 
+                'class': 'Twig_Node_Expression_Binary_Power', 
+                associativity: Twig.expression.operator.right
+            }
+        }
+    }
+    Twig.expression.operators.getUnaryOperators = function() {
+        return Twig.expression.operators.unary;
+    }
+    Twig.expression.operators.getBinaryOperators = function() {
+        return Twig.expression.operators.binary;
+    }
 
     /**
      * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
@@ -4409,6 +4609,483 @@ var Twig = (function (Twig) {
     return Twig;
 
 })( Twig || { } );
+//     Twig.js
+//     Available under the BSD 2-Clause License
+//     https://github.com/connorhu/twig.js
+
+var Twig = (function (Twig) {
+    "use strict";
+    // ## twig.lexer.js
+    //
+    // Lexer alayzer
+
+    Twig.lexer = {};
+    
+    Twig.lexer.tags = {
+        comment: ['{#', '#}'],
+        block: ['{%', '%}'],
+        variable: ['{{', '}}'],
+        whitespaceTrim: '-',
+        interpolation: ['#{', '}']
+    };
+    
+    var regexp = {
+        name: new RegExp('^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'), // flag A
+        string: new RegExp('^"([^#"\\\\]*(?:\\\\.[^#"\\\\]*)*)"|^\'([^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\''), // flag As
+        number: new RegExp('^[0-9]+(?:\\\.[0-9]+)?'), // flag A
+        DQStringDelimiter: new RegExp('^"'), // flag A
+        DQStringPart: '/[^#"\\\\]*(?:(?:\\\\.|#(?!\{))[^#"\\\\]*)*/As',
+        punctuation: '()[]{}?:.,|',
+        
+        lexVar: new RegExp('^\\\s*'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.variable[1], '/') 
+                        +'\\\s*|\\\s*'+ preg_quote(Twig.lexer.tags.variable[1], '/')), // flag A == ^ ?
+        lexBlock: new RegExp('^\\\s*(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.block[1], '/') +'\\\s*|\\\s*'+
+                         preg_quote(Twig.lexer.tags.block[1], '/') +')\n?'), // flag A == ^ ?
+        lexRawData: new RegExp('('+ preg_quote(Twig.lexer.tags.block[0] + Twig.lexer.tags.whitespaceTrim, '/') 
+                        +'|'+ preg_quote(Twig.lexer.tags.block[0], '/') + 
+                        +')\s*(?:end%s)\s*(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.block[1], '/') 
+                        +'\s*|\s*'+ preg_quote(Twig.lexer.tags.block[1], '/') +')'), // flag s?
+        
+        operator: getOperatorRegex(),
+
+        lexComment: new RegExp('(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim , '/') 
+                        + preg_quote(Twig.lexer.tags.comment[1], '/') +'\s*|'
+                        + preg_quote(Twig.lexer.tags.comment[1], '/') +')\n?', 'm'), // flag s?
+        lexBlockRaw: new RegExp('^\s*(raw|verbatim)\s*(?:'
+                        + preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.block[1], '/') + '\s*|\s*'
+                        + preg_quote(Twig.lexer.tags.block[1], '/') +')'), // flag As?
+        lexBlockLine: new RegExp('^\s*line\s+(\d+)\s*'+ preg_quote(Twig.lexer.tags.block[1], '/')), // flag As?
+        lexTokensStart: new RegExp('('+ preg_quote(Twig.lexer.tags.variable[0], '/') +
+                        '|'+ preg_quote(Twig.lexer.tags.block[0], '/') +
+                        '|'+ preg_quote(Twig.lexer.tags.comment[0], '/') +
+                        ')('+ preg_quote(Twig.lexer.tags.whitespaceTrim, '/') +')?', 'g'), // s flag?
+
+        interpolationStart: new RegExp('^'+ preg_quote(Twig.lexer.tags.interpolation[0], '/') +'\s*'), // flag A == ^ ?
+        interpolationEnd: new RegExp('^\s*'+ preg_quote(Twig.lexer.tags.interpolation[1], '/')) // flag A == ^ ?
+    };
+    Twig.lexer.regexp = regexp;
+    
+    Twig.lexer.states = {
+        data: 0,
+        block: 1,
+        var: 2,
+        string: 3,
+        interpolation: 4
+    }
+    
+    Twig.token.tokens = {
+        eof: -1,
+        text: 0,
+        blockStart: 1,
+        varStart: 2,
+        blockEnd: 3,
+        varEnd: 4,
+        name: 5,
+        number: 6,
+        string: 7,
+        operator: 8,
+        punctuation: 9,
+        interpolationStart: 10,
+        interpolationEnd: 11
+    }
+
+    var code, codePart;
+    
+    var cursor = 0;
+    var end;
+    var lineNumber = 1;
+
+    var state = Twig.lexer.states.data;
+
+    var states = [];
+    var tokens = [];
+    var brackets = [];
+    var positions = [[], []];
+
+    var position = -1;
+    var filename;
+    var currentVarBlockLine;
+
+    // tokenizer state machine
+    Twig.lexer.tokenize = function (c, file) {
+        filename = file;
+        codePart = code = c.replace(/\r\n*/, "\n");
+        end = code.length
+        
+        var match;
+        
+        while (match = regexp.lexTokensStart.exec(code)) {
+            
+            positions[0].push({
+                type: match[1],
+                index: match.index
+            });
+
+            var whitespaceMatch = {};
+            if (match[2]) {
+                whitespaceMatch = {
+                    type: match[2],
+                    index: match.index + match[1].length
+                };
+            }
+            positions[1].push(whitespaceMatch);
+        }
+        
+        while (cursor < end) {
+            switch (state) {
+                case Twig.lexer.states.data:
+                    Twig.lexer.analyzeData();
+                    break;
+
+                case Twig.lexer.states.block:
+                    Twig.lexer.analyzeBlock();
+                    break;
+
+                case Twig.lexer.states.var:
+                    Twig.lexer.analyzeVar();
+                    break;
+
+                case Twig.lexer.states.string:
+                    Twig.lexer.analyzeString();
+                    break;
+
+                case Twig.lexer.states.interpolation:
+                    Twig.lexer.analyzeInterpolation();
+                    break;
+            }
+        }
+        
+        pushToken(Twig.token.tokens.eof);
+
+        console.log(tokens);
+
+        return tokens;
+    };
+    
+    Twig.lexer.analyzeData = function () {
+        
+        // if no matches are left we return the rest of the template as simple text token
+        if (position == positions[0].length -1) {
+            pushToken(Twig.token.tokens.text, codePart);
+            setCursor(end);
+            return;
+        }
+
+        ++position;
+
+        // Find the first token after the current cursor
+        var currentPosition = positions[0][position];
+        var currentPositionWhitespace = positions[1][position];
+        while (currentPosition[1] < cursor) {
+            if (position == positions[0].length - 1) {
+                return;
+            }
+            currentPosition = positions[0][position];
+            currentPositionWhitespace = positions[1][position];
+            ++position;
+        }
+        
+        // push the template text first
+        var text, textContent;
+        text = textContent = code.substr(cursor, currentPosition.index - cursor);
+        if (typeof currentPositionWhitespace.type !== 'undefined') {
+            text = text.trimRight();
+        }
+        
+        pushToken(Twig.token.tokens.text, text);
+        moveCursorWithText(textContent + currentPosition.type + (typeof currentPositionWhitespace.type !== 'undefined' ? currentPositionWhitespace.type : ''));
+        
+        // console.log(positions[0][position].type);
+        
+        switch (positions[0][position].type) {
+            case Twig.lexer.tags.comment[0]:
+                Twig.lexer.analyzeComment();
+                break;
+
+            case Twig.lexer.tags.block[0]:
+                var match;
+                
+                // raw data?
+                if (null !== (match = codePart.match(regexp.lexBlockRaw))) {
+                    //             $this->moveCursorWithText($match[0]);
+                    //             $this->lexRawData($match[1]);
+                }
+                // {% line \d+ %}
+                else if (null !== (match = codePart.match(regexp.lexBlockLine))) {
+                    //             $this->moveCursorWithText($match[0]);
+                    //             $this->lineno = (int) $match[1];
+                }
+                else {
+                    pushToken(Twig.token.tokens.blockStart);
+                    pushState(Twig.lexer.states.block);
+                    currentVarBlockLine = lineNumber;
+                }
+                break;
+
+            case Twig.lexer.tags.variable[0]:
+                pushToken(Twig.token.tokens.varStart);
+                pushState(Twig.lexer.states.var);
+                currentVarBlockLine = lineNumber;
+                break;
+        }
+    }
+
+    Twig.lexer.analyzeBlock = function () {
+        var match;
+        
+        if (brackets.length === 0 && null !== (match = codePart.match(regexp.lexBlock))) {
+            pushToken(Twig.token.tokens.blockEnd);
+            moveCursorWithText(match[0]);
+            popState();
+            return;
+        }
+
+        Twig.lexer.analyzeExpression();
+    }
+
+    Twig.lexer.analyzeVar = function () {
+        var match;
+        
+        if (brackets.length === 0 && null !== (match = codePart.match(regexp.lexVar))) {
+            pushToken(Twig.token.tokens.varEnd);
+            moveCursorWithText(match[0]);
+            popState();
+            return;
+        }
+        else {
+            Twig.lexer.analyzeExpression();
+        }
+    }
+
+    Twig.lexer.analyzeExpression = function () {
+        var match;
+        
+        // console.log('expr');
+        
+        //whitespace
+        if (match = codePart.match(/^\s+/)) {
+            // console.log('ws');
+            moveCursorWithText(match[0]);
+
+            if (cursor >= end) {
+                throw new Error('Unclosed '+ (state == Twig.lexer.states.block ? 'block' : 'variable')); // lineno filename
+            }
+        }
+        
+        if (null !== (match = codePart.match(regexp.name))) {
+            // console.log('name');
+            pushToken(Twig.token.tokens.name, match[0]);
+            moveCursorWithText(match[0]);
+        }
+        else if (null !== (match = codePart.match(regexp.number))) {
+            var number;
+            if (match[0].indexOf('.') !== -1) {
+                number = parseFloat(match[0]);
+            }
+            else {
+                number = parseInt(match[0]);
+            }
+            
+            pushToken(Twig.token.tokens.number, number);
+            moveCursorWithText(match[0]);
+        }
+        else if (-1 !== code[cursor].indexOf(regexp.punctation)) {
+            // console.log('punc');
+            throw new Error('unimplemented');
+        }
+        else if (null !== (match = codePart.match(regexp.string))) {
+            // console.log('string');
+            pushToken(Twig.token.tokens.string, match[0].substr(1, match[0].length - 2));
+            moveCursorWithText(match[0]);
+        }
+        else if (null !== (match = codePart.match(regexp.DQStringDelimiter))) {
+            throw new Error('unimplemented');
+        }
+        else if (null !== (match = codePart.match(regexp.operator))) {
+            pushToken(Twig.token.tokens.operator, match[0].replace(/\s+/));
+            moveCursorWithText(match[0]);
+        }
+
+        // process.exit();
+        
+        // // whitespace
+        // if (preg_match('/\s+/A', $this->code, $match, null, $this->cursor)) {
+        //     $this->moveCursorWithText($match[0]);
+        //
+        //     if ($this->cursor >= $this->end) {
+        //         throw new Twig_Error_Syntax(sprintf('Unclosed "%s"', $this->state === self::STATE_BLOCK ? 'block' : 'variable'), $this->currentVarBlockLine, $this->filename);
+        //     }
+        // }
+        //
+        // // operators
+        // if (preg_match($this->regexes['operator'], $this->code, $match, null, $this->cursor)) {
+        //     $this->pushToken(Twig_Token::OPERATOR_TYPE, preg_replace('/\s+/', ' ', $match[0]));
+        //     $this->moveCursorWithText($match[0]);
+        // }
+        // // names
+        // elseif (preg_match(self::REGEX_NAME, $this->code, $match, null, $this->cursor)) {
+        //     $this->pushToken(Twig_Token::NAME_TYPE, $match[0]);
+        //     $this->moveCursorWithText($match[0]);
+        // }
+        // // numbers
+        // elseif (preg_match(self::REGEX_NUMBER, $this->code, $match, null, $this->cursor)) {
+        //     $number = (float) $match[0];  // floats
+        //     if (ctype_digit($match[0]) && $number <= PHP_INT_MAX) {
+        //         $number = (int) $match[0]; // integers lower than the maximum
+        //     }
+        //     $this->pushToken(Twig_Token::NUMBER_TYPE, $number);
+        //     $this->moveCursorWithText($match[0]);
+        // }
+        // // punctuation
+        // elseif (false !== strpos(self::PUNCTUATION, $this->code[$this->cursor])) {
+        //     // opening bracket
+        //     if (false !== strpos('([{', $this->code[$this->cursor])) {
+        //         $this->brackets[] = array($this->code[$this->cursor], $this->lineno);
+        //     }
+        //     // closing bracket
+        //     elseif (false !== strpos(')]}', $this->code[$this->cursor])) {
+        //         if (empty($this->brackets)) {
+        //             throw new Twig_Error_Syntax(sprintf('Unexpected "%s"', $this->code[$this->cursor]), $this->lineno, $this->filename);
+        //         }
+        //
+        //         list($expect, $lineno) = array_pop($this->brackets);
+        //         if ($this->code[$this->cursor] != strtr($expect, '([{', ')]}')) {
+        //             throw new Twig_Error_Syntax(sprintf('Unclosed "%s"', $expect), $lineno, $this->filename);
+        //         }
+        //     }
+        //
+        //     $this->pushToken(Twig_Token::PUNCTUATION_TYPE, $this->code[$this->cursor]);
+        //     ++$this->cursor;
+        // }
+        // // strings
+        // elseif (preg_match(self::REGEX_STRING, $this->code, $match, null, $this->cursor)) {
+        //     $this->pushToken(Twig_Token::STRING_TYPE, stripcslashes(substr($match[0], 1, -1)));
+        //     $this->moveCursorWithText($match[0]);
+        // }
+        // // opening double quoted string
+        // elseif (preg_match(self::REGEX_DQ_STRING_DELIM, $this->code, $match, null, $this->cursor)) {
+        //     $this->brackets[] = array('"', $this->lineno);
+        //     $this->pushState(self::STATE_STRING);
+        //     $this->moveCursorWithText($match[0]);
+        // }
+        // // unlexable
+        // else {
+        //     throw new Twig_Error_Syntax(sprintf('Unexpected character "%s"', $this->code[$this->cursor]), $this->lineno, $this->filename);
+        // }
+    }
+
+    Twig.lexer.analyzeRawData = function () {
+        throw new Error('unimplemented');
+    }
+
+    Twig.lexer.analyzeComment = function () {
+        var match = codePart.match(regexp.lexComment)
+        
+        if (!match) {
+            throw new Error('unclosed comment at '+ lineNumber +' filename: '+ filename);
+        }
+        
+        setCursor(cursor + match.index + match[0].length);
+    }
+
+    Twig.lexer.analyzeString = function () {
+        throw new Error('unimplemented');
+    }
+
+    Twig.lexer.analyzeInterpolation = function () {
+        throw new Error('unimplemented');
+    }
+    
+    function getOperatorRegex()
+    {
+        var operators;
+        var regexp = [];
+
+        // TODO: get this from enviromnent and extension logic
+        var unary = Object.keys(Twig.expression.operators.getUnaryOperators());
+        var binary = Object.keys(Twig.expression.operators.getBinaryOperators());
+
+        operators = unary.concat(binary, ['=']);
+        operators.forEach(function (operator) {
+            var r;
+            if (operator[operator.length-1].match(/[a-z]$/)) {
+                r = preg_quote(operator, '/') +'(?=[\\\s()])';
+            }
+            else {
+                r = preg_quote(operator, '/');
+            }
+            
+            r = r.replace(/\s+/, '\s+');
+            
+            regexp.push(r);
+        });
+        
+        regexp = regexp.join('|');
+        
+        return new RegExp('^'+ regexp); // flag A
+    }
+    
+    function preg_quote(str, delimiter) {
+        // discuss at: http://phpjs.org/functions/preg_quote/
+        // original by: booeyOH
+        // improved by: Ates Goral (http://magnetiq.com)
+        // improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+        // improved by: Brett Zamir (http://brett-zamir.me)
+        // bugfixed by: Onno Marsman
+        //   example 1: preg_quote("$40");
+        //   returns 1: '\\$40'
+        //   example 2: preg_quote("*RRRING* Hello?");
+        //   returns 2: '\\*RRRING\\* Hello\\?'
+        //   example 3: preg_quote("\\.+*?[^]$(){}=!<>|:");
+        //   returns 3: '\\\\\\.\\+\\*\\?\\[\\^\\]\\$\\(\\)\\{\\}\\=\\!\\<\\>\\|\\:'
+
+        return String(str).replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\' + (delimiter || '') + '-]', 'g'), '\\$&');
+    }
+    
+    function pushToken(type, content) {
+        if (type === Twig.token.tokens.text && '' === content) {
+            return;
+        }
+
+        tokens.push({
+            type: type,
+            content: content || '',
+            lineno: lineNumber
+        });
+    }
+    
+    function pushState(newState)
+    {
+        states.push(state);
+        state = newState;
+    }
+    
+    function popState()
+    {
+        if (states.length == 0) {
+            throw new Error('')
+        }
+        
+        state = states.pop();
+    }
+    
+    function setCursor(newCursor)
+    {
+        lineNumber += code.substr(cursor, newCursor - cursor).split("\n").length - 1;
+        cursor = newCursor;
+        codePart = code.substr(cursor);
+    }
+    
+    function moveCursorWithText(text)
+    {
+        setCursor(cursor + text.length);
+        lineNumber += text.split("\n").length - 1;
+    }
+    
+    return Twig;
+
+}) (Twig || { });
+
 //     Twig.js
 //     Available under the BSD 2-Clause License
 //     https://github.com/justjohn/twig.js
@@ -5290,7 +5967,11 @@ var Twig = (function (Twig) {
         'null': function(value) {
             return this.none(value); // Alias of none
         },
-        sameas: function(value, params) {
+        // deprecated use same as
+        sameas: function (value, params) {
+            return Twig.tests['same as'](value, params);
+        },
+        'same as': function(value, params) {
             return value === params[0];
         },
         iterable: function(value) {
