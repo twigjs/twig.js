@@ -31,7 +31,7 @@ var Twig = (function (Twig) {
                 namespaces: params.namespaces
             };
 
-        if (id) {
+        if (Twig.cache && id) {
             Twig.validateId(id);
         }
 
