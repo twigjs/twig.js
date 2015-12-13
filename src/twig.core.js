@@ -852,7 +852,7 @@ var Twig = (function (Twig) {
     Twig.validateId = function(id) {
         if (id === "prototype") {
             throw new Twig.Error(id + " is not a valid twig identifier");
-        } else if (Twig.Templates.registry.hasOwnProperty(id)) {
+        } else if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             throw new Twig.Error("There is already a template with the ID " + id);
         }
         return true;
