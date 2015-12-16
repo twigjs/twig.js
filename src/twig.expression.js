@@ -212,10 +212,11 @@ var Twig = (function (Twig) {
                         var key_token = output.pop();
 
                         if (key_token.type === Twig.expression.type.string ||
-                                key_token.type === Twig.expression.type.variable ||
-                                key_token.type === Twig.expression.type.number) {
+                                key_token.type === Twig.expression.type.variable) {
                             token.key = key_token.value;
-
+                        } else if (key_token.type === Twig.expression.type.number) {
+                            // Convert integer keys into string keys
+                            token.key = key_token.value.toString();
                         } else {
                             throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
                         }

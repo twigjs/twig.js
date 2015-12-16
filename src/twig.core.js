@@ -155,6 +155,7 @@ var Twig = (function (Twig) {
         debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
     };
 
+
     if (typeof console !== "undefined") {
         if (typeof console.error !== "undefined") {
             Twig.log.error = function() {
@@ -190,10 +191,16 @@ var Twig = (function (Twig) {
      * Token types.
      */
     Twig.token.type = {
-        output:  'output',
-        logic:   'logic',
-        comment: 'comment',
-        raw:     'raw'
+        output:                 'output',
+        logic:                  'logic',
+        comment:                'comment',
+        raw:                    'raw',
+        output_whitespace_pre:  'output_whitespace_pre',
+        output_whitespace_post: 'output_whitespace_post',
+        output_whitespace_both: 'output_whitespace_both',
+        logic_whitespace_pre:   'logic_whitespace_pre',
+        logic_whitespace_post:  'logic_whitespace_post',
+        logic_whitespace_both:  'logic_whitespace_both'
     };
 
     /**
@@ -209,6 +216,39 @@ var Twig = (function (Twig) {
             type: Twig.token.type.raw,
             open: '{% verbatim %}',
             close: '{% endverbatim %}'
+        },
+        // *Whitespace type tokens*
+        //
+        // These typically take the form `{{- expression -}}` or `{{- expression }}` or `{{ expression -}}`.
+        {
+            type: Twig.token.type.output_whitespace_pre,
+            open: '{{-',
+            close: '}}'
+        },
+        {
+            type: Twig.token.type.output_whitespace_post,
+            open: '{{',
+            close: '-}}'
+        },
+        {
+            type: Twig.token.type.output_whitespace_both,
+            open: '{{-',
+            close: '-}}'
+        },
+        {
+            type: Twig.token.type.logic_whitespace_pre,
+            open: '{%-',
+            close: '%}'
+        },
+        {
+            type: Twig.token.type.logic_whitespace_post,
+            open: '{%',
+            close: '-%}'
+        },
+        {
+            type: Twig.token.type.logic_whitespace_both,
+            open: '{%-',
+            close: '-%}'
         },
         // *Output type tokens*
         //
@@ -246,24 +286,68 @@ var Twig = (function (Twig) {
     Twig.token.findStart = function (template) {
         var output = {
                 position: null,
+                close_position: null,
                 def: null
             },
             i,
             token_template,
-            first_key_position;
+            first_key_position,
+            close_key_position;
 
         for (i=0;i<Twig.token.definitions.length;i++) {
             token_template = Twig.token.definitions[i];
             first_key_position = template.indexOf(token_template.open);
+            close_key_position = template.indexOf(token_template.close);
 
             Twig.log.trace("Twig.token.findStart: ", "Searching for ", token_template.open, " found at ", first_key_position);
 
+            //Special handling for mismatched tokens
+            if (first_key_position >= 0) {
+                //This token matches the template
+                if (token_template.open.length !== token_template.close.length) {
+                    //This token has mismatched closing and opening tags
+                    if (close_key_position < 0) {
+                        //This token's closing tag does not match the template
+                        continue;
+                    }
+                }
+            }
             // Does this token occur before any other types?
             if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
                 output.position = first_key_position;
                 output.def = token_template;
+                output.close_position = close_key_position;
+            } else if (first_key_position >= 0 && output.position !== null && first_key_position === output.position) {
+                /*This token exactly matches another token,
+                greedily match to check if this token has a greater specificity*/
+                if (token_template.open.length > output.def.open.length) {
+                    //This token's opening tag is more specific than the previous match
+                    output.position = first_key_position;
+                    output.def = token_template;
+                    output.close_position = close_key_position;
+                } else if (token_template.open.length === output.def.open.length) {
+                    if (token_template.close.length > output.def.close.length) {
+                        //This token's opening tag is as specific as the previous match,
+                        //but the closing tag has greater specificity
+                        if (close_key_position >= 0 && close_key_position < output.close_position) {
+                            //This token's closing tag exists in the template,
+                            //and it occurs sooner than the previous match
+                            output.position = first_key_position;
+                            output.def = token_template;
+                            output.close_position = close_key_position;
+                        }
+                    } else if (close_key_position >= 0 && close_key_position < output.close_position) {
+                        //This token's closing tag is not more specific than the previous match,
+                        //but it occurs sooner than the previous match
+                        output.position = first_key_position;
+                        output.def = token_template;
+                        output.close_position = close_key_position;
+                    }
+                }
             }
         }
+
+        delete output['close_position'];
 
         return output;
     };
@@ -379,9 +463,16 @@ var Twig = (function (Twig) {
                     value: template.substring(0, end).trim()
                 });
 
-                if ( found_token.def.type === "logic" && template.substr( end + found_token.def.close.length, 1 ) === "\n" ) {
-                    // Newlines directly after logic tokens are ignored
-                    end += 1;
+                if (template.substr( end + found_token.def.close.length, 1 ) === "\n") {
+                    switch (found_token.def.type) {
+                        case "logic_whitespace_pre":
+                        case "logic_whitespace_post":
+                        case "logic_whitespace_both":
+                        case "logic":
+                            // Newlines directly after logic tokens are ignored
+                            end += 1;
+                            break;
+                    }
                 }
 
                 template = template.substr(end + found_token.def.close.length);
@@ -417,8 +508,14 @@ var Twig = (function (Twig) {
                 unclosed_token = null,
                 // Temporary previous token.
                 prev_token = null,
+                // Temporary previous output.
+                prev_output = null,
+                // Temporary previous intermediate output.
+                prev_intermediate_output = null,
                 // The previous token's template
                 prev_template = null,
+                // Token lookahead
+                next_token = null,
                 // The output token
                 tok_output = null,
 
@@ -427,8 +524,87 @@ var Twig = (function (Twig) {
                 open = null,
                 next = null;
 
+            var compile_output = function(token) {
+                Twig.expression.compile.apply(this, [token]);
+                if (stack.length > 0) {
+                    intermediate_output.push(token);
+                } else {
+                    output.push(token);
+                }
+            };
+
+            var compile_logic = function(token) {
+                // Compile the logic token
+                logic_token = Twig.logic.compile.apply(this, [token]);
+
+                type = logic_token.type;
+                open = Twig.logic.handler[type].open;
+                next = Twig.logic.handler[type].next;
+
+                Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
+                                                 " next is: ", next, " open is : ", open);
+
+                // Not a standalone token, check logic stack to see if this is expected
+                if (open !== undefined && !open) {
+                    prev_token = stack.pop();
+                    prev_template = Twig.logic.handler[prev_token.type];
+
+                    if (Twig.indexOf(prev_template.next, type) < 0) {
+                        throw new Error(type + " not expected after a " + prev_token.type);
+                    }
+
+                    prev_token.output = prev_token.output || [];
+
+                    prev_token.output = prev_token.output.concat(intermediate_output);
+                    intermediate_output = [];
+
+                    tok_output = {
+                        type: Twig.token.type.logic,
+                        token: prev_token
+                    };
+                    if (stack.length > 0) {
+                        intermediate_output.push(tok_output);
+                    } else {
+                        output.push(tok_output);
+                    }
+                }
+
+                // This token requires additional tokens to complete the logic structure.
+                if (next !== undefined && next.length > 0) {
+                    Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
+
+                    if (stack.length > 0) {
+                        // Put any currently held output into the output list of the logic operator
+                        // currently at the head of the stack before we push a new one on.
+                        prev_token = stack.pop();
+                        prev_token.output = prev_token.output || [];
+                        prev_token.output = prev_token.output.concat(intermediate_output);
+                        stack.push(prev_token);
+                        intermediate_output = [];
+                    }
+
+                    // Push the new logic token onto the logic stack
+                    stack.push(logic_token);
+
+                } else if (open !== undefined && open) {
+                    tok_output = {
+                        type: Twig.token.type.logic,
+                        token: logic_token
+                    };
+                    // Standalone token (like {% set ... %}
+                    if (stack.length > 0) {
+                        intermediate_output.push(tok_output);
+                    } else {
+                        output.push(tok_output);
+                    }
+                }
+            };
+
             while (tokens.length > 0) {
                 token = tokens.shift();
+                prev_output = output[output.length - 1];
+                prev_intermediate_output = intermediate_output[intermediate_output.length - 1];
+                next_token = tokens[0];
                 Twig.log.trace("Compiling token ", token);
                 switch (token.type) {
                     case Twig.token.type.raw:
@@ -440,70 +616,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.logic:
-                        // Compile the logic token
-                        logic_token = Twig.logic.compile.apply(this, [token]);
-
-                        type = logic_token.type;
-                        open = Twig.logic.handler[type].open;
-                        next = Twig.logic.handler[type].next;
-
-                        Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
-                                                         " next is: ", next, " open is : ", open);
-
-                        // Not a standalone token, check logic stack to see if this is expected
-                        if (open !== undefined && !open) {
-                            prev_token = stack.pop();
-                            prev_template = Twig.logic.handler[prev_token.type];
-
-                            if (Twig.indexOf(prev_template.next, type) < 0) {
-                                throw new Error(type + " not expected after a " + prev_token.type);
-                            }
-
-                            prev_token.output = prev_token.output || [];
-
-                            prev_token.output = prev_token.output.concat(intermediate_output);
-                            intermediate_output = [];
-
-                            tok_output = {
-                                type: Twig.token.type.logic,
-                                token: prev_token
-                            };
-                            if (stack.length > 0) {
-                                intermediate_output.push(tok_output);
-                            } else {
-                                output.push(tok_output);
-                            }
-                        }
-
-                        // This token requires additional tokens to complete the logic structure.
-                        if (next !== undefined && next.length > 0) {
-                            Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
-
-                            if (stack.length > 0) {
-                                // Put any currently held output into the output list of the logic operator
-                                // currently at the head of the stack before we push a new one on.
-                                prev_token = stack.pop();
-                                prev_token.output = prev_token.output || [];
-                                prev_token.output = prev_token.output.concat(intermediate_output);
-                                stack.push(prev_token);
-                                intermediate_output = [];
-                            }
-
-                            // Push the new logic token onto the logic stack
-                            stack.push(logic_token);
-
-                        } else if (open !== undefined && open) {
-                            tok_output = {
-                                type: Twig.token.type.logic,
-                                token: logic_token
-                            };
-                            // Standalone token (like {% set ... %}
-                            if (stack.length > 0) {
-                                intermediate_output.push(tok_output);
-                            } else {
-                                output.push(tok_output);
-                            }
-                        }
+                        compile_logic(token);
                         break;
 
                     // Do nothing, comments should be ignored
@@ -511,12 +624,76 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.output:
-                        Twig.expression.compile.apply(this, [token]);
-                        if (stack.length > 0) {
-                            intermediate_output.push(token);
-                        } else {
-                            output.push(token);
+                        compile_output(token);
+                        break;
+
+                    //Kill whitespace ahead and behind this token
+                    case Twig.token.type.logic_whitespace_pre:
+                    case Twig.token.type.logic_whitespace_post:
+                    case Twig.token.type.logic_whitespace_both:
+                    case Twig.token.type.output_whitespace_pre:
+                    case Twig.token.type.output_whitespace_post:
+                    case Twig.token.type.output_whitespace_both:
+                        if (token.type !== Twig.token.type.output_whitespace_post && token.type !== Twig.token.type.logic_whitespace_post) {
+                            if (prev_output) {
+                                //If the previous output is raw, pop it off
+                                if (prev_output.type === Twig.token.type.raw) {
+                                    output.pop();
+
+                                    //If the previous output is not just whitespace, trim it
+                                    if (prev_output.value.match(/^\s*$/) === null) {
+                                        prev_output.value = prev_output.value.trim();
+                                        //Repush the previous output
+                                        output.push(prev_output);
+                                    }
+                                }
+                            }
+
+                            if (prev_intermediate_output) {
+                                //If the previous intermediate output is raw, pop it off
+                                if (prev_intermediate_output.type === Twig.token.type.raw) {
+                                    intermediate_output.pop();
+
+                                    //If the previous output is not just whitespace, trim it
+                                    if (prev_intermediate_output.value.match(/^\s*$/) === null) {
+                                        prev_intermediate_output.value = prev_intermediate_output.value.trim();
+                                        //Repush the previous intermediate output
+                                        intermediate_output.push(prev_intermediate_output);
+                                    }
+                                }
+                            }
                         }
+
+                        //Compile this token
+                        switch (token.type) {
+                            case Twig.token.type.output_whitespace_pre:
+                            case Twig.token.type.output_whitespace_post:
+                            case Twig.token.type.output_whitespace_both:
+                                compile_output(token);
+                                break;
+                            case Twig.token.type.logic_whitespace_pre:
+                            case Twig.token.type.logic_whitespace_post:
+                            case Twig.token.type.logic_whitespace_both:
+                                compile_logic(token);
+                                break;
+                        }
+
+                        if (token.type !== Twig.token.type.output_whitespace_pre && token.type !== Twig.token.type.logic_whitespace_pre) {
+                            if (next_token) {
+                                //If the next token is raw, shift it out
+                                if (next_token.type === Twig.token.type.raw) {
+                                    tokens.shift();
+
+                                    //If the next token is not just whitespace, trim it
+                                    if (next_token.value.match(/^\s*$/) === null) {
+                                        next_token.value = next_token.value.trim();
+                                        //Unshift the next token
+                                        tokens.unshift(next_token);
+                                    }
+                                }
+                            }
+                        }
+
                         break;
                 }
 
@@ -586,6 +763,10 @@ var Twig = (function (Twig) {
                         // Do nothing, comments should be ignored
                         break;
 
+                    //Fall through whitespace to output
+                    case Twig.token.type.output_whitespace_pre:
+                    case Twig.token.type.output_whitespace_post:
+                    case Twig.token.type.output_whitespace_both:
                     case Twig.token.type.output:
                         Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                         // Parse the given expression in the given context
@@ -672,7 +853,7 @@ var Twig = (function (Twig) {
     Twig.validateId = function(id) {
         if (id === "prototype") {
             throw new Twig.Error(id + " is not a valid twig identifier");
-        } else if (Twig.Templates.registry.hasOwnProperty(id)) {
+        } else if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
             throw new Twig.Error("There is already a template with the ID " + id);
         }
         return true;
@@ -758,7 +939,7 @@ var Twig = (function (Twig) {
                 var data = null;
 
                 if(xmlhttp.readyState == 4) {
-                    if (xmlhttp.status == 200) {
+                    if (xmlhttp.status == 200 || (window.cordova && xmlhttp.status == 0)) {
                         Twig.log.debug("Got template ", xmlhttp.responseText);
 
                         if (precompiled === true) {
@@ -948,7 +1129,7 @@ var Twig = (function (Twig) {
 
             // check for the template file via include
             if (!ext_template) {
-                url = relativePath(this, this.extend);
+                url = parsePath(this, this.extend);
 
                 ext_template = Twig.Templates.loadRemote(url, {
                     method: this.url?'ajax':'fs',
@@ -977,17 +1158,29 @@ var Twig = (function (Twig) {
 
     Twig.Template.prototype.importFile = function(file) {
         var url, sub_template;
-        if ( !this.url && !this.path && this.options.allowInlineIncludes ) {
+        if (!this.url && this.options.allowInlineIncludes) {
+            file = this.path ? this.path + '/' + file : file;
             sub_template = Twig.Templates.load(file);
-            sub_template.options = this.options;
-            if ( sub_template ) {
-                return sub_template;
+
+            if (!sub_template) {
+                sub_template = Twig.Templates.loadRemote(url, {
+                    id: file,
+                    method: 'fs',
+                    async: false,
+                    options: this.options
+                });
+
+                if (!sub_template) {
+                    throw new Twig.Error("Unable to find the template " + file);
+                }
             }
 
-            throw new Twig.Error("Didn't find the inline template by id");
+            sub_template.options = this.options;
+
+            return sub_template;
         }
 
-        url = relativePath(this, file);
+        url = parsePath(this, file);
 
         // Load blocks from an external file
         sub_template = Twig.Templates.loadRemote(url, {
@@ -1020,6 +1213,19 @@ var Twig = (function (Twig) {
         });
     };
 
+    Twig.Template.prototype.importMacros = function(file) {
+        var url = parsePath(this, file);
+
+        // load remote template
+        var remoteTemplate = Twig.Templates.loadRemote(url, {
+            method: this.url?'ajax':'fs',
+            async: false,
+            id: url
+        });
+
+        return remoteTemplate;
+    };
+
     Twig.Template.prototype.compile = function(options) {
         // compile the template into raw JS
         return Twig.compiler.compile(this, options);
@@ -1039,6 +1245,65 @@ var Twig = (function (Twig) {
             content.twig_markup = true;
         }
         return content;
+    };
+
+    /**
+     * Generate the canonical version of a url based on the given base path and file path and in
+     * the previously registered namespaces.
+     *
+     * @param  {string} template The Twig Template
+     * @param  {string} file     The file path, may be relative and may contain namespaces.
+     *
+     * @return {string}          The canonical version of the path
+     */
+    function parsePath(template, file) {
+        var namespaces = null;
+
+        if (typeof template === 'object' && typeof template.options === 'object') {
+            namespaces = template.options.namespaces;
+        }
+
+        if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
+            for (var k in namespaces){
+                if (namespaces.hasOwnProperty(k)) {
+                    file = file.replace(k + '::', namespaces[k]);
+                }
+            }
+
+            return file;
+        }
+
+        return relativePath(template, file);
+    }
+
+
+    /**
+     * Generate the canonical version of a url based on the given base path and file path and in
+     * the previously registered namespaces.
+     *
+     * @param  {string} template The Twig Template
+     * @param  {string} file     The file path, may be relative and may contain namespaces.
+     *
+     * @return {string}          The canonical version of the path
+     */
+    function parsePath(template, file) {
+        var namespaces = null;
+
+        if (typeof template === 'object' && typeof template.options === 'object') {
+            namespaces = template.options.namespaces;
+        }
+
+        if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
+            for (var k in namespaces){
+                if (namespaces.hasOwnProperty(k)) {
+                    file = file.replace(k + '::', namespaces[k]);
+                }
+            }
+
+            return file;
+        }
+
+        return relativePath(template, file);
     }
 
     /**

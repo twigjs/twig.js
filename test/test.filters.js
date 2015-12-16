@@ -30,6 +30,12 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ {"a":[1,"b",3]}|json_encode }}' });
             test_template.render().should.equal('{"a":[1,"b",3]}' );
         });
+        it("should retain key order in an object", function() {
+            twig({data: '{{ { "foo": 1, "bar": 2, "baz": 3 }|json_encode }}'}).render().should.equal( '{"foo":1,"bar":2,"baz":3}' );
+        });
+        it("should not add additional information to objects", function() {
+            twig({data: '{{ { "foo": 1, "bar": [1, 2, 3], "baz": { "a": "a", "b": "b" } }|json_encode }}'}).render().should.equal( '{"foo":1,"bar":[1,2,3],"baz":{"a":"a","b":"b"}}' );
+        });
         it("should handle undefined", function() {
             var test_template = twig({data: '{{ undef|json_encode }}' });
             test_template.render().should.equal("null" );
@@ -121,6 +127,9 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal("c:1 t:2 d:5 e:7 " );
 
             test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
+            test_template.render().should.equal("a:2 y:7 z:abc m:test " );
+
+            test_template = twig({data: "{% set obj = {'z':'abc','a':2,'y':7,'m':'test'} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
             test_template.render().should.equal("a:2 y:7 z:abc m:test " );
         });
 
@@ -217,6 +226,19 @@ describe("Twig.js Filters ->", function() {
 
             test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
             test_template.render({'var':{}}).should.equal("Empty Key" );
+        });
+
+        it("should provide a default value of '' if no parameters are passed and a default key is not defined", function () {
+            var test_template = twig({data: '{{ var|default }}' });
+            test_template.render().should.equal("");
+        });
+
+        it("should provide a default value of '' if no parameters are passed and a value is empty", function () {
+            var test_template = twig({data: '{{ ""|default }}' });
+            test_template.render().should.equal("");
+
+            test_template = twig({data: '{{ var.key|default }}' });
+            test_template.render({'var':{}}).should.equal("");
         });
     });
 
