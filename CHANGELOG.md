@@ -3,7 +3,7 @@ Changes since 0.8.4
 Mayor improvements:
 * Implement `min` and `max` functions (#164)
 * Support for the whitespace control modifier: `{{- -}}` (#266)
-* `sort` filter: try to cast values to match type (numeric values to number, string otherwise) (#278)
+* `sort` filter: try to cast values to match type (numeric values to number, string otherwise) (#278, plepe#1)
 * Support for twig namespaces (#195, #251)
 
 Minor improvements:
