@@ -288,5 +288,14 @@ describe("Twig.js Expressions ->", function() {
             var test_template = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
             test_template.render().should.equal(true.toString());
         });
+
+        it("should support expressions as object keys", function() {
+            var test_template;
+            test_template = twig({data: '{% set a = {(foo): "value"} %}{{ a.bar }}'});
+            test_template.render({foo: 'bar'}).should.equal('value');
+
+            test_template = twig({data: '{{ {(foo): "value"}.bar }}'});
+            test_template.render({foo: 'bar'}).should.equal('value');
+        });
     });
 });
