@@ -5,6 +5,7 @@ Mayor improvements:
 * Support for the whitespace control modifier: `{{- -}}` (#266)
 * `sort` filter: try to cast values to match type (numeric values to number, string otherwise) (#278, plepe#1)
 * Support for twig namespaces (#195, #251)
+* Support for expressions as object keys: `{% set foo = { (1 + 1): 'bar' } %}` (#284)
 
 Minor improvements:
 * Allow integer 0 as key in objects: `{ 0: "value" }` (#186)
