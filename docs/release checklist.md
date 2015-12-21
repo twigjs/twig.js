@@ -8,7 +8,7 @@ Steps to release twig.js
 
 ## bower
 
-Bower will pick up the new version inm bower.json and use the associated tag.
+Bower will pick up the new version in bower.json and use the associated git tag.
 
 ## npm
 
