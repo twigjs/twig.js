@@ -27,10 +27,11 @@ var Twig = (function (Twig) {
                 // TODO: turn autoscape on in the next major version
                 autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
-                rethrow: params.rethrow || false
+                rethrow: params.rethrow || false,
+                namespaces: params.namespaces
             };
 
-        if (id) {
+        if (Twig.cache && id) {
             Twig.validateId(id);
         }
 
@@ -44,6 +45,7 @@ var Twig = (function (Twig) {
         if (params.data !== undefined) {
             return new Twig.Template({
                 data: params.data,
+                path: params.hasOwnProperty('path') ? params.path : undefined,
                 module: params.module,
                 id:   id,
                 options: options
