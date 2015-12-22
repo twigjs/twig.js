@@ -4822,13 +4822,31 @@ var Twig = (function (Twig) {
             }
         },
         json_encode: function(value) {
-            if (value && value.hasOwnProperty( "_keys" ) ) {
-                delete value._keys;
-            }
             if(value === undefined || value === null) {
                 return "null";
             }
-            return JSON.stringify(value);
+            else if ((typeof value == 'object') && (is("Array", value))) {
+                output = [];
+
+                Twig.forEach(value, function(v) {
+                    output.push(Twig.filters.json_encode(v));
+                });
+
+                return "[" + output.join(",") + "]";
+            }
+            else if (typeof value == 'object') {
+                var keyset = value._keys || Object.keys(value),
+                output = [];
+
+                Twig.forEach(keyset, function(key) {
+                    output.push(JSON.stringify(key) + ":" + Twig.filters.json_encode(value[key]));
+                });
+
+                return "{" + output.join(",") + "}";
+            }
+            else {
+                return JSON.stringify(value);
+            }
         },
         merge: function(value, params) {
             var obj = [],
