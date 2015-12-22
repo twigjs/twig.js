@@ -1172,14 +1172,26 @@ var Twig = (function (Twig) {
 
     Twig.Template.prototype.importFile = function(file) {
         var url, sub_template;
-        if ( !this.url && !this.path && this.options.allowInlineIncludes ) {
+        if (!this.url && this.options.allowInlineIncludes) {
+            file = this.path ? this.path + '/' + file : file;
             sub_template = Twig.Templates.load(file);
-            sub_template.options = this.options;
-            if ( sub_template ) {
-                return sub_template;
+
+            if (!sub_template) {
+                sub_template = Twig.Templates.loadRemote(url, {
+                    id: file,
+                    method: 'fs',
+                    async: false,
+                    options: this.options
+                });
+
+                if (!sub_template) {
+                    throw new Twig.Error("Unable to find the template " + file);
+                }
             }
 
-            throw new Twig.Error("Didn't find the inline template by id");
+            sub_template.options = this.options;
+
+            return sub_template;
         }
 
         url = parsePath(this, file);
@@ -5940,6 +5952,7 @@ var Twig = (function (Twig) {
         if (params.data !== undefined) {
             return new Twig.Template({
                 data: params.data,
+                path: params.hasOwnProperty('path') ? params.path : undefined,
                 module: params.module,
                 id:   id,
                 options: options
