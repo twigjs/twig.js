@@ -5850,7 +5850,7 @@ var Twig = (function (Twig) {
                 rethrow: params.rethrow || false
             };
 
-        if (id) {
+        if (Twig.cache && id) {
             Twig.validateId(id);
         }
 
