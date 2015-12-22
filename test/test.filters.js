@@ -122,6 +122,9 @@ describe("Twig.js Filters ->", function() {
 
             test_template = twig({data: "{% set obj = {'m':'test','z':'abc','a':2,'y':7} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
             test_template.render().should.equal("a:2 y:7 z:abc m:test " );
+
+            test_template = twig({data: "{% set obj = {'z':'abc','a':2,'y':7,'m':'test'} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}" });
+            test_template.render().should.equal("a:2 y:7 z:abc m:test " );
         });
 
         it("should handle undefined", function() {

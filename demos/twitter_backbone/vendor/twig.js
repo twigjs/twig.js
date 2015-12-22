@@ -1985,7 +1985,231 @@ var Twig = (function(Twig) {
         }
 
         return (isHalf ? value : Math.round(value)) / m;
-    }
+    };
+
+    Twig.lib.max = function max() {
+        //  discuss at: http://phpjs.org/functions/max/
+        // original by: Onno Marsman
+        //  revised by: Onno Marsman
+        // improved by: Jack
+        //        note: Long code cause we're aiming for maximum PHP compatibility
+        //   example 1: max(1, 3, 5, 6, 7);
+        //   returns 1: 7
+        //   example 2: max([2, 4, 5]);
+        //   returns 2: 5
+        //   example 3: max(0, 'hello');
+        //   returns 3: 0
+        //   example 4: max('hello', 0);
+        //   returns 4: 'hello'
+        //   example 5: max(-1, 'hello');
+        //   returns 5: 'hello'
+        //   example 6: max([2, 4, 8], [2, 5, 7]);
+        //   returns 6: [2, 5, 7]
+
+        var ar, retVal, i = 0,
+            n = 0,
+            argv = arguments,
+            argc = argv.length,
+            _obj2Array = function(obj) {
+                if (Object.prototype.toString.call(obj) === '[object Array]') {
+                    return obj;
+                } else {
+                    var ar = [];
+                    for (var i in obj) {
+                        if (obj.hasOwnProperty(i)) {
+                            ar.push(obj[i]);
+                        }
+                    }
+                    return ar;
+                }
+            }, //function _obj2Array
+            _compare = function(current, next) {
+                var i = 0,
+                    n = 0,
+                    tmp = 0,
+                    nl = 0,
+                    cl = 0;
+
+                if (current === next) {
+                    return 0;
+                } else if (typeof current === 'object') {
+                    if (typeof next === 'object') {
+                        current = _obj2Array(current);
+                        next = _obj2Array(next);
+                        cl = current.length;
+                        nl = next.length;
+                        if (nl > cl) {
+                            return 1;
+                        } else if (nl < cl) {
+                            return -1;
+                        }
+                        for (i = 0, n = cl; i < n; ++i) {
+                            tmp = _compare(current[i], next[i]);
+                            if (tmp == 1) {
+                                return 1;
+                            } else if (tmp == -1) {
+                                return -1;
+                            }
+                        }
+                        return 0;
+                    }
+                    return -1;
+                } else if (typeof next === 'object') {
+                    return 1;
+                } else if (isNaN(next) && !isNaN(current)) {
+                    if (current == 0) {
+                        return 0;
+                    }
+                    return (current < 0 ? 1 : -1);
+                } else if (isNaN(current) && !isNaN(next)) {
+                    if (next == 0) {
+                        return 0;
+                    }
+                    return (next > 0 ? 1 : -1);
+                }
+
+                if (next == current) {
+                    return 0;
+                }
+                return (next > current ? 1 : -1);
+            }; //function _compare
+        if (argc === 0) {
+            throw new Error('At least one value should be passed to max()');
+        } else if (argc === 1) {
+            if (typeof argv[0] === 'object') {
+                ar = _obj2Array(argv[0]);
+            } else {
+                throw new Error('Wrong parameter count for max()');
+            }
+            if (ar.length === 0) {
+                throw new Error('Array must contain at least one element for max()');
+            }
+        } else {
+            ar = argv;
+        }
+
+        retVal = ar[0];
+        for (i = 1, n = ar.length; i < n; ++i) {
+            if (_compare(retVal, ar[i]) == 1) {
+                retVal = ar[i];
+            }
+        }
+
+        return retVal;
+    };
+
+    Twig.lib.min = function min() {
+        //  discuss at: http://phpjs.org/functions/min/
+        // original by: Onno Marsman
+        //  revised by: Onno Marsman
+        // improved by: Jack
+        //        note: Long code cause we're aiming for maximum PHP compatibility
+        //   example 1: min(1, 3, 5, 6, 7);
+        //   returns 1: 1
+        //   example 2: min([2, 4, 5]);
+        //   returns 2: 2
+        //   example 3: min(0, 'hello');
+        //   returns 3: 0
+        //   example 4: min('hello', 0);
+        //   returns 4: 'hello'
+        //   example 5: min(-1, 'hello');
+        //   returns 5: -1
+        //   example 6: min([2, 4, 8], [2, 5, 7]);
+        //   returns 6: [2, 4, 8]
+
+        var ar, retVal, i = 0,
+            n = 0,
+            argv = arguments,
+            argc = argv.length,
+            _obj2Array = function(obj) {
+                if (Object.prototype.toString.call(obj) === '[object Array]') {
+                    return obj;
+                }
+                var ar = [];
+                for (var i in obj) {
+                    if (obj.hasOwnProperty(i)) {
+                        ar.push(obj[i]);
+                    }
+                }
+                return ar;
+            }, //function _obj2Array
+            _compare = function(current, next) {
+                var i = 0,
+                    n = 0,
+                    tmp = 0,
+                    nl = 0,
+                    cl = 0;
+
+                if (current === next) {
+                    return 0;
+                } else if (typeof current === 'object') {
+                    if (typeof next === 'object') {
+                        current = _obj2Array(current);
+                        next = _obj2Array(next);
+                        cl = current.length;
+                        nl = next.length;
+                        if (nl > cl) {
+                            return 1;
+                        } else if (nl < cl) {
+                            return -1;
+                        }
+                        for (i = 0, n = cl; i < n; ++i) {
+                            tmp = _compare(current[i], next[i]);
+                            if (tmp == 1) {
+                                return 1;
+                            } else if (tmp == -1) {
+                                return -1;
+                            }
+                        }
+                        return 0;
+                    }
+                    return -1;
+                } else if (typeof next === 'object') {
+                    return 1;
+                } else if (isNaN(next) && !isNaN(current)) {
+                    if (current == 0) {
+                        return 0;
+                    }
+                    return (current < 0 ? 1 : -1);
+                } else if (isNaN(current) && !isNaN(next)) {
+                    if (next == 0) {
+                        return 0;
+                    }
+                    return (next > 0 ? 1 : -1);
+                }
+
+                if (next == current) {
+                    return 0;
+                }
+                return (next > current ? 1 : -1);
+            }; //function _compare
+
+        if (argc === 0) {
+            throw new Error('At least one value should be passed to min()');
+        } else if (argc === 1) {
+            if (typeof argv[0] === 'object') {
+                ar = _obj2Array(argv[0]);
+            } else {
+                throw new Error('Wrong parameter count for min()');
+            }
+
+            if (ar.length === 0) {
+                throw new Error('Array must contain at least one element for min()');
+            }
+        } else {
+            ar = argv;
+        }
+
+        retVal = ar[0];
+
+        for (i = 1, n = ar.length; i < n; ++i) {
+            if (_compare(retVal, ar[i]) == -1) {
+                retVal = ar[i];
+            }
+        }
+
+        return retVal;
+    };
 
     return Twig;
 
@@ -3355,7 +3579,9 @@ var Twig = (function (Twig) {
                                 key_token.type === Twig.expression.type.variable ||
                                 key_token.type === Twig.expression.type.number) {
                             token.key = key_token.value;
-
+                        } else if (key_token.type === Twig.expression.type.parameter.end &&
+                                key_token.expression) {
+                            token.params = key_token.params;
                         } else {
                             throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
                         }
@@ -3371,6 +3597,11 @@ var Twig = (function (Twig) {
                 if (token.key) {
                     // handle ternary ':' operator
                     stack.push(token);
+                } else if (token.params) {
+                    // handle "{(expression):value}"
+                    token.key = Twig.expression.parse.apply(this, [token.params, context]);
+                    stack.push(token);
+                    delete(token.params);
                 } else {
                     Twig.expression.operator.parse(token.value, stack);
                 }
@@ -4487,14 +4718,46 @@ var Twig = (function (Twig) {
                 return value.sort();
             } else if (is('Object', value)) {
                 // Sorting objects isn't obvious since the order of
-                // returned keys isn't guaranteedin JavaScript.
+                // returned keys isn't guaranteed in JavaScript.
                 // Because of this we use a "hidden" key called _keys to
                 // store the keys in the order we want to return them.
 
                 delete value._keys;
                 var keys = Object.keys(value),
                     sorted_keys = keys.sort(function(a, b) {
-                        return value[a] > value[b];
+                        var a1, a2;
+
+                        // if a and b are comparable, we're fine :-)
+                        if((value[a] > value[b]) == !(value[a] <= value[b])) {
+                            return value[a] > value[b] ? 1 :
+			           value[a] < value[b] ? -1 :
+				   0;
+                        }
+                        // if a and b can be parsed as numbers, we can compare
+                        // their numeric value
+                        else if(!isNaN(a1 = parseFloat(value[a])) &&
+                                !isNaN(b1 = parseFloat(value[b]))) {
+                            return a1 > b1 ? 1 :
+			           a1 < b1 ? -1 :
+				   0;
+                        }
+                        // if one of the values is a string, we convert the
+                        // other value to string as well
+                        else if(typeof value[a] == 'string') {
+                            return value[a] > value[b].toString() ? 1 :
+                                   value[a] < value[b].toString() ? -1 :
+				   0;
+                        }
+                        else if(typeof value[b] == 'string') {
+                            return value[a].toString() > value[b] ? 1 :
+                                   value[a].toString() < value[b] ? -1 :
+				   0;
+                        }
+                        // everything failed - return 'null' as sign, that
+                        // the values are not comparable
+                        else {
+                            return null;
+                        }
                     });
                 value._keys = sorted_keys;
                 return value;
@@ -5194,6 +5457,22 @@ var Twig = (function (Twig) {
             }
             // Array will return element 0-index
             return object[method] || undefined;
+        },
+        max: function(values) {
+            if(Twig.lib.is("Object", values)) {
+                delete values["_keys"];
+                return Twig.lib.max(values);
+            }
+
+            return Twig.lib.max.apply(null, arguments);
+        },
+        min: function(values) {
+            if(Twig.lib.is("Object", values)) {
+                delete values["_keys"];
+                return Twig.lib.min(values);
+            }
+
+            return Twig.lib.min.apply(null, arguments);
         },
         template_from_string: function(template) {
             if (template === undefined) {
