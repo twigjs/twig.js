@@ -14,3 +14,4 @@ Minor improvements:
 * Validate template IDs only when caching is enabled (#233, #259)
 * Support xmlhttp.status==0 when using cordova (#240)
 * Improved sub template file loading (#264)
+* Ignore quotes between `{% raw %}` and `{% endraw %}` (#286)
