@@ -23,4 +23,9 @@ describe("Twig.js Regression Tests ->", function() {
     it("\#83 Support for trailing commas in objects", function() {
         twig({data: '{{ {a:1, b:2, c:3, } }}'}).render();
     });
+
+    it("\#283 should support quotes between raw tags", function() {
+        twig({data: '{% raw %}\n"\n{% endraw %}'}).render().should.equal('"');
+        twig({data: "{% raw %}\n'\n{% endraw %}"}).render().should.equal("'");
+    });
 });
