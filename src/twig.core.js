@@ -388,6 +388,11 @@ var Twig = (function (Twig) {
             if (token_def.type === Twig.token.type.comment) {
               break;
             }
+            // Ignore quotes within raw tag
+            // Fixes #283
+            if (token_def.type === Twig.token.type.raw) {
+                break;
+            }
 
             l = Twig.token.strings.length;
             for (i = 0; i < l; i += 1) {
