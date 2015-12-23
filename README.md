@@ -18,13 +18,11 @@ Documentation is available in the [twig.js wiki](https://github.com/justjohn/twi
 
 For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/justjohn/twig.js/wiki/Implementation-Notes) page on the wiki.
 
-### Contributing
+# Releases
 
-If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js. twig.js is built by running `make`
+Download the latest twig.js release from github: https://github.com/justjohn/twig.js/releases
 
-For more details on getting setup, see the [contributing page](https://github.com/justjohn/twig.js/wiki/Contributing) on the wiki.
-
-# Browser Usage
+## Browser Usage (bower)
 
 Twig.js can be installed as a bower package with:
 
@@ -43,7 +41,7 @@ console.log(
 // outputs: "The cupcake is a lie."
 ```
 
-# Node Usage
+## Node Usage (npm)
 
 Twig.js can be installed with NPM
 
@@ -87,15 +85,21 @@ Message of the moment: <b>{{ message }}</b>
 
 An [Express 2 Example](https://github.com/justjohn/twig.js/wiki/Express-2) is available on the wiki.
 
-# Tests
+# Contributing
+
+If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js. twig.js is built by running `make`
+
+For more details on getting setup, see the [contributing page](https://github.com/justjohn/twig.js/wiki/Contributing) on the wiki.
+
+## Tests
 
 The twig.js tests are written in [Mocha][mocha] and can be invoked with `make test`.
 
-# License
+## License
 
 Twig.js is available under a [BSD 2-Clause License][bsd-2], see the LICENSE file for more information.
 
-# Acknowledgments
+## Acknowledgments
 
 See the LICENSES.md file for copies of the referenced licenses.
 
