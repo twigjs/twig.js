@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.8.3
+ * Twig.js 0.8.5
  *
  * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.8.4";
+    Twig.VERSION = "0.8.5";
 
     return Twig;
 })(Twig || {});
@@ -401,6 +401,11 @@ var Twig = (function (Twig) {
             // regardless of what comes before it. https://github.com/justjohn/twig.js/issues/95
             if (token_def.type === Twig.token.type.comment) {
               break;
+            }
+            // Ignore quotes within raw tag
+            // Fixes #283
+            if (token_def.type === Twig.token.type.raw) {
+                break;
             }
 
             l = Twig.token.strings.length;

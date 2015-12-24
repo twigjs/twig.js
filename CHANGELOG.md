@@ -1,5 +1,9 @@
-Changes since 0.8.4
--------------------
+Version 0.8.5, released 2015-12-24
+----------------------------------
+From 0.8.5 on, a summary of changes between each version will be included in the CHANGELOG.md file.
+
+There were some changes to the [Contribution guidelines](https://github.com/justjohn/twig.js/wiki/Contributing): please commit only changes to source files, the files `twig.js` and `twig.min.js` will be rebuilt when a new version gets released. Therefore you need to run `make` after cloning resp. pulling (if you want to use the development version).
+
 Major improvements:
 * Implement `min` and `max` functions (#164)
 * Support for the whitespace control modifier: `{{- -}}` (#266)
