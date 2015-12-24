@@ -1,10 +1,13 @@
 Steps to release twig.js
 
-1. Update version in package.json
-2. Update version in bower.json
-3. Update version in src/twig.header.js
-4. `make`, `make docs`, `make test` and commit the changes.
-5. `git tag` new version
+## repository
+
+1. Compile list of changes in CHANGELOG.md
+2. Update version in package.json
+3. Update version in bower.json
+4. Update version in src/twig.header.js
+5. `make`, `make docs`, `make test` and commit the changes.
+6. `git tag` new version
 
 ## bower
 
