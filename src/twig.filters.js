@@ -142,7 +142,9 @@ var Twig = (function (Twig) {
                 return;
             }
 
-            return encodeURIComponent(value);
+            var result = encodeURIComponent(value);
+            result = result.replace("'", "%27");
+            return result;
         },
         join: function(value, params) {
             if (value === undefined || value === null){

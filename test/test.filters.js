@@ -12,6 +12,11 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|url_encode() }}' });
             test_template.render().should.equal("" );
         });
+        it("should handle special characters", function() {
+            var data = { "foo": "<foo> \\&\"'.,-_?/Ķä€台北[]{}\t\r\n\b\x80" };
+            var test_template = twig({data: '{{ foo|url_encode() }}' });
+            test_template.render(data).should.equal("%3Cfoo%3E%20%5C%26%22%27.%2C-_%3F%2F%C4%B6%C3%A4%E2%82%AC%E5%8F%B0%E5%8C%97%5B%5D%7B%7D%09%0D%0A%08%C2%80" );
+        });
     });
     describe("json_encode ->", function() {
         it("should encode strings to json", function() {
