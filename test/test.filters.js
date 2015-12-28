@@ -374,6 +374,16 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: 'html_attr: {{ foo|escape("html_attr") }}' });
             test_template.render(data).should.equal("html_attr: &lt;foo&gt;&#x20;&#x5C;&amp;&quot;&#x27;.,-_&#x3F;&#x2F;&#x0136;&#x00E4;&#x20AC;&#x53F0;&#x5317;&#x5B;&#x5D;&#x7B;&#x7D;&#x09;&#x0D;&#x0A;&#xFFFD;&#x0080;" );
         });
+
+        it("should escape strategy != 'html' if autoescape is on", function() {
+            twig({
+                autoescape: true,
+                data: '{{ value|escape("js") }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+        });
+
     });
 
     describe("e ->", function() {
