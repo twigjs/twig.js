@@ -621,7 +621,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.logic:
-                        compile_logic(token);
+                        compile_logic.call(this, token);
                         break;
 
                     // Do nothing, comments should be ignored
@@ -629,7 +629,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.output:
-                        compile_output(token);
+                        compile_output.call(this, token);
                         break;
 
                     //Kill whitespace ahead and behind this token
@@ -674,12 +674,12 @@ var Twig = (function (Twig) {
                             case Twig.token.type.output_whitespace_pre:
                             case Twig.token.type.output_whitespace_post:
                             case Twig.token.type.output_whitespace_both:
-                                compile_output(token);
+                                compile_output.call(this, token);
                                 break;
                             case Twig.token.type.logic_whitespace_pre:
                             case Twig.token.type.logic_whitespace_post:
                             case Twig.token.type.logic_whitespace_both:
-                                compile_logic(token);
+                                compile_logic.call(this, token);
                                 break;
                         }
 
