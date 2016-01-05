@@ -12,6 +12,11 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|url_encode() }}' });
             test_template.render().should.equal("" );
         });
+        it("should handle special characters", function() {
+            var data = { "foo": "<foo> \\&\"'.,-_?/Ķä€台北[]{}\t\r\n\b\x80" };
+            var test_template = twig({data: '{{ foo|url_encode() }}' });
+            test_template.render(data).should.equal("%3Cfoo%3E%20%5C%26%22%27.%2C-_%3F%2F%C4%B6%C3%A4%E2%82%AC%E5%8F%B0%E5%8C%97%5B%5D%7B%7D%09%0D%0A%08%C2%80" );
+        });
     });
     describe("json_encode ->", function() {
         it("should encode strings to json", function() {
@@ -347,6 +352,38 @@ describe("Twig.js Filters ->", function() {
                 value: "<test>&</test>"
             }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
         });
+
+        it("should handle the strategy parameter", function() {
+            var data = { "foo": "<foo> \\&\"'.,-_?/Ķä€台北[]{}\t\r\n\b\x80" };
+
+            var test_template = twig({data: 'Default: {{ foo|escape }}' });
+            test_template.render(data).should.equal("Default: &lt;foo&gt; \\&amp;&quot;&#039;.,-_?/Ķä€台北[]{}\t\r\n\b\x80" );
+
+            var test_template = twig({data: 'html: {{ foo|escape("html") }}' });
+            test_template.render(data).should.equal("html: &lt;foo&gt; \\&amp;&quot;&#039;.,-_?/Ķä€台北[]{}\t\r\n\b\x80" );
+
+            var test_template = twig({data: 'js: {{ foo|escape("js") }}' });
+            test_template.render(data).should.equal("js: \\x3Cfoo\\x3E\\x20\\x5C\\x26\\x22\\x27.,\\x2D_\\x3F\\x2F\\u0136\\u00E4\\u20AC\\u53F0\\u5317\\x5B\\x5D\\x7B\\x7D\\x9\\xD\\xA\\x8\\u0080" );
+
+            var test_template = twig({data: 'css: {{ foo|escape("css") }}' });
+            test_template.render(data).should.equal("css: \\3C foo\\3E \\20 \\5C \\26 \\22 \\27 \\2E \\2C \\2D \\5F \\3F \\2F \\136 \\E4 \\20AC \\53F0 \\5317 \\5B \\5D \\7B \\7D \\9 \\D \\A \\8 \\80 " );
+
+            var test_template = twig({data: 'url: {{ foo|escape("url") }}' });
+            test_template.render(data).should.equal("url: %3Cfoo%3E%20%5C%26%22%27.%2C-_%3F%2F%C4%B6%C3%A4%E2%82%AC%E5%8F%B0%E5%8C%97%5B%5D%7B%7D%09%0D%0A%08%C2%80" );
+
+            var test_template = twig({data: 'html_attr: {{ foo|escape("html_attr") }}' });
+            test_template.render(data).should.equal("html_attr: &lt;foo&gt;&#x20;&#x5C;&amp;&quot;&#x27;.,-_&#x3F;&#x2F;&#x0136;&#x00E4;&#x20AC;&#x53F0;&#x5317;&#x5B;&#x5D;&#x7B;&#x7D;&#x09;&#x0D;&#x0A;&#xFFFD;&#x0080;" );
+        });
+
+        it("should escape strategy != 'html' if autoescape is on", function() {
+            twig({
+                autoescape: true,
+                data: '{{ value|escape("js") }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+        });
+
     });
 
     describe("e ->", function() {
