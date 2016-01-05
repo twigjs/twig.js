@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.8.5
+ * Twig.js 0.8.6
  *
  * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.8.5";
+    Twig.VERSION = "0.8.6";
 
     return Twig;
 })(Twig || {});
@@ -635,7 +635,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.logic:
-                        compile_logic(token);
+                        compile_logic.call(this, token);
                         break;
 
                     // Do nothing, comments should be ignored
@@ -643,7 +643,7 @@ var Twig = (function (Twig) {
                         break;
 
                     case Twig.token.type.output:
-                        compile_output(token);
+                        compile_output.call(this, token);
                         break;
 
                     //Kill whitespace ahead and behind this token
@@ -688,12 +688,12 @@ var Twig = (function (Twig) {
                             case Twig.token.type.output_whitespace_pre:
                             case Twig.token.type.output_whitespace_post:
                             case Twig.token.type.output_whitespace_both:
-                                compile_output(token);
+                                compile_output.call(this, token);
                                 break;
                             case Twig.token.type.logic_whitespace_pre:
                             case Twig.token.type.logic_whitespace_post:
                             case Twig.token.type.logic_whitespace_both:
-                                compile_logic(token);
+                                compile_logic.call(this, token);
                                 break;
                         }
 
@@ -5083,7 +5083,9 @@ var Twig = (function (Twig) {
                 return;
             }
 
-            return encodeURIComponent(value);
+            var result = encodeURIComponent(value);
+            result = result.replace("'", "%27");
+            return result;
         },
         join: function(value, params) {
             if (value === undefined || value === null){
@@ -5280,21 +5282,91 @@ var Twig = (function (Twig) {
             return Twig.lib.strip_tags(value);
         },
 
-        escape: function(value) {
+        escape: function(value, params) {
             if (value === undefined|| value === null){
                 return;
             }
-            var raw_value = value.toString().replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-                        .replace(/"/g, "&quot;")
-                        .replace(/'/g, "&#039;");
-            return Twig.Markup(raw_value);
+
+            var strategy = "html";
+            if(params && params.length)
+                strategy = params[0];
+
+            if(strategy == "html") {
+                var raw_value = value.toString().replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&#039;");
+                return Twig.Markup(raw_value);
+            } else if(strategy == "js") {
+                var raw_value = value.toString();
+                var result = "";
+
+                for(var i = 0; i < raw_value.length; i++) {
+                    if(raw_value[i].match(/^[a-zA-Z0-9,\._]$/))
+                        result += raw_value[i];
+                    else {
+                        var char_code = raw_value.charCodeAt(i);
+
+                        if(char_code < 0x80)
+                            result += "\\x" + char_code.toString(16).toUpperCase();
+                        else
+                            result += Twig.lib.sprintf("\\u%04s", char_code.toString(16).toUpperCase());
+                    }
+                }
+
+                return result;
+            } else if(strategy == "css") {
+                var raw_value = value.toString();
+                var result = "";
+
+                for(var i = 0; i < raw_value.length; i++) {
+                    if(raw_value[i].match(/^[a-zA-Z0-9]$/))
+                        result += raw_value[i];
+                    else {
+                        var char_code = raw_value.charCodeAt(i);
+                        result += "\\" + char_code.toString(16).toUpperCase() + " ";
+                    }
+                }
+
+                return result;
+            } else if(strategy == "url") {
+                return Twig.filters.url_encode(value);
+            } else if(strategy == "html_attr") {
+                var raw_value = value.toString();
+                var result = "";
+
+                for(var i = 0; i < raw_value.length; i++) {
+                    if(raw_value[i].match(/^[a-zA-Z0-9,\.\-_]$/))
+                        result += raw_value[i];
+                    else if(raw_value[i].match(/^[&<>"]$/))
+                        result += raw_value[i].replace(/&/g, "&amp;")
+                                .replace(/</g, "&lt;")
+                                .replace(/>/g, "&gt;")
+                                .replace(/"/g, "&quot;");
+                    else {
+                        var char_code = raw_value.charCodeAt(i);
+
+                        // The following replaces characters undefined in HTML with
+                        // the hex entity for the Unicode replacement character.
+                        if(char_code <= 0x1f && char_code != 0x09 && char_code != 0x0a && char_code != 0x0d)
+                            result += "&#xFFFD;";
+                        else if(char_code < 0x80)
+                            result += Twig.lib.sprintf("&#x%02s;", char_code.toString(16).toUpperCase());
+                        else
+                            result += Twig.lib.sprintf("&#x%04s;", char_code.toString(16).toUpperCase());
+                    }
+                }
+
+                return result;
+            } else {
+                throw new Twig.Error("escape strategy unsupported");
+            }
         },
 
         /* Alias of escape */
-        "e": function(value) {
-            return Twig.filters.escape(value);
+        "e": function(value, params) {
+            return Twig.filters.escape(value, params);
         },
 
         nl2br: function(value) {

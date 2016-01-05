@@ -31,7 +31,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
- * Twig.js 0.8.5
+ * Twig.js 0.8.6
  *
  * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -40,7 +40,7 @@
 
 <span class="hljs-keyword">var</span> Twig = (<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">Twig</span>) </span>{
 
-    Twig.VERSION = <span class="hljs-string">"0.8.5"</span>;
+    Twig.VERSION = <span class="hljs-string">"0.8.6"</span>;
 
     <span class="hljs-keyword">return</span> Twig;
 })(Twig || {});</pre></div></div>
@@ -1433,7 +1433,7 @@ currently at the head of the stack before we push a new one on.</p>
                         <span class="hljs-keyword">break</span>;
 
                     <span class="hljs-keyword">case</span> Twig.token.type.logic:
-                        compile_logic(token);
+                        compile_logic.call(<span class="hljs-keyword">this</span>, token);
                         <span class="hljs-keyword">break</span>;</pre></div></div>
             
         </li>
@@ -1453,7 +1453,7 @@ currently at the head of the stack before we push a new one on.</p>
                         <span class="hljs-keyword">break</span>;
 
                     <span class="hljs-keyword">case</span> Twig.token.type.output:
-                        compile_output(token);
+                        compile_output.call(<span class="hljs-keyword">this</span>, token);
                         <span class="hljs-keyword">break</span>;</pre></div></div>
             
         </li>
@@ -1598,12 +1598,12 @@ currently at the head of the stack before we push a new one on.</p>
                             <span class="hljs-keyword">case</span> Twig.token.type.output_whitespace_pre:
                             <span class="hljs-keyword">case</span> Twig.token.type.output_whitespace_post:
                             <span class="hljs-keyword">case</span> Twig.token.type.output_whitespace_both:
-                                compile_output(token);
+                                compile_output.call(<span class="hljs-keyword">this</span>, token);
                                 <span class="hljs-keyword">break</span>;
                             <span class="hljs-keyword">case</span> Twig.token.type.logic_whitespace_pre:
                             <span class="hljs-keyword">case</span> Twig.token.type.logic_whitespace_post:
                             <span class="hljs-keyword">case</span> Twig.token.type.logic_whitespace_both:
-                                compile_logic(token);
+                                compile_logic.call(<span class="hljs-keyword">this</span>, token);
                                 <span class="hljs-keyword">break</span>;
                         }
 
@@ -8905,7 +8905,9 @@ the values are not comparable</p>
                 <span class="hljs-keyword">return</span>;
             }
 
-            <span class="hljs-keyword">return</span> <span class="hljs-built_in">encodeURIComponent</span>(value);
+            <span class="hljs-keyword">var</span> result = <span class="hljs-built_in">encodeURIComponent</span>(value);
+            result = result.replace(<span class="hljs-string">"'"</span>, <span class="hljs-string">"%27"</span>);
+            <span class="hljs-keyword">return</span> result;
         },
         join: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value, params</span>) </span>{
             <span class="hljs-keyword">if</span> (value === <span class="hljs-literal">undefined</span> || value === <span class="hljs-literal">null</span>){
@@ -9150,21 +9152,103 @@ Without this, d would have an index of “4” and overwrite the value
             <span class="hljs-keyword">return</span> Twig.lib.strip_tags(value);
         },
 
-        <span class="hljs-built_in">escape</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value</span>) </span>{
+        <span class="hljs-built_in">escape</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value, params</span>) </span>{
             <span class="hljs-keyword">if</span> (value === <span class="hljs-literal">undefined</span>|| value === <span class="hljs-literal">null</span>){
                 <span class="hljs-keyword">return</span>;
             }
-            <span class="hljs-keyword">var</span> raw_value = value.toString().replace(<span class="hljs-regexp">/&amp;/g</span>, <span class="hljs-string">"&amp;amp;"</span>)
-                        .replace(<span class="hljs-regexp">/&lt;/g</span>, <span class="hljs-string">"&amp;lt;"</span>)
-                        .replace(<span class="hljs-regexp">/&gt;/g</span>, <span class="hljs-string">"&amp;gt;"</span>)
-                        .replace(<span class="hljs-regexp">/"/g</span>, <span class="hljs-string">"&amp;quot;"</span>)
-                        .replace(<span class="hljs-regexp">/'/g</span>, <span class="hljs-string">"&amp;#039;"</span>);
-            <span class="hljs-keyword">return</span> Twig.Markup(raw_value);
+
+            <span class="hljs-keyword">var</span> strategy = <span class="hljs-string">"html"</span>;
+            <span class="hljs-keyword">if</span>(params &amp;&amp; params.length)
+                strategy = params[<span class="hljs-number">0</span>];
+
+            <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"html"</span>) {
+                <span class="hljs-keyword">var</span> raw_value = value.toString().replace(<span class="hljs-regexp">/&amp;/g</span>, <span class="hljs-string">"&amp;amp;"</span>)
+                            .replace(<span class="hljs-regexp">/&lt;/g</span>, <span class="hljs-string">"&amp;lt;"</span>)
+                            .replace(<span class="hljs-regexp">/&gt;/g</span>, <span class="hljs-string">"&amp;gt;"</span>)
+                            .replace(<span class="hljs-regexp">/"/g</span>, <span class="hljs-string">"&amp;quot;"</span>)
+                            .replace(<span class="hljs-regexp">/'/g</span>, <span class="hljs-string">"&amp;#039;"</span>);
+                <span class="hljs-keyword">return</span> Twig.Markup(raw_value);
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"js"</span>) {
+                <span class="hljs-keyword">var</span> raw_value = value.toString();
+                <span class="hljs-keyword">var</span> result = <span class="hljs-string">""</span>;
+
+                <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; raw_value.length; i++) {
+                    <span class="hljs-keyword">if</span>(raw_value[i].match(<span class="hljs-regexp">/^[a-zA-Z0-9,\._]$/</span>))
+                        result += raw_value[i];
+                    <span class="hljs-keyword">else</span> {
+                        <span class="hljs-keyword">var</span> char_code = raw_value.charCodeAt(i);
+
+                        <span class="hljs-keyword">if</span>(char_code &lt; <span class="hljs-number">0x80</span>)
+                            result += <span class="hljs-string">"\\x"</span> + char_code.toString(<span class="hljs-number">16</span>).toUpperCase();
+                        <span class="hljs-keyword">else</span>
+                            result += Twig.lib.sprintf(<span class="hljs-string">"\\u%04s"</span>, char_code.toString(<span class="hljs-number">16</span>).toUpperCase());
+                    }
+                }
+
+                <span class="hljs-keyword">return</span> result;
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"css"</span>) {
+                <span class="hljs-keyword">var</span> raw_value = value.toString();
+                <span class="hljs-keyword">var</span> result = <span class="hljs-string">""</span>;
+
+                <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; raw_value.length; i++) {
+                    <span class="hljs-keyword">if</span>(raw_value[i].match(<span class="hljs-regexp">/^[a-zA-Z0-9]$/</span>))
+                        result += raw_value[i];
+                    <span class="hljs-keyword">else</span> {
+                        <span class="hljs-keyword">var</span> char_code = raw_value.charCodeAt(i);
+                        result += <span class="hljs-string">"\\"</span> + char_code.toString(<span class="hljs-number">16</span>).toUpperCase() + <span class="hljs-string">" "</span>;
+                    }
+                }
+
+                <span class="hljs-keyword">return</span> result;
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"url"</span>) {
+                <span class="hljs-keyword">return</span> Twig.filters.url_encode(value);
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"html_attr"</span>) {
+                <span class="hljs-keyword">var</span> raw_value = value.toString();
+                <span class="hljs-keyword">var</span> result = <span class="hljs-string">""</span>;
+
+                <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; raw_value.length; i++) {
+                    <span class="hljs-keyword">if</span>(raw_value[i].match(<span class="hljs-regexp">/^[a-zA-Z0-9,\.\-_]$/</span>))
+                        result += raw_value[i];
+                    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(raw_value[i].match(<span class="hljs-regexp">/^[&amp;&lt;&gt;"]$/</span>))
+                        result += raw_value[i].replace(<span class="hljs-regexp">/&amp;/g</span>, <span class="hljs-string">"&amp;amp;"</span>)
+                                .replace(<span class="hljs-regexp">/&lt;/g</span>, <span class="hljs-string">"&amp;lt;"</span>)
+                                .replace(<span class="hljs-regexp">/&gt;/g</span>, <span class="hljs-string">"&amp;gt;"</span>)
+                                .replace(<span class="hljs-regexp">/"/g</span>, <span class="hljs-string">"&amp;quot;"</span>);
+                    <span class="hljs-keyword">else</span> {
+                        <span class="hljs-keyword">var</span> char_code = raw_value.charCodeAt(i);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-309">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-309">&#182;</a>
+              </div>
+              <p>The following replaces characters undefined in HTML with
+the hex entity for the Unicode replacement character.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-keyword">if</span>(char_code &lt;= <span class="hljs-number">0x1f</span> &amp;&amp; char_code != <span class="hljs-number">0x09</span> &amp;&amp; char_code != <span class="hljs-number">0x0a</span> &amp;&amp; char_code != <span class="hljs-number">0x0d</span>)
+                            result += <span class="hljs-string">"&amp;#xFFFD;"</span>;
+                        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(char_code &lt; <span class="hljs-number">0x80</span>)
+                            result += Twig.lib.sprintf(<span class="hljs-string">"&amp;#x%02s;"</span>, char_code.toString(<span class="hljs-number">16</span>).toUpperCase());
+                        <span class="hljs-keyword">else</span>
+                            result += Twig.lib.sprintf(<span class="hljs-string">"&amp;#x%04s;"</span>, char_code.toString(<span class="hljs-number">16</span>).toUpperCase());
+                    }
+                }
+
+                <span class="hljs-keyword">return</span> result;
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Twig.Error(<span class="hljs-string">"escape strategy unsupported"</span>);
+            }
         },
 
         <span class="hljs-comment">/* Alias of escape */</span>
-        <span class="hljs-string">"e"</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value</span>) </span>{
-            <span class="hljs-keyword">return</span> Twig.filters.escape(value);
+        <span class="hljs-string">"e"</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value, params</span>) </span>{
+            <span class="hljs-keyword">return</span> Twig.filters.escape(value, params);
         },
 
         nl2br: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value</span>) </span>{
@@ -9205,11 +9289,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-309">
+        <li id="section-310">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-309">&#182;</a>
+                <a class="pilcrow" href="#section-310">&#182;</a>
               </div>
               <p>Fix for IE parseFloat(0.55).toFixed(0) = 0;</p>
 
@@ -9297,11 +9381,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-310">
+        <li id="section-311">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-310">&#182;</a>
+                <a class="pilcrow" href="#section-311">&#182;</a>
               </div>
               <p>default to start of string</p>
 
@@ -9312,11 +9396,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-311">
+        <li id="section-312">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-311">&#182;</a>
+                <a class="pilcrow" href="#section-312">&#182;</a>
               </div>
               <p>default to length of string</p>
 
@@ -9327,11 +9411,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-312">
+        <li id="section-313">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-312">&#182;</a>
+                <a class="pilcrow" href="#section-313">&#182;</a>
               </div>
               <p>handle negative start values</p>
 
@@ -9403,11 +9487,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-313">
+        <li id="section-314">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-313">&#182;</a>
+                <a class="pilcrow" href="#section-314">&#182;</a>
               </div>
               <p>empty delimiter
 “aabbcc”|split(‘’, 2)
@@ -9429,11 +9513,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-314">
+        <li id="section-315">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-314">&#182;</a>
+                <a class="pilcrow" href="#section-315">&#182;</a>
               </div>
               <p>non-empty delimiter
 “one,two,three,four,five”|split(‘,’, 3)
@@ -9474,11 +9558,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-315">
+        <li id="section-316">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-315">&#182;</a>
+                <a class="pilcrow" href="#section-316">&#182;</a>
               </div>
               <p>string|array</p>
 
@@ -9563,11 +9647,11 @@ Without this, d would have an index of “4” and overwrite the value
         </li>
         
         
-        <li id="section-316">
+        <li id="section-317">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-316">&#182;</a>
+                <a class="pilcrow" href="#section-317">&#182;</a>
               </div>
               <pre><code>Twig.js
               <span class="hljs-number">2012</span> Hadrien Lanneau
@@ -9579,11 +9663,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-317">
+        <li id="section-318">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-317">&#182;</a>
+                <a class="pilcrow" href="#section-318">&#182;</a>
               </div>
               <h2 id="twig-functions-js">twig.functions.js</h2>
 <p>This file handles parsing filters.</p>
@@ -9595,11 +9679,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-318">
+        <li id="section-319">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-318">&#182;</a>
+                <a class="pilcrow" href="#section-319">&#182;</a>
               </div>
               <p>Determine object type</p>
 
@@ -9615,11 +9699,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-319">
+        <li id="section-320">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-319">&#182;</a>
+                <a class="pilcrow" href="#section-320">&#182;</a>
               </div>
               <p> attribute, block, constant, date, dump, parent, random,.</p>
 
@@ -9628,11 +9712,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-320">
+        <li id="section-321">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-320">&#182;</a>
+                <a class="pilcrow" href="#section-321">&#182;</a>
               </div>
               <p>Range function from <a href="http://phpjs.org/functions/range:499">http://phpjs.org/functions/range:499</a>
 Used under an MIT License</p>
@@ -9644,11 +9728,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-321">
+        <li id="section-322">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-321">&#182;</a>
+                <a class="pilcrow" href="#section-322">&#182;</a>
               </div>
               <p><a href="http://kevin.vanzonneveld.net">http://kevin.vanzonneveld.net</a></p>
 <ul>
@@ -9761,11 +9845,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-322">
+        <li id="section-323">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-322">&#182;</a>
+                <a class="pilcrow" href="#section-323">&#182;</a>
               </div>
               <p>handle no argument case by dumping the entire render context</p>
 
@@ -9792,11 +9876,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-323">
+        <li id="section-324">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-323">&#182;</a>
+                <a class="pilcrow" href="#section-324">&#182;</a>
               </div>
               <p>timestamp</p>
 
@@ -9820,11 +9904,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-324">
+        <li id="section-325">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-324">&#182;</a>
+                <a class="pilcrow" href="#section-325">&#182;</a>
               </div>
               <p>Add a placeholder</p>
 
@@ -9847,11 +9931,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-325">
+        <li id="section-326">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-325">&#182;</a>
+                <a class="pilcrow" href="#section-326">&#182;</a>
               </div>
               <p>Array will return element 0-index</p>
 
@@ -9934,11 +10018,11 @@ Used under an MIT License</p>
         </li>
         
         
-        <li id="section-326">
+        <li id="section-327">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-326">&#182;</a>
+                <a class="pilcrow" href="#section-327">&#182;</a>
               </div>
               <pre><code>Twig.js
 Available under the BSD <span class="hljs-number">2</span>-Clause License
@@ -9949,11 +10033,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-327">
+        <li id="section-328">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-327">&#182;</a>
+                <a class="pilcrow" href="#section-328">&#182;</a>
               </div>
               <h2 id="twig-tests-js">twig.tests.js</h2>
 <p>This file handles expression tests. (is empty, is not defined, etc…)</p>
@@ -9969,11 +10053,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-328">
+        <li id="section-329">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-328">&#182;</a>
+                <a class="pilcrow" href="#section-329">&#182;</a>
               </div>
               <p>Handler numbers</p>
 
@@ -9984,11 +10068,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-329">
+        <li id="section-330">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-329">&#182;</a>
+                <a class="pilcrow" href="#section-330">&#182;</a>
               </div>
               <p>Handle strings and arrays</p>
 
@@ -9999,11 +10083,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-330">
+        <li id="section-331">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-330">&#182;</a>
+                <a class="pilcrow" href="#section-331">&#182;</a>
               </div>
               <p>Handle objects</p>
 
@@ -10060,11 +10144,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-331">
+        <li id="section-332">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-331">&#182;</a>
+                <a class="pilcrow" href="#section-332">&#182;</a>
               </div>
               <pre><code>Twig.js
 Available under the BSD <span class="hljs-number">2</span>-Clause License
@@ -10075,11 +10159,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-332">
+        <li id="section-333">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-332">&#182;</a>
+                <a class="pilcrow" href="#section-333">&#182;</a>
               </div>
               <h2 id="twig-exports-js">twig.exports.js</h2>
 <p>This file provides extension points and other hooks into the twig functionality.</p>
@@ -10109,11 +10193,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-333">
+        <li id="section-334">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-333">&#182;</a>
+                <a class="pilcrow" href="#section-334">&#182;</a>
               </div>
               <p>TODO: turn autoscape on in the next major version</p>
 
@@ -10180,11 +10264,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-334">
+        <li id="section-335">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-334">&#182;</a>
+                <a class="pilcrow" href="#section-335">&#182;</a>
               </div>
               <p>Extend Twig with a new filter.</p>
 
@@ -10197,11 +10281,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-335">
+        <li id="section-336">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-335">&#182;</a>
+                <a class="pilcrow" href="#section-336">&#182;</a>
               </div>
               <p>Extend Twig with a new function.</p>
 
@@ -10214,11 +10298,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-336">
+        <li id="section-337">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-336">&#182;</a>
+                <a class="pilcrow" href="#section-337">&#182;</a>
               </div>
               <p>Extend Twig with a new test.</p>
 
@@ -10231,11 +10315,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-337">
+        <li id="section-338">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-337">&#182;</a>
+                <a class="pilcrow" href="#section-338">&#182;</a>
               </div>
               <p>Extend Twig with a new definition.</p>
 
@@ -10248,11 +10332,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-338">
+        <li id="section-339">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-338">&#182;</a>
+                <a class="pilcrow" href="#section-339">&#182;</a>
               </div>
               <p>Provide an environment for extending Twig core.
 Calls fn with the internal Twig object.</p>
@@ -10280,11 +10364,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-339">
+        <li id="section-340">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-339">&#182;</a>
+                <a class="pilcrow" href="#section-340">&#182;</a>
               </div>
               <p>Try to load the template from the cache</p>
 
@@ -10315,11 +10399,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-340">
+        <li id="section-341">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-340">&#182;</a>
+                <a class="pilcrow" href="#section-341">&#182;</a>
               </div>
               <p>handle callback in options</p>
 
@@ -10340,11 +10424,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-341">
+        <li id="section-342">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-341">&#182;</a>
+                <a class="pilcrow" href="#section-342">&#182;</a>
               </div>
               <p>render and return template</p>
 
@@ -10357,11 +10441,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-342">
+        <li id="section-343">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-342">&#182;</a>
+                <a class="pilcrow" href="#section-343">&#182;</a>
               </div>
               <p>mixin any options provided to the express app.</p>
 
@@ -10381,11 +10465,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-343">
+        <li id="section-344">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-343">&#182;</a>
+                <a class="pilcrow" href="#section-344">&#182;</a>
               </div>
               <p>Express 3 handler</p>
 
@@ -10410,11 +10494,11 @@ Calls fn with the internal Twig object.</p>
         </li>
         
         
-        <li id="section-344">
+        <li id="section-345">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-344">&#182;</a>
+                <a class="pilcrow" href="#section-345">&#182;</a>
               </div>
               <pre><code>Twig.js
 Available under the BSD <span class="hljs-number">2</span>-Clause License
@@ -10425,11 +10509,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-345">
+        <li id="section-346">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-345">&#182;</a>
+                <a class="pilcrow" href="#section-346">&#182;</a>
               </div>
               <h2 id="twig-compiler-js">twig.compiler.js</h2>
 <p>This file handles compiling templates into JS</p>
@@ -10447,11 +10531,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-346">
+        <li id="section-347">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-346">&#182;</a>
+                <a class="pilcrow" href="#section-347">&#182;</a>
               </div>
               <p>Compile a Twig Template to output.</p>
 
@@ -10462,11 +10546,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-347">
+        <li id="section-348">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-347">&#182;</a>
+                <a class="pilcrow" href="#section-348">&#182;</a>
               </div>
               <p>Get tokens</p>
 
@@ -10513,11 +10597,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-348">
+        <li id="section-349">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-348">&#182;</a>
+                <a class="pilcrow" href="#section-349">&#182;</a>
               </div>
               <pre><code>Twig.js
 Available under the BSD <span class="hljs-number">2</span>-Clause License
@@ -10528,11 +10612,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-349">
+        <li id="section-350">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-349">&#182;</a>
+                <a class="pilcrow" href="#section-350">&#182;</a>
               </div>
               <h2 id="twig-module-js">twig.module.js</h2>
 <p>Provide a CommonJS/AMD/Node module export.</p>
@@ -10545,11 +10629,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-350">
+        <li id="section-351">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-350">&#182;</a>
+                <a class="pilcrow" href="#section-351">&#182;</a>
               </div>
               <p>Provide a CommonJS Modules/2.0 draft 8 module</p>
 
@@ -10560,11 +10644,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-351">
+        <li id="section-352">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-351">&#182;</a>
+                <a class="pilcrow" href="#section-352">&#182;</a>
               </div>
               <p>Add exports from the Twig exports</p>
 
@@ -10585,11 +10669,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-352">
+        <li id="section-353">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-352">&#182;</a>
+                <a class="pilcrow" href="#section-353">&#182;</a>
               </div>
               <p>Provide a CommonJS Modules/1.1 module</p>
 
@@ -10601,11 +10685,11 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
         </li>
         
         
-        <li id="section-353">
+        <li id="section-354">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-353">&#182;</a>
+                <a class="pilcrow" href="#section-354">&#182;</a>
               </div>
               <p>Export for browser use</p>
 

@@ -1,3 +1,12 @@
+Version 0.8.6, released 2016-01-05
+----------------------------------
+Major improvements:
+* The `escape` filter now supports the strategy parameter: `{{ var|escape('css') }}` with the following available strategies: html (default), js, css, url, html_attr. (#289)
+
+Minor improvements:
+* The filter `url_encode` now also encodes apostrophe (as in Twig.php) (#288)
+* Minor bugfixes (#290, #291)
+
 Version 0.8.5, released 2015-12-24
 ----------------------------------
 From 0.8.5 on, a summary of changes between each version will be included in the CHANGELOG.md file.
