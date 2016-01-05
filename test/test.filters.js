@@ -347,7 +347,7 @@ describe("Twig.js Filters ->", function() {
         it("should not escape twice if autoescape is on", function() {
             twig({
                 autoescape: true,
-                data: '{{ value }}'
+                data: '{{ value|escape }}'
             }).render({
                 value: "<test>&</test>"
             }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
@@ -400,7 +400,7 @@ describe("Twig.js Filters ->", function() {
         it("should not escape twice if autoescape is on", function() {
             var template = twig({
                 autoescape: true,
-                data: '{{ value }}'
+                data: '{{ value|e }}'
             });
             template.render({
                 value: "<test>&</test>"
