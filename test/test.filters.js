@@ -232,6 +232,19 @@ describe("Twig.js Filters ->", function() {
             test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
             test_template.render({'var':{}}).should.equal("Empty Key" );
         });
+
+        it("should provide a default value of '' if no parameters are passed and a default key is not defined", function () {
+            var test_template = twig({data: '{{ var|default }}' });
+            test_template.render().should.equal("");
+        });
+
+        it("should provide a default value of '' if no parameters are passed and a value is empty", function () {
+            var test_template = twig({data: '{{ ""|default }}' });
+            test_template.render().should.equal("");
+
+            test_template = twig({data: '{{ var.key|default }}' });
+            test_template.render({'var':{}}).should.equal("");
+        });
     });
 
     describe("date ->", function() {
