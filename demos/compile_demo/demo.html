@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Twig.JS Test</title>
+</head>
+<body>
+    <select id="dropdown" onchange="getTemplate()">
+        <option value="compiled/test.twig">Test</option>
+        <option value="compiled/test2.twig">Test 2</option>
+    </select>
+    <input id="name" value="John Doe" type="text" placeholder="name" oninput="getTemplate()">
+    <div id="view"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twig.js/0.8.6/twig.min.js"></script>
+    <script src="compiled/test.twig.js"></script>
+    <script src="compiled/test2.twig.js"></script>
+    <script>
+        function getTemplate(){
+            document.getElementById("view").innerHTML = twig({ ref: document.getElementById("dropdown").value }).render({
+                name: document.getElementById("name").value
+            });
+        }
+
+        getTemplate();
+    </script>
+</body>
+</html>

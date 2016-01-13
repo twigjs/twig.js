@@ -1,0 +1,1 @@
+twig({id:"compiled/test.twig", data:[{"type":"raw","value":"<h1>Hello, "},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"name","match":["name"]}]},{"type":"raw","value":"! This is <b>twig.js</b> test number one!</h1>"}], precompiled: true});
