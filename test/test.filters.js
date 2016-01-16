@@ -261,6 +261,12 @@ describe("Twig.js Filters ->", function() {
 
             template.render().should.equal( stringDate(date) );
         });
+        it("should recognize timestamps, when they are passed as string", function() {
+            var template = twig({data: '{{ "27571323556"|date("d/m/Y @ H:i:s") }}'})
+                , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
+
+            template.render().should.equal( stringDate(date) );
+        });
         it("should recognize string date formats", function() {
             var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'})
                 , date = new Date(1187081535000); // 14/08/2007 @ 04:52:15 EST

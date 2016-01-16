@@ -139,7 +139,12 @@ var Twig = (function (Twig) {
             } else if (Twig.lib.is("Date", date)) {
                 dateObj = date;
             } else if (Twig.lib.is("String", date)) {
-                dateObj = new Date(Twig.lib.strtotime(date) * 1000);
+                if (date.match(/^[0-9]+$/)) {
+                    dateObj = new Date(date * 1000);
+                }
+                else {
+                    dateObj = new Date(Twig.lib.strtotime(date) * 1000);
+                }
             } else if (Twig.lib.is("Number", date)) {
                 // timestamp
                 dateObj = new Date(date * 1000);
