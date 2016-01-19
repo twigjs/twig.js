@@ -1343,7 +1343,7 @@ var Twig = (function (Twig) {
                 file = file.replace(template.base, '');
                 base = template.base + sep;
             } else {
-                base = template.path;
+                base = path.normalize(template.path);
             }
 
             base = base.replace(sep+sep, sep);
