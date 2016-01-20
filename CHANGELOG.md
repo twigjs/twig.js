@@ -1,3 +1,13 @@
+Version 0.8.7, released 2016-01-20
+----------------------------------
+Major improvements:
+* The `autoescape` option now supports all strategies which are supported by the `escape` filter (#299)
+
+Minor improvements:
+* The `date` filter now recognises unix timestamps as input, when they are passed as string (#296)
+* The `default` filter now allows to be called without parameters (it will return an empty string in that case) (#295)
+* Normalize provided template paths (this generated problems when using nodejs under Windows) (#252, #300)
+
 Version 0.8.6, released 2016-01-05
 ----------------------------------
 Major improvements:

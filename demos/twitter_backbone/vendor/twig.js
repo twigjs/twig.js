@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.8.6
+ * Twig.js 0.8.7
  *
  * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -8,7 +8,7 @@
 
 var Twig = (function (Twig) {
 
-    Twig.VERSION = "0.8.6";
+    Twig.VERSION = "0.8.7";
 
     return Twig;
 })(Twig || {});
@@ -845,11 +845,15 @@ var Twig = (function (Twig) {
             return output.join("");
         }
 
+        var strategy = 'html';
+        if(typeof this.options.autoescape == 'string')
+            strategy = this.options.autoescape;
+
         // [].map would be better but it's not supported by IE8-
         var escaped_output = [];
         Twig.forEach(output, function (str) {
-            if (str && !str.twig_markup) {
-                str = Twig.filters.escape(str);
+            if (str && (str.twig_markup !== true && str.twig_markup != strategy)) {
+                str = Twig.filters.escape(str, [ strategy ]);
             }
             escaped_output.push(str);
         });
@@ -1258,10 +1262,14 @@ var Twig = (function (Twig) {
      * @return {String} Content wrapped into a String
      */
 
-    Twig.Markup = function(content) {
+    Twig.Markup = function(content, strategy) {
+        if(typeof strategy == 'undefined') {
+            strategy = true;
+        }
+
         if (typeof content === 'string' && content.length > 0) {
             content = new String(content);
-            content.twig_markup = true;
+            content.twig_markup = strategy;
         }
         return content;
     };
@@ -1357,7 +1365,7 @@ var Twig = (function (Twig) {
                 file = file.replace(template.base, '');
                 base = template.base + sep;
             } else {
-                base = template.path;
+                base = path.normalize(template.path);
             }
 
             base = base.replace(sep+sep, sep);
@@ -5113,10 +5121,14 @@ var Twig = (function (Twig) {
             return output.join(join_str);
         },
         "default": function(value, params) {
-            if (params === undefined || params.length !== 1) {
+            if (params !== undefined && params.length > 1) {
                 throw new Twig.Error("default filter expects one argument");
             }
             if (value === undefined || value === null || value === '' ) {
+                if (params === undefined) {
+                    return '';
+                }
+
                 return params[0];
             } else {
                 return value;
@@ -5288,7 +5300,7 @@ var Twig = (function (Twig) {
             }
 
             var strategy = "html";
-            if(params && params.length)
+            if(params && params.length && params[0] !== true)
                 strategy = params[0];
 
             if(strategy == "html") {
@@ -5297,7 +5309,7 @@ var Twig = (function (Twig) {
                             .replace(/>/g, "&gt;")
                             .replace(/"/g, "&quot;")
                             .replace(/'/g, "&#039;");
-                return Twig.Markup(raw_value);
+                return Twig.Markup(raw_value, 'html');
             } else if(strategy == "js") {
                 var raw_value = value.toString();
                 var result = "";
@@ -5315,7 +5327,7 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                return result;
+                return Twig.Markup(result, 'js');
             } else if(strategy == "css") {
                 var raw_value = value.toString();
                 var result = "";
@@ -5329,9 +5341,10 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                return result;
+                return Twig.Markup(result, 'css');
             } else if(strategy == "url") {
-                return Twig.filters.url_encode(value);
+                var result = Twig.filters.url_encode(value);
+                return Twig.Markup(result, 'url');
             } else if(strategy == "html_attr") {
                 var raw_value = value.toString();
                 var result = "";
@@ -5358,7 +5371,7 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                return result;
+                return Twig.Markup(result, 'html_attr');
             } else {
                 throw new Twig.Error("escape strategy unsupported");
             }
@@ -5813,7 +5826,12 @@ var Twig = (function (Twig) {
             } else if (Twig.lib.is("Date", date)) {
                 dateObj = date;
             } else if (Twig.lib.is("String", date)) {
-                dateObj = new Date(Twig.lib.strtotime(date) * 1000);
+                if (date.match(/^[0-9]+$/)) {
+                    dateObj = new Date(date * 1000);
+                }
+                else {
+                    dateObj = new Date(Twig.lib.strtotime(date) * 1000);
+                }
             } else if (Twig.lib.is("Number", date)) {
                 // timestamp
                 dateObj = new Date(date * 1000);

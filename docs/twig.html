@@ -31,7 +31,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
- * Twig.js 0.8.6
+ * Twig.js 0.8.7
  *
  * @copyright 2011-2015 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -40,7 +40,7 @@
 
 <span class="hljs-keyword">var</span> Twig = (<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">Twig</span>) </span>{
 
-    Twig.VERSION = <span class="hljs-string">"0.8.6"</span>;
+    Twig.VERSION = <span class="hljs-string">"0.8.7"</span>;
 
     <span class="hljs-keyword">return</span> Twig;
 })(Twig || {});</pre></div></div>
@@ -1878,7 +1878,11 @@ currently at the head of the stack before we push a new one on.</p>
     Twig.output = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">output</span>) </span>{
         <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.options.autoescape) {
             <span class="hljs-keyword">return</span> output.join(<span class="hljs-string">""</span>);
-        }</pre></div></div>
+        }
+
+        <span class="hljs-keyword">var</span> strategy = <span class="hljs-string">'html'</span>;
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.options.autoescape == <span class="hljs-string">'string'</span>)
+            strategy = <span class="hljs-keyword">this</span>.options.autoescape;</pre></div></div>
             
         </li>
         
@@ -1895,8 +1899,8 @@ currently at the head of the stack before we push a new one on.</p>
             
             <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> escaped_output = [];
         Twig.forEach(output, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">str</span>) </span>{
-            <span class="hljs-keyword">if</span> (str &amp;&amp; !str.twig_markup) {
-                str = Twig.filters.escape(str);
+            <span class="hljs-keyword">if</span> (str &amp;&amp; (str.twig_markup !== <span class="hljs-literal">true</span> &amp;&amp; str.twig_markup != strategy)) {
+                str = Twig.filters.escape(str, [ strategy ]);
             }
             escaped_output.push(str);
         });
@@ -2535,10 +2539,14 @@ currently at the head of the stack before we push a new one on.</p>
      * @return {String} Content wrapped into a String
      */</span>
 
-    Twig.Markup = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">content</span>) </span>{
+    Twig.Markup = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">content, strategy</span>) </span>{
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> strategy == <span class="hljs-string">'undefined'</span>) {
+            strategy = <span class="hljs-literal">true</span>;
+        }
+
         <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> content === <span class="hljs-string">'string'</span> &amp;&amp; content.length &gt; <span class="hljs-number">0</span>) {
             content = <span class="hljs-keyword">new</span> <span class="hljs-built_in">String</span>(content);
-            content.twig_markup = <span class="hljs-literal">true</span>;
+            content.twig_markup = strategy;
         }
         <span class="hljs-keyword">return</span> content;
     };
@@ -2647,7 +2655,7 @@ currently at the head of the stack before we push a new one on.</p>
                 file = file.replace(template.base, <span class="hljs-string">''</span>);
                 base = template.base + sep;
             } <span class="hljs-keyword">else</span> {
-                base = template.path;
+                base = path.normalize(template.path);
             }
 
             base = base.replace(sep+sep, sep);
@@ -8935,10 +8943,14 @@ the values are not comparable</p>
             <span class="hljs-keyword">return</span> output.join(join_str);
         },
         <span class="hljs-string">"default"</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value, params</span>) </span>{
-            <span class="hljs-keyword">if</span> (params === <span class="hljs-literal">undefined</span> || params.length !== <span class="hljs-number">1</span>) {
+            <span class="hljs-keyword">if</span> (params !== <span class="hljs-literal">undefined</span> &amp;&amp; params.length &gt; <span class="hljs-number">1</span>) {
                 <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Twig.Error(<span class="hljs-string">"default filter expects one argument"</span>);
             }
             <span class="hljs-keyword">if</span> (value === <span class="hljs-literal">undefined</span> || value === <span class="hljs-literal">null</span> || value === <span class="hljs-string">''</span> ) {
+                <span class="hljs-keyword">if</span> (params === <span class="hljs-literal">undefined</span>) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>;
+                }
+
                 <span class="hljs-keyword">return</span> params[<span class="hljs-number">0</span>];
             } <span class="hljs-keyword">else</span> {
                 <span class="hljs-keyword">return</span> value;
@@ -9158,7 +9170,7 @@ Without this, d would have an index of “4” and overwrite the value
             }
 
             <span class="hljs-keyword">var</span> strategy = <span class="hljs-string">"html"</span>;
-            <span class="hljs-keyword">if</span>(params &amp;&amp; params.length)
+            <span class="hljs-keyword">if</span>(params &amp;&amp; params.length &amp;&amp; params[<span class="hljs-number">0</span>] !== <span class="hljs-literal">true</span>)
                 strategy = params[<span class="hljs-number">0</span>];
 
             <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"html"</span>) {
@@ -9167,7 +9179,7 @@ Without this, d would have an index of “4” and overwrite the value
                             .replace(<span class="hljs-regexp">/&gt;/g</span>, <span class="hljs-string">"&amp;gt;"</span>)
                             .replace(<span class="hljs-regexp">/"/g</span>, <span class="hljs-string">"&amp;quot;"</span>)
                             .replace(<span class="hljs-regexp">/'/g</span>, <span class="hljs-string">"&amp;#039;"</span>);
-                <span class="hljs-keyword">return</span> Twig.Markup(raw_value);
+                <span class="hljs-keyword">return</span> Twig.Markup(raw_value, <span class="hljs-string">'html'</span>);
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"js"</span>) {
                 <span class="hljs-keyword">var</span> raw_value = value.toString();
                 <span class="hljs-keyword">var</span> result = <span class="hljs-string">""</span>;
@@ -9185,7 +9197,7 @@ Without this, d would have an index of “4” and overwrite the value
                     }
                 }
 
-                <span class="hljs-keyword">return</span> result;
+                <span class="hljs-keyword">return</span> Twig.Markup(result, <span class="hljs-string">'js'</span>);
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"css"</span>) {
                 <span class="hljs-keyword">var</span> raw_value = value.toString();
                 <span class="hljs-keyword">var</span> result = <span class="hljs-string">""</span>;
@@ -9199,9 +9211,10 @@ Without this, d would have an index of “4” and overwrite the value
                     }
                 }
 
-                <span class="hljs-keyword">return</span> result;
+                <span class="hljs-keyword">return</span> Twig.Markup(result, <span class="hljs-string">'css'</span>);
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"url"</span>) {
-                <span class="hljs-keyword">return</span> Twig.filters.url_encode(value);
+                <span class="hljs-keyword">var</span> result = Twig.filters.url_encode(value);
+                <span class="hljs-keyword">return</span> Twig.Markup(result, <span class="hljs-string">'url'</span>);
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(strategy == <span class="hljs-string">"html_attr"</span>) {
                 <span class="hljs-keyword">var</span> raw_value = value.toString();
                 <span class="hljs-keyword">var</span> result = <span class="hljs-string">""</span>;
@@ -9240,7 +9253,7 @@ the hex entity for the Unicode replacement character.</p>
                     }
                 }
 
-                <span class="hljs-keyword">return</span> result;
+                <span class="hljs-keyword">return</span> Twig.Markup(result, <span class="hljs-string">'html_attr'</span>);
             } <span class="hljs-keyword">else</span> {
                 <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Twig.Error(<span class="hljs-string">"escape strategy unsupported"</span>);
             }
@@ -9870,7 +9883,12 @@ Used under an MIT License</p>
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (Twig.lib.is(<span class="hljs-string">"Date"</span>, date)) {
                 dateObj = date;
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (Twig.lib.is(<span class="hljs-string">"String"</span>, date)) {
-                dateObj = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(Twig.lib.strtotime(date) * <span class="hljs-number">1000</span>);
+                <span class="hljs-keyword">if</span> (date.match(<span class="hljs-regexp">/^[0-9]+$/</span>)) {
+                    dateObj = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(date * <span class="hljs-number">1000</span>);
+                }
+                <span class="hljs-keyword">else</span> {
+                    dateObj = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(Twig.lib.strtotime(date) * <span class="hljs-number">1000</span>);
+                }
             } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (Twig.lib.is(<span class="hljs-string">"Number"</span>, date)) {</pre></div></div>
             
         </li>

@@ -942,6 +942,17 @@ twig({
 }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
 ```
 
+should support autoescape option with alternative strategy.
+
+```js
+twig({
+    autoescape: 'js',
+    data: '{{ value }}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+```
+
 should autoescape parent() output correctly.
 
 ```js
@@ -1817,12 +1828,36 @@ test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
 test_template.render({'var':{}}).should.equal("Empty Key" );
 ```
 
+should provide a default value of '' if no parameters are passed and a default key is not defined.
+
+```js
+var test_template = twig({data: '{{ var|default }}' });
+test_template.render().should.equal("");
+```
+
+should provide a default value of '' if no parameters are passed and a value is empty.
+
+```js
+var test_template = twig({data: '{{ ""|default }}' });
+test_template.render().should.equal("");
+test_template = twig({data: '{{ var.key|default }}' });
+test_template.render({'var':{}}).should.equal("");
+```
+
 <a name="twigjs-filters---date--"></a>
 ## date ->
 should recognize timestamps.
 
 ```js
 var template = twig({data: '{{ 27571323556|date("d/m/Y @ H:i:s") }}'})
+    , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
+template.render().should.equal( stringDate(date) );
+```
+
+should recognize timestamps, when they are passed as string.
+
+```js
+var template = twig({data: '{{ "27571323556"|date("d/m/Y @ H:i:s") }}'})
     , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
 template.render().should.equal( stringDate(date) );
 ```
@@ -1994,6 +2029,28 @@ twig({
 }).render({
     value: "<test>&</test>"
 }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+```
+
+should not escape twice if autoescape is not html.
+
+```js
+twig({
+    autoescape: 'js',
+    data: '{{ value|escape("js") }}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+```
+
+should escape twice if escape strategy is different from autoescape option.
+
+```js
+twig({
+    autoescape: 'css',
+    data: '{{ value|escape("js") }}\n{{ value|escape }}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('\\5C x3Ctest\\5C x3E\\5C x26\\5C x3C\\5C x2Ftest\\5C x3E\n\\26 lt\\3B test\\26 gt\\3B \\26 amp\\3B \\26 lt\\3B \\2F test\\26 gt\\3B ');
 ```
 
 <a name="twigjs-filters---e--"></a>
