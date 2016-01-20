@@ -831,11 +831,15 @@ var Twig = (function (Twig) {
             return output.join("");
         }
 
+        var strategy = 'html';
+        if(typeof this.options.autoescape == 'string')
+            strategy = this.options.autoescape;
+
         // [].map would be better but it's not supported by IE8-
         var escaped_output = [];
         Twig.forEach(output, function (str) {
-            if (str && !str.twig_markup) {
-                str = Twig.filters.escape(str);
+            if (str && (str.twig_markup !== true && str.twig_markup != strategy)) {
+                str = Twig.filters.escape(str, [ strategy ]);
             }
             escaped_output.push(str);
         });
@@ -1244,10 +1248,14 @@ var Twig = (function (Twig) {
      * @return {String} Content wrapped into a String
      */
 
-    Twig.Markup = function(content) {
+    Twig.Markup = function(content, strategy) {
+        if(typeof strategy == 'undefined') {
+            strategy = true;
+        }
+
         if (typeof content === 'string' && content.length > 0) {
             content = new String(content);
-            content.twig_markup = true;
+            content.twig_markup = strategy;
         }
         return content;
     };

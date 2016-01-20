@@ -403,6 +403,23 @@ describe("Twig.js Filters ->", function() {
             }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
         });
 
+        it("should not escape twice if autoescape is not html", function() {
+            twig({
+                autoescape: 'js',
+                data: '{{ value|escape("js") }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+        });
+
+        it("should escape twice if escape strategy is different from autoescape option", function() {
+            twig({
+                autoescape: 'css',
+                data: '{{ value|escape("js") }}\n{{ value|escape }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\5C x3Ctest\\5C x3E\\5C x26\\5C x3C\\5C x2Ftest\\5C x3E\n\\26 lt\\3B test\\26 gt\\3B \\26 amp\\3B \\26 lt\\3B \\2F test\\26 gt\\3B ');
+        });
     });
 
     describe("e ->", function() {
