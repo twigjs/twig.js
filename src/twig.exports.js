@@ -61,7 +61,7 @@ var Twig = (function (Twig) {
             if (!Twig.Templates.isRegisteredLoader(params.method)) {
                 throw new Twig.Error('Loader for "' + params.method + '" is not defined.');
             }
-            return Twig.Templates.loadRemote(params.href || params.path || undefined, {
+            return Twig.Templates.loadRemote(params.name || params.href || params.path || id || undefined, {
                 id: id,
                 method: params.method,
                 base: params.base,

@@ -1034,6 +1034,8 @@ var Twig = (function (Twig) {
             base = params.base,
             path = params.path,
             url = params.url,
+            name = params.name,
+            method = params.method,
             // parser options
             options = params.options;
 
@@ -1056,9 +1058,11 @@ var Twig = (function (Twig) {
         //
 
         this.id     = id;
+        this.method = method;
         this.base   = base;
         this.path   = path;
         this.url    = url;
+        this.name   = name;
         this.macros = macros;
         this.options = options;
 
@@ -1122,7 +1126,7 @@ var Twig = (function (Twig) {
                 url = parsePath(this, this.extend);
 
                 ext_template = Twig.Templates.loadRemote(url, {
-                    method: this.url?'ajax':'fs',
+                    method: this.getLoaderMethod(),
                     base: this.base,
                     async:  false,
                     id:     url,
@@ -1155,7 +1159,7 @@ var Twig = (function (Twig) {
             if (!sub_template) {
                 sub_template = Twig.Templates.loadRemote(url, {
                     id: file,
-                    method: 'fs',
+                    method: this.getLoaderMethod(),
                     async: false,
                     options: this.options
                 });
@@ -1174,7 +1178,7 @@ var Twig = (function (Twig) {
 
         // Load blocks from an external file
         sub_template = Twig.Templates.loadRemote(url, {
-            method: this.url?'ajax':'fs',
+            method: this.getLoaderMethod(),
             base: this.base,
             async: false,
             options: this.options,
@@ -1208,12 +1212,22 @@ var Twig = (function (Twig) {
 
         // load remote template
         var remoteTemplate = Twig.Templates.loadRemote(url, {
-            method: this.url?'ajax':'fs',
+            method: this.getLoaderMethod(),
             async: false,
             id: url
         });
 
         return remoteTemplate;
+    };
+
+    Twig.Template.prototype.getLoaderMethod = function() {
+        if (this.path) {
+            return 'fs';
+        }
+        if (this.url) {
+            return 'ajax';
+        }
+        return this.method || 'fs';
     };
 
     Twig.Template.prototype.compile = function(options) {
@@ -1273,7 +1287,7 @@ var Twig = (function (Twig) {
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
      *
-     * @param {string} template The Twig.Template.
+     * @param {Twig.Template} template The Twig.Template.
      * @param {string} file The file path, relative to the base path.
      *
      * @return {string} The canonical version of the path.
@@ -1307,6 +1321,9 @@ var Twig = (function (Twig) {
 
             base = base.replace(sep+sep, sep);
             sep_chr = sep;
+        } else if ((template.name || template.id) && template.method && template.method !== 'fs' && template.method !== 'ajax') {
+            // Custom registered loader
+            base = template.base || template.name || template.id;
         } else {
             throw new Twig.Error("Cannot extend an inline template.");
         }
