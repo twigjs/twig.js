@@ -848,6 +848,16 @@ var Twig = (function (Twig) {
 
     // Namespace for template storage and retrieval
     Twig.Templates = {
+        /**
+         * Registered template loaders - use Twig.Templates.registerLoader to add supported loaders
+         * @type {Object}
+         */
+        loaders: {},
+
+        /**
+         * Cached / loaded templates
+         * @type {Object}
+         */
         registry: {}
     };
 
@@ -867,6 +877,65 @@ var Twig = (function (Twig) {
         }
         return true;
     }
+
+    /**
+     * Register a template loader
+     *
+     * @example
+     * Twig.extend(function(Twig) {
+     *    Twig.Templates.registerLoader('custom_loader', function(location, params, callback, error_callback) {
+     *        // ... load the template ...
+     *        params.data = loadedTemplateData;
+     *        // create and return the template
+     *        var template = new Twig.Template(params);
+     *        if (typeof callback === 'function') {
+     *            callback(template);
+     *        }
+     *        return template;
+     *    });
+     * });
+     * 
+     * @param {String} method_name The method this loader is intended for (ajax, fs)
+     * @param {Function} func The function to execute when loading the template
+     * @param {Object|undefined} scope Optional scope parameter to bind func to
+     *
+     * @throws Twig.Error
+     *
+     * @return {void}
+     */
+    Twig.Templates.registerLoader = function(method_name, func, scope) {
+        if (typeof func !== 'function') {
+            throw new Twig.Error('Unable to add loader for ' + method_name + ': Invalid function reference given.');
+        }
+        if (scope) {
+            func = func.bind(scope);
+        }
+        this.loaders[method_name] = func;
+    };
+
+    /**
+     * Remove a registered loader
+     * 
+     * @param {String} method_name The method name for the loader you wish to remove
+     *
+     * @return {void}
+     */
+    Twig.Templates.unRegisterLoader = function(method_name) {
+        if (this.isRegisteredLoader(method_name)) {
+            delete this.loaders[method_name];
+        }
+    };
+
+    /**
+     * See if a loader is registered by its method name
+     * 
+     * @param {String} method_name The name of the loader you are looking for
+     *
+     * @return {boolean}
+     */
+    Twig.Templates.isRegisteredLoader = function(method_name) {
+        return this.loaders.hasOwnProperty(method_name);
+    };
 
     /**
      * Save a template object to the store.
@@ -913,119 +982,31 @@ var Twig = (function (Twig) {
      *
      */
     Twig.Templates.loadRemote = function(location, params, callback, error_callback) {
-        var id          = params.id,
-            method      = params.method,
-            async       = params.async,
-            precompiled = params.precompiled,
-            template    = null;
+        var loader;
 
         // Default to async
-        if (async === undefined) async = true;
+        if (params.async === undefined) {
+            params.async = true;
+        }
 
         // Default to the URL so the template is cached.
-        if (id === undefined) {
-            id = location;
+        if (params.id === undefined) {
+            params.id = location;
         }
-        params.id = id;
 
         // Check for existing template
-        if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
+        if (Twig.cache && Twig.Templates.registry.hasOwnProperty(params.id)) {
             // A template is already saved with the given id.
-            if (callback) {
-                callback(Twig.Templates.registry[id]);
+            if (typeof callback === 'function') {
+                callback(Twig.Templates.registry[params.id]);
             }
-            return Twig.Templates.registry[id];
+            // TODO: if async, return deferred promise
+            return Twig.Templates.registry[params.id];
         }
 
-        if (method == 'ajax') {
-            if (typeof XMLHttpRequest == "undefined") {
-                throw new Twig.Error("Unsupported platform: Unable to do remote requests " +
-                                     "because there is no XMLHTTPRequest implementation");
-            }
-
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.onreadystatechange = function() {
-                var data = null;
-
-                if(xmlhttp.readyState == 4) {
-                    if (xmlhttp.status == 200 || (window.cordova && xmlhttp.status == 0)) {
-                        Twig.log.debug("Got template ", xmlhttp.responseText);
-
-                        if (precompiled === true) {
-                            data = JSON.parse(xmlhttp.responseText);
-                        } else {
-                            data = xmlhttp.responseText;
-                        }
-
-                        params.url = location;
-                        params.data = data;
-
-                        template = new Twig.Template(params);
-
-                        if (callback) {
-                            callback(template);
-                        }
-                    } else {
-                        if (error_callback) {
-                            error_callback(xmlhttp);
-                        }
-                    }
-                }
-            };
-            xmlhttp.open("GET", location, async);
-            xmlhttp.send();
-
-        } else { // if method = 'fs'
-            // Create local scope
-            (function() {
-                var fs = require('fs'),
-                    path = require('path'),
-                    data = null,
-                    loadTemplateFn = function(err, data) {
-                        if (err) {
-                            if (error_callback) {
-                                error_callback(err);
-                            }
-                            return;
-                        }
-
-                        if (precompiled === true) {
-                            data = JSON.parse(data);
-                        }
-
-                        params.data = data;
-                        params.path = location;
-
-                        // template is in data
-                        template = new Twig.Template(params);
-
-                        if (callback) {
-                            callback(template);
-                        }
-                    };
-
-                if (async === true) {
-                    fs.stat(location, function (err, stats) {
-                        if (err || !stats.isFile())
-                            throw new Twig.Error("Unable to find template file " + location);
-
-                        fs.readFile(location, 'utf8', loadTemplateFn);
-                    });
-                } else {
-                    if (!fs.statSync(location).isFile())
-                        throw new Twig.Error("Unable to find template file " + location);
-
-                    data = fs.readFileSync(location, 'utf8');
-                    loadTemplateFn(undefined, data);
-                }
-            })();
-        }
-        if (async === false) {
-            return template;
-        } else {
-            // placeholder for now, should eventually return a deferred object.
-            return true;
-        }
+        // Assume 'fs' if the loader is not defined
+        loader = this.loaders[params.method] || this.loaders.fs;
+        return loader.apply(null, arguments);
     };
 
     // Determine object type
@@ -1259,36 +1240,6 @@ var Twig = (function (Twig) {
         }
         return content;
     };
-
-    /**
-     * Generate the canonical version of a url based on the given base path and file path and in
-     * the previously registered namespaces.
-     *
-     * @param  {string} template The Twig Template
-     * @param  {string} file     The file path, may be relative and may contain namespaces.
-     *
-     * @return {string}          The canonical version of the path
-     */
-    function parsePath(template, file) {
-        var namespaces = null;
-
-        if (typeof template === 'object' && typeof template.options === 'object') {
-            namespaces = template.options.namespaces;
-        }
-
-        if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
-            for (var k in namespaces){
-                if (namespaces.hasOwnProperty(k)) {
-                    file = file.replace(k + '::', namespaces[k]);
-                }
-            }
-
-            return file;
-        }
-
-        return relativePath(template, file);
-    }
-
 
     /**
      * Generate the canonical version of a url based on the given base path and file path and in

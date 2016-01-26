@@ -56,6 +56,21 @@ var Twig = (function (Twig) {
                 throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
+        
+        } else if (params.method !== undefined) {
+            if (!Twig.Templates.isRegisteredLoader(params.method)) {
+                throw new Twig.Error('Loader for "' + params.method + '" is not defined.');
+            }
+            return Twig.Templates.loadRemote(params.href || params.path || undefined, {
+                id: id,
+                method: params.method,
+                base: params.base,
+                module: params.module,
+                precompiled: params.precompiled,
+                async: params.async,
+                options: options
+
+            }, params.load, params.error);
 
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
