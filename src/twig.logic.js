@@ -28,6 +28,7 @@ var Twig = (function (Twig) {
         endset:    'Twig.logic.type.endset',
         filter:    'Twig.logic.type.filter',
         endfilter: 'Twig.logic.type.endfilter',
+        shortblock: 'Twig.logic.type.shortblock',
         block:     'Twig.logic.type.block',
         endblock:  'Twig.logic.type.endblock',
         extends_:  'Twig.logic.type.extends',
@@ -482,18 +483,26 @@ var Twig = (function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var block_output = "",
-                    output = "",
+                var block_output,
+                    output,
                     isImported = this.importedBlocks.indexOf(token.block) > -1,
                     hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
 
                 // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
                 if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop || token.overwrite) {
-                    block_output = Twig.expression.parse.apply(this, [{
-                        type: Twig.expression.type.string,
-                        value: Twig.parse.apply(this, [token.output, context])
-                    }, context]);
+                    if (token.expression) {
+                        // Short blocks have output as an expression on the open tag (no body)
+                        block_output = Twig.expression.parse.apply(this, [{
+                            type: Twig.expression.type.string,
+                            value: Twig.expression.parse.apply(this, [token.output, context])
+                        }, context]);
+                    } else {
+                        block_output = Twig.expression.parse.apply(this, [{
+                            type: Twig.expression.type.string,
+                            value: Twig.parse.apply(this, [token.output, context])
+                        }, context]);
+                    }
 
                     if (isImported) {
                         // once the block is overridden, remove it from the list of imported blocks
@@ -525,6 +534,32 @@ var Twig = (function (Twig) {
                     chain: chain,
                     output: output
                 };
+            }
+        },
+        {
+            /**
+             * Block shorthand logic tokens.
+             *
+             *  Format: {% block title expression %}
+             */
+            type: Twig.logic.type.shortblock,
+            regex: /^block\s+([a-zA-Z0-9_]+)\s+(.+)$/,
+            next: [ ],
+            open: true,
+            compile: function (token) {
+                token.expression = token.match[2].trim();
+
+                token.output = Twig.expression.compile({
+                    type: Twig.expression.type.expression,
+                    value: token.expression
+                }).stack;
+
+                token.block = token.match[1].trim();
+                delete token.match;
+                return token;
+            },
+            parse: function (token, context, chain) {
+                return Twig.logic.handler[Twig.logic.type.block].parse.apply(this, arguments);
             }
         },
         {
