@@ -1,4 +1,4 @@
-SRC = src/twig.header.js src/twig.core.js src/twig.fills.js src/twig.lib.js src/twig.logic.js src/twig.expression.js src/twig.expression.operator.js src/twig.filters.js src/twig.functions.js src/twig.tests.js src/twig.exports.js src/twig.compiler.js src/twig.module.js
+SRC = src/twig.header.js src/twig.core.js src/twig.loader.*.js src/twig.fills.js src/twig.lib.js src/twig.logic.js src/twig.expression.js src/twig.expression.operator.js src/twig.filters.js src/twig.functions.js src/twig.tests.js src/twig.exports.js src/twig.compiler.js src/twig.module.js
 
 TESTS = test/*.js
 TESTSEXT = test-ext/*.js
