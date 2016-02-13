@@ -1,3 +1,15 @@
+Version 0.8.8, released 2016-02-13
+----------------------------------
+Major improvements:
+* Support for [block shortcuts](http://twig.sensiolabs.org/doc/tags/extends.html#block-shortcuts): `{% block title page_title|title %}` (#304)
+* Define custom template loaders, by registering them via `Twig.Templates.registerLoader()` (#301)
+
+Minor improvements:
+* Some mocha tests didn't  work in browsers (#281)
+* Fix Twig.renderFile (#303)
+
+[All issues of this milestone](https://github.com/justjohn/twig.js/issues?q=milestone%3A0.8.8)
+
 Version 0.8.7, released 2016-01-20
 ----------------------------------
 Major improvements:
