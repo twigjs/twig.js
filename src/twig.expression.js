@@ -647,7 +647,7 @@ var Twig = (function (Twig) {
                 } else if (object["is"+capitalize(key)] !== undefined) {
                     value = object["is"+capitalize(key)];
                 } else {
-                    value = null;
+                    value = undefined;
                 }
                 stack.push(Twig.expression.resolve(value, object, params));
             }
