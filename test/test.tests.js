@@ -56,13 +56,17 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ key is defined }}'}).render({key: "test"}).should.equal( "true" );
             var context = {
                 key: {
-                    foo: "bar"
-                }
+                    foo: "bar",
+                    nothing: null
+                },
+                nothing: null
             };
             twig({data: '{{ key.foo is defined }}'}).render(context).should.equal( "true" );
             twig({data: '{{ key.bar is defined }}'}).render(context).should.equal( "false" );
             twig({data: '{{ key.foo.bar is defined }}'}).render(context).should.equal( "false" );
             twig({data: '{{ foo.bar is defined }}'}).render(context).should.equal( "false" );
+            twig({data: '{{ nothing is defined }}'}).render(context).should.equal( "true" );
+            twig({data: '{{ key.nothing is defined }}'}).render(context).should.equal( "true" );
         });
     });
 
