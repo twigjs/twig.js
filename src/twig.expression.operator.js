@@ -18,7 +18,7 @@ var Twig = (function (Twig) {
 
     var containment = function(a, b) {
         if (b === undefined || b === null) {
-            return false;
+            return null;
         } else if (b.indexOf !== undefined) {
             // String
             return a === b || a !== '' && b.indexOf(a) > -1;
