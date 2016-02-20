@@ -49,14 +49,27 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ 6 is divisibleby(3) }}'}).render().should.equal("true" );
         });
     });
-    
+
     describe("defined test ->", function() {
         it("should identify a key as defined if it exists in the render context", function() {
             twig({data: '{{ key is defined }}'}).render().should.equal("false" );
             twig({data: '{{ key is defined }}'}).render({key: "test"}).should.equal( "true" );
+            var context = {
+                key: {
+                    foo: "bar",
+                    nothing: null
+                },
+                nothing: null
+            };
+            twig({data: '{{ key.foo is defined }}'}).render(context).should.equal( "true" );
+            twig({data: '{{ key.bar is defined }}'}).render(context).should.equal( "false" );
+            twig({data: '{{ key.foo.bar is defined }}'}).render(context).should.equal( "false" );
+            twig({data: '{{ foo.bar is defined }}'}).render(context).should.equal( "false" );
+            twig({data: '{{ nothing is defined }}'}).render(context).should.equal( "true" );
+            twig({data: '{{ key.nothing is defined }}'}).render(context).should.equal( "true" );
         });
     });
-    
+
     describe("none test ->", function() {
         it("should identify a key as none if it exists in the render context and is null", function() {
             twig({data: '{{ key is none }}'}).render().should.equal("false");
