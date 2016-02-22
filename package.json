@@ -24,13 +24,13 @@
   },
   "dependencies": {
     "walk": "2.3.x",
-    "minimatch": "0.2.x"
+    "minimatch": "3.0.x"
   },
   "devDependencies": {
     "tokenizer": "1.1.x",
-    "should": "3.3.x",
-    "mocha": "1.18.x",
-    "docco": "0.6.x",
-    "uglify-js": "2.4.x"
+    "should": "8.2.x",
+    "mocha": "2.4.x",
+    "docco": "0.7.x",
+    "uglify-js": "2.6.x"
   }
 }
