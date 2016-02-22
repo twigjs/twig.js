@@ -272,6 +272,8 @@ describe("Twig.js Functions ->", function() {
         });
 
         describe("random ->", function() {
+          this.timeout(500);
+
             it("should return a random item from a traversable or array", function() {
                 var arr = "bcdefghij".split("");
 
