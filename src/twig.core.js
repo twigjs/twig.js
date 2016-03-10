@@ -1302,16 +1302,19 @@ var Twig = (function (Twig) {
 
 	if (typeof template.base === "object") {
 	  var fs = require("fs"),
-	      path = "";
+	      path = require("path"),
+	      temp = template.base,
+	      sep = path.sep || sep_chr;
 
-	  for (var key in template.base){
-	    path = template.base[key] + '/' + file;
-
-	    if (!fs.accessSync(path, fs.F_OK)) {
-	      return path;
-	    };
+	  for (var key in temp){
+	    try {
+	      fs.accessSync(temp[key] + sep + file, fs.F_OK);
+	      template.base = temp[key];
+	    } catch (e) {
+	    }
 	  }
-	} else if (template.url) {
+	}
+	if (template.url) {
             if (typeof template.base !== 'undefined') {
                 base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
             } else {
