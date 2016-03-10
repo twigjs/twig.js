@@ -1303,7 +1303,7 @@ var Twig = (function (Twig) {
 	if (typeof template.base === "object") {
 	  var fs = require("fs"),
 	      path = require("path"),
-	      temp = template.base,
+	      temp = template.base.reverse(),
 	      sep = path.sep || sep_chr;
 
 	  for (var key in temp){
