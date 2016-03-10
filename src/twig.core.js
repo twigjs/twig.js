@@ -1299,7 +1299,19 @@ var Twig = (function (Twig) {
             new_path = [],
             val;
 
-        if (template.url) {
+
+	if (typeof template.base === "object") {
+	  var fs = require("fs"),
+	      path = "";
+
+	  for (var key in template.base){
+	    path = template.base[key] + '/' + file;
+
+	    if (!fs.accessSync(path, fs.F_OK)) {
+	      return path;
+	    };
+	  }
+	} else if (template.url) {
             if (typeof template.base !== 'undefined') {
                 base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
             } else {
