@@ -1300,21 +1300,20 @@ var Twig = (function (Twig) {
             val;
 
 
-	if (typeof template.base === "object") {
-	  var fs = require("fs"),
-	      path = require("path"),
-	      temp = template.base.reverse(),
-	      sep = path.sep || sep_chr;
+	if (Array.isArray(template.base)) {
+	    var fs = require("fs"),
+		path = require("path"),
+		temp = template.base.reverse(),
+		sep = path.sep || sep_chr;
 
-	  for (var key in temp){
-	    try {
-	      fs.accessSync(temp[key] + sep + file, fs.F_OK);
-	      template.base = temp[key];
-	    } catch (e) {
+	    for (var key in temp) {
+		try {
+		    fs.accessSync(temp[key] + sep + file, fs.F_OK);
+		    base = temp[key] + ((temp[key].charAt(temp[key].length-1) === '/') ? '' : '/');
+		} catch (e) {
+		}
 	    }
-	  }
-	}
-	if (template.url) {
+	} else if (template.url) {
             if (typeof template.base !== 'undefined') {
                 base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
             } else {
