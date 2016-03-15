@@ -1281,36 +1281,6 @@ var Twig = (function (Twig) {
         return relativePath(template, file);
     }
 
-
-    /**
-     * Generate the canonical version of a url based on the given base path and file path and in
-     * the previously registered namespaces.
-     *
-     * @param  {string} template The Twig Template
-     * @param  {string} file     The file path, may be relative and may contain namespaces.
-     *
-     * @return {string}          The canonical version of the path
-     */
-    function parsePath(template, file) {
-        var namespaces = null;
-
-        if (typeof template === 'object' && typeof template.options === 'object') {
-            namespaces = template.options.namespaces;
-        }
-
-        if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
-            for (var k in namespaces){
-                if (namespaces.hasOwnProperty(k)) {
-                    file = file.replace(k + '::', namespaces[k]);
-                }
-            }
-
-            return file;
-        }
-
-        return relativePath(template, file);
-    }
-
     /**
      * Generate the relative canonical version of a url based on the given base path and file path.
      *
