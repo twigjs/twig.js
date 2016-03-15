@@ -1,3 +1,25 @@
+Version 0.8.8, released 2016-02-13
+----------------------------------
+Major improvements:
+* Support for [block shortcuts](http://twig.sensiolabs.org/doc/tags/extends.html#block-shortcuts): `{% block title page_title|title %}` (#304)
+* Define custom template loaders, by registering them via `Twig.Templates.registerLoader()` (#301)
+
+Minor improvements:
+* Some mocha tests didn't  work in browsers (#281)
+* Fix Twig.renderFile (#303)
+
+[All issues of this milestone](https://github.com/justjohn/twig.js/issues?q=milestone%3A0.8.8)
+
+Version 0.8.7, released 2016-01-20
+----------------------------------
+Major improvements:
+* The `autoescape` option now supports all strategies which are supported by the `escape` filter (#299)
+
+Minor improvements:
+* The `date` filter now recognises unix timestamps as input, when they are passed as string (#296)
+* The `default` filter now allows to be called without parameters (it will return an empty string in that case) (#295)
+* Normalize provided template paths (this generated problems when using nodejs under Windows) (#252, #300)
+
 Version 0.8.6, released 2016-01-05
 ----------------------------------
 Major improvements:

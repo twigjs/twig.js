@@ -1,6 +1,7 @@
 # TOC
    - [Twig.js Blocks ->](#twigjs-blocks--)
      - [block function ->](#twigjs-blocks---block-function--)
+     - [block shorthand ->](#twigjs-blocks---block-shorthand--)
    - [Twig.js Control Structures ->](#twigjs-control-structures--)
      - [if tag ->](#twigjs-control-structures---if-tag--)
      - [for tag ->](#twigjs-control-structures---for-tag--)
@@ -59,6 +60,8 @@
        - [template_from_string ->](#twigjs-functions---built-in-functions---template_from_string--)
        - [random ->](#twigjs-functions---built-in-functions---random--)
        - [min, max ->](#twigjs-functions---built-in-functions---min-max--)
+   - [Twig.js Loaders ->](#twigjs-loaders--)
+     - [custom loader ->](#twigjs-loaders---custom-loader--)
    - [Twig.js Macro ->](#twigjs-macro--)
    - [Twig.js Optional Functionality ->](#twigjs-optional-functionality--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
@@ -302,6 +305,29 @@ twig({
     data: '{% set foo = "original" %}{% block test %}{{ foo }}{% endblock %} {% set foo = "changed" %}{{ block("test") }}'
 }).render()
 .should.equal("original changed");
+```
+
+<a name="twigjs-blocks---block-shorthand--"></a>
+## block shorthand ->
+should render block content using shorthand syntax.
+
+```js
+twig({
+    data: '{% set prefix = "shorthand" %}{% block title (prefix ~ " - " ~ block_value)|title %}'
+})
+.render({block_value: 'test succeeded'})
+.should.equal('Shorthand - Test Succeeded');
+```
+
+should overload blocks from an extended template using shorthand syntax.
+
+```js
+twig({
+    allowInlineIncludes: true,
+    data: '{% extends "child-extends" %}{% block title "New Title" %}{% block body "new body uses the " ~ base ~ " template" %}'
+})
+.render({ base: "template.twig" })
+.should.equal( "New Title - new body uses the template.twig template" );
 ```
 
 <a name="twigjs-control-structures--"></a>
@@ -940,6 +966,17 @@ twig({
 }).render({
     value: "<test>&</test>"
 }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
+```
+
+should support autoescape option with alternative strategy.
+
+```js
+twig({
+    autoescape: 'js',
+    data: '{{ value }}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
 ```
 
 should autoescape parent() output correctly.
@@ -1817,12 +1854,36 @@ test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
 test_template.render({'var':{}}).should.equal("Empty Key" );
 ```
 
+should provide a default value of '' if no parameters are passed and a default key is not defined.
+
+```js
+var test_template = twig({data: '{{ var|default }}' });
+test_template.render().should.equal("");
+```
+
+should provide a default value of '' if no parameters are passed and a value is empty.
+
+```js
+var test_template = twig({data: '{{ ""|default }}' });
+test_template.render().should.equal("");
+test_template = twig({data: '{{ var.key|default }}' });
+test_template.render({'var':{}}).should.equal("");
+```
+
 <a name="twigjs-filters---date--"></a>
 ## date ->
 should recognize timestamps.
 
 ```js
 var template = twig({data: '{{ 27571323556|date("d/m/Y @ H:i:s") }}'})
+    , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
+template.render().should.equal( stringDate(date) );
+```
+
+should recognize timestamps, when they are passed as string.
+
+```js
+var template = twig({data: '{{ "27571323556"|date("d/m/Y @ H:i:s") }}'})
     , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
 template.render().should.equal( stringDate(date) );
 ```
@@ -1994,6 +2055,28 @@ twig({
 }).render({
     value: "<test>&</test>"
 }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+```
+
+should not escape twice if autoescape is not html.
+
+```js
+twig({
+    autoescape: 'js',
+    data: '{{ value|escape("js") }}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+```
+
+should escape twice if escape strategy is different from autoescape option.
+
+```js
+twig({
+    autoescape: 'css',
+    data: '{{ value|escape("js") }}\n{{ value|escape }}'
+}).render({
+    value: "<test>&</test>"
+}).should.equal('\\5C x3Ctest\\5C x3E\\5C x26\\5C x3C\\5C x2Ftest\\5C x3E\n\\26 lt\\3B test\\26 gt\\3B \\26 amp\\3B \\26 lt\\3B \\2F test\\26 gt\\3B ');
 ```
 
 <a name="twigjs-filters---e--"></a>
@@ -2918,6 +3001,72 @@ should support the 'max' function.
 twig({data: '{{ max([2, 1, 3, 5, 4]) }}'}).render().should.equal('5');
 twig({data: '{{ max(2, 1, 3, 5, 4) }}'}).render().should.equal('5');
 twig({data: '{{ max({2:"two", 1:"one", 3:"three", 5:"five", 4:"four"}) }}'}).render().should.equal('two');
+```
+
+<a name="twigjs-loaders--"></a>
+# Twig.js Loaders ->
+<a name="twigjs-loaders---custom-loader--"></a>
+## custom loader ->
+should define a custom loader.
+
+```js
+Twig.extend(function(Twig) {
+    var obj = {
+        templates: {
+            'custom_loader_block': '{% block main %}This lets you {% block data %}use blocks{% endblock data %}{% endblock main %}',
+            'custom_loader_simple': 'the value is: {{ value }}',
+            'custom_loader_include': 'include others from the same loader method - {% include "custom_loader_simple" %}',
+            'custom_loader_complex': '{% extends "custom_loader_block" %} {% block data %}extend other templates and {% include "custom_loader_include" %}{% endblock data %}'
+        },
+        loader: function(location, params, callback, error_callback) {
+            params.data = this.templates[location];
+            params.allowInlineIncludes = true;
+            var template = new Twig.Template(params);
+            if (typeof callback === 'function') {
+                callback(template);
+            }
+            return template;
+        }
+    };
+    Twig.Templates.registerLoader('custom', obj.loader, obj);
+    Twig.Templates.loaders.should.have.property('custom');
+});
+```
+
+should load a simple template from a custom loader.
+
+```js
+twig({
+    method: 'custom', 
+    name: 'custom_loader_simple'
+}).render({value: 'test succeeded'}).should.equal('the value is: test succeeded');
+```
+
+should load a template that includes another from a custom loader.
+
+```js
+twig({
+    method: 'custom', 
+    name: 'custom_loader_include'
+}).render({value: 'test succeeded'}).should.equal('include others from the same loader method - the value is: test succeeded');
+```
+
+should load a template that extends another from a custom loader.
+
+```js
+twig({
+    method: 'custom', 
+    name: 'custom_loader_complex'
+}).render({value: 'test succeeded'}).should.equal('This lets you extend other templates and include others from the same loader method - the value is: test succeeded');
+```
+
+should remove a registered loader.
+
+```js
+Twig.extend(function(Twig) {
+    Twig.Templates.unRegisterLoader('custom');
+    Twig.Templates.loaders.should.not.have.property('custom');
+});
 ```
 
 <a name="twigjs-macro--"></a>

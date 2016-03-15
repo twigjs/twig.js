@@ -232,6 +232,19 @@ describe("Twig.js Filters ->", function() {
             test_template = twig({data: '{{ var.key|default("Empty Key") }}' });
             test_template.render({'var':{}}).should.equal("Empty Key" );
         });
+
+        it("should provide a default value of '' if no parameters are passed and a default key is not defined", function () {
+            var test_template = twig({data: '{{ var|default }}' });
+            test_template.render().should.equal("");
+        });
+
+        it("should provide a default value of '' if no parameters are passed and a value is empty", function () {
+            var test_template = twig({data: '{{ ""|default }}' });
+            test_template.render().should.equal("");
+
+            test_template = twig({data: '{{ var.key|default }}' });
+            test_template.render({'var':{}}).should.equal("");
+        });
     });
 
     describe("date ->", function() {
@@ -244,6 +257,12 @@ describe("Twig.js Filters ->", function() {
         // NOTE: these tests are currently timezone dependent
         it("should recognize timestamps", function() {
             var template = twig({data: '{{ 27571323556|date("d/m/Y @ H:i:s") }}'})
+                , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
+
+            template.render().should.equal( stringDate(date) );
+        });
+        it("should recognize timestamps, when they are passed as string", function() {
+            var template = twig({data: '{{ "27571323556"|date("d/m/Y @ H:i:s") }}'})
                 , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
 
             template.render().should.equal( stringDate(date) );
@@ -384,6 +403,23 @@ describe("Twig.js Filters ->", function() {
             }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
         });
 
+        it("should not escape twice if autoescape is not html", function() {
+            twig({
+                autoescape: 'js',
+                data: '{{ value|escape("js") }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+        });
+
+        it("should escape twice if escape strategy is different from autoescape option", function() {
+            twig({
+                autoescape: 'css',
+                data: '{{ value|escape("js") }}\n{{ value|escape }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\5C x3Ctest\\5C x3E\\5C x26\\5C x3C\\5C x2Ftest\\5C x3E\n\\26 lt\\3B test\\26 gt\\3B \\26 amp\\3B \\26 lt\\3B \\2F test\\26 gt\\3B ');
+        });
     });
 
     describe("e ->", function() {

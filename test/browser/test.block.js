@@ -114,4 +114,22 @@ describe("Twig.js Blocks ->", function() {
             })
         });
     });
+
+    describe("block shorthand ->", function() {
+        it("should render block content using shorthand syntax", function() {
+            twig({
+                data: '{% set prefix = "shorthand" %}{% block title (prefix ~ " - " ~ block_value)|title %}'
+            })
+            .render({block_value: 'test succeeded'})
+            .should.equal('Shorthand - Test Succeeded');
+        });
+        it("should overload blocks from an extended template using shorthand syntax", function() {
+            twig({
+                allowInlineIncludes: true,
+                data: '{% extends "child-extends" %}{% block title "New Title" %}{% block body "new body uses the " ~ base ~ " template" %}'
+            })
+            .render({ base: "template.twig" })
+            .should.equal( "New Title - new body uses the template.twig template" );
+        });
+    });
 });

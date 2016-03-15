@@ -370,6 +370,15 @@ describe("Twig.js Core ->", function() {
             }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
         });
 
+        it("should support autoescape option with alternative strategy", function() {
+            twig({
+                autoescape: 'js',
+                data: '{{ value }}'
+            }).render({
+                value: "<test>&</test>"
+            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+        });
+
         it("should autoescape parent() output correctly", function() {
             twig({id: 'parent1', data: '{% block body %}<p>{{ value }}</p>{% endblock body %}'});
             twig({

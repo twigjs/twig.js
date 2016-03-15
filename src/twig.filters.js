@@ -172,10 +172,14 @@ var Twig = (function (Twig) {
             return output.join(join_str);
         },
         "default": function(value, params) {
-            if (params === undefined || params.length !== 1) {
+            if (params !== undefined && params.length > 1) {
                 throw new Twig.Error("default filter expects one argument");
             }
             if (value === undefined || value === null || value === '' ) {
+                if (params === undefined) {
+                    return '';
+                }
+
                 return params[0];
             } else {
                 return value;
@@ -347,7 +351,7 @@ var Twig = (function (Twig) {
             }
 
             var strategy = "html";
-            if(params && params.length)
+            if(params && params.length && params[0] !== true)
                 strategy = params[0];
 
             if(strategy == "html") {
@@ -356,7 +360,7 @@ var Twig = (function (Twig) {
                             .replace(/>/g, "&gt;")
                             .replace(/"/g, "&quot;")
                             .replace(/'/g, "&#039;");
-                return Twig.Markup(raw_value);
+                return Twig.Markup(raw_value, 'html');
             } else if(strategy == "js") {
                 var raw_value = value.toString();
                 var result = "";
@@ -374,7 +378,7 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                return result;
+                return Twig.Markup(result, 'js');
             } else if(strategy == "css") {
                 var raw_value = value.toString();
                 var result = "";
@@ -388,9 +392,10 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                return result;
+                return Twig.Markup(result, 'css');
             } else if(strategy == "url") {
-                return Twig.filters.url_encode(value);
+                var result = Twig.filters.url_encode(value);
+                return Twig.Markup(result, 'url');
             } else if(strategy == "html_attr") {
                 var raw_value = value.toString();
                 var result = "";
@@ -417,7 +422,7 @@ var Twig = (function (Twig) {
                     }
                 }
 
-                return result;
+                return Twig.Markup(result, 'html_attr');
             } else {
                 throw new Twig.Error("escape strategy unsupported");
             }

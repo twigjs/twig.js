@@ -56,6 +56,21 @@ var Twig = (function (Twig) {
                 throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
+        
+        } else if (params.method !== undefined) {
+            if (!Twig.Templates.isRegisteredLoader(params.method)) {
+                throw new Twig.Error('Loader for "' + params.method + '" is not defined.');
+            }
+            return Twig.Templates.loadRemote(params.name || params.href || params.path || id || undefined, {
+                id: id,
+                method: params.method,
+                base: params.base,
+                module: params.module,
+                precompiled: params.precompiled,
+                async: params.async,
+                options: options
+
+            }, params.load, params.error);
 
         } else if (params.href !== undefined) {
             return Twig.Templates.loadRemote(params.href, {
@@ -142,32 +157,37 @@ var Twig = (function (Twig) {
      * @param {string} path The location of the template file on disk.
      * @param {Object|Function} The options or callback.
      * @param {Function} fn callback.
+     * 
+     * @throws Twig.Error
      */
-
     Twig.exports.renderFile = function(path, options, fn) {
         // handle callback in options
-        if ('function' == typeof options) {
+        if (typeof options === 'function') {
             fn = options;
             options = {};
         }
 
         options = options || {};
 
+        var settings = options.settings || {};
+
         var params = {
-                path: path,
-                base: options.settings['views'],
-                load: function(template) {
-                    // render and return template
-                    fn(null, template.render(options));
-                }
-            };
+            path: path,
+            base: settings.views,
+            load: function(template) {
+                // render and return template
+                fn(null, template.render(options));
+            }
+        };
 
         // mixin any options provided to the express app.
-        var view_options = options.settings['twig options'];
+        var view_options = settings['twig options'];
 
         if (view_options) {
-            for (var option in view_options) if (view_options.hasOwnProperty(option)) {
-                params[option] = view_options[option];
+            for (var option in view_options) {
+                if (view_options.hasOwnProperty(option)) {
+                    params[option] = view_options[option];
+                }
             }
         }
 
