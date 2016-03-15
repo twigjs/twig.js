@@ -5,8 +5,10 @@
   "version": "0.8.8",
   "homepage": "https://github.com/justjohn/twig.js",
   "licenses": [
-    { "type": "BSD-2-Clause",
-      "url":  "https://raw.github.com/justjohn/twig.js/master/LICENSE" }
+    {
+      "type": "BSD-2-Clause",
+      "url": "https://raw.github.com/justjohn/twig.js/master/LICENSE"
+    }
   ],
   "repository": {
     "type": "git",
@@ -27,10 +29,13 @@
     "minimatch": "0.2.x"
   },
   "devDependencies": {
-    "tokenizer": "1.1.x",
-    "should": "3.3.x",
-    "mocha": "1.18.x",
+    "chai": "^3.5.0",
     "docco": "0.6.x",
+    "mocha": "1.18.x",
+    "should": "3.3.x",
+    "sinon": "^1.17.3",
+    "sinon-chai": "^2.8.0",
+    "tokenizer": "1.1.x",
     "uglify-js": "2.4.x"
   }
 }
