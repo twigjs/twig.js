@@ -485,8 +485,8 @@ var Twig = (function (Twig) {
             parse: function (token, context, chain) {
                 var block_output,
                     output,
-                    isImported = this.importedBlocks.indexOf(token.block) > -1,
-                    hasParent = this.blocks[token.block] && this.blocks[token.block].indexOf(Twig.placeholders.parent) > -1;
+                    isImported = Twig.indexOf(this.importedBlocks, token.block) > -1,
+                    hasParent = this.blocks[token.block] && Twig.indexOf(this.blocks[token.block], Twig.placeholders.parent) > -1;
 
                 // Don't override previous blocks unless they're imported with "use"
                 // Loops should be exempted as well.
