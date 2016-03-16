@@ -81,6 +81,37 @@ describe("Twig.js Browser Loading ->", function() {
             }
         });
     });
+
+    it("should load an included template with no context (sync)", function() {
+        twig({
+            id:   'include',
+            href: 'templates/include.twig',
+            async: false
+        });
+
+        // Load the template
+        twig({ref: 'include'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
+    });
+
+    it("should load an included template with additional context (sync)", function() {
+        twig({
+            id:   'include-with',
+            href: 'templates/include-with.twig',
+            async: false
+        });
+
+        // Load the template
+        twig({ref: 'include-with'}).render({test: 'tst'}).should.equal( "template: before,tst-mid-template: after,tst" );
+    });
+
+    it("should load an included template with only additional context (sync)", function() {
+        twig({
+            id:   'include-only',
+            href: 'templates/include-only.twig',
+            async: false
+        });
+
+        // Load the template
+        twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
+    });
 });
-
-
