@@ -57,7 +57,7 @@ describe("Twig.js Browser Loading ->", function() {
         });
     });
 
-    it("should be able to extend to a relative tempalte path", function(done) {
+    it("should be able to extend to a relative template path", function(done) {
         // Test loading a template from a remote endpoint
         twig({
             href: 'templates/child.twig',
@@ -69,7 +69,7 @@ describe("Twig.js Browser Loading ->", function() {
         });
     });
 
-    it("should be able to extend to a absolute tempalte path", function(done) {
+    it("should be able to extend to a absolute template path", function(done) {
         // Test loading a template from a remote endpoint
         twig({
             base: 'templates',
