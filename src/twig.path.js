@@ -23,16 +23,18 @@ var Twig = (function (Twig) {
      * @return {string}          The canonical version of the path
      */
      Twig.path.parsePath = function(template, file) {
-        var namespaces = null;
+        var namespaces = null,
+            file = file || "";
 
         if (typeof template === 'object' && typeof template.options === 'object') {
             namespaces = template.options.namespaces;
         }
 
-        if (typeof namespaces === 'object' && file.indexOf('::') > 0) {
+        if (typeof namespaces === 'object' && (file.indexOf('::') > 0) || file.indexOf('@') >= 0){
             for (var k in namespaces){
                 if (namespaces.hasOwnProperty(k)) {
                     file = file.replace(k + '::', namespaces[k]);
+                    file = file.replace('@' + k, namespaces[k]);
                 }
             }
 
