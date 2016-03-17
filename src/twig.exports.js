@@ -206,7 +206,10 @@ var Twig = (function (Twig) {
      */
     Twig.exports.cache = function(cache) {
         Twig.cache = cache;
-    }
+    };
+
+    //We need to export the path module so we can effectively test it
+    Twig.exports.path = Twig.path;
 
     return Twig;
 }) (Twig || { });
