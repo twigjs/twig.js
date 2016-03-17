@@ -289,6 +289,11 @@ describe("Twig.js Expressions ->", function() {
             test_template.render().should.equal(true.toString());
         });
 
+        it("should support undefined and null for the in operator", function() {
+            var test_template = twig({data: '{{ 0 in undefined }} {{ 0 in null }}'});
+            test_template.render().should.equal(' ');
+        });
+
         it("should support expressions as object keys", function() {
             var test_template;
             test_template = twig({data: '{% set a = {(foo): "value"} %}{{ a.bar }}'});
