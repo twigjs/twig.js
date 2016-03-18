@@ -14,7 +14,8 @@
     Twig.Templates.registerLoader('fs', function(location, params, callback, error_callback) {
         var template,
             data = null,
-            precompiled = params.precompiled;
+            precompiled = params.precompiled,
+            parser = this.parsers[params.parser] || this.parser.twig;
 
         if (!fs || !path) {
             throw new Twig.Error('Unsupported platform: Unable to load from file ' +
@@ -37,7 +38,7 @@
             params.path = location;
 
             // template is in data
-            template = new Twig.Template(params);
+            template = parser.call(this, params);
 
             if (typeof callback === 'function') {
                 callback(template);
