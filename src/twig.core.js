@@ -855,6 +855,12 @@ var Twig = (function (Twig) {
         loaders: {},
 
         /**
+         * Registered template parsers - use Twig.Templates.registerParser to add supported parsers
+         * @type {Object}
+         */
+        parsers: {},
+
+        /**
          * Cached / loaded templates
          * @type {Object}
          */
@@ -938,6 +944,66 @@ var Twig = (function (Twig) {
     };
 
     /**
+     * Register a template parser
+     *
+     * @example
+     * Twig.extend(function(Twig) {
+     *    Twig.Templates.registerParser('custom_parser', function(params) {
+     *        // this template source can be accessed in params.data
+     *        var template = params.data
+     *
+     *        // ... custom process that modifies the template
+     *
+     *        // return the parsed template
+     *        return template;
+     *    });
+     * });
+     *
+     * @param {String} method_name The method this parser is intended for (twig, source)
+     * @param {Function} func The function to execute when parsing the template
+     * @param {Object|undefined} scope Optional scope parameter to bind func to
+     *
+     * @throws Twig.Error
+     *
+     * @return {void}
+     */
+    Twig.Templates.registerParser = function(method_name, func, scope) {
+        if (typeof func !== 'function') {
+            throw new Twig.Error('Unable to add parser for ' + method_name + ': Invalid function regerence given.');
+        }
+
+        if (scope) {
+            func = func.bind(scope);
+        }
+
+        this.parsers[method_name] = func;
+    };
+
+    /**
+     * Remove a registered parser
+     *
+     * @param {String} method_name The method name for the parser you wish to remove
+     *
+     * @return {void}
+     */
+    Twig.Templates.unRegisterParser = function(method_name) {
+        if (this.isRegisteredParser(method_name)) {
+            delete this.parsers[method_name];
+        }
+    };
+
+    /**
+     * See if a parser is registered by its method name
+     *
+     * @param {String} method_name The name of the parser you are looking for
+     *
+     * @return {boolean}
+     */
+    Twig.Templates.isRegisteredParser = function(method_name) {
+        return this.parsers.hasOwnProperty(method_name);
+    };
+
+    /**
      * Save a template object to the store.
      *
      * @param {Twig.Template} template   The twig.js template to store.
@@ -972,6 +1038,8 @@ var Twig = (function (Twig) {
      *                      Defaults to true.
      *      method:      What method should be used to load the template
      *                      (fs or ajax)
+     *      parser:      What method should be used to parse the template
+     *                      (twig or source)
      *      precompiled: Has the template already been compiled.
      *
      * @param {string} location  The remote URL to load as a template.
@@ -1004,9 +1072,12 @@ var Twig = (function (Twig) {
             return Twig.Templates.registry[params.id];
         }
 
+        //if the parser name hasn't been set, default it to twig
+        params.parser = params.parser || 'twig';
+
         // Assume 'fs' if the loader is not defined
         loader = this.loaders[params.method] || this.loaders.fs;
-        return loader.apply(null, arguments);
+        return loader.apply(this, arguments);
     };
 
     // Determine object type
