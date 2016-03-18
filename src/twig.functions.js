@@ -203,7 +203,7 @@ var Twig = (function (Twig) {
             if (template === undefined) {
                 template = '';
             }
-            return new Twig.Template({
+            return Twig.Templates.parsers.twig({
                 options: this.options,
                 data: template
             });
