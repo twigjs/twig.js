@@ -1,14 +1,18 @@
 Version 0.8.9, to be released
 -----------------------------
+Dependencies have been updated to current versions. You should run `npm install` to update these. (#313)
+
 Major improvements:
 * Twig's `source` function is now supported (#309)
+* It is possible to add additional parsers using Twig.Templates.registerParser() (currently available: twig, source). If you are using a custom loader, please investigate src/twig.loader.fs.js how to call the requested parser. (#309)
 * `undefined` and `null` values now supported in the `in` operator (#311)
 * Namespaces can now be defined using the '@' symbol (#328)
 
 Minor improvements:
-* Undefined object properties now have the value of `undefined` rather than `null`
-* Updated to newer versions of dependencies (#313)
-* Improved browser tests
+* Undefined object properties now have the value of `undefined` rather than `null` (#311)
+* Improved browser tests (#325, #310)
+* IE8 fix (#324)
+* Path resolution has been refactored to its own module (#323)
 
 Version 0.8.8, released 2016-02-13
 ----------------------------------
