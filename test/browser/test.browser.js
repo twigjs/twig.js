@@ -114,4 +114,30 @@ describe("Twig.js Browser Loading ->", function() {
         // Load the template
         twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
     });
+
+    describe("source ->", function() {
+        it("should load the non-compiled template source code", function() {
+            twig({data: '{{ source("templates/source.twig") }}'})
+                .render()
+                .should
+                .equal('{% if isUserNew == true %}\n    Hello {{ name }}\n{% else %}\n    Welcome back {{ name }}\n{% endif %}\n')
+            ;
+        });
+
+        it("should indicate if there was a problem loading the template if 'ignore_missing' is false", function(){
+            twig({data: '{{ source("templates/non-existing-source.twig", false) }}'})
+                .render()
+                .should
+                .equal('Template "templates/non-existing-source.twig" is not defined.')
+            ;
+        });
+
+        it("should NOT indicate if there was a problem loading the template if 'ignore_missing' is true", function(){
+            twig({data: '{{ source("templates/non-existing-source.twig", true) }}'})
+                .render()
+                .should
+                .equal('')
+            ;
+        });
+    });
 });

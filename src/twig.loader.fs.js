@@ -14,7 +14,8 @@
     Twig.Templates.registerLoader('fs', function(location, params, callback, error_callback) {
         var template,
             data = null,
-            precompiled = params.precompiled;
+            precompiled = params.precompiled,
+            parser = this.parsers[params.parser] || this.parser.twig;
 
         if (!fs || !path) {
             throw new Twig.Error('Unsupported platform: Unable to load from file ' +
@@ -34,30 +35,31 @@
             }
 
             params.data = data;
-            params.path = location;
+            params.path = params.path || location;
 
             // template is in data
-            template = new Twig.Template(params);
+            template = parser.call(this, params);
 
             if (typeof callback === 'function') {
                 callback(template);
             }
         };
+        params.path = params.path || location;
 
         if (params.async) {
-            fs.stat(location, function (err, stats) {
+            fs.stat(params.path, function (err, stats) {
                 if (err || !stats.isFile()) {
                     throw new Twig.Error('Unable to find template file ' + location);
                 }
-                fs.readFile(location, 'utf8', loadTemplateFn);
+                fs.readFile(params.path, 'utf8', loadTemplateFn);
             });
             // TODO: return deferred promise
             return true;
         } else {
-            if (!fs.statSync(location).isFile()) {
+            if (!fs.statSync(params.path).isFile()) {
                 throw new Twig.Error('Unable to find template file ' + location);
             }
-            data = fs.readFileSync(location, 'utf8');
+            data = fs.readFileSync(params.path, 'utf8');
             loadTemplateFn(undefined, data);
             return template
         }

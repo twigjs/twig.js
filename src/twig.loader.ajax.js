@@ -5,7 +5,8 @@
     Twig.Templates.registerLoader('ajax', function(location, params, callback, error_callback) {
         var template,
             xmlhttp,
-            precompiled = params.precompiled;
+            precompiled = params.precompiled,
+            parser = this.parsers[params.parser] || this.parser.twig;
 
         if (typeof XMLHttpRequest === "undefined") {
             throw new Twig.Error('Unsupported platform: Unable to do ajax requests ' +
@@ -29,7 +30,7 @@
                     params.url = location;
                     params.data = data;
 
-                    template = new Twig.Template(params);
+                    template = parser.call(this, params);
 
                     if (typeof callback === 'function') {
                         callback(template);

@@ -29,8 +29,33 @@ describe("Twig.js Loader ->", function() {
             flag: true
         }).should.equal("Test template = yes\n\nFlag set!");
     });
-});
 
+    describe("source ->", function() {
+        it("should load the non-compiled template source code", function() {
+            twig({data: '{{ source("test/templates/source.twig") }}'})
+                .render()
+                .should
+                .equal('{% if isUserNew == true %}\n    Hello {{ name }}\n{% else %}\n    Welcome back {{ name }}\n{% endif %}\n')
+            ;
+        });
+
+        it("should indicate if there was a problem loading the template if 'ignore_missing' is false", function(){
+            twig({data: '{{ source("test/templates/non-existing-source.twig", false) }}'})
+                .render()
+                .should
+                .equal('Template "test/templates/non-existing-source.twig" is not defined.')
+            ;
+        });
+
+        it("should NOT indicate if there was a problem loading the template if 'ignore_missing' is true", function(){
+            twig({data: '{{ source("test/templates/non-existing-source.twig", true) }}'})
+                .render()
+                .should
+                .equal('')
+            ;
+        });
+    });
+});
 
 describe("Twig.js Include ->", function() {
     it("should load an included template with no context", function() {
