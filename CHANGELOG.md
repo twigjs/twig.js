@@ -1,4 +1,4 @@
-Version 0.8.9, to be released
+Version 0.8.9, released 2016-03-18
 -----------------------------
 Dependencies have been updated to current versions. You should run `npm install` to update these. (#313)
 
