@@ -35,7 +35,7 @@
             }
 
             params.data = data;
-            params.path = location;
+            params.path = params.path || location;
 
             // template is in data
             template = parser.call(this, params);
@@ -44,21 +44,22 @@
                 callback(template);
             }
         };
+        params.path = params.path || location;
 
         if (params.async) {
-            fs.stat(location, function (err, stats) {
+            fs.stat(params.path, function (err, stats) {
                 if (err || !stats.isFile()) {
                     throw new Twig.Error('Unable to find template file ' + location);
                 }
-                fs.readFile(location, 'utf8', loadTemplateFn);
+                fs.readFile(params.path, 'utf8', loadTemplateFn);
             });
             // TODO: return deferred promise
             return true;
         } else {
-            if (!fs.statSync(location).isFile()) {
+            if (!fs.statSync(params.path).isFile()) {
                 throw new Twig.Error('Unable to find template file ' + location);
             }
-            data = fs.readFileSync(location, 'utf8');
+            data = fs.readFileSync(params.path, 'utf8');
             loadTemplateFn(undefined, data);
             return template
         }
