@@ -119,15 +119,20 @@ var Twig = (function (Twig) {
     Twig.expression.operator.parse = function (operator, stack) {
         Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
         var a, b, c;
+
+        if (operator === '?') {
+            c = stack.pop();
+        }
+
+        b = stack.pop();
+        a = stack.pop();
+
         switch (operator) {
             case ':':
                 // Ignore
                 break;
 
             case '?':
-                c = stack.pop(); // false expr
-                b = stack.pop(); // true expr
-                a = stack.pop(); // conditional
                 if (a) {
                     stack.push(b);
                 } else {
@@ -136,135 +141,104 @@ var Twig = (function (Twig) {
                 break;
 
             case '+':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
+                b = parseFloat(b);
+                a = parseFloat(a);
                 stack.push(a + b);
                 break;
 
             case '-':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
+                b = parseFloat(b);
+                a = parseFloat(a);
                 stack.push(a - b);
                 break;
 
             case '*':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
+                b = parseFloat(b);
+                a = parseFloat(a);
                 stack.push(a * b);
                 break;
 
             case '/':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
+                b = parseFloat(b);
+                a = parseFloat(a);
                 stack.push(a / b);
                 break;
 
             case '//':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
+                b = parseFloat(b);
+                a = parseFloat(a);
                 stack.push(parseInt(a / b));
                 break;
 
             case '%':
-                b = parseFloat(stack.pop());
-                a = parseFloat(stack.pop());
+                b = parseFloat(b);
+                a = parseFloat(a);
                 stack.push(a % b);
                 break;
 
             case '~':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push( (a != null ? a.toString() : "")
                           + (b != null ? b.toString() : "") );
                 break;
 
             case 'not':
             case '!':
-                stack.push(!stack.pop());
+                stack.push(!b);
                 break;
 
             case '<':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a < b);
                 break;
 
             case '<=':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a <= b);
                 break;
 
             case '>':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a > b);
                 break;
 
             case '>=':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a >= b);
                 break;
 
             case '===':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a === b);
                 break;
 
             case '==':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a == b);
                 break;
 
             case '!==':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a !== b);
                 break;
 
             case '!=':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a != b);
                 break;
 
             case 'or':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a || b);
                 break;
 
             case 'and':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(a && b);
                 break;
 
             case '**':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push(Math.pow(a, b));
                 break;
 
-
             case 'not in':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push( !containment(a, b) );
                 break;
 
             case 'in':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push( containment(a, b) );
                 break;
 
             case '..':
-                b = stack.pop();
-                a = stack.pop();
                 stack.push( Twig.functions.range(a, b) );
                 break;
 
