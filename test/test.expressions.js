@@ -302,5 +302,11 @@ describe("Twig.js Expressions ->", function() {
             test_template = twig({data: '{{ {(foo): "value"}.bar }}'});
             test_template.render({foo: 'bar'}).should.equal('value');
         });
+
+        it("should not corrupt the stack when accessing a property of an undefined object", function() {
+            var test_template = twig({data: '{% if true and somethingUndefined.property is not defined %}ok{% endif %}'});
+            var output = test_template.render({});
+            output.should.equal('ok');
+        });
     });
 });
