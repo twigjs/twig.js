@@ -1,11 +1,7 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.path.js
 //
 // This file handles path parsing
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     "use strict";
 
     /**
@@ -110,4 +106,4 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
-}) (Twig || { });
+};

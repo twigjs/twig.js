@@ -6,7 +6,7 @@
 // LICENSES.md file.
 //
 
-var Twig = (function(Twig) {
+module.exports = function(Twig) {
 
     // Namespace for libraries
     Twig.lib = { };
@@ -1088,4 +1088,4 @@ var Twig = (function(Twig) {
 
     return Twig;
 
-})(Twig || { });
+};

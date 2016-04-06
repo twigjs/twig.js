@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git://github.com/twigjs/twig.js.git"
   },
-  "main": "twig.min.js",
+  "main": "twig.js",
   "engines": {
     "node": "*"
   },
@@ -22,7 +22,8 @@
     "twigjs": "./bin/twigjs"
   },
   "scripts": {
-    "test": "make test"
+    "test": "npm run build && mocha -r should",
+    "build": "webpack"
   },
   "dependencies": {
     "walk": "2.3.x",
@@ -30,12 +31,11 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "mocha": "2.4.x",
+    "should": "8.2.x",
     "sinon": "^1.17.3",
     "sinon-chai": "^2.8.0",
     "tokenizer": "1.1.x",
-    "should": "8.2.x",
-    "mocha": "2.4.x",
-    "docco": "0.7.x",
-    "uglify-js": "2.6.x"
+    "webpack": "^1.12.14"
   }
 }

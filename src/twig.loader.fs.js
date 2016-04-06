@@ -1,4 +1,4 @@
-(function(Twig) {
+module.exports = function(Twig) {
     'use strict';
 
     var fs, path;
@@ -65,4 +65,4 @@
         }
     });
 
-}(Twig));
+};

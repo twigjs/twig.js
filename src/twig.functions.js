@@ -1,12 +1,7 @@
-//     Twig.js
-//                   2012 Hadrien Lanneau
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.functions.js
 //
 // This file handles parsing filters.
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     /**
      * @constant
      * @type {string}
@@ -322,4 +317,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-})(Twig || { });
+};

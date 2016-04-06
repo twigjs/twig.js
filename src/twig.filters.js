@@ -1,11 +1,7 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.filters.js
 //
 // This file handles parsing filters.
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
 
     // Determine object type
     function is(type, obj) {
@@ -735,4 +731,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-})(Twig || { });
+};

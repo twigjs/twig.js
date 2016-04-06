@@ -5,3 +5,7 @@ qtest
 src
 .hg
 .git
+.gitignore
+.travis.yml
+webpack.config.js
+
