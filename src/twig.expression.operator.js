@@ -123,6 +123,16 @@ module.exports = function (Twig) {
         b = stack.pop();
         a = stack.pop();
 
+        if (operator !== 'in' && operator !== 'not in') {
+            if (a && Array.isArray(a)) {
+                a = a.length;
+            }
+
+            if (b && Array.isArray(b)) {
+                b = b.length;
+            }
+        }
+
         switch (operator) {
             case ':':
                 // Ignore
