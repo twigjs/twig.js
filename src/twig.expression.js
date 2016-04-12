@@ -633,21 +633,23 @@ var Twig = (function (Twig) {
                     if (this.options.strict_variables) {
                         throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                     } else {
-                        return null;
+                        value = undefined;
                     }
-                }
-
-                var capitalize = function(value) {return value.substr(0, 1).toUpperCase() + value.substr(1);};
-
-                // Get the variable from the context
-                if (typeof object === 'object' && key in object) {
-                    value = object[key];
-                } else if (object["get"+capitalize(key)] !== undefined) {
-                    value = object["get"+capitalize(key)];
-                } else if (object["is"+capitalize(key)] !== undefined) {
-                    value = object["is"+capitalize(key)];
                 } else {
-                    value = undefined;
+                    var capitalize = function (value) {
+                        return value.substr(0, 1).toUpperCase() + value.substr(1);
+                    };
+
+                    // Get the variable from the context
+                    if (typeof object === 'object' && key in object) {
+                        value = object[key];
+                    } else if (object["get" + capitalize(key)] !== undefined) {
+                        value = object["get" + capitalize(key)];
+                    } else if (object["is" + capitalize(key)] !== undefined) {
+                        value = object["is" + capitalize(key)];
+                    } else {
+                        value = undefined;
+                    }
                 }
                 stack.push(Twig.expression.resolve(value, object, params));
             }
