@@ -1,4 +1,4 @@
-[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.svg)](http://travis-ci.org/#!/justjohn/twig.js)
+[![Build Status](https://secure.travis-ci.org/twigjs/twig.js.svg)](http://travis-ci.org/#!/twigjs/twig.js)
 [![NPM version](https://badge.fury.io/js/twig.svg)](http://badge.fury.io/js/twig)
 
 # About
@@ -12,15 +12,15 @@ Twig.js is currently a work in progress and supports a limited subset of the Twi
 
 ### Docs
 
-Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki) on Github.
+Documentation is available in the [twig.js wiki](https://github.com/twigjs/twig.js/wiki) on Github.
 
 ### Feature Support
 
-For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/justjohn/twig.js/wiki/Implementation-Notes) page on the wiki.
+For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/twigjs/twig.js/wiki/Implementation-Notes) page on the wiki.
 
 # Releases
 
-Download the latest twig.js release from github: https://github.com/justjohn/twig.js/releases
+Download the latest twig.js release from github: https://github.com/twigjs/twig.js/releases
 
 ## Browser Usage (bower)
 
@@ -83,13 +83,13 @@ app.listen(9999);
 Message of the moment: <b>{{ message }}</b>
 ```
 
-An [Express 2 Example](https://github.com/justjohn/twig.js/wiki/Express-2) is available on the wiki.
+An [Express 2 Example](https://github.com/twigjs/twig.js/wiki/Express-2) is available on the wiki.
 
 # Contributing
 
 If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js. twig.js is built by running `make`
 
-For more details on getting setup, see the [contributing page](https://github.com/justjohn/twig.js/wiki/Contributing) on the wiki.
+For more details on getting setup, see the [contributing page](https://github.com/twigjs/twig.js/wiki/Contributing) on the wiki.
 
 ## Tests
 
