@@ -1,5 +1,6 @@
 [![Build Status](https://secure.travis-ci.org/twigjs/twig.js.svg)](http://travis-ci.org/#!/twigjs/twig.js)
 [![NPM version](https://badge.fury.io/js/twig.svg)](http://badge.fury.io/js/twig)
+[![Gitter](https://badges.gitter.im/twigjs/twig.js.svg)](https://gitter.im/twigjs/twig.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 # About
 
