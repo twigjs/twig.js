@@ -3,16 +3,16 @@
   "name": "twig",
   "description": "JS port of the Twig templating language.",
   "version": "0.8.9",
-  "homepage": "https://github.com/justjohn/twig.js",
+  "homepage": "https://github.com/twigjs/twig.js",
   "licenses": [
     {
       "type": "BSD-2-Clause",
-      "url": "https://raw.github.com/justjohn/twig.js/master/LICENSE"
+      "url": "https://raw.github.com/twigjs/twig.js/master/LICENSE"
     }
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/justjohn/twig.js.git"
+    "url": "git://github.com/twigjs/twig.js.git"
   },
   "main": "twig.min.js",
   "engines": {
