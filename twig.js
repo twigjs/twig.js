@@ -6514,7 +6514,7 @@ var Twig = (function (Twig) {
      *
      * @param {boolean} cache
      */
-    Twig.exports.cache = function(cache) {
+    Twig.exports.setCache = function(cache) {
         Twig.cache = cache;
     };
 
