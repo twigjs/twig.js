@@ -1,11 +1,7 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.logic.js
 //
 // This file handles tokenizing, compiling and parsing logic tokens. {% ... %}
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     "use strict";
 
     /**
@@ -1180,4 +1176,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-})(Twig || { });
+};

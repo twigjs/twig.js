@@ -1,11 +1,7 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.expression.operator.js
 //
 // This file handles operator lookups and parsing.
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     "use strict";
 
     /**
@@ -249,4 +245,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-})( Twig || { } );
+};

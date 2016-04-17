@@ -1,17 +1,15 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.expression.js
 //
 // This file handles tokenizing, compiling and parsing expressions.
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     "use strict";
 
     /**
      * Namespace for expression handling.
      */
     Twig.expression = { };
+
+    require('./twig.expression.operator')(Twig);
 
     /**
      * Reserved word that can't be used as variable names.
@@ -1002,4 +1000,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-})( Twig || { } );
+};

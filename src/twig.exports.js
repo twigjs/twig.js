@@ -1,12 +1,8 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.exports.js
 //
 // This file provides extension points and other hooks into the twig functionality.
 
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     "use strict";
     Twig.exports = {
         VERSION: Twig.VERSION
@@ -215,5 +211,4 @@ var Twig = (function (Twig) {
     Twig.exports.path = Twig.path;
 
     return Twig;
-}) (Twig || { });
-
+};

@@ -1,11 +1,7 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.tests.js
 //
 // This file handles expression tests. (is empty, is not defined, etc...)
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     "use strict";
     Twig.tests = {
         empty: function(value) {
@@ -61,4 +57,4 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
-})( Twig || { } );
+};

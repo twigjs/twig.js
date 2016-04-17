@@ -1,11 +1,7 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
 // ## twig.compiler.js
 //
 // This file handles compiling templates into JS
-var Twig = (function (Twig) {
+module.exports = function (Twig) {
     /**
      * Namespace for compilation.
      */
@@ -52,4 +48,4 @@ var Twig = (function (Twig) {
     };
 
     return Twig;
-})(Twig || {});
+};

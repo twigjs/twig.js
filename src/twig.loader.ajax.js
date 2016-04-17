@@ -1,5 +1,4 @@
-(function(Twig) {
-
+module.exports = function(Twig) {
     'use strict';
 
     Twig.Templates.registerLoader('ajax', function(location, params, callback, error_callback) {
@@ -53,4 +52,4 @@
         }
     });
 
-}(Twig));
+};

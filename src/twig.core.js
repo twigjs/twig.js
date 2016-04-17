@@ -1,12 +1,8 @@
-//     Twig.js
-//     Available under the BSD 2-Clause License
-//     https://github.com/justjohn/twig.js
-
-var Twig = (function (Twig) {
+// ## twig.core.js
+//
+// This file handles template level tokenizing, compiling and parsing.
+module.exports = function (Twig) {
     "use strict";
-    // ## twig.core.js
-    //
-    // This file handles template level tokenizing, compiling and parsing.
 
     Twig.trace = false;
     Twig.debug = false;
@@ -1328,5 +1324,4 @@ var Twig = (function (Twig) {
 
     return Twig;
 
-}) (Twig || { });
-
+};
