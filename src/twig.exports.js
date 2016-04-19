@@ -210,5 +210,9 @@ module.exports = function (Twig) {
     //We need to export the path module so we can effectively test it
     Twig.exports.path = Twig.path;
 
+    //Export our filters.
+    //Resolves #307
+    Twig.exports.filters = Twig.filters;
+
     return Twig;
 };
