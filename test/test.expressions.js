@@ -319,5 +319,11 @@ describe("Twig.js Expressions ->", function() {
             var output = test_template.render({});
             output.should.equal('ok');
         });
+
+        it('should support keys as expressions', function() {
+            var test_template = twig({data: '{% for val in arr %}{{{(val.value):null}|json_encode}}{% endfor %}'});
+            var output = test_template.render({'arr': [{'value': 'one'}, {'value': 'two'}]});
+            output.should.equal('{"one":null}{"two":null}');
+        });
     });
 });
