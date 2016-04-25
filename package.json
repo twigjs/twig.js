@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "exports-loader": "^0.6.3",
     "mocha": "2.4.x",
     "should": "8.2.x",
     "sinon": "^1.17.3",

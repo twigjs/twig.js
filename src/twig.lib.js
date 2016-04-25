@@ -6,21 +6,19 @@
 // LICENSES.md file.
 //
 
-var php = require('phpjs');
-
 module.exports = function(Twig) {
 
     // Namespace for libraries
     Twig.lib = { };
 
-    Twig.lib.sprintf = php.sprintf;
-    Twig.lib.vsprintf = php.vsprintf;
-    Twig.lib.round = php.round;
-    Twig.lib.max = php.max;
-    Twig.lib.min = php.min;
-    Twig.lib.strip_tags = php.strip_tags;
-    Twig.lib.strtotime = php.strtotime;
-    Twig.lib.date = php.date;
+    Twig.lib.sprintf = require('exports?sprintf!phpjs/functions/strings/sprintf');
+    Twig.lib.vsprintf = require('exports?vsprintf!phpjs/functions/strings/vsprintf');
+    Twig.lib.round = require('exports?round!phpjs/functions/math/round');
+    Twig.lib.max = require('exports?max!phpjs/functions/math/max');
+    Twig.lib.min = require('exports?min!phpjs/functions/math/min');
+    Twig.lib.strip_tags = require('exports?strip_tags!phpjs/functions/strings/strip_tags');
+    Twig.lib.strtotime = require('exports?strtotime!phpjs/functions/datetime/strtotime');
+    Twig.lib.date = require('exports?date!phpjs/functions/datetime/date');
 
     Twig.lib.is = function(type, obj) {
         var clas = Object.prototype.toString.call(obj).slice(8, -1);
