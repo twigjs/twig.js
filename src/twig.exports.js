@@ -174,8 +174,8 @@ module.exports = function (Twig) {
             path: path,
             base: settings.views,
             load: function(template) {
-                // render and return template
-                fn(null, template.render(options));
+                // render and return template as a simple string, see https://github.com/twigjs/twig.js/pull/348 for more information
+                fn(null, '' + template.render(options));
             }
         };
 
