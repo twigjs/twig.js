@@ -33,4 +33,25 @@ describe("Twig.js Expression Operators ->", function() {
             output.should.equal("-3");
         });
     });
+
+    describe("?: ->", function() {
+        it("should support the extended ternary operator for true conditions", function() {
+            var test_template = twig({data: '{{ a ? b }}'})
+                , output_t = test_template.render({a: true,  b: "one"})
+                , output_f = test_template.render({a: false, b: "one"});
+
+            output_t.should.equal( "one" );
+            output_f.should.equal( "" );
+        });
+
+        it("should support the extended ternary operator for false conditions", function() {
+            debugger;
+            var test_template = twig({data: '{{ a ?: b }}'})
+                , output_t = test_template.render({a: "one",  b: "two"})
+                , output_f = test_template.render({a: false, b: "two"});
+
+            output_t.should.equal( "one" );
+            output_f.should.equal( "two" );
+        });
+    });
 });

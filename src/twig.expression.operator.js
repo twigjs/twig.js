@@ -46,6 +46,7 @@ module.exports = function (Twig) {
                 break;
 
             // Ternary
+            case '?:':
             case '?':
             case ':':
                 token.precidence = 16;
@@ -100,7 +101,7 @@ module.exports = function (Twig) {
                 break;
 
             default:
-                throw new Twig.Error(operator + " is an unknown operator.");
+                throw new Twig.Error("Failed to lookup operator: " + operator + " is an unknown operator.");
         }
         token.operator = operator;
         return token;
@@ -137,7 +138,21 @@ module.exports = function (Twig) {
                 // Ignore
                 break;
 
+            case '?:':
+                if (a) {
+                    stack.push(a);
+                } else {
+                    stack.push(b);
+                }
+                break;
             case '?':
+                if (a === undefined) {
+                    //An extended ternary.
+                    a = b;
+                    b = c;
+                    c = undefined;
+                }
+
                 if (a) {
                     stack.push(b);
                 } else {
@@ -248,7 +263,8 @@ module.exports = function (Twig) {
                 break;
 
             default:
-                throw new Twig.Error(operator + " is an unknown operator.");
+                debugger;
+                throw new Twig.Error("Failed to parse operator: " + operator + " is an unknown operator.");
         }
     };
 
