@@ -10,4 +10,27 @@ describe("Twig.js Expression Operators ->", function() {
             output.should.equal("OK!");
         });
     });
+
+    describe("// ->", function() {
+        it("should handle positive values", function() {
+            var test_template = twig({data: '{{ 20 // 7 }}'}),
+                output = test_template.render({});
+
+            output.should.equal("2");
+        });
+
+        it("should handle negative values", function() {
+            var test_template = twig({data: '{{ -20 // -7 }}'}),
+                output = test_template.render({});
+
+            output.should.equal("2");
+        });
+
+        it("should handle mixed sign values", function() {
+            var test_template = twig({data: '{{ -20 // 7 }}'}),
+                output = test_template.render({});
+
+            output.should.equal("-3");
+        });
+    });
 });
