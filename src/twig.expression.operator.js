@@ -172,7 +172,7 @@ module.exports = function (Twig) {
             case '//':
                 b = parseFloat(b);
                 a = parseFloat(a);
-                stack.push(parseInt(a / b));
+                stack.push(Math.floor(a / b));
                 break;
 
             case '%':
