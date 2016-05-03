@@ -67,12 +67,12 @@ describe("Twig.js Expressions ->", function() {
             });
         });
 
-        it("should divide numbers and return an int result", function() {
+        it("should divide numbers and return a floored result", function() {
             var test_template = twig({data: '{{ a // b }}'});
             numeric_test_data.forEach(function(pair) {
                 var output = test_template.render(pair);
                 // Get expected truncated result
-                var c = parseInt(pair.a/pair.b);
+                var c = Math.floor(pair.a/pair.b);
 
                 output.should.equal(c.toString() );
             });
@@ -129,6 +129,18 @@ describe("Twig.js Expressions ->", function() {
             var output = test_template.render(data);
             var expected = data.a / (data.b + data.c) * data.d - (data.e + data.f) / (data.g * data.h);
             output.should.equal(expected.toString());
+        });
+
+        it("should handle positive numbers", function() {
+            var test_template = twig({data: '{{ 100 }}'});
+            var output = test_template.render();
+            output.should.equal("100");
+        });
+
+        it("should handle negative numbers", function() {
+            var test_template = twig({data: '{{ -100 }}'});
+            var output = test_template.render();
+            output.should.equal("-100");
         });
     });
 

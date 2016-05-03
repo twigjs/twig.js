@@ -173,6 +173,20 @@ module.exports = function (Twig) {
             }
         },
         {
+            /**
+             * Match a number (integer or decimal)
+             */
+            type: Twig.expression.type.number,
+            // match a number
+            regex: /^\-?\d+(\.\d+)?/,
+            next: Twig.expression.set.operations,
+            compile: function(token, stack, output) {
+                token.value = Number(token.value);
+                output.push(token);
+            },
+            parse: Twig.expression.fn.parse.push_value
+        },
+        {
             type: Twig.expression.type.operator.binary,
             // Match any of +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, not
             regex: /(^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
@@ -720,20 +734,6 @@ module.exports = function (Twig) {
             parse: function(token, stack, context) {
                 stack.push(context);
             }
-        },
-        {
-            /**
-             * Match a number (integer or decimal)
-             */
-            type: Twig.expression.type.number,
-            // match a number
-            regex: /^\-?\d+(\.\d+)?/,
-            next: Twig.expression.set.operations,
-            compile: function(token, stack, output) {
-                token.value = Number(token.value);
-                output.push(token);
-            },
-            parse: Twig.expression.fn.parse.push_value
         },
         {
             /**
