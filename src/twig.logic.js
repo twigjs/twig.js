@@ -359,6 +359,14 @@ module.exports = function (Twig) {
                 var value = Twig.expression.parse.apply(this, [token.expression, context]),
                     key = token.key;
 
+                if (value === context) {
+                    /*  If storing the context in a variable, it needs to be a clone of the current state of context.
+                        Otherwise we have a context with infinite recursion.
+                        Fixes #341
+                     */
+                    value = Twig.lib.copy(value);
+                }
+
                 context[key] = value;
 
                 return {
