@@ -237,7 +237,11 @@ module.exports = function (Twig) {
                     // handle "{(expression):value}"
                     token.key = Twig.expression.parse.apply(this, [token.params, context]);
                     stack.push(token);
-                    delete(token.params);
+
+                    //If we're in a loop, we might need token.params later, especially in this form of "(expression):value"
+                    if (!context.loop) {
+                        delete(token.params);
+                    }
                 } else {
                     Twig.expression.operator.parse(token.value, stack);
                 }
@@ -986,12 +990,26 @@ module.exports = function (Twig) {
 
         // The output stack
         var stack = [],
-            token_template = null;
+            token_template = null,
+            loop_token_fixups = [];
 
         Twig.forEach(tokens, function (token) {
             token_template = Twig.expression.handler[token.type];
 
             token_template.parse && token_template.parse.apply(that, [token, stack, context]);
+
+            //Store any binary tokens for later if we are in a loop.
+            if (context.loop && token.type === Twig.expression.type.operator.binary) {
+                loop_token_fixups.push(token);
+            }
+        });
+
+        //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
+        //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
+        Twig.forEach(loop_token_fixups, function (loop_token_fixup) {
+            if (loop_token_fixup.params && loop_token_fixup.key) {
+                delete loop_token_fixup["key"];
+            }
         });
 
         // Pop the final value off the stack
