@@ -36,8 +36,6 @@ module.exports = function (Twig) {
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
             case "..":
-            case 'not in':
-            case 'in':
                 token.precidence = 20;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
@@ -74,10 +72,11 @@ module.exports = function (Twig) {
             case '<=':
             case '>':
             case '>=':
+            case 'not in':
+            case 'in':
                 token.precidence = 8;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
-
 
             case '~': // String concatination
             case '+':
