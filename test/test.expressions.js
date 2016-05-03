@@ -262,7 +262,7 @@ describe("Twig.js Expressions ->", function() {
 
             output2.should.equal( "1" );
         });
-
+        
         it("should support in/containment functionality for arrays", function() {
             var test_template = twig({data: '{{ "a" in ["a", "b", "c"] }}'});
             test_template.render().should.equal(true.toString());
