@@ -89,13 +89,15 @@ An [Express 2 Example](https://github.com/twigjs/twig.js/wiki/Express-2) is avai
 
 # Contributing
 
-If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js. twig.js is built by running `make`
+If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js.
+
+twig.js is built by running `npm run build`
 
 For more details on getting setup, see the [contributing page](https://github.com/twigjs/twig.js/wiki/Contributing) on the wiki.
 
 ## Tests
 
-The twig.js tests are written in [Mocha][mocha] and can be invoked with `make test`.
+The twig.js tests are written in [Mocha][mocha] and can be invoked with `npm test`.
 
 ## License
 
