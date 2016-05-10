@@ -22,6 +22,9 @@
     "twigjs": "./bin/twigjs"
   },
   "scripts": {
+    "prepublish": "npm test && git diff --exit-code --quiet",
+    "preversion": "npm test && git diff --exit-code --quiet",
+    "postversion": "git push origin master && git push origin master --tags",
     "test": "npm run build && mocha -r should",
     "build-node": "webpack",
     "build-browser":  "WEBPACK_ENV=browser webpack",
