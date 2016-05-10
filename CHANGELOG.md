@@ -1,4 +1,8 @@
-Version 0.8.10, released 2016-05-10
+Version 0.9.1, released 2016-05-10
+-----------------------------------
+Fixed changelog versioning
+
+Version 0.9.0, released 2016-05-10
 -----------------------------------
 Theoretically no breaking changes, but lots of things have changed so it is possible something has slipped through.
 
