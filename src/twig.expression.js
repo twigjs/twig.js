@@ -29,6 +29,7 @@ module.exports = function (Twig) {
         },
         string:     'Twig.expression.type.string',
         bool:       'Twig.expression.type.bool',
+        slice:      'Twig.expression.type.slice',
         array: {
             start:  'Twig.expression.type.array.start',
             end:    'Twig.expression.type.array.end'
@@ -83,7 +84,8 @@ module.exports = function (Twig) {
     // Most expressions allow a '.' or '[' after them, so we provide a convenience set
     Twig.expression.set.operations_extended = Twig.expression.set.operations.concat([
                     Twig.expression.type.key.period,
-                    Twig.expression.type.key.brackets]);
+                    Twig.expression.type.key.brackets,
+                    Twig.expression.type.slice]);
 
     // Some commonly used compile and parse functions.
     Twig.expression.fn = {
@@ -189,7 +191,7 @@ module.exports = function (Twig) {
         {
             type: Twig.expression.type.operator.binary,
             // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, not
-            regex: /(^\?\:|^[\+\-~%\?\:]|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
+            regex: /(^\?\:|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
             compile: function(token, stack, output) {
                 delete token.match;
@@ -302,7 +304,7 @@ module.exports = function (Twig) {
             type: Twig.expression.type.string,
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
             regex: /^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,
-            next: Twig.expression.set.operations,
+            next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {
                 var value = token.value;
                 delete token.match
@@ -409,6 +411,26 @@ module.exports = function (Twig) {
 
                     stack.push(new_array);
                 }
+            }
+        },
+        {
+            type: Twig.expression.type.slice,
+            regex: /^\[(\d*\:\d*)\]/,
+            next: Twig.expression.set.operations_extended,
+            compile: function(token, stack, output) {
+                var sliceRange = token.match[1].split(':');
+                var sliceStart = (sliceRange[0]) ? sliceRange[0] : undefined;
+                var sliceEnd = (sliceRange[1]) ? sliceRange[1] : undefined;
+
+                token.value = 'slice';
+                token.params = [sliceStart, sliceEnd];
+                output.push(token);
+            },
+            parse: function(token, stack, context) {
+                var input = stack.pop(),
+                    params = token.params;
+
+                stack.push(Twig.filter.apply(this, [token.value, input, params]));
             }
         },
         {
@@ -672,7 +694,7 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.key.brackets,
-            regex: /^\[([^\]]*)\]/,
+            regex: /^\[([^\]\:]*)\]/,
             next: Twig.expression.set.operations_extended.concat([
                     Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
