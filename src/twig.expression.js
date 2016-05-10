@@ -364,8 +364,7 @@ module.exports = function (Twig) {
                     (token.type !== Twig.expression.type._function &&
                     token.type !== Twig.expression.type.filter &&
                     token.type !== Twig.expression.type.test &&
-                    token.type !== Twig.expression.type.key.brackets &&
-                    token.type !== Twig.expression.type.key.period)) {
+                    token.type !== Twig.expression.type.key.brackets)) {
 
                     end_token.expression = true;
 
@@ -639,7 +638,7 @@ module.exports = function (Twig) {
 
                 output.push(token);
             },
-            parse: function(token, stack, context) {
+            parse: function(token, stack, context, next_token) {
                 var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
                     key = token.key,
                     object = stack.pop(),
@@ -667,7 +666,9 @@ module.exports = function (Twig) {
                         value = undefined;
                     }
                 }
-                stack.push(Twig.expression.resolve(value, object, params));
+
+                // When resolving an expression we need to pass next_token in case the expression is a function
+                stack.push(Twig.expression.resolve(value, context, params, next_token));
             }
         },
         {
@@ -687,7 +688,7 @@ module.exports = function (Twig) {
 
                 output.push(token);
             },
-            parse: function(token, stack, context) {
+            parse: function(token, stack, context, next_token) {
                 // Evaluate key
                 var params = token.params && Twig.expression.parse.apply(this, [token.params, context]),
                     key = Twig.expression.parse.apply(this, [token.stack, context]),
@@ -708,7 +709,9 @@ module.exports = function (Twig) {
                 } else {
                     value = null;
                 }
-                stack.push(Twig.expression.resolve(value, object, params));
+
+                // When resolving an expression we need to pass next_token in case the expression is a function
+                stack.push(Twig.expression.resolve(value, object, params, next_token));
             }
         },
         {
@@ -763,8 +766,26 @@ module.exports = function (Twig) {
      * @param {string} key The context object key.
      * @param {Object} context The render context.
      */
-    Twig.expression.resolve = function(value, context, params) {
+    Twig.expression.resolve = function(value, context, params, next_token) {
         if (typeof value == 'function') {
+            /*
+            If value is a function, it will have been impossible during the compile stage to determine that a following
+            set of parentheses were parameters for this function.
+
+            Those parentheses will have therefore been marked as an expression, with their own parameters, which really
+            belong to this function.
+
+            Those parameters will also need parsing in case they are actually an expression to pass as parameters.
+             */
+            if (next_token && next_token.type === Twig.expression.type.parameter.end) {
+                //When parsing these parameters, we need to get them all back, not just the last item on the stack.
+                var tokens_are_parameters = true;
+
+                params = next_token.params && Twig.expression.parse.apply(this, [next_token.params, context, tokens_are_parameters]);
+
+                //Clean up the parentheses tokens on the next loop
+                next_token.cleanup = true;
+            }
             return value.apply(context, params || []);
         } else {
             return value;
@@ -941,7 +962,7 @@ module.exports = function (Twig) {
 
         Twig.log.trace("Twig.expression.compile: ", "Compiling ", expression);
 
-        // Push tokens into RPN stack using the Sunting-yard algorithm
+        // Push tokens into RPN stack using the Shunting-yard algorithm
         // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
 
         while (tokens.length > 0) {
@@ -980,7 +1001,7 @@ module.exports = function (Twig) {
      *                  can be anything, String, Array, Object, etc... based on
      *                  the given expression.
      */
-    Twig.expression.parse = function (tokens, context) {
+    Twig.expression.parse = function (tokens, context, tokens_are_parameters) {
         var that = this;
 
         // If the token isn't an array, make it one.
@@ -990,13 +1011,24 @@ module.exports = function (Twig) {
 
         // The output stack
         var stack = [],
+            next_token,
             token_template = null,
             loop_token_fixups = [];
 
-        Twig.forEach(tokens, function (token) {
+        Twig.forEach(tokens, function (token, index) {
+            //If the token is marked for cleanup, we don't need to parse it
+            if (token.cleanup) {
+                return;
+            }
+
+            //Determine the token that follows this one so that we can pass it to the parser
+            if (tokens.length > index + 1) {
+                next_token = tokens[index + 1];
+            }
+
             token_template = Twig.expression.handler[token.type];
 
-            token_template.parse && token_template.parse.apply(that, [token, stack, context]);
+            token_template.parse && token_template.parse.apply(that, [token, stack, context, next_token]);
 
             //Store any binary tokens for later if we are in a loop.
             if (context.loop && token.type === Twig.expression.type.operator.binary) {
@@ -1011,6 +1043,17 @@ module.exports = function (Twig) {
                 delete loop_token_fixup["key"];
             }
         });
+
+        //If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
+        //wrapped in an Array.
+        if (tokens_are_parameters) {
+            var params = [];
+            while (stack.length > 0) {
+                params.unshift(stack.pop());
+            }
+
+            stack.push(params);
+        }
 
         // Pop the final value off the stack
         return stack.pop();

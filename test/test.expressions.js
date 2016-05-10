@@ -142,6 +142,20 @@ describe("Twig.js Expressions ->", function() {
             var output = test_template.render();
             output.should.equal("-100");
         });
+
+        it("should allow expressions after period accessors", function() {
+            var test_template,
+                output;
+
+            test_template = twig({data: '{{ app.id and (true) }}'});
+            output = test_template.render({ app: { id: 1 } });
+            output.should.equal("true");
+
+            //Check that parenless data works as well
+            test_template = twig({data: '{{ app.id and true }}'});
+            output = test_template.render({ app: { id: 1 } });
+            output.should.equal("true");
+        });
     });
 
     describe("Comparison Operators ->", function() {
