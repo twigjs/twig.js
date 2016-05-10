@@ -419,11 +419,20 @@ module.exports = function (Twig) {
             next: Twig.expression.set.operations_extended,
             compile: function(token, stack, output) {
                 var sliceRange = token.match[1].split(':');
-                var sliceStart = (sliceRange[0]) ? sliceRange[0] : undefined;
-                var sliceEnd = (sliceRange[1]) ? sliceRange[1] : undefined;
+
+                //sliceStart can be undefined when we pass parameters to the slice filter later
+                var sliceStart = (sliceRange[0]) ? parseInt(sliceRange[0]) : undefined;
+                var sliceEnd = (sliceRange[1]) ? parseInt(sliceRange[1]) : undefined;
 
                 token.value = 'slice';
                 token.params = [sliceStart, sliceEnd];
+
+                //sliceEnd can't be undefined as the slice filter doesn't check for this, but it does check the length
+                //of the params array, so just shorten it.
+                if (!sliceEnd) {
+                    token.params = [sliceStart];
+                }
+
                 output.push(token);
             },
             parse: function(token, stack, context) {
