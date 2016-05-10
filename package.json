@@ -2,7 +2,7 @@
   "author": "John Roepke <john@justjohn.us> (http://john.sh/)",
   "name": "twig",
   "description": "JS port of the Twig templating language.",
-  "version": "0.8.9",
+  "version": "0.9.0",
   "homepage": "https://github.com/twigjs/twig.js",
   "licenses": [
     {
@@ -27,7 +27,7 @@
     "postversion": "git push origin master && git push origin master --tags",
     "test": "npm run build && mocha -r should",
     "build-node": "webpack",
-    "build-browser":  "WEBPACK_ENV=browser webpack",
+    "build-browser": "WEBPACK_ENV=browser webpack",
     "build": "npm run build-node && npm run build-browser"
   },
   "dependencies": {
