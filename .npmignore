@@ -7,5 +7,6 @@ src
 .git
 .gitignore
 .travis.yml
+.idea
 webpack.config.js
-
+bower.json
