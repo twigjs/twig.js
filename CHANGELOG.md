@@ -1,3 +1,26 @@
+Version 0.8.10, released 2016-05-10
+-----------------------------------
+Theoretically no breaking changes, but lots of things have changed so it is possible something has slipped through.
+
+Dependencies have been updated. You should run `npm install` to update these.
+
+Major improvements:
+* Webpack is now used for builds
+* phpjs is now a dependency and replaces our reimplementation of PHP functions (#343)
+* Arrays are now cast to booleans unless accessing their contents
+* in/not in operator precedence changed (#344)
+* Expressions can now be keys (#350)
+* The extended ternary operator is now supported (#354)
+* Expressions can now appear after period accessor (#356)
+* The slice shorthand is now supported (#362)
+
+Minor improvements:
+* Twig.exports.renderFile now returns a string rather than a String (#348)
+* The value of context is now cloned when setting a variable to context (#345)
+* Negative numbers are now correctly parsed (#353)
+* The // operator now works correctly (#353)
+
+
 Version 0.8.9, released 2016-03-18
 -----------------------------
 Dependencies have been updated to current versions. You should run `npm install` to update these. (#313)
