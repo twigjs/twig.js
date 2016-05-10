@@ -23,7 +23,9 @@
   },
   "scripts": {
     "test": "npm run build && mocha -r should",
-    "build": "webpack"
+    "build-node": "webpack",
+    "build-browser":  "WEBPACK_ENV=browser webpack",
+    "build": "npm run build-node && npm run build-browser"
   },
   "dependencies": {
     "minimatch": "3.0.x",
@@ -39,5 +41,8 @@
     "sinon-chai": "^2.8.0",
     "tokenizer": "1.1.x",
     "webpack": "^1.12.14"
+  },
+  "browser": {
+    "fs": false
   }
 }
