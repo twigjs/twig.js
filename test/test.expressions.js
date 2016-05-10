@@ -351,5 +351,41 @@ describe("Twig.js Expressions ->", function() {
             var output = test_template.render({'arr': [{'value': 'one'}, {'value': 'two'}]});
             output.should.equal('{"one":null}{"two":null}');
         });
+
+        it('should support slice shorthand (full form)', function() {
+            var test_template = twig({data: '{{ "12345"[1:2] }}'});
+            var output = test_template.render();
+            output.should.equal('23');
+        });
+
+        it('should support slice shorthand (omit first)', function() {
+            var test_template = twig({data: '{{ "12345"[:2] }}'});
+            var output = test_template.render();
+            output.should.equal('12');
+        });
+
+        it('should support slice shorthand (omit last)', function() {
+            var test_template = twig({data: '{{ "12345"[2:] }}'});
+            var output = test_template.render();
+            output.should.equal('345');
+        });
+
+        it('should support slice shorthand for arrays (full form)', function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5][1:2] }}" });
+            var output = test_template.render();
+            output.should.equal('2,3');
+        });
+
+        it('should support slice shorthand for arrays (omit first)', function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5][:2] }}" });
+            var output = test_template.render();
+            output.should.equal('1,2');
+        });
+
+        it('should support slice shorthand for arrays (omit last)', function() {
+            var test_template = twig({data: "{{ [1, 2, 3, 4, 5][2:] }}" });
+            var output = test_template.render();
+            output.should.equal('3,4,5');
+        });
     });
 });
