@@ -134,7 +134,7 @@ module.exports = function (Twig) {
         },
         date: function(date, time) {
             var dateObj;
-            if (date === undefined) {
+            if (date === undefined || date === null || date === "") {
                 dateObj = new Date();
             } else if (Twig.lib.is("Date", date)) {
                 dateObj = date;
