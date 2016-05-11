@@ -280,6 +280,12 @@ describe("Twig.js Filters ->", function() {
             test_template.render().should.equal(stringDate(date));
         });
 
+        it("should handle empty strings", function() {
+            var test_template = twig({data: '{{ ""|date("d/m/Y @ H:i:s") }}' });
+            var date = new Date();
+            test_template.render().should.equal(stringDate(date));
+        });
+
         it("should work with no parameters", function() {
             var test_template = twig({data: '{{ 27571323556|date }}' });
             test_template.render().should.equal(twig({data: '{{ 27571323556|date("F j, Y H:i") }}'}).render());
