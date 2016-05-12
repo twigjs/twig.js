@@ -1,3 +1,13 @@
+Version 0.9.3, released 2016-05-12
+-----------------------------------
+Fix missing changelog updates
+
+Version 0.9.2, released 2016-05-12
+-----------------------------------
+Minor improvements:
+* Empty strings can now be passed to the date filter
+* Twig.expression.resolve keeps the correct context for `this`
+
 Version 0.9.1, released 2016-05-10
 -----------------------------------
 Fixed changelog versioning
