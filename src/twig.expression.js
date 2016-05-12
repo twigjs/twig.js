@@ -653,7 +653,7 @@ module.exports = function (Twig) {
             },
             parse: function(token, stack, context) {
                 // Get the variable from the context
-                var value = Twig.expression.resolve(context[token.value], context);
+                var value = Twig.expression.resolve.apply(this, [context[token.value], context]);
                 stack.push(value);
             }
         },
@@ -699,7 +699,7 @@ module.exports = function (Twig) {
                 }
 
                 // When resolving an expression we need to pass next_token in case the expression is a function
-                stack.push(Twig.expression.resolve(value, context, params, next_token));
+                stack.push(Twig.expression.resolve.apply(this, [value, context, params, next_token]));
             }
         },
         {
@@ -742,7 +742,7 @@ module.exports = function (Twig) {
                 }
 
                 // When resolving an expression we need to pass next_token in case the expression is a function
-                stack.push(Twig.expression.resolve(value, object, params, next_token));
+                stack.push(Twig.expression.resolve.apply(this, [value, object, params, next_token]));
             }
         },
         {
