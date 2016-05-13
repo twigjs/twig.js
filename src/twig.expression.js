@@ -56,7 +56,7 @@ module.exports = function (Twig) {
         number:     'Twig.expression.type.number',
         _null:     'Twig.expression.type.null',
         context:    'Twig.expression.type.context',
-        test:       'Twig.expression.type.test',
+        test:       'Twig.expression.type.test'
     };
 
     Twig.expression.set = {
