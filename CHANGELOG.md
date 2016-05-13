@@ -1,3 +1,10 @@
+Version 0.9.4, released 2016-05-13
+-----------------------------------
+Parentheses parsing has undergone quite a large refactoring, but nothing should have explicitly broken.
+
+Major improvements:
+* Subexpressions are now supported and parsed differently from function parameters
+
 Version 0.9.3, released 2016-05-12
 -----------------------------------
 Fix missing changelog updates
