@@ -15,7 +15,7 @@ module.exports = function (Twig) {
      * Reserved word that can't be used as variable names.
      */
     Twig.expression.reservedWords = [
-        "true", "false", "null", "TRUE", "FALSE", "NULL", "_context"
+        "true", "false", "null", "TRUE", "FALSE", "NULL", "_context", "and", "or", "in", "not in", "if"
     ];
 
     /**
@@ -42,6 +42,10 @@ module.exports = function (Twig) {
             start:  'Twig.expression.type.parameter.start',
             end:    'Twig.expression.type.parameter.end'
         },
+        subexpression: {
+            start:  'Twig.expression.type.subexpression.start',
+            end:    'Twig.expression.type.subexpression.end'
+        },
         key: {
             period:   'Twig.expression.type.key.period',
             brackets: 'Twig.expression.type.key.brackets'
@@ -64,6 +68,7 @@ module.exports = function (Twig) {
             Twig.expression.type.array.end,
             Twig.expression.type.object.end,
             Twig.expression.type.parameter.end,
+            Twig.expression.type.subexpression.end,
             Twig.expression.type.comma,
             Twig.expression.type.test
         ],
@@ -77,7 +82,8 @@ module.exports = function (Twig) {
             Twig.expression.type.context,
             Twig.expression.type.parameter.start,
             Twig.expression.type.array.start,
-            Twig.expression.type.object.start
+            Twig.expression.type.object.start,
+            Twig.expression.type.subexpression.start
         ]
     };
 
@@ -190,9 +196,24 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.operator.binary,
-            // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, not
-            regex: /(^\?\:|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^and\s+|^or\s+|^in\s+|^not in\s+|^\.\.)/,
+            // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, in, not in
+            // and, or, in, not in can be followed by a space or parenthesis
+            regex: /(^\?\:|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[\(|\s+]|^(or)[\(|\s+]|^(in)[\(|\s+]|^(not in)[\(|\s+]|^\.\.)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
+            transform: function(match, tokens) {
+                switch(match[0]) {
+                    case 'and(':
+                    case 'or(':
+                    case 'in(':
+                    case 'not in(':
+                        //Strip off the ( if it exists
+                        tokens[tokens.length - 1].value = match[2];
+                        return match[0];
+                        break;
+                    default:
+                        return '';
+                }
+            },
             compile: function(token, stack, output) {
                 delete token.match;
 
@@ -231,8 +252,9 @@ module.exports = function (Twig) {
                         } else if (key_token.type === Twig.expression.type.number) {
                             // Convert integer keys into string keys
                             token.key = key_token.value.toString();
-                        } else if (key_token.type === Twig.expression.type.parameter.end &&
-                                key_token.expression) {
+                        } else if (key_token.expression &&
+                            (key_token.type === Twig.expression.type.parameter.end ||
+                            key_token.type == Twig.expression.type.subexpression.end)) {
                             token.params = key_token.params;
                         } else {
                             throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
@@ -323,11 +345,135 @@ module.exports = function (Twig) {
         },
         {
             /**
+             * Match a subexpression set start.
+             */
+            type: Twig.expression.type.subexpression.start,
+            regex: /^\(/,
+            next: Twig.expression.set.expressions.concat([Twig.expression.type.subexpression.end]),
+            compile: function(token, stack, output) {
+                token.value = '(';
+                output.push(token);
+                stack.push(token);
+            },
+            parse: Twig.expression.fn.parse.push
+        },
+        {
+            /**
+             * Match a subexpression set end.
+             */
+            type: Twig.expression.type.subexpression.end,
+            regex: /^\)/,
+            next: Twig.expression.set.operations_extended,
+            validate: function(match, tokens) {
+                // Iterate back through previous tokens to ensure we follow a subexpression start
+                var i = tokens.length - 1,
+                    found_subexpression_start = false,
+                    next_subexpression_start_invalid = false,
+                    unclosed_parameter_count = 0;
+
+                while(!found_subexpression_start && i >= 0) {
+                    var token = tokens[i];
+
+                    found_subexpression_start = token.type === Twig.expression.type.subexpression.start;
+
+                    // If we have previously found a subexpression end, then this subexpression start is the start of
+                    // that subexpression, not the subexpression we are searching for
+                    if (found_subexpression_start && next_subexpression_start_invalid) {
+                        next_subexpression_start_invalid = false;
+                        found_subexpression_start = false;
+                    }
+
+                    // Count parameter tokens to ensure we dont return truthy for a parameter opener
+                    if (token.type === Twig.expression.type.parameter.start) {
+                        unclosed_parameter_count++;
+                    } else if (token.type === Twig.expression.type.parameter.end) {
+                        unclosed_parameter_count--;
+                    } else if (token.type === Twig.expression.type.subexpression.end) {
+                        next_subexpression_start_invalid = true;
+                    }
+
+                    i--;
+                }
+
+                // If we found unclosed parameters, return false
+                // If we didnt find subexpression start, return false
+                // Otherwise return true
+
+                return (found_subexpression_start && (unclosed_parameter_count === 0));
+            },
+            compile: function(token, stack, output) {
+                // This is basically a copy of parameter end compilation
+                var stack_token,
+                    end_token = token;
+
+                stack_token = stack.pop();
+                while(stack.length > 0 && stack_token.type != Twig.expression.type.subexpression.start) {
+                    output.push(stack_token);
+                    stack_token = stack.pop();
+                }
+
+                // Move contents of parens into preceding filter
+                var param_stack = [];
+                while(token.type !== Twig.expression.type.subexpression.start) {
+                    // Add token to arguments stack
+                    param_stack.unshift(token);
+                    token = output.pop();
+                }
+
+                param_stack.unshift(token);
+
+                var is_expression = false;
+
+                //If the token at the top of the *stack* is a function token, pop it onto the output queue.
+                // Get the token preceding the parameters
+                stack_token = stack[stack.length-1];
+
+                if (stack_token === undefined ||
+                    (stack_token.type !== Twig.expression.type._function &&
+                    stack_token.type !== Twig.expression.type.filter &&
+                    stack_token.type !== Twig.expression.type.test &&
+                    stack_token.type !== Twig.expression.type.key.brackets)) {
+
+                    end_token.expression = true;
+
+                    // remove start and end token from stack
+                    param_stack.pop();
+                    param_stack.shift();
+
+                    end_token.params = param_stack;
+
+                    output.push(end_token);
+                } else {
+                    // This should never be hit
+                    end_token.expression = false;
+                    stack_token.params = param_stack;
+                }
+            },
+            parse: function(token, stack, context) {
+                var new_array = [],
+                    array_ended = false,
+                    value = null;
+
+                if (token.expression) {
+                    value = Twig.expression.parse.apply(this, [token.params, context]);
+                    stack.push(value);
+                } else {
+                    throw new Twig.Error("Unexpected subexpression end when token is not marked as an expression");
+                }
+            }
+        },
+        {
+            /**
              * Match a parameter set start.
              */
             type: Twig.expression.type.parameter.start,
             regex: /^\(/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.parameter.end]),
+            validate: function(match, tokens) {
+                var last_token = tokens[tokens.length - 1];
+                // We can't use the regex to test if we follow a space because expression is trimmed
+                return last_token && (Twig.indexOf(Twig.expression.reservedWords, last_token.value.trim()) < 0);
+            },
             compile: Twig.expression.fn.compile.push_both,
             parse: Twig.expression.fn.parse.push
         },
@@ -600,6 +746,10 @@ module.exports = function (Twig) {
             // match any letter or _, then any number of letters, numbers, _ or - followed by (
             regex: /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/,
             next: Twig.expression.type.parameter.start,
+            validate: function(match, tokens) {
+                // Make sure this function is not a reserved word
+                return match[1] && (Twig.indexOf(Twig.expression.reservedWords, match[1]) < 0);
+            },
             transform: function(match, tokens) {
                 return '(';
             },
@@ -943,7 +1093,7 @@ module.exports = function (Twig) {
                 if (Twig.expression.handler.hasOwnProperty(type)) {
                     token_next = Twig.expression.handler[type].next;
                     regex = Twig.expression.handler[type].regex;
-                    // Twig.log.trace("Checking type ", type, " on ", expression);
+                    Twig.log.trace("Checking type ", type, " on ", expression);
                     if (regex instanceof Array) {
                         regex_array = regex;
                     } else {

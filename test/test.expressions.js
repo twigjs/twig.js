@@ -387,5 +387,21 @@ describe("Twig.js Expressions ->", function() {
             var output = test_template.render();
             output.should.equal('3,4,5');
         });
+
+        it('should support parenthesised expressions after test', function() {
+            var test_template = twig({data: "{% if true is defined and (true) %}ok!{% endif %}" });
+            var output = test_template.render();
+            output.should.equal('ok!');
+        });
+
+        it('should support keys as expressions in function parameters', function() {
+            var test_template = twig({data: "{{ func({(foo): 'stuff'}) }}"});
+            var output = test_template.render({
+                func: function () { return "ok!"; },
+                foo: "bar"
+            });
+
+            output.should.equal('ok!');
+        });
     });
 });
