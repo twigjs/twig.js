@@ -393,5 +393,15 @@ describe("Twig.js Expressions ->", function() {
             var output = test_template.render();
             output.should.equal('ok!');
         });
+
+        it('should support keys as expressions in function parameters', function() {
+            var test_template = twig({data: "{{ func({(foo): 'stuff'}) }}"});
+            var output = test_template.render({
+                func: function () { return "ok!"; },
+                foo: "bar"
+            });
+
+            output.should.equal('ok!');
+        });
     });
 });
