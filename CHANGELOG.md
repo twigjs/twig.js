@@ -1,3 +1,9 @@
+Version 0.9.5, released 2016-05-14
+-----------------------------------
+
+Minor improvements:
+* Templates that are included via "extends" now populate the parent template context
+
 Version 0.9.4, released 2016-05-13
 -----------------------------------
 Parentheses parsing has undergone quite a large refactoring, but nothing should have explicitly broken.
