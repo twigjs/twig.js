@@ -35,6 +35,19 @@ module.exports = function(Twig) {
         return target;
     };
 
+    Twig.lib.extend = function (src, add) {
+        var keys = Object.keys(add),
+            i;
+
+        i = keys.length;
+
+        while (i--) {
+            src[keys[i]] = add[keys[i]];
+        }
+
+        return src;
+    };
+
     Twig.lib.replaceAll = function(string, search, replace) {
         return string.split(search).join(replace);
     };

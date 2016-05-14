@@ -599,11 +599,26 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
+                var template,
+                    innerContext = Twig.ChildContext(context);
                 // Resolve filename
                 var file = Twig.expression.parse.apply(this, [token.stack, context]);
 
                 // Set parent template
                 this.extend = file;
+
+                if (file instanceof Twig.Template) {
+                    template = file;
+                } else {
+                    // Import file
+                    template = this.importFile(file);
+                }
+
+                // Render the template in case it puts anything in its context
+                template.render(innerContext);
+
+                // Extend the parent context with the extended context
+                Twig.lib.extend(context, innerContext);
 
                 return {
                     chain: chain,
