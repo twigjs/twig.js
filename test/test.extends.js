@@ -142,4 +142,15 @@ describe("Twig.js Extensions ->", function() {
         var result = twig({data:"{% noop %}"}).render();
         result.should.equal("noop2");
     });
+
+	it("should extend the parent context when extending", function() {
+		var template = twig({
+			path: 'test/templates/extender.twig',
+			async: false
+		});
+
+		var output = template.render();
+
+		output.trim().should.equal("ok!");
+	});
 });
