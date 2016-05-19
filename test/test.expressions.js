@@ -276,7 +276,19 @@ describe("Twig.js Expressions ->", function() {
 
             output2.should.equal( "1" );
         });
-        
+        it("should support non-boolean values in ternary statement", function() {
+            var test_template = twig({data: '{{ test ? "true" : "false" }}'});
+
+            test_template.render({test: "one"}).should.equal("true");
+            test_template.render({test: 0}).should.equal("false");
+            test_template.render({test: 0.0}).should.equal("false");
+            test_template.render({test: ""}).should.equal("false");
+            test_template.render({test: "0"}).should.equal("false");
+            test_template.render({test: []}).should.equal("false");
+            test_template.render({test: null}).should.equal("false");
+            test_template.render({test: undefined}).should.equal("false");
+        });
+
         it("should support in/containment functionality for arrays", function() {
             var test_template = twig({data: '{{ "a" in ["a", "b", "c"] }}'});
             test_template.render().should.equal(true.toString());

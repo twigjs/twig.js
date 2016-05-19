@@ -19,6 +19,7 @@ module.exports = function(Twig) {
     Twig.lib.strip_tags = require('locutus/php/strings/strip_tags');
     Twig.lib.strtotime = require('locutus/php/datetime/strtotime');
     Twig.lib.date = require('locutus/php/datetime/date');
+    Twig.lib.boolval = require('locutus/php/var/boolval');
 
     Twig.lib.is = function(type, obj) {
         var clas = Object.prototype.toString.call(obj).slice(8, -1);

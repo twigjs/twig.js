@@ -95,7 +95,7 @@ module.exports = function (Twig) {
                 // Start a new logic chain
                 chain = true;
 
-                if (result) {
+                if (Twig.lib.boolval(result)) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
@@ -134,7 +134,7 @@ module.exports = function (Twig) {
                 var output = '',
                     result = Twig.expression.parse.apply(this, [token.stack, context]);
 
-                if (chain && result) {
+                if (chain && Twig.lib.boolval(result)) {
                     chain = false;
                     // parse if output
                     output = Twig.parse.apply(this, [token.output, context]);
