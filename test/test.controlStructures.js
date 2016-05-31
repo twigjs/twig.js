@@ -34,6 +34,12 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: true, other: false}).should.equal("true" );
             test_template.render({test: false, other: false}).should.equal("" );
         });
+        it("should support values which are not booleans", function () {
+            var test_template = twig({data: '{% if test %}test_true{% elseif other %}other_true{% else %}all_false{% endif %}'});
+            test_template.render({test: "true", other: true}).should.equal("test_true");
+            test_template.render({test: false, other: "true"}).should.equal("other_true");
+            test_template.render({test: false, other: false}).should.equal("all_false");
+        });
     });
 
     // {% for ... %}
