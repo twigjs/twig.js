@@ -1,8 +1,8 @@
 demos
 tools
 test
-src
 qtest
+src
 .hg
 .git
 .gitignore
