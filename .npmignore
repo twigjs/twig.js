@@ -1,6 +1,7 @@
 demos
 tools
 test
+src
 qtest
 .hg
 .git
