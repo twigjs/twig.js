@@ -139,7 +139,7 @@ module.exports = function (Twig) {
                 break;
 
             case '?:':
-                if (a) {
+                if (Twig.lib.boolval(a)) {
                     stack.push(a);
                 } else {
                     stack.push(b);
@@ -153,7 +153,7 @@ module.exports = function (Twig) {
                     c = undefined;
                 }
 
-                if (a) {
+                if (Twig.lib.boolval(a)) {
                     stack.push(b);
                 } else {
                     stack.push(c);

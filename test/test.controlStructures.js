@@ -39,6 +39,14 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: "true", other: true}).should.equal("test_true");
             test_template.render({test: false, other: "true"}).should.equal("other_true");
             test_template.render({test: false, other: false}).should.equal("all_false");
+
+            test_template.render({test: 0, other: true}).should.equal("other_true");
+            test_template.render({test: 0.0, other: true}).should.equal("other_true");
+            test_template.render({test: "", other: true}).should.equal("other_true");
+            test_template.render({test: "0", other: true}).should.equal("other_true");
+            test_template.render({test: [], other: true}).should.equal("other_true");
+            test_template.render({test: null, other: true}).should.equal("other_true");
+            test_template.render({test: undefined, other: true}).should.equal("other_true");
         });
     });
 
