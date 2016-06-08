@@ -121,7 +121,9 @@ module.exports = function (Twig) {
         }
 
         b = stack.pop();
-        a = stack.pop();
+        if (operator !== 'not') {
+            a = stack.pop();
+        }
 
         if (operator !== 'in' && operator !== 'not in') {
             if (a && Array.isArray(a)) {
@@ -203,7 +205,7 @@ module.exports = function (Twig) {
 
             case 'not':
             case '!':
-                stack.push(!b);
+                stack.push(!Twig.lib.boolval(b));
                 break;
 
             case '<':
