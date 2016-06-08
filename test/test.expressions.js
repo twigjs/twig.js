@@ -239,8 +239,17 @@ describe("Twig.js Expressions ->", function() {
         });
         it("should support boolean not", function() {
             var test_template = twig({data: '{{ not a }}'});
-            test_template.render({a:false}).should.equal(true.toString());
-            test_template.render({a:true}).should.equal(false.toString());
+            test_template.render({a: false}).should.equal('true');
+            test_template.render({a: true}).should.equal('false');
+            test_template.render({a: '0'}).should.equal('true');
+
+            test_template = twig({data: '{{ a and not b }}'});
+            test_template.render({a: true, b: false}).should.equal('true');
+            test_template.render({a: true, b: true}).should.equal('false');
+
+            test_template = twig({data: '{{ a or not b }}'});
+            test_template.render({a: false, b: false}).should.equal('true');
+            test_template.render({a: false, b: true}).should.equal('false');
         });
 
         it("should correctly cast arrays", function () {
