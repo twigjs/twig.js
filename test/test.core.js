@@ -405,6 +405,20 @@ describe("Twig.js Core ->", function() {
                 data: '{% set value = "test" %}{% for i in [0, 1] %}{% include "included" %}{% endfor %}{{ value }}'
             }).render().should.equal("test\ninc\ntest\ninc\ntest");
         });
+
+        it("should use the correct context for variables in the included template name", function () {
+            twig({
+                id: 'included-template',
+                data: '{{ value }} - {{ prefix }}'
+            });
+            twig({
+                allowInlineIncludes: true,
+                data: '{% include prefix ~ "-template" with {"value": value} only %}'
+            }).render({
+                prefix: "included",
+                value: "test"
+            }).should.equal("test - ");
+        });
     });
 });
 

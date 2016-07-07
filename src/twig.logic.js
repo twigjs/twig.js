@@ -717,7 +717,7 @@ module.exports = function (Twig) {
                     }
                 }
 
-                var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
+                var file = Twig.expression.parse.apply(this, [token.stack, context]);
 
                 if (file instanceof Twig.Template) {
                     template = file;
