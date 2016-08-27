@@ -54,9 +54,22 @@ You can use twig in your app with
     var Twig = require('twig'), // Twig module
         twig = Twig.twig;       // Render function
 
+### Usage without Express
+
+If you don't want to use Express, you can render a template with the following method:
+
+```js
+import Twig from 'twig';
+Twig.renderFile('./path/to/someFile.twig', {foo:'bar'}, (err, html) => {
+  html; // compiled string
+});
+```
+
+### Usage with Express
+
 Twig is compatable with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
 
-## app.js
+### app.js
 
 **Express 3**
 
