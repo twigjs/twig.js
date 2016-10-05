@@ -20,15 +20,13 @@ Documentation is available in the [twig.js wiki](https://github.com/twigjs/twig.
 
 For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/twigjs/twig.js/wiki/Implementation-Notes) page on the wiki.
 
-# Releases
+# Install
 
-Download the latest twig.js release from github: https://github.com/twigjs/twig.js/releases
+Download the latest twig.js release from github: https://github.com/twigjs/twig.js/releases or via NPM:
 
-## Browser Usage (bower)
+   npm install twig --save
 
-Twig.js can be installed as a bower package with:
-
-    bower install twig.js
+## Browser Usage
 
 Include twig.js or twig.min.js in your page, then:
 
@@ -44,10 +42,6 @@ console.log(
 ```
 
 ## Node Usage (npm)
-
-Twig.js can be installed with NPM
-
-    npm install twig
 
 You can use twig in your app with
 
