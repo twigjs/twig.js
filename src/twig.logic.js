@@ -668,13 +668,13 @@ module.exports = function (Twig) {
              *  Format: {% includes "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.include,
-            regex: /^include\s+(ignore missing\s+)?(.+?)\s*(?:with\s+([\S\s]+?))?\s*(only)?$/,
+            regex: /^include\s+(.+?)\s*(ignore missing)?\s*(?:with\s+([\S\s]+?))?\s*(only)?$/,
             next: [ ],
             open: true,
             compile: function (token) {
                 var match = token.match,
-                    includeMissing = match[1] !== undefined,
-                    expression = match[2].trim(),
+                    includeMissing = match[2] !== undefined,
+                    expression = match[1].trim(),
                     withContext = match[3],
                     only = ((match[4] !== undefined) && match[4].length);
 
@@ -952,15 +952,15 @@ module.exports = function (Twig) {
              *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.embed,
-            regex: /^embed\s+(ignore missing\s+)?(.+?)\s*(?:with\s+(.+?))?\s*(only)?$/,
+            regex: /^embed\s+(.+?)\s*(ignore missing)?\s*(?:with\s+([\S\s]+?))?\s*(only)?$/,
             next: [
                 Twig.logic.type.endembed
             ],
             open: true,
             compile: function (token) {
                 var match = token.match,
-                    includeMissing = match[1] !== undefined,
-                    expression = match[2].trim(),
+                    includeMissing = match[2] !== undefined,
+                    expression = match[1].trim(),
                     withContext = match[3],
                     only = ((match[4] !== undefined) && match[4].length);
 
