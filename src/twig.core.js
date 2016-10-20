@@ -711,14 +711,17 @@ module.exports = function (Twig) {
             }
             return output;
         } catch (ex) {
-            Twig.log.error("Error compiling twig template " + this.id + ": ");
-            if (ex.stack) {
-                Twig.log.error(ex.stack);
-            } else {
-                Twig.log.error(ex.toString());
+            if (this.options.rethrow) {
+                throw ex
             }
-
-            if (this.options.rethrow) throw ex;
+            else {
+                Twig.log.error("Error compiling twig template " + this.id + ": ");
+                if (ex.stack) {
+                    Twig.log.error(ex.stack);
+                } else {
+                    Twig.log.error(ex.toString());
+                }
+            }
         }
     };
 
@@ -777,17 +780,20 @@ module.exports = function (Twig) {
             });
             return Twig.output.apply(this, [output]);
         } catch (ex) {
-            Twig.log.error("Error parsing twig template " + this.id + ": ");
-            if (ex.stack) {
-                Twig.log.error(ex.stack);
-            } else {
-                Twig.log.error(ex.toString());
+            if (this.options.rethrow) {
+                throw ex;
             }
+            else {
+                Twig.log.error("Error parsing twig template " + this.id + ": ");
+                if (ex.stack) {
+                    Twig.log.error(ex.stack);
+                } else {
+                    Twig.log.error(ex.toString());
+                }
 
-            if (this.options.rethrow) throw ex;
-
-            if (Twig.debug) {
-                return ex.toString();
+                if (Twig.debug) {
+                    return ex.toString();
+                }
             }
         }
     };
