@@ -36,4 +36,14 @@ describe("Twig.js Embed ->", function() {
                                                                'END'].join('\n') );
     });
 
+    it("should skip an non existant embed flagged wth 'ignore missing'", function() {
+        twig({
+            id:   'embed-ignore-missing',
+            path: 'test/templates/embed-ignore-missing.twig',
+            async: false
+        });
+
+        twig({ref: 'embed-ignore-missing'}).render().should.equal( "ignore-missing" );
+    });
+
 });

@@ -668,20 +668,20 @@ module.exports = function (Twig) {
              *  Format: {% includes "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.include,
-            regex: /^include\s+(ignore missing\s+)?(.+?)\s*(?:with\s+([\S\s]+?))?\s*(only)?$/,
+            regex: /^include\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,
             next: [ ],
             open: true,
             compile: function (token) {
                 var match = token.match,
-                    includeMissing = match[1] !== undefined,
-                    expression = match[2].trim(),
+                    expression = match[1].trim(),
+                    ignoreMissing = match[2] !== undefined,
                     withContext = match[3],
                     only = ((match[4] !== undefined) && match[4].length);
 
                 delete token.match;
 
                 token.only = only;
-                token.includeMissing = includeMissing;
+                token.ignoreMissing = ignoreMissing;
 
                 token.stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
@@ -723,7 +723,18 @@ module.exports = function (Twig) {
                     template = file;
                 } else {
                     // Import file
-                    template = this.importFile(file);
+                    try {
+                        template = this.importFile(file);
+                    } catch (err) {
+                        if (token.ignoreMissing) {
+                            return {
+                                chain: chain,
+                                output: ''
+                            }
+                        }
+
+                        throw err;
+                    }
                 }
 
                 return {
@@ -952,22 +963,22 @@ module.exports = function (Twig) {
              *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.embed,
-            regex: /^embed\s+(ignore missing\s+)?(.+?)\s*(?:with\s+(.+?))?\s*(only)?$/,
+            regex: /^embed\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,
             next: [
                 Twig.logic.type.endembed
             ],
             open: true,
             compile: function (token) {
                 var match = token.match,
-                    includeMissing = match[1] !== undefined,
-                    expression = match[2].trim(),
+                    expression = match[1].trim(),
+                    ignoreMissing = match[2] !== undefined,
                     withContext = match[3],
                     only = ((match[4] !== undefined) && match[4].length);
 
                 delete token.match;
 
                 token.only = only;
-                token.includeMissing = includeMissing;
+                token.ignoreMissing = ignoreMissing;
 
                 token.stack = Twig.expression.compile.apply(this, [{
                     type:  Twig.expression.type.expression,
@@ -1012,7 +1023,18 @@ module.exports = function (Twig) {
                     template = file;
                 } else {
                     // Import file
-                    template = this.importFile(file);
+                    try {
+                        template = this.importFile(file);
+                    } catch (err) {
+                        if (token.ignoreMissing) {
+                            return {
+                                chain: chain,
+                                output: ''
+                            }
+                        }
+
+                        throw err;
+                    }
                 }
 
                 // reset previous blocks

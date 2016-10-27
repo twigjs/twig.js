@@ -90,6 +90,26 @@ describe("Twig.js Include ->", function() {
         // Load the template
         twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
     });
+
+    it("should skip an non existant included template flagged wth 'ignore missing'", function() {
+        twig({
+            id:   'include-ignore-missing',
+            path: 'test/templates/include-ignore-missing.twig',
+            async: false
+        });
+
+        twig({ref: 'include-ignore-missing'}).render().should.equal( "ignore-missing" );
+    });
+
+    it("should fail including an non existant included template not flagged wth 'ignore missing'", function() {
+        twig({
+            id: 'include-ignore-missing-missing',
+            path: 'test/templates/include-ignore-missing-missing.twig',
+            async: false
+        });
+
+        (twig({ref: 'include-ignore-missing-missing'}).render() === undefined).should.equal(true, 'Should not render');
+    });
 });
 
 
