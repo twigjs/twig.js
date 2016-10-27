@@ -102,13 +102,16 @@ describe("Twig.js Include ->", function() {
     });
 
     it("should fail including an non existant included template not flagged wth 'ignore missing'", function() {
-        twig({
-            id: 'include-ignore-missing-missing',
-            path: 'test/templates/include-ignore-missing-missing.twig',
-            async: false
-        });
-
-        (twig({ref: 'include-ignore-missing-missing'}).render() === undefined).should.equal(true, 'Should not render');
+        try {
+            twig({
+                id: 'include-ignore-missing-missing',
+                path: 'test/templates/include-ignore-missing-missing.twig',
+                async: false,
+                rethrow: true
+            }).render();
+        } catch (err) {
+            err.type.should.equal('TwigException');
+        }
     });
 });
 

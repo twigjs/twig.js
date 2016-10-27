@@ -49,15 +49,19 @@ module.exports = function(Twig) {
         if (params.async) {
             fs.stat(params.path, function (err, stats) {
                 if (err || !stats.isFile()) {
-                    throw new Twig.Error('Unable to find template file ' + location);
+                    throw new Twig.Error('Unable to find template file ' + params.path);
                 }
                 fs.readFile(params.path, 'utf8', loadTemplateFn);
             });
             // TODO: return deferred promise
             return true;
         } else {
-            if (!fs.statSync(params.path).isFile()) {
-                throw new Twig.Error('Unable to find template file ' + location);
+            try {
+                if (!fs.statSync(params.path).isFile()) {
+                    throw new Twig.Error('Unable to find template file ' + params.path);
+                }
+            } catch (err) {
+                throw new Twig.Error('Unable to find template file ' + params.path);
             }
             data = fs.readFileSync(params.path, 'utf8');
             loadTemplateFn(undefined, data);
