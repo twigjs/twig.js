@@ -32,17 +32,17 @@
   },
   "dependencies": {
     "minimatch": "3.0.x",
-    "locutus": "^2.0.4",
+    "locutus": "^2.0.5",
     "walk": "2.3.x"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "mocha": "2.4.x",
-    "should": "8.2.x",
-    "sinon": "^1.17.3",
+    "mocha": "3.1.x",
+    "should": "11.1.x",
+    "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "tokenizer": "1.1.x",
-    "webpack": "^1.12.14"
+    "webpack": "^1.13.3"
   },
   "browser": {
     "fs": false
