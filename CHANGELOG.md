@@ -1,3 +1,19 @@
+Version 0.10.0, released 2016-10-28
+-----------------------------------
+Bower is no longer supported
+
+Major improvements:
+* Updated to locutus which replaces phpjs
+* elseif now accepts truthy values (#370)
+* Use PHP style falsy matching (#383)
+* Fix 'not' after binary expressions (#385)
+* Use current context when parsing an include (#395)
+* Correct handling of 'ignore missing' in embed and include (#424)
+
+Minor improvements:
+* Documentation updates
+* Refreshed dependencies
+
 Version 0.9.5, released 2016-05-14
 -----------------------------------
 
