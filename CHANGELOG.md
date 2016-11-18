@@ -1,3 +1,11 @@
+Version 0.10.1, released 2016-11-18
+-----------------------------------
+
+Minor improvements:
+* Fixed missing changelog updates
+* Fixed incorrect versions in source
+* Rethrow errors when option to do so is set (#422)
+
 Version 0.10.0, released 2016-10-28
 -----------------------------------
 Bower is no longer supported
