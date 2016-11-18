@@ -1,5 +1,5 @@
 /**
- * Twig.js 0.8.9
+ * Twig.js
  *
  * @copyright 2011-2016 John Roepke and the Twig.js Contributors
  * @license   Available under the BSD 2-Clause License
@@ -7,7 +7,7 @@
  */
 
 var Twig = {
-    VERSION: '0.8.9'
+    VERSION: '0.10.1'
 };
 
 require('./twig.core')(Twig);
