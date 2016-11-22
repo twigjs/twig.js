@@ -39,7 +39,7 @@ module.exports = function (Twig) {
         },
         sameas: function(value, params) {
             console.warn('`sameas` is deprecated use `same as`');
-            return Twig.test['same as'](value, params);
+            return Twig.tests['same as'](value, params);
         },
         iterable: function(value) {
             return value && (Twig.lib.is("Array", value) || Twig.lib.is("Object", value));
