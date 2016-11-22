@@ -79,7 +79,7 @@ describe("Twig.js Tests ->", function() {
         });
     });
 
-    describe("sameas test ->", function() {
+    describe("`sameas` backwards compatibility with `same as`", function () {
         it("should identify the exact same type as true", function() {
             twig({data: '{{ true is sameas(true) }}'}).render().should.equal("true");
             twig({data: '{{ a is sameas(1) }}'}).render({a: 1}).should.equal("true");
@@ -91,6 +91,21 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ true is sameas(1) }}'}).render().should.equal("false");
             twig({data: '{{ false is sameas("") }}'}).render().should.equal("false");
             twig({data: '{{ a is sameas(1) }}'}).render({a: "1"}).should.equal("false");
+        });
+    });
+
+    describe("same as test ->", function() {
+        it("should identify the exact same type as true", function() {
+            twig({data: '{{ true is same as(true) }}'}).render().should.equal("true");
+            twig({data: '{{ a is same as(1) }}'}).render({a: 1}).should.equal("true");
+            twig({data: '{{ a is same as("test") }}'}).render({a: "test"}).should.equal("true");
+            twig({data: '{{ a is same as(true) }}'}).render({a: true}).should.equal("true");
+        });
+        it("should identify the different types as false", function() {
+            twig({data: '{{ false is same as(true) }}'}).render().should.equal("false");
+            twig({data: '{{ true is same as(1) }}'}).render().should.equal("false");
+            twig({data: '{{ false is same as("") }}'}).render().should.equal("false");
+            twig({data: '{{ a is same as(1) }}'}).render({a: "1"}).should.equal("false");
         });
     });
 

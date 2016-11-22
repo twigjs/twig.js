@@ -34,8 +34,12 @@ module.exports = function (Twig) {
         'null': function(value) {
             return this.none(value); // Alias of none
         },
-        sameas: function(value, params) {
+        'same as': function(value, params) {
             return value === params[0];
+        },
+        sameas: function(value, params) {
+            console.warn('`sameas` is deprecated use `same as`');
+            return Twig.tests['same as'](value, params);
         },
         iterable: function(value) {
             return value && (Twig.lib.is("Array", value) || Twig.lib.is("Object", value));
