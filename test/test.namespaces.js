@@ -5,7 +5,7 @@ describe("Twig.js Namespaces ->", function() {
     it("should support namespaces defined with ::", function(done) {
     	twig({
 			namespaces: { 'test': 'test/templates/namespaces/' },
-			path: 'test/templates/namespaces_::.twig',
+			path: 'test/templates/namespaces_coloncolon.twig',
 			load: function(template) {
 				// Render the template
 				template.render({
