@@ -1,3 +1,9 @@
+Version 0.10.2, released 2016-11-23
+-----------------------------------
+Minor improvements:
+* Support 'same as' (#429)
+* Fix windows colon colon namespace (#430)
+
 Version 0.10.1, released 2016-11-18
 -----------------------------------
 
