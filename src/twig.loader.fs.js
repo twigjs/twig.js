@@ -49,7 +49,10 @@ module.exports = function(Twig) {
         if (params.async) {
             fs.stat(params.path, function (err, stats) {
                 if (err || !stats.isFile()) {
-                    throw new Twig.Error('Unable to find template file ' + params.path);
+                    if (typeof error_callback === 'function') {
+                        error_callback(new Twig.Error('Unable to find template file ' + params.path));
+                    }
+                    return;
                 }
                 fs.readFile(params.path, 'utf8', loadTemplateFn);
             });

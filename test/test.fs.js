@@ -91,7 +91,7 @@ describe("Twig.js Include ->", function() {
         twig({ref: 'include-only'}).render({test: 'tst'}).should.equal( "template: before,-mid-template: after," );
     });
 
-    it("should skip an non existant included template flagged wth 'ignore missing'", function() {
+    it("should skip a nonexistent included template flagged wth 'ignore missing'", function() {
         twig({
             id:   'include-ignore-missing',
             path: 'test/templates/include-ignore-missing.twig',
@@ -101,7 +101,7 @@ describe("Twig.js Include ->", function() {
         twig({ref: 'include-ignore-missing'}).render().should.equal( "ignore-missing" );
     });
 
-    it("should fail including an non existant included template not flagged wth 'ignore missing'", function() {
+    it("should fail including a nonexistent included template not flagged wth 'ignore missing'", function() {
         try {
             twig({
                 id: 'include-ignore-missing-missing',
@@ -112,6 +112,23 @@ describe("Twig.js Include ->", function() {
         } catch (err) {
             err.type.should.equal('TwigException');
         }
+    });
+
+    it("should fail including a nonexistent included template asynchronously", function(done) {
+        twig({
+            id: 'include-ignore-missing-missing-async',
+            path: 'test/templates/include-ignore-missing-missing-async.twig',
+            async: true,
+            load: function(template) {
+                template.should.not.exist();
+                done();
+            },
+            error: function(err) {
+                err.type.should.equal('TwigException');
+                done();
+            },
+            rethrow: true
+        });
     });
 });
 
