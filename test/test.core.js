@@ -420,5 +420,29 @@ describe("Twig.js Core ->", function() {
             }).should.equal("test - ");
         });
     });
+
+    describe("Imports ->", function () {
+        it("should load an inline include when the file exists", function () {
+            return (function(){
+                twig({
+                    allowInlineIncludes: true,
+                    async: false,
+                    rethrow: true,
+                    data: `{% include 'test/templates/simple.twig' %}`,
+                }).render({})
+            }).should.not.throw();
+        });
+
+        it("should throw when trying to load an inline include and the file does not exist", function () {
+            return (function(){
+                twig({
+                    allowInlineIncludes: true,
+                    async: false,
+                    rethrow: true,
+                    data: `{% include 'test/templates/doesnt-exist-ever.twig' %}`,
+                }).render({})
+            }).should.throw(/Unable to find template file/);
+        });
+    });
 });
 
