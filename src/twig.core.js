@@ -1234,6 +1234,7 @@ module.exports = function (Twig) {
                     id: file,
                     method: this.getLoaderMethod(),
                     async: false,
+                    path: file,
                     options: this.options
                 });
 
