@@ -62,7 +62,7 @@ Twig.renderFile('./path/to/someFile.twig', {foo:'bar'}, (err, html) => {
 
 ### Usage with Express
 
-Twig is compatable with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
+Twig is compatible with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
 
 ### app.js
 
