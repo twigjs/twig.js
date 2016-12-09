@@ -1,3 +1,10 @@
+Version 0.10.3, released 2016-12-09
+-----------------------------------
+Minor improvements:
+* Spaceless tag no longer escapes Static values (#435)
+* Inline includes now load (#433)
+* Errors during async fs loading use error callback (#431)
+
 Version 0.10.2, released 2016-11-23
 -----------------------------------
 Minor improvements:
