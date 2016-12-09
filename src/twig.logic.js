@@ -759,7 +759,8 @@ module.exports = function (Twig) {
                     rBetweenTagSpaces = />\s+</g,
                     // Replace all space between closing and opening html tags
                     output = unfiltered.replace(rBetweenTagSpaces,'><').trim();
-
+                    // Rewrap output as a Twig.Markup
+                    output = Twig.Markup(output);
                 return {
                     chain: chain,
                     output: output

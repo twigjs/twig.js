@@ -11,4 +11,13 @@ describe("Twig.js Tags ->", function() {
         );
     });
 
+    it("should not escape static values when using spaceless", function() {
+        twig({
+            autoescape: true,
+            data: "{% spaceless %}<div>{% endspaceless %}"
+        }).render().should.equal(
+            "<div>"
+        );
+    });
+
 });
