@@ -899,14 +899,14 @@ module.exports = function (Twig) {
             open: true,
             compile: function (token) {
                 var expression = token.match[1].trim(),
-                    macroExpressions = token.match[2].trim().split(/[ ,]+/),
+                    macroExpressions = token.match[2].trim().split(/\s*,\s*/),
                     macroNames = {};
 
                 for (var i=0; i<macroExpressions.length; i++) {
                     var res = macroExpressions[i];
 
                     // match function as variable
-                    var macroMatch = res.match(/^([a-zA-Z0-9_]+)\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/);
+                    var macroMatch = res.match(/^([a-zA-Z0-9_]+)\s+as\s+([a-zA-Z0-9_]+)$/);
                     if (macroMatch) {
                         macroNames[macroMatch[1].trim()] = macroMatch[2].trim();
                     }
