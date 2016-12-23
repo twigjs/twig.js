@@ -250,6 +250,36 @@ describe("Twig.js Expressions ->", function() {
             test_template = twig({data: '{{ a or not b }}'});
             test_template.render({a: false, b: false}).should.equal('true');
             test_template.render({a: false, b: true}).should.equal('false');
+
+            test_template = twig({data: '{{ a or not not b }}'});
+            test_template.render({a: false, b: true}).should.equal('true');
+            test_template.render({a: false, b: false}).should.equal('false');
+        });
+        it("should support boolean not in parentheses", function() {
+            var test_template = twig({data: '{{ (test1 or test2) and test3 }}'});
+            test_template.render({test1: true, test2: false, test3: true}).should.equal("true");
+            test_template.render({test1: false, test2: false, test3: true}).should.equal("false");
+            test_template.render({test1: true, test2: false, test3: false}).should.equal("false");
+
+            var test_template = twig({data: '{{ (test1 or test2) and not test3 }}'});
+            test_template.render({test1: true, test2: false, test3: false}).should.equal("true");
+            test_template.render({test1: false, test2: false, test3: false}).should.equal("false");
+            test_template.render({test1: true, test2: false, test3: true}).should.equal("false");
+
+            var test_template = twig({data: '{{ (not test1 or test2) and test3 }}'});
+            test_template.render({test1: false, test2: false, test3: true}).should.equal("true");
+            test_template.render({test1: true, test2: false, test3: true}).should.equal("false");
+            test_template.render({test1: false, test2: false, test3: false}).should.equal("false");
+
+            var test_template = twig({data: '{{ (test1 or not test2) and test3 }}'});
+            test_template.render({test1: true, test2: true, test3: true}).should.equal("true");
+            test_template.render({test1: false, test2: true, test3: true}).should.equal("false");
+            test_template.render({test1: true, test2: true, test3: false}).should.equal("false");
+
+            var test_template = twig({data: '{{ (not test1 or not test2) and test3 }}'});
+            test_template.render({test1: false, test2: true, test3: true}).should.equal("true");
+            test_template.render({test1: true, test2: true, test3: true}).should.equal("false");
+            test_template.render({test1: false, test2: true, test3: false}).should.equal("false");
         });
 
         it("should correctly cast arrays", function () {
@@ -359,6 +389,9 @@ describe("Twig.js Expressions ->", function() {
 
             test_template = twig({data: '{{ {(foo): "value"}.bar }}'});
             test_template.render({foo: 'bar'}).should.equal('value');
+
+            test_template = twig({data: '{{ {(not foo): "value"}.true }}'});
+            test_template.render({foo: false}).should.equal('value');
         });
 
         it("should not corrupt the stack when accessing a property of an undefined object", function() {
