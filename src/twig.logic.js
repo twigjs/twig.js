@@ -260,7 +260,7 @@ module.exports = function (Twig) {
                     },
                     // run once for each iteration of the loop
                     loop = function(key, value) {
-                        var inner_context = Twig.ChildContext(context);
+                        var inner_context = Twig.lib.copy(context);
 
                         inner_context[token.value_var] = value;
 
@@ -600,8 +600,7 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var template,
-                    innerContext = Twig.ChildContext(context);
+                var template;
                 // Resolve filename
                 var file = Twig.expression.parse.apply(this, [token.stack, context]);
 
@@ -616,10 +615,7 @@ module.exports = function (Twig) {
                 }
 
                 // Render the template in case it puts anything in its context
-                template.render(innerContext);
-
-                // Extend the parent context with the extended context
-                Twig.lib.extend(context, innerContext);
+                template.render(context);
 
                 return {
                     chain: chain,
@@ -705,16 +701,11 @@ module.exports = function (Twig) {
                     template;
 
                 if (!token.only) {
-                    innerContext = Twig.ChildContext(context);
+                    innerContext = Twig.lib.copy(context);
                 }
 
                 if (token.withStack !== undefined) {
-                    withContext = Twig.expression.parse.apply(this, [token.withStack, context]);
-
-                    for (i in withContext) {
-                        if (withContext.hasOwnProperty(i))
-                            innerContext[i] = withContext[i];
-                    }
+                    Twig.lib.extend(innerContext, Twig.expression.parse.apply(this, [token.withStack, context]));
                 }
 
                 var file = Twig.expression.parse.apply(this, [token.stack, context]);
@@ -1003,19 +994,11 @@ module.exports = function (Twig) {
                     template;
 
                 if (!token.only) {
-                    for (i in context) {
-                        if (context.hasOwnProperty(i))
-                            innerContext[i] = context[i];
-                    }
+                    innerContext = Twig.lib.copy(context);
                 }
 
                 if (token.withStack !== undefined) {
-                    withContext = Twig.expression.parse.apply(this, [token.withStack, context]);
-
-                    for (i in withContext) {
-                        if (withContext.hasOwnProperty(i))
-                            innerContext[i] = withContext[i];
-                    }
+                    Twig.lib.extend(innerContext, Twig.expression.parse.apply(this, [token.withStack, context]));
                 }
 
                 var file = Twig.expression.parse.apply(this, [token.stack, innerContext]);
