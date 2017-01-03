@@ -46,6 +46,10 @@ console.log(
 // outputs: "The cupcake is a lie."
 ```
 
+## Webpack
+
+A loader is available from [zimmo.be](https://github.com/zimmo-be/twig-loader).
+
 ## Node Usage (npm)
 
 You can use twig in your app with
