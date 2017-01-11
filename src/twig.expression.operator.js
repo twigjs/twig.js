@@ -63,6 +63,21 @@ module.exports = function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case 'b-or':
+                token.precidence = 12;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
+            case 'b-xor':
+                token.precidence = 11;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
+            case 'b-and':
+                token.precidence = 10;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
             case '==':
             case '!=':
                 token.precidence = 9;
@@ -244,8 +259,20 @@ module.exports = function (Twig) {
                 stack.push(a || b);
                 break;
 
+            case 'b-or':
+                stack.push(a | b);
+                break;
+
+            case 'b-xor':
+                stack.push(a ^ b);
+                break;
+
             case 'and':
                 stack.push(a && b);
+                break;
+
+            case 'b-and':
+                stack.push(a & b);
                 break;
 
             case '**':
