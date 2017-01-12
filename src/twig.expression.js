@@ -15,7 +15,7 @@ module.exports = function (Twig) {
      * Reserved word that can't be used as variable names.
      */
     Twig.expression.reservedWords = [
-        "true", "false", "null", "TRUE", "FALSE", "NULL", "_context", "and", "or", "in", "not in", "if"
+        "true", "false", "null", "TRUE", "FALSE", "NULL", "_context", "and", "b-and", "or", "b-or", "b-xor", "in", "not in", "if"
     ];
 
     /**
@@ -196,9 +196,9 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.operator.binary,
-            // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, or, in, not in
+            // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, b-and, or, b-or, b-xor, in, not in
             // and, or, in, not in can be followed by a space or parenthesis
-            regex: /(^\?\:|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[\(|\s+]|^(or)[\(|\s+]|^(in)[\(|\s+]|^(not in)[\(|\s+]|^\.\.)/,
+            regex: /(^\?\:|^(b\-and)|^(b\-or)|^(b\-xor)|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[\(|\s+]|^(or)[\(|\s+]|^(in)[\(|\s+]|^(not in)[\(|\s+]|^\.\.)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
             transform: function(match, tokens) {
                 switch(match[0]) {
