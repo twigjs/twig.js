@@ -167,6 +167,9 @@ describe("Twig.js Core ->", function() {
          twig({data: '{{ [1,2 ,1+2 ] }}'}).render().should.equal("1,2,3" );
          twig({data: '{{ [1,2 ,3 , "-", [4,5, 6] ] }}'}).render({val: 4}).should.equal("1,2,3,-,4,5,6" );
          twig({data: '{{ [a,b ,(1+2) * a ] }}'}).render({a:1,b:2}).should.equal("1,2,3" );
+
+         twig({data: '{{ [not a, b] }}'}).render({a: false, b: true}).should.equal("true,true");
+         twig({data: '{{ [a, not b] }}'}).render({a: true, b: false}).should.equal("true,true");
     });
     it("should be able to output variables", function() {
          twig({data: '{{ orp }}'}).render({ orp: "test"}).should.equal("test");

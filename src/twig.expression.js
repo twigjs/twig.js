@@ -83,7 +83,8 @@ module.exports = function (Twig) {
             Twig.expression.type.parameter.start,
             Twig.expression.type.array.start,
             Twig.expression.type.object.start,
-            Twig.expression.type.subexpression.start
+            Twig.expression.type.subexpression.start,
+            Twig.expression.type.operator.unary
         ]
     };
 
@@ -199,7 +200,7 @@ module.exports = function (Twig) {
             // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, b-and, or, b-or, b-xor, in, not in
             // and, or, in, not in can be followed by a space or parenthesis
             regex: /(^\?\:|^(b\-and)|^(b\-or)|^(b\-xor)|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[\(|\s+]|^(or)[\(|\s+]|^(in)[\(|\s+]|^(not in)[\(|\s+]|^\.\.)/,
-            next: Twig.expression.set.expressions.concat([Twig.expression.type.operator.unary]),
+            next: Twig.expression.set.expressions,
             transform: function(match, tokens) {
                 switch(match[0]) {
                     case 'and(':
