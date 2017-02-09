@@ -128,4 +128,33 @@ describe("Twig.js Tests ->", function() {
             twig({data: "{{ obj is iterable ? 'ok' : 'ko' }}"}).render(data).should.equal("ok");
         });
     });
+
+    describe("Context test ->", function() {
+        class Foo {
+            constructor (a) {
+                this.x = {
+                    test : a
+                };
+                this.y = 9;
+            }
+            get test () {
+                return  this.x.test;
+            }
+
+            runme () {
+                //This is out of context when runme() is called from the view
+                return "1" + this.y;
+            }
+        }
+
+        let foobar = new Foo('123');
+
+        it("should pass when test.runme returns 19", function() {
+            twig({data: "{{test.runme()}}"}).render({test: foobar}).should.equal("19");
+        });
+
+        it("should pass when test.test returns 123", function() {
+            twig({data: "{{test.test}}"}).render({test: foobar}).should.equal("123");
+        });
+    });
 });
