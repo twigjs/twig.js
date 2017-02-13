@@ -1226,7 +1226,7 @@ module.exports = function (Twig) {
     Twig.Template.prototype.importFile = function(file) {
         var url, sub_template;
         if (!this.url && this.options.allowInlineIncludes) {
-            file = this.path ? this.path + '/' + file : file;
+            file = this.path ? Twig.path.parsePath(this, file) : file;
             sub_template = Twig.Templates.load(file);
 
             if (!sub_template) {
