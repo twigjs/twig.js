@@ -778,7 +778,7 @@ module.exports = function (Twig) {
                         break;
                 }
             });
-            return Twig.output.apply(this, [output]);
+            return '' + Twig.output.apply(this, [output]);
         } catch (ex) {
             if (this.options.rethrow) {
                 throw ex;
