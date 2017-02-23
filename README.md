@@ -26,7 +26,7 @@ For a list of supported tags/filters/functions/tests see the [Implementation Not
 Download the latest twig.js release from github: https://github.com/twigjs/twig.js/releases or via NPM:
 
 ```
-   npm install twig --save
+npm install twig --save
 ```
 
 # Bower
