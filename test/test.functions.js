@@ -76,22 +76,24 @@ describe("Twig.js Functions ->", function() {
             data: '{{ obj.value }}'
         }).render({
             obj: {
+                test: "value",
                  value: function() {
-                    return "test";
+                    return this.test;
                 }
             }
-        }).should.equal("test");
+        }).should.equal("value");
     });
     it("should execute functions passed as context object parameters with arguments", function() {
         twig({
             data: '{{ obj.value(1, "test") }}'
         }).render({
             obj: {
+                test: "value",
                  value: function(a, b, c) {
-                    return a + "-" + b + "-" + (c===undefined?"true":"false");
+                    return a + "-" + b + "-" + this.test + '-' + (c===undefined?"true":"false");
                 }
             }
-        }).should.equal("1-test-true");
+        }).should.equal("1-test-value-true");
     });
     
     it("should execute functions passed as context object parameters", function() {
