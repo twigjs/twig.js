@@ -126,61 +126,109 @@ module.exports = function (Twig) {
      * the synchronous behaviour is lost.
      */
     Twig.Promise = function(executor) {
-        var resolved = false;
-        var resolvedTo = null;
+        // State
+        var state = 'unknown';
+        var value = null;
+        var handlers = null;
 
-        var rejected = false;
-
-        var next = function(value) {
-            resolved = true;
-            resolvedTo = value;
+        function changeState(newState, v) {
+            state = newState;
+            value = v;
+            notify();
         };
+        function onResolve(v) { changeState('resolve', v); }
+        function onReject(e) { changeState('reject', e); }
 
-        var err = function(e) {
-            rejected = false;
-            resolvedTo = e;
-            console.log(e);
-        };
+        function notify() {
+            if (!handlers) return;
 
-        executor(function(result) {
-            if (!Twig.isPromise(result))
-                return next(result);
-
-            result.then(function(r) {
-                next(r);
-            }).catch(function(e) {
-                err(e);
+            Twig.forEach(handlers, function(h) {
+                append(h.resolve, h.reject);
             });
-        }, function(e) { err(e); });
+            handlers = null;
+        }
+
+        function append(onResolved, onRejected) {
+            var h = {
+                resolve: onResolved,
+                reject: onRejected
+            };
+
+            // The promise has yet to be rejected or resolved.
+            if (state == 'unknown') {
+                handlers = handlers || [];
+                return handlers.push(h);
+            }
+
+            // The state has been changed to either resolve, or reject
+            // which means we should call the handler.
+            if (h[state])
+                h[state](value);
+        }
+
+        function run(fn, resolve, reject) {
+            var done = false;
+            try {
+                fn(function(v) {
+                    if (done) return;
+                    done = true;
+                    resolve(v);
+                }, function(e) {
+                    if (done) return;
+                    done = true;
+                    reject(e);
+                });
+            } catch(e) {
+                done = true;
+                reject(e);
+            }
+        }
+
+        function ready(result) {
+            try {
+                if (!Twig.isPromise(result)) {
+                    return onResolve(result);
+                }
+
+                run(result.then.bind(result), ready, onReject);
+            } catch (e) {
+                onReject(e);
+            }
+        }
+
+        run(executor, ready, onReject);
 
         return {
-            then: function(cb) {
-                return new Twig.Promise(function(resolve) {
-                    if (resolved) {
-                        resolve(cb(resolvedTo));
-                        return;
-                    }
+            then: function(onResolved, onRejected) {
+                var hasResolved = typeof onResolved == 'function';
+                var hasRejected = typeof onRejected == 'function';
 
-                    next = function(value) {
-                        resolved = true;
-                        resolvedTo = value;
-                        resolve(cb(resolvedTo));
-                    };
+                return new Twig.Promise(function(resolve, reject) {
+                    append(function(result) {
+                        if (hasResolved) {
+                            try {
+                                resolve(onResolved(result));
+                            } catch (e) {
+                                reject(e);
+                            }
+                        } else {
+                            resolve(result);
+                        }
+                    }, function(err) {
+                        if (hasRejected) {
+                            try {
+                                resolve(onRejected(err));
+                            } catch (e) {
+                                reject(e);
+                            }
+                        } else {
+                            reject(err);
+                        }
+                    });
                 });
             },
-            catch: function(cb) {
-                return new Twig.Promise(function(resolve, reject) {
-                    if (rejected) {
-                        resolve(cb(resolvedTo));
-                        return;
-                    }
-
-                    err = function(e) {
-                        rejected = true;
-                        resolvedTo = value;
-                        resolve(cb(resolvedTo));
-                    };
-                });
+            catch: function(onRejected) {
+                return this.then(null, onRejected);
             }
         };
     }
@@ -188,6 +236,12 @@ module.exports = function (Twig) {
     Twig.Promise.resolve = function(value) {
         return new Twig.Promise(function(resolve) {
             resolve(value);
+        });
+    }
+
+    Twig.Promise.reject = function(e) {
+        return new Twig.Promise(function(resolve, reject) {
+            reject(e);
         });
     }
 
@@ -242,17 +296,21 @@ module.exports = function (Twig) {
             if (!Twig.isPromise(promise))
                 return iterate();
 
-            promise.then(next);
+            promise.then(next, fail);
         }
+
+        function fail(err) {
+            done(err);
+        };
 
         function iterate() {
             var index = arg_index++;
 
             if (index == arr.length) {
-                if (done.length < 1)
+                if (done.length < 2)
                     is_async = false;
 
-                done(function() {
+                done(null, function() {
                     is_async = false;
                 });
                 return;
@@ -261,7 +319,7 @@ module.exports = function (Twig) {
             var promise = callback(arr[index], index, next);
 
             if (Twig.isPromise(promise))
-                promise.then(next);
+                promise.then(next, fail);
         }
 
         iterate();
@@ -939,8 +997,10 @@ module.exports = function (Twig) {
                 }
 
                 next();
-            }, function() {
-                if (has_callback)
+            }, function(err) {
+                if (has_callback && err)
+                    cb(Promise.reject(err));
+                else if (has_callback)
                     cb(Twig.output.apply(that, [output]));
             });
 
@@ -1353,6 +1413,7 @@ module.exports = function (Twig) {
         }
 
         var cb = Twig.Promise.resolveAfterCall(function(output) {
+
             // Does this template extend another
             if (this.extend) {
                 var ext_template;
@@ -1380,7 +1441,7 @@ module.exports = function (Twig) {
 
                 this.parent = ext_template;
 
-                return this.parent.render(this.context, {
+                return this.parent.renderAsync(this.context, {
                     blocks: this.blocks
                 });
             }

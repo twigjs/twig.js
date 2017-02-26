@@ -1314,7 +1314,14 @@ module.exports = function (Twig) {
             }
 
             next(result);
-        }, function(next) {
+        }, function(err, next) {
+            if (err) {
+                if (!has_callback)
+                    throw err;
+
+                callback(Twig.Promise.reject(err));
+                return;
+            }
             //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
             //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
             Twig.forEach(loop_token_fixups, function (loop_token_fixup) {
@@ -1354,7 +1361,7 @@ module.exports = function (Twig) {
 
     Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {
         var that = this;
-        return new Twig.Promise(function(resolve, reject) {
+        return new Twig.Promise(function(resolve) {
             Twig.expression.parse.apply(that, [tokens, context, tokens_are_parameters, resolve]);
         });
     }

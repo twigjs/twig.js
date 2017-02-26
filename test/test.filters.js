@@ -744,4 +744,17 @@ describe("Twig.js Filters ->", function() {
             output.should.equal("HELLO WORLD");
         });
     });
+    it("should handle filters that return rejected promises", function() {
+        Twig.extendFilter('asyncUpper', function(txt) {
+            return Promise.reject(new Error('async error test'));
+        });
+        return twig({
+            data: '{{ "hello world"|asyncUpper }}'
+        }).renderAsync({})
+        .then(function(output) {
+            throw new Error('should not resolve');
+        }, function(err) {
+            err.message.should.equal('async error test');
+        });
+    });
 });
