@@ -12,7 +12,7 @@ describe("Twig.js Functions ->", function() {
     Twig.extendFunction("list", function() {
         return Array.prototype.slice.call(arguments);
     });
-    
+
     it("should allow you to define a function", function() {
         twig({data: '{{ square(a) }}'}).render({a:4}).should.equal("16");
     });
@@ -31,7 +31,7 @@ describe("Twig.js Functions ->", function() {
     it("should work with boolean operations", function() {
         twig({data: '{% if echo(true) or echo(false) %}yes{% endif %}'}).render().should.equal("yes");
     });
-    
+
     it("should execute functions passed as context values", function() {
         twig({
             data: '{{ value }}'
@@ -70,7 +70,7 @@ describe("Twig.js Functions ->", function() {
             }
         }).should.equal("value");
     });
-    
+
     it("should execute functions passed as context object parameters", function() {
         twig({
             data: '{{ obj.value }}'
@@ -95,7 +95,7 @@ describe("Twig.js Functions ->", function() {
             }
         }).should.equal("1-test-value-true");
     });
-    
+
     it("should execute functions passed as context object parameters", function() {
         twig({
             data: '{{ obj["value"] }}'
@@ -118,10 +118,22 @@ describe("Twig.js Functions ->", function() {
             }
         }).should.equal("1-test-true");
     });
-    
-    
+    it("should handle functions that return promises", function() {
+        return twig({
+            data: '{{ asyncEcho("hello world") }}'
+        }).renderAsync({
+            asyncEcho: function(txt) {
+                return Promise.resolve(txt);
+            }
+        })
+        .then(function(output) {
+            output.should.equal("hello world");
+        });
+    });
+
+
     describe("Built-in Functions ->", function() {
-        describe("range ->", function() { 
+        describe("range ->", function() {
             it("should work over a range of numbers", function() {
                 twig({data: '{% for i in range(0, 3) %}{{ i }},{% endfor %}'}).render().should.equal("0,1,2,3,");
             });
@@ -131,24 +143,24 @@ describe("Twig.js Functions ->", function() {
             it("should work with an interval", function() {
                 twig({data: '{% for i in range(1, 15, 3) %}{{ i }},{% endfor %}'}).render().should.equal("1,4,7,10,13,");
             });
-			
+
             it("should work with .. invocation", function() {
                 twig({data: '{% for i in 0..3 %}{{ i }},{% endfor %}'}).render().should.equal("0,1,2,3,");
                 twig({data: '{% for i in "a" .. "c" %}{{ i }},{% endfor %}'}).render().should.equal("a,b,c,");
             });
         });
-        describe("cycle ->", function() { 
+        describe("cycle ->", function() {
             it("should cycle through an array of values", function() {
                 twig({data: '{% for i in range(0, 3) %}{{ cycle(["odd", "even"], i) }};{% endfor %}'}).render().should.equal("odd;even;odd;even;");
             });
         });
-        describe("date ->", function() { 
+        describe("date ->", function() {
             function pad(num) {return num<10?'0'+num:num;}
             function stringDate(date){
                 return pad(date.getDate()) + "/" + pad(date.getMonth()+1) + "/" + date.getFullYear()
                                          + " @ " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
             }
-        
+
             it("should understand timestamps", function() {
                 var date = new Date(946706400 * 1000);
                 twig({data: '{{ date(946706400)|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
@@ -162,7 +174,7 @@ describe("Twig.js Functions ->", function() {
             });
             it("should understand exact dates", function() {
                 var date = new Date("June 20, 2010 UTC");
-            
+
                 twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
             });
         });
@@ -210,31 +222,31 @@ describe("Twig.js Functions ->", function() {
         describe("attribute ->", function() {
             it("should access attribute of an object", function() {
                 twig({data: '{{ attribute(obj, key) }}' }).render({
-                    obj: { name: "Twig.js"}, 
+                    obj: { name: "Twig.js"},
                     key: "name"
                 })
                 .should.equal("Twig.js");
             });
 
             it("should call function of attribute of an object", function() {
-                twig({data: '{{ attribute(obj, key, params) }}' }).render({ 
+                twig({data: '{{ attribute(obj, key, params) }}' }).render({
                     obj: {
-                        name: function(first, last) { 
+                        name: function(first, last) {
                             return first+'.'+last;
-                        } 
+                        }
                     },
                     key: "name",
                     params: ['Twig', 'js']
                   })
                   .should.equal("Twig.js");
             });
-            
+
             it("should return undefined for missing attribute of an object", function() {
-                twig({data: '{{ attribute(obj, key, params) }}' }).render({ 
+                twig({data: '{{ attribute(obj, key, params) }}' }).render({
                     obj: {
-                        name: function(first, last) { 
+                        name: function(first, last) {
                             return first+'.'+last;
-                        } 
+                        }
                     },
                     key: "missing",
                     params: ['Twig', 'js']
@@ -243,19 +255,19 @@ describe("Twig.js Functions ->", function() {
             });
 
             it("should return element of an array", function() {
-                twig({data: '{{ attribute(arr, 0) }}' }).render({ 
+                twig({data: '{{ attribute(arr, 0) }}' }).render({
                     arr: ['Twig', 'js']
                   })
                   .should.equal("Twig");
             });
 
             it("should return undef for array beyond index size", function() {
-                twig({data: '{{ attribute(arr, 100) }}' }).render({ 
+                twig({data: '{{ attribute(arr, 100) }}' }).render({
                     arr: ['Twig', 'js']
                   })
                   .should.equal("");
             });
- 
+
         });
         describe("template_from_string ->", function() {
             it("should load a template from a string", function() {
