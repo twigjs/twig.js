@@ -756,10 +756,15 @@ module.exports = function (Twig) {
                 output.push(token);
             },
             parse: function(token, stack, context) {
-                var input = stack.pop();
+                var that = this,
+                    input = stack.pop();
 
-                return parseParams(this, token.params, context, function(params) {
-                    stack.push(Twig.filter.apply(this, [token.value, input, params]));
+                return parseParams(this, token.params, context)
+                .then(function(params) {
+                    return Twig.filter.apply(that, [token.value, input, params]);
+                })
+                .then(function(value) {
+                    stack.push(value);
                 });
             }
         },

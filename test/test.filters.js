@@ -733,4 +733,15 @@ describe("Twig.js Filters ->", function() {
         var test_template = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}' });
         test_template.render().should.equal("2,1,0");
     });
+    it("should handle filters that return promises", function() {
+        Twig.extendFilter('asyncUpper', function(txt) {
+            return Promise.resolve(txt.toUpperCase());
+        });
+        return twig({
+            data: '{{ "hello world"|asyncUpper }}'
+        }).renderAsync({})
+        .then(function(output) {
+            output.should.equal("HELLO WORLD");
+        });
+    });
 });
