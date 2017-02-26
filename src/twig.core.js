@@ -113,6 +113,162 @@ module.exports = function (Twig) {
         // 8. return undefined
     };
 
+    Twig.isPromise = function(obj) {
+        return obj && (typeof obj.then == 'function');
+    }
+
+    /**
+     * An alternate implementation of a Promise that does not follow
+     * the spec, but instead works fully synchronous while still being
+     * thenable.
+     *
+     * The promises can be mixed with regular promises at which point
+     * the synchronous behaviour is lost.
+     */
+    Twig.Promise = function(executor) {
+        var resolved = false;
+        var resolvedTo = null;
+
+        var rejected = false;
+
+        var next = function(value) {
+            resolved = true;
+            resolvedTo = value;
+        };
+
+        var err = function(e) {
+            rejected = false;
+            resolvedTo = e;
+            console.log(e);
+        };
+
+        executor(function(result) {
+            if (!Twig.isPromise(result))
+                return next(result);
+
+            result.then(function(r) {
+                next(r);
+            }).catch(function(e) {
+                err(e);
+            });
+        }, function(e) { err(e); });
+
+        return {
+            then: function(cb) {
+                return new Twig.Promise(function(resolve) {
+                    if (resolved) {
+                        resolve(cb(resolvedTo));
+                        return;
+                    }
+
+                    next = function(value) {
+                        resolved = true;
+                        resolvedTo = value;
+                        resolve(cb(resolvedTo));
+                    };
+                });
+            },
+            catch: function(cb) {
+                return new Twig.Promise(function(resolve, reject) {
+                    if (rejected) {
+                        resolve(cb(resolvedTo));
+                        return;
+                    }
+
+                    err = function(e) {
+                        rejected = true;
+                        resolvedTo = value;
+                        resolve(cb(resolvedTo));
+                    };
+                });
+            }
+        };
+    }
+
+    Twig.Promise.resolve = function(value) {
+        return new Twig.Promise(function(resolve) {
+            resolve(value);
+        });
+    }
+
+    /**
+     * Return a method that is `thenable` and resolves when it is called.
+     */
+    Twig.Promise.resolveAfterCall = function(func) {
+        var callback = Twig.noop;
+        var is_function = (typeof func === 'function');
+        var promise = new Twig.Promise(function(resolve, reject) {
+            callback = resolve;
+        });
+
+        var ret = function() {
+            var result = arguments[0];
+
+            if (is_function) {
+                var args = [], args_i = arguments.length;
+                while(args_i-- > 0) args[args_i] = arguments[args_i];
+
+                result = func.apply(null, args);
+            }
+
+            callback(result);
+        };
+
+        ret.then = promise.then;
+        ret.catch = promise.catch;
+
+        return ret;
+    }
+
+    Twig.noop = function() {};
+
+    /**
+     * Go over each item in a fashion compatible with Twig.forEach,
+     * allow the function to return a promise or call the third argument
+     * to signal it is finished.
+     *
+     * Each item in the array will be called sequentially.
+     */
+    Twig.forEachAsync = function each(arr, callback, done) {
+        done = done || Twig.noop;
+
+        if (typeof callback !== 'function')
+            throw new Error('Callback should be a function');
+
+        var arg_index = 0;
+        var is_async = true;
+
+        function next(promise) {
+            if (!Twig.isPromise(promise))
+                return iterate();
+
+            promise.then(next);
+        }
+
+        function iterate() {
+            var index = arg_index++;
+
+            if (index == arr.length) {
+                if (done.length < 1)
+                    is_async = false;
+
+                done(function() {
+                    is_async = false;
+                });
+                return;
+            }
+
+            var promise = callback(arr[index], index, next);
+
+            if (Twig.isPromise(promise))
+                promise.then(next);
+        }
+
+        iterate();
+
+        return is_async;
+    };
+
     Twig.merge = function(target, source, onlyChanged) {
         Twig.forEach(Object.keys(source), function (key) {
             if (onlyChanged && !(key in target)) {
@@ -733,14 +889,16 @@ module.exports = function (Twig) {
      *
      * @return {string} The parsed template.
      */
-    Twig.parse = function (tokens, context) {
+    Twig.parse = function (tokens, context, cb) {
         try {
             var output = [],
+                has_callback = (typeof cb === 'function'),
+                is_async = false,
                 // Track logic chains
                 chain = true,
                 that = this;
 
-            Twig.forEach(tokens, function parseToken(token) {
+            is_async = Twig.forEachAsync(tokens, function parseToken(token, index, next) {
                 Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
                 switch (token.type) {
@@ -774,11 +932,25 @@ module.exports = function (Twig) {
                     case Twig.token.type.output:
                         Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                         // Parse the given expression in the given context
-                        output.push(Twig.expression.parse.apply(that, [token.stack, context]));
-                        break;
+                        return Twig.expression.parseAsync.apply(that, [token.stack, context])
+                        .then(function(o) {
+                            output.push(o);
+                        });
                 }
+
+                next();
+            }, function() {
+                if (has_callback)
+                    cb(Twig.output.apply(that, [output]));
             });
-            return Twig.output.apply(this, [output]);
+
+            if (!is_async && !has_callback)
+                return Twig.output.apply(this, [output]);
+
+            if (!has_callback)
+                throw new Error('You are using Twig.js in sync mode in combination with async extensions.');
+
+            return null;
         } catch (ex) {
             if (this.options.rethrow) {
                 throw ex;
@@ -902,7 +1074,7 @@ module.exports = function (Twig) {
      *        return template;
      *    });
      * });
-     * 
+     *
      * @param {String} method_name The method this loader is intended for (ajax, fs)
      * @param {Function} func The function to execute when loading the template
      * @param {Object|undefined} scope Optional scope parameter to bind func to
@@ -923,7 +1095,7 @@ module.exports = function (Twig) {
 
     /**
      * Remove a registered loader
-     * 
+     *
      * @param {String} method_name The method name for the loader you wish to remove
      *
      * @return {void}
@@ -936,7 +1108,7 @@ module.exports = function (Twig) {
 
     /**
      * See if a loader is registered by its method name
-     * 
+     *
      * @param {String} method_name The name of the loader you are looking for
      *
      * @return {boolean}
@@ -1161,6 +1333,70 @@ module.exports = function (Twig) {
             blocks: blocks || {}
         };
         this.extend = null;
+    };
+
+    Twig.Template.prototype.renderAsync = function (context, params) {
+        params = params || {};
+
+        var output,
+            url;
+
+        this.context = context || {};
+
+        // Clear any previous state
+        this.reset();
+        if (params.blocks) {
+            this.blocks = params.blocks;
+        }
+        if (params.macros) {
+            this.macros = params.macros;
+        }
+
+        var cb = Twig.Promise.resolveAfterCall(function(output) {
+            // Does this template extend another
+            if (this.extend) {
+                var ext_template;
+
+                // check if the template is provided inline
+                if ( this.options.allowInlineIncludes ) {
+                    ext_template = Twig.Templates.load(this.extend);
+                    if ( ext_template ) {
+                        ext_template.options = this.options;
+                    }
+                }
+
+                // check for the template file via include
+                if (!ext_template) {
+                    url = Twig.path.parsePath(this, this.extend);
+
+                    ext_template = Twig.Templates.loadRemote(url, {
+                        method: this.getLoaderMethod(),
+                        base: this.base,
+                        async:  false,
+                        id:     url,
+                        options: this.options
+                    });
+                }
+
+                this.parent = ext_template;
+
+                return this.parent.render(this.context, {
+                    blocks: this.blocks
+                });
+            }
+
+            if (params.output == 'blocks') {
+                return this.blocks;
+            } else if (params.output == 'macros') {
+                return this.macros;
+            } else {
+                return output;
+            }
+        }.bind(this));
+
+        Twig.parse.apply(this, [this.tokens, this.context, cb]);
+
+        return cb;
     };
 
     Twig.Template.prototype.render = function (context, params) {
