@@ -11,6 +11,7 @@ var Twig = {
 };
 
 require('./twig.core')(Twig);
+require('./twig.async')(Twig);
 require('./twig.compiler')(Twig);
 require('./twig.expression')(Twig);
 require('./twig.filters')(Twig);

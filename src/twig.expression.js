@@ -4,16 +4,11 @@
 module.exports = function (Twig) {
     "use strict";
 
-    function parseParams(thisArg, params, context, cb) {
-        var promise = Twig.Promise.resolveAfterCall(cb && cb.bind(thisArg));
+    function parseParams(thisArg, params, context) {
+        if (params)
+            return Twig.expression.parseAsync.apply(thisArg, [params, context]);
 
-        if (params) {
-            Twig.expression.parse.apply(thisArg, [params, context, promise]);
-        } else {
-            promise(false);
-        }
-
-        return promise;
+        return Twig.Promise.resolve(false);
     }
 
     /**
@@ -158,7 +153,8 @@ module.exports = function (Twig) {
             parse: function(token, stack, context) {
                 var value = stack.pop();
 
-                return parseParams(this, token.params, context, function(params) {
+                return parseParams(this, token.params, context)
+                .then(function(params) {
                     var result = Twig.test(token.filter, value, params);
 
                     if (token.modifier == 'not') {
@@ -791,13 +787,15 @@ module.exports = function (Twig) {
             },
             parse: function(token, stack, context) {
 
-                var fn     = token.fn,
+                var that = this,
+                    fn = token.fn,
                     value;
 
-                return parseParams(this, token.params, context, function(params) {
+                return parseParams(this, token.params, context)
+                .then(function(params) {
                     if (Twig.functions[fn]) {
                         // Get the function from the built-in functions
-                        value = Twig.functions[fn].apply(this, params);
+                        value = Twig.functions[fn].apply(that, params);
 
                     } else if (typeof context[fn] == 'function') {
                         // Get the function from the user/context defined functions
@@ -807,12 +805,11 @@ module.exports = function (Twig) {
                         throw new Twig.Error(fn + ' function does not exist and is not defined in the context');
                     }
 
-                    return Twig.Promise.resolve(value)
-                    .then(function(result) {
-                        stack.push(result);
-                    });
+                    return value;
+                })
+                .then(function(result) {
+                    stack.push(result);
                 });
-
             }
         },
 
@@ -1269,7 +1266,7 @@ module.exports = function (Twig) {
      *                  can be anything, String, Array, Object, etc... based on
      *                  the given expression.
      */
-    Twig.expression.parse = function (tokens, context, tokens_are_parameters, callback) {
+    Twig.expression.parse = function (tokens, context, tokens_are_parameters, allow_async) {
         var that = this;
 
         // If the token isn't an array, make it one.
@@ -1277,25 +1274,22 @@ module.exports = function (Twig) {
             tokens = [tokens];
         }
 
-        if (typeof callback !== 'function' && typeof tokens_are_parameters === 'function') {
-            callback = tokens_are_parameters;
-            tokens_are_parameters = false;
-        }
-
         // The output stack
         var stack = [],
             next_token,
+            output = null,
+            promise = null,
+            is_async = true,
             token_template = null,
-            loop_token_fixups = [],
-            has_callback = (typeof callback === 'function'),
-            is_async;
+            loop_token_fixups = [];
 
-        is_async = Twig.forEachAsync(tokens, function (token, index, next) {
+        promise = Twig.async.forEach(tokens, function (token, index) {
             //If the token is marked for cleanup, we don't need to parse it
             if (token.cleanup) {
-                next();
                 return;
             }
+
+            var result = null;
 
             //Determine the token that follows this one so that we can pass it to the parser
             if (tokens.length > index + 1) {
@@ -1304,7 +1298,6 @@ module.exports = function (Twig) {
 
             token_template = Twig.expression.handler[token.type];
 
-            var result = null;
             if (token_template.parse)
                 result = token_template.parse.apply(that, [token, stack, context, next_token]);
 
@@ -1313,15 +1306,9 @@ module.exports = function (Twig) {
                 loop_token_fixups.push(token);
             }
 
-            next(result);
-        }, function(err, next) {
-            if (err) {
-                if (!has_callback)
-                    throw err;
-
-                callback(Twig.Promise.reject(err));
-                return;
-            }
+            return result;
+        })
+        .then(function() {
             //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
             //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
             Twig.forEach(loop_token_fixups, function (loop_token_fixup) {
@@ -1341,29 +1328,26 @@ module.exports = function (Twig) {
                 stack.push(params);
             }
 
-            if (has_callback)
-                callback(stack.pop(), next);
-
-            if (!has_callback || callback.length < 2)
-                next();
+            if (allow_async)
+                return Twig.Promise.resolve(stack.pop());
+        })
+        .then(function(v) {
+            is_async = false;
+            return v;
         });
 
-        if (!is_async && !has_callback) {
-            // Pop the final value off the stack
-            return stack.pop();
-        }
+        if (allow_async)
+            return promise;
 
-        if (!has_callback)
+        if (is_async)
             throw new Error('You are using Twig.js in sync mode in combination with async extensions.');
 
-        return is_async;
+        // Pop the final value off the stack
+        return stack.pop();
     };
 
     Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {
-        var that = this;
-        return new Twig.Promise(function(resolve) {
-            Twig.expression.parse.apply(that, [tokens, context, tokens_are_parameters, resolve]);
-        });
+        return Twig.expression.parse.apply(this, [tokens, context, tokens_are_parameters, true]);
     }
 
     return Twig;

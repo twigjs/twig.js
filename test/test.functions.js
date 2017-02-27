@@ -130,6 +130,20 @@ describe("Twig.js Functions ->", function() {
             output.should.equal("hello world");
         });
     });
+    it("should handle functions that return rejected promises", function() {
+        return twig({
+            data: '{{ asyncEcho("hello world") }}'
+        }).renderAsync({
+            asyncEcho: function() {
+                return Promise.reject(new Error('async error test'));
+            }
+        })
+        .then(function(output) {
+            throw new Error('should not resolve');
+        }, function(err) {
+            err.message.should.equal('async error test');
+        });
+    });
 
 
     describe("Built-in Functions ->", function() {
