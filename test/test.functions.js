@@ -132,7 +132,8 @@ describe("Twig.js Functions ->", function() {
     });
     it("should handle functions that return rejected promises", function() {
         return twig({
-            data: '{{ asyncEcho("hello world") }}'
+            data: '{{ asyncEcho("hello world") }}',
+            rethrow: true
         }).renderAsync({
             asyncEcho: function() {
                 return Promise.reject(new Error('async error test'));

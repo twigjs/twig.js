@@ -749,7 +749,8 @@ describe("Twig.js Filters ->", function() {
             return Promise.reject(new Error('async error test'));
         });
         return twig({
-            data: '{{ "hello world"|asyncUpper }}'
+            data: '{{ "hello world"|asyncUpper }}',
+            rethrow: true
         }).renderAsync({})
         .then(function(output) {
             throw new Error('should not resolve');

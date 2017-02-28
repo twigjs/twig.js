@@ -1340,15 +1340,11 @@ module.exports = function (Twig) {
             return promise;
 
         if (is_async)
-            throw new Error('You are using Twig.js in sync mode in combination with async extensions.');
+            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
 
         // Pop the final value off the stack
         return stack.pop();
     };
-
-    Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {
-        return Twig.expression.parse.apply(this, [tokens, context, tokens_are_parameters, true]);
-    }
 
     return Twig;
 
