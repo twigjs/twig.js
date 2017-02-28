@@ -850,7 +850,7 @@ module.exports = function (Twig) {
                 }
 
                 // When resolving an expression we need to pass next_token in case the expression is a function
-                stack.push(Twig.expression.resolve.apply(this, [value, context, params, next_token]));
+                stack.push(Twig.expression.resolve.apply(this, [value, context, params, next_token, object]));
             }
         },
         {
@@ -948,7 +948,7 @@ module.exports = function (Twig) {
      * @param {string} key The context object key.
      * @param {Object} context The render context.
      */
-    Twig.expression.resolve = function(value, context, params, next_token) {
+    Twig.expression.resolve = function(value, context, params, next_token, object) {
         if (typeof value == 'function') {
             /*
             If value is a function, it will have been impossible during the compile stage to determine that a following
@@ -968,7 +968,7 @@ module.exports = function (Twig) {
                 //Clean up the parentheses tokens on the next loop
                 next_token.cleanup = true;
             }
-            return value.apply(context, params || []);
+            return value.apply(object || context, params || []);
         } else {
             return value;
         }
