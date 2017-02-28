@@ -910,8 +910,8 @@ module.exports = function (Twig) {
             parse: function(token, stack, context, next_token) {
                 // Evaluate key
                 var that = this,
-                    object = stack.pop(),
                     params = null,
+                    object,
                     value;
 
                 return parseParams(this, token.params, context)
@@ -920,6 +920,8 @@ module.exports = function (Twig) {
                     return Twig.expression.parseAsync.apply(that, [token.stack, context]);
                 })
                 .then(function(key) {
+                    object = stack.pop();
+
                     if (object === null || object === undefined) {
                         if (that.options.strict_variables) {
                             throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
@@ -995,8 +997,10 @@ module.exports = function (Twig) {
      * @param {string} key The context object key.
      * @param {Object} context The render context.
      */
-    Twig.expression.resolve = function(value, context, params, next_token, object) {
+    Twig.expression.resolveAsync = function(value, context, params, next_token, object) {
         if (typeof value == 'function') {
+            var promise = Twig.Promise.resolve(params);
+
             /*
             If value is a function, it will have been impossible during the compile stage to determine that a following
             set of parentheses were parameters for this function.
@@ -1010,51 +1014,39 @@ module.exports = function (Twig) {
                 //When parsing these parameters, we need to get them all back, not just the last item on the stack.
                 var tokens_are_parameters = true;
 
-                params = next_token.params && Twig.expression.parse.apply(this, [next_token.params, context, tokens_are_parameters]);
-
-                //Clean up the parentheses tokens on the next loop
-                next_token.cleanup = true;
-            }
-            return value.apply(object || context, params || []);
-        } else {
-            return value;
-        }
-    };
-
-    Twig.expression.resolveAsync = function(value, context, params, next_token) {
-        if (typeof value != 'function') {
-            return Twig.Promise.resolve(value);
-        }
-
-        /*
-        If value is a function, it will have been impossible during the compile stage to determine that a following
-        set of parentheses were parameters for this function.
-
-        Those parentheses will have therefore been marked as an expression, with their own parameters, which really
-        belong to this function.
-
-        Those parameters will also need parsing in case they are actually an expression to pass as parameters.
-        */
-        if (next_token && next_token.type === Twig.expression.type.parameter.end) {
-            //When parsing these parameters, we need to get them all back, not just the last item on the stack.
-            var tokens_are_parameters = true;
-
-            if (next_token.params) {
-                return Twig.expression.parseAsync.apply(this, [next_token.params, context, tokens_are_parameters])
-                .then(function(params) {
+                promise = promise.then(function() {
+                    return next_token.params && Twig.expression.parseAsync.apply(this, [next_token.params, context, tokens_are_parameters]);
+                })
+                .then(function(p) {
+                    //Clean up the parentheses tokens on the next loop
                     next_token.cleanup = true;
-                    return value.apply(context, params || []);
+
+                    return p;
                 });
             }
 
-            params = null;
-
-            //Clean up the parentheses tokens on the next loop
-            next_token.cleanup = true;
+            return promise.then(function(params) {
+                return value.apply(object || context, params || []);
+            });
+        } else {
+            return Twig.Promise.resolve(value);
         }
+    };
 
-        var result = value.apply(context, params || []);
-        return Twig.Promise.resolve(result);
+    Twig.expression.resolve = function(value, context, params, next_token, object) {
+        var is_async = true,
+            result;
+
+        Twig.expression.resolveAsync.apply(this, [value, context, params, next_token, object])
+        .then(function(r) {
+            is_async = false;
+            result = r;
+        });
+
+        if (is_async)
+            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
+
+        return result;
     }
 
     /**
