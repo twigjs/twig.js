@@ -1,3 +1,23 @@
+Version 1.10.4, released 2017-03-02
+-----------------------------------
+
+Minor improvements:
+* Fixed missing changelog updates
+
+Version 1.10.3, released 2017-03-02
+-----------------------------------
+
+Major improvements:
+* Async rendering and filters (#457)
+* From aliases (#438)
+* Bitwise operators (#443)
+* Fix object method context (#455)
+
+Minor improvements:
+* Readme updates (#454)
+* 'not' unary can be more widely used (#444)
+* Fix `importFile` relative path handling (#449)
+
 Version 0.10.3, released 2016-12-09
 -----------------------------------
 Minor improvements:
