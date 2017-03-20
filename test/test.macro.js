@@ -1,4 +1,4 @@
-var Twig = Twig || require("../twig"),
+var Twig = Twig || requireUncached("../twig"),
     twig = twig || Twig.twig;
 
 describe("Twig.js Macro ->", function() {
@@ -70,7 +70,7 @@ describe("Twig.js Macro ->", function() {
             async: false
         });
         // Load the template
-        twig({ref: 'from-macro-import'}).render({ }).trim().should.equal( 'Twig.js<div class="field"><input type="text" name="text" value="" size="20" /></div><div class="field red"><input type="text" name="password" value="" size="20" /></div>' );
+        twig({ref: 'from-macro-import'}).render({ }).trim().should.equal( 'Hello Twig.js<div class="field"><input type="text" name="text" value="" size="20" /></div><div class="field red"><input type="text" name="password" value="" size="20" /></div>' );
     });
 
     it("should support inline includes by ID", function() {
@@ -85,7 +85,7 @@ describe("Twig.js Macro ->", function() {
             }),
             output = template.render()
 
-        output.should.equal("template with Twig.js");
+        output.should.equal("template with Hello Twig.js");
     });
 
 });

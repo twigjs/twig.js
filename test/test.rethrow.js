@@ -1,8 +1,4 @@
-var path = require('path');
-
-delete require.cache[path.resolve(path.join(__dirname, '../twig.js'))];
-
-var Twig = Twig || require("../twig"),
+var Twig = Twig || requireUncached("../twig"),
     twig = twig || Twig.twig;
 
 describe("Twig.js Rethrow ->", function() {
