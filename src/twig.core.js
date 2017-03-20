@@ -130,10 +130,11 @@ module.exports = function (Twig) {
     /**
      * Exception thrown by twig.js.
      */
-    Twig.Error = function(message) {
+    Twig.Error = function(message, file) {
        this.message = message;
        this.name = "TwigException";
        this.type = "TwigException";
+       this.file = file;
     };
 
     /**
@@ -714,6 +715,10 @@ module.exports = function (Twig) {
             return output;
         } catch (ex) {
             if (this.options.rethrow) {
+                if (ex.type == 'TwigException' && !ex.file) {
+                    ex.file = this.id;
+                }
+
                 throw ex
             }
             else {
@@ -752,6 +757,14 @@ module.exports = function (Twig) {
 
         function handleException(ex) {
             if (that.options.rethrow) {
+                if (typeof ex === 'string') {
+                    ex = new Twig.Error(ex)
+                }
+
+                if (ex.type == 'TwigException' && !ex.file) {
+                    ex.file = that.id;
+                }
+
                 throw ex;
             }
             else {

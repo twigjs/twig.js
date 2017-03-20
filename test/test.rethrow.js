@@ -1,3 +1,7 @@
+var path = require('path');
+
+delete require.cache[path.resolve(path.join(__dirname, '../twig.js'))];
+
 var Twig = Twig || require("../twig"),
     twig = twig || Twig.twig;
 
@@ -18,6 +22,57 @@ describe("Twig.js Rethrow ->", function() {
                 data: 'missing closing bracket {% }'
             }).render()
         }).should.throw(" Unable to find closing bracket '%}");
+    });
+
+    it("should throw a compile error having its file property set to the file", function(done) {
+        try {
+            var template = twig({
+                path: 'test/templates/error/compile/entry.twig',
+                async: false,
+                rethrow: true
+            });
+
+            done(template);
+        }
+        catch(err) {
+            err.should.have.property('file', 'test/templates/error/compile/entry.twig');
+
+            done();
+        }
+    });
+
+    it("should throw a parse error having its file property set to the entry file", function(done) {
+        try {
+            var output = twig({
+                path: 'test/templates/error/parse/in-entry/entry.twig',
+                async: false,
+                rethrow: true
+            }).render();
+
+            done(output);
+        }
+        catch(err) {
+            err.should.have.property('file', 'test/templates/error/parse/in-entry/entry.twig');
+
+            done();
+        }
+    });
+
+    it("should throw a parse error having its file property set to the partial file", function(done) {
+        try {
+            var output = twig({
+                path: 'test/templates/error/parse/in-partial/entry.twig',
+                async: false,
+                rethrow: true
+            }).render();
+
+            done(output);
+        }
+        catch(err) {
+            err.should.have.property('file', 'test/templates/error/parse/in-entry/entry.twig');
+
+            done();
+        }
     });
 });
 
