@@ -5,9 +5,9 @@ delete require.cache[path.resolve(path.join(__dirname, '../twig.js'))];
 var Twig = Twig || require("../twig"),
     twig = twig || Twig.twig;
 
-describe("Twig.js Rethrow ->", function () {
-    it("should throw a \"Unable to parse 'missing'\" exception", function () {
-        (function () {
+describe("Twig.js Rethrow ->", function() {
+    it("should throw a \"Unable to parse 'missing'\" exception", function() {
+        (function(){
             twig({
                 rethrow: true,
                 data: 'include missing template {% missing %}'
@@ -15,8 +15,8 @@ describe("Twig.js Rethrow ->", function () {
         }).should.throw("Unable to parse 'missing'");
     });
 
-    it("should throw a \"Unable to find closing bracket '%}\" exception", function () {
-        (function () {
+    it("should throw a \"Unable to find closing bracket '%}\" exception", function() {
+        (function(){
             twig({
                 rethrow: true,
                 data: 'missing closing bracket {% }'
@@ -24,7 +24,7 @@ describe("Twig.js Rethrow ->", function () {
         }).should.throw(" Unable to find closing bracket '%}");
     });
 
-    it("should throw a compile error having its file property set to the file", function (done) {
+    it("should throw a compile error having its file property set to the file", function(done) {
         try {
             var template = twig({
                 path: 'test/templates/error/compile/entry.twig',
@@ -34,14 +34,14 @@ describe("Twig.js Rethrow ->", function () {
 
             done(template);
         }
-        catch (err) {
+        catch(err) {
             err.should.have.property('file', 'test/templates/error/compile/entry.twig');
 
             done();
         }
     });
 
-    it("should throw a parse error having its file property set to the entry file", function (done) {
+    it("should throw a parse error having its file property set to the entry file", function(done) {
         try {
             var output = twig({
                 path: 'test/templates/error/parse/in-entry/entry.twig',
@@ -51,14 +51,14 @@ describe("Twig.js Rethrow ->", function () {
 
             done(output);
         }
-        catch (err) {
+        catch(err) {
             err.should.have.property('file', 'test/templates/error/parse/in-entry/entry.twig');
 
             done();
         }
     });
 
-    it("should throw a parse error having its file property set to the partial file", function (done) {
+    it("should throw a parse error having its file property set to the partial file", function(done) {
         try {
             var output = twig({
                 path: 'test/templates/error/parse/in-partial/entry.twig',
@@ -68,7 +68,7 @@ describe("Twig.js Rethrow ->", function () {
 
             done(output);
         }
-        catch (err) {
+        catch(err) {
             err.should.have.property('file', 'test/templates/error/parse/in-entry/entry.twig');
 
             done();
