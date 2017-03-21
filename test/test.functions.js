@@ -1,4 +1,4 @@
-var Twig = Twig || require("../twig"),
+var Twig = Twig || requireUncached("../twig"),
     twig = twig || Twig.twig;
 
 describe("Twig.js Functions ->", function() {
