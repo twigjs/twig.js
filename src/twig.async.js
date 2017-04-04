@@ -158,7 +158,7 @@ module.exports = function (Twig) {
     };
 
     Twig.Promise.all = function(promises) {
-        const results = [];
+        var results = [];
 
         return Twig.async.forEach(promises, function(p, index) {
             if (!Twig.isPromise(p)) {
