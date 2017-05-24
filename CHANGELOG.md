@@ -1,3 +1,11 @@
+Version 1.10.5, released 2017-05-24
+-----------------------------------
+
+Minor improvements:
+* Template id is now returned as part of the error when an exception is thrown (#464)
+* Test result no longer dependent on the name of the test file (#465)
+* Fix unexpected 'const' (#471)
+
 Version 1.10.4, released 2017-03-02
 -----------------------------------
 
