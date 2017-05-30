@@ -229,6 +229,10 @@ describe("Twig.js Expressions ->", function() {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a || pair.b).toString() );
             });
+
+            test_template.render({a: 0, b: 1}).should.equal('true');
+            test_template.render({a: '0', b: 1}).should.equal('true');
+            test_template.render({a: '0', b: '0'}).should.equal('false');
         });
         it("should support boolean and", function() {
             var test_template = twig({data: '{{ a and b }}'});
@@ -236,6 +240,10 @@ describe("Twig.js Expressions ->", function() {
                 var output = test_template.render(pair);
                 output.should.equal((pair.a && pair.b).toString() );
             });
+
+            test_template.render({a: 0, b: 1}).should.equal('false');
+            test_template.render({a: '0', b: 1}).should.equal('false');
+            test_template.render({a: '0', b: '0'}).should.equal('false');
         });
         it("should support boolean not", function() {
             var test_template = twig({data: '{{ not a }}'});
