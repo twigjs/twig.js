@@ -6285,7 +6285,7 @@ Loops should be exempted as well.</p>
              *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
              */</span>
             type: Twig.logic.type.embed,
-            regex: <span class="hljs-regexp">/^embed\s+(ignore missing\s+)?(.+?)\s*(?:with\s+(.+?))?\s*(only)?$/</span>,
+            regex: <span class="hljs-regexp">/^embed\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/</span>,
             next: [
                 Twig.logic.type.endembed
             ],
