@@ -256,7 +256,7 @@ module.exports = function (Twig) {
                 break;
 
             case 'or':
-                stack.push(a || b);
+                stack.push(Twig.lib.boolval(a) || Twig.lib.boolval(b));
                 break;
 
             case 'b-or':
@@ -268,7 +268,7 @@ module.exports = function (Twig) {
                 break;
 
             case 'and':
-                stack.push(a && b);
+                stack.push(Twig.lib.boolval(a) && Twig.lib.boolval(b));
                 break;
 
             case 'b-and':
