@@ -279,7 +279,7 @@ module.exports = function (Twig) {
                 }
             },
             parse: function(token, stack, context) {
-                if (token.key) {
+                if (token.key || token.key === 0) {
                     // handle ternary ':' operator
                     stack.push(token);
                 } else if (token.params) {
@@ -706,7 +706,7 @@ module.exports = function (Twig) {
                         object_ended = true;
                         break;
                     }
-                    if (token && token.type && (token.type === Twig.expression.type.operator.binary || token.type === Twig.expression.type.operator.unary) && token.key) {
+                    if (token && token.type && (token.type === Twig.expression.type.operator.binary || token.type === Twig.expression.type.operator.unary) && (token.key || token.key === 0)) {
                         if (!has_value) {
                             throw new Twig.Error("Missing value for key '" + token.key + "' in object definition.");
                         }
