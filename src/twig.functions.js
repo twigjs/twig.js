@@ -67,11 +67,14 @@ module.exports = function (Twig) {
             return arr[pos];
         },
         dump: function() {
+            // Don't pass arguments to `Array.slice`, that is a performance killer
+            var args_i = arguments.length; args = new Array(args_i);
+            while(args_i-- > 0) args[args_i] = arguments[args_i];
+
             var EOL = '\n',
                 indentChar = '  ',
                 indentTimes = 0,
                 out = '',
-                args = Array.prototype.slice.call(arguments),
                 indent = function(times) {
                     var ind  = '';
                     while (times > 0) {

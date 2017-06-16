@@ -1117,8 +1117,11 @@ module.exports = function (Twig) {
             match_found, invalid_matches = [], match_function;
 
         match_function = function () {
-            var match = Array.prototype.slice.apply(arguments),
-                string = match.pop(),
+            // Don't pass arguments to `Array.slice`, that is a performance killer
+            var match_i = arguments.length, match = new Array(match_i);
+            while (match_i-- > 0) match[match_i] = arguments[match_i];
+
+            var string = match.pop(),
                 offset = match.pop();
 
             Twig.log.trace("Twig.expression.tokenize",
@@ -1166,26 +1169,24 @@ module.exports = function (Twig) {
         while (expression.length > 0) {
             expression = expression.trim();
             for (type in Twig.expression.handler) {
-                if (Twig.expression.handler.hasOwnProperty(type)) {
-                    token_next = Twig.expression.handler[type].next;
-                    regex = Twig.expression.handler[type].regex;
-                    Twig.log.trace("Checking type ", type, " on ", expression);
-                    if (regex instanceof Array) {
-                        regex_array = regex;
-                    } else {
-                        regex_array = [regex];
-                    }
+                token_next = Twig.expression.handler[type].next;
+                regex = Twig.expression.handler[type].regex;
+                Twig.log.trace("Checking type ", type, " on ", expression);
+                if (regex instanceof Array) {
+                    regex_array = regex;
+                } else {
+                    regex_array = [regex];
+                }
 
-                    match_found = false;
-                    while (regex_array.length > 0) {
-                        regex = regex_array.pop();
-                        expression = expression.replace(regex, match_function);
-                    }
-                    // An expression token has been matched. Break the for loop and start trying to
-                    //  match the next template (if expression isn't empty.)
-                    if (match_found) {
-                        break;
-                    }
+                match_found = false;
+                while (regex_array.length > 0) {
+                    regex = regex_array.pop();
+                    expression = expression.replace(regex, match_function);
+                }
+                // An expression token has been matched. Break the for loop and start trying to
+                //  match the next template (if expression isn't empty.)
+                if (match_found) {
+                    break;
                 }
             }
             if (!match_found) {

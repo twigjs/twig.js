@@ -606,7 +606,9 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                return Twig.logic.handler[Twig.logic.type.block].parse.apply(this, arguments);
+                var args = new Array(arguments.length), args_i = arguments.length;
+                while(args_i-- > 0) args[args_i] = arguments[args_i];
+                return Twig.logic.handler[Twig.logic.type.block].parse.apply(this, args);
             }
         },
         {

@@ -16,11 +16,13 @@ module.exports = function (Twig) {
         parent: "{{|PARENT|}}"
     };
 
+    Twig.hasIndexOf = Array.prototype.hasOwnProperty("indexOf");
+
     /**
      * Fallback for Array.indexOf for IE8 et al
      */
     Twig.indexOf = function (arr, searchElement /*, fromIndex */ ) {
-        if (Array.prototype.hasOwnProperty("indexOf")) {
+        if (Twig.hasIndexOf) {
             return arr.indexOf(searchElement);
         }
         if (arr === void 0 || arr === null) {
@@ -126,6 +128,15 @@ module.exports = function (Twig) {
 
         return target;
     };
+
+    /**
+     * try/catch in a function causes the entire function body to remain unoptimized.
+     * Use this instead so only ``Twig.attempt` will be left unoptimized.
+     */
+    Twig.attempt = function(fn, exceptionHandler) {
+        try { return fn(); }
+        catch(ex) { return exceptionHandler(ex); }
+    }
 
     /**
      * Exception thrown by twig.js.
@@ -497,9 +508,9 @@ module.exports = function (Twig) {
         return tokens;
     };
 
-
     Twig.compile = function (tokens) {
-        try {
+        var self = this;
+        return Twig.attempt(function() {
 
             // Output and intermediate stacks
             var output = [],
@@ -529,7 +540,7 @@ module.exports = function (Twig) {
                 next = null;
 
             var compile_output = function(token) {
-                Twig.expression.compile.apply(this, [token]);
+                Twig.expression.compile.apply(self, [token]);
                 if (stack.length > 0) {
                     intermediate_output.push(token);
                 } else {
@@ -539,7 +550,7 @@ module.exports = function (Twig) {
 
             var compile_logic = function(token) {
                 // Compile the logic token
-                logic_token = Twig.logic.compile.apply(this, [token]);
+                logic_token = Twig.logic.compile.apply(self, [token]);
 
                 type = logic_token.type;
                 open = Twig.logic.handler[type].open;
@@ -620,7 +631,7 @@ module.exports = function (Twig) {
                         break;
 
                     case Twig.token.type.logic:
-                        compile_logic.call(this, token);
+                        compile_logic.call(self, token);
                         break;
 
                     // Do nothing, comments should be ignored
@@ -628,7 +639,7 @@ module.exports = function (Twig) {
                         break;
 
                     case Twig.token.type.output:
-                        compile_output.call(this, token);
+                        compile_output.call(self, token);
                         break;
 
                     //Kill whitespace ahead and behind this token
@@ -673,12 +684,12 @@ module.exports = function (Twig) {
                             case Twig.token.type.output_whitespace_pre:
                             case Twig.token.type.output_whitespace_post:
                             case Twig.token.type.output_whitespace_both:
-                                compile_output.call(this, token);
+                                compile_output.call(self, token);
                                 break;
                             case Twig.token.type.logic_whitespace_pre:
                             case Twig.token.type.logic_whitespace_post:
                             case Twig.token.type.logic_whitespace_both:
-                                compile_logic.call(this, token);
+                                compile_logic.call(self, token);
                                 break;
                         }
 
@@ -713,23 +724,23 @@ module.exports = function (Twig) {
                                 ", expecting one of " + unclosed_token.next);
             }
             return output;
-        } catch (ex) {
-            if (this.options.rethrow) {
+        }, function(ex) {
+            if (self.options.rethrow) {
                 if (ex.type == 'TwigException' && !ex.file) {
-                    ex.file = this.id;
+                    ex.file = self.id;
                 }
 
                 throw ex
             }
             else {
-                Twig.log.error("Error compiling twig template " + this.id + ": ");
+                Twig.log.error("Error compiling twig template " + self.id + ": ");
                 if (ex.stack) {
                     Twig.log.error(ex.stack);
                 } else {
                     Twig.log.error(ex.toString());
                 }
             }
-        }
+        });
     };
 
     /**
