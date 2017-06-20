@@ -94,8 +94,10 @@ module.exports = function (Twig) {
 
             if (!handlers) return;
 
-            if (handlers[2] === -2)
-                return append(handlers[0], handlers[1]);
+            if (handlers[2] === -2) {
+                append(handlers[0], handlers[1]);
+                handlers = null;
+            }
 
             Twig.forEach(handlers, function changeStateLoop(h) {
                 append(h[0], h[1]);
@@ -127,6 +129,15 @@ module.exports = function (Twig) {
             then: function(onResolved, onRejected) {
                 var hasResolved = typeof onResolved == 'function';
                 var hasRejected = typeof onRejected == 'function';
+
+                // Shortcut for resolved twig promises
+                if (p._state == STATE_RESOLVED && !hasResolved) {
+                    return Twig.Promise.resolve(p._value);
+                } else if (p._state === STATE_RESOLVED) {
+                    return Twig.attempt(function() {
+                        return Twig.Promise.resolve(onResolved(p._value));
+                    }, Twig.Promise.reject);
+                }
 
                 return Twig.Promise(function thenExecutor(resolve, reject) {
                     append(
