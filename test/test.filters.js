@@ -504,6 +504,11 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|trim }}' });
             test_template.render().should.equal("" );
         });
+
+        it("should not autoescape", function() {
+          var template = twig({data: '{{ test|trim }}'});
+          template.render({ test: '\r\n <a href="">Test</a>\n  ' }).should.equal("<a href=\"\">Test</a>");
+        });
     });
 
 
