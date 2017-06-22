@@ -480,7 +480,7 @@ module.exports = function (Twig) {
                 return;
             }
 
-            var str = Twig.filters.escape( '' + value ),
+            var str = '' + value,
                 whitespace;
             if ( params && params[0] ) {
                 whitespace = '' + params[0];
