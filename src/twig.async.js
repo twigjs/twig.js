@@ -206,6 +206,11 @@ module.exports = function (Twig) {
                 return;
             }
 
+            if (p._state == STATE_RESOLVED) {
+                results[index] = p._value;
+                return;
+            }
+
             return p.then(function promiseAllThen(v) {
                 results[index] = v;
             });

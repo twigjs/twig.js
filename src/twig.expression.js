@@ -1110,7 +1110,7 @@ module.exports = function (Twig) {
             // The valid next tokens of the previous token
             next = null,
             // Match information
-            type, regex, regex_array,
+            type, regex, regex_i,
             // The possible next token for the match
             token_next,
             // Has a match been found from the definitions
@@ -1118,11 +1118,8 @@ module.exports = function (Twig) {
 
         match_function = function () {
             // Don't pass arguments to `Array.slice`, that is a performance killer
-            var match_i = arguments.length, match = new Array(match_i);
+            var match_i = arguments.length - 2, match = new Array(match_i);
             while (match_i-- > 0) match[match_i] = arguments[match_i];
-
-            var string = match.pop(),
-                offset = match.pop();
 
             Twig.log.trace("Twig.expression.tokenize",
                            "Matched a ", type, " regular expression of ", match);
@@ -1133,13 +1130,15 @@ module.exports = function (Twig) {
                            " at template:" + exp_offset + " near '" + match[0].substring(0, 20) +
                            "...'"
                 );
+
                 // Not a match, don't change the expression
                 return match[0];
             }
 
+            var handler = Twig.expression.handler[type];
+
             // Validate the token if a validation function is provided
-            if (Twig.expression.handler[type].validate &&
-                    !Twig.expression.handler[type].validate(match, tokens)) {
+            if (handler.validate && !handler.validate(match, tokens)) {
                 return match[0];
             }
 
@@ -1158,8 +1157,8 @@ module.exports = function (Twig) {
             // Does the token need to return output back to the expression string
             // e.g. a function match of cycle( might return the '(' back to the expression
             // This allows look-ahead to differentiate between token types (e.g. functions and variable names)
-            if (Twig.expression.handler[type].transform) {
-                return Twig.expression.handler[type].transform(match, tokens);
+            if (handler.transform) {
+                return handler.transform(match, tokens);
             }
             return '';
         };
@@ -1172,17 +1171,17 @@ module.exports = function (Twig) {
                 token_next = Twig.expression.handler[type].next;
                 regex = Twig.expression.handler[type].regex;
                 Twig.log.trace("Checking type ", type, " on ", expression);
-                if (regex instanceof Array) {
-                    regex_array = regex;
-                } else {
-                    regex_array = [regex];
-                }
 
                 match_found = false;
-                while (regex_array.length > 0) {
-                    regex = regex_array.pop();
+
+                if (Twig.lib.isArray(regex)) {
+                    regex_i = regex.length;
+                    while (regex_i-- > 0)
+                        expression = expression.replace(regex[regex_i], match_function);
+                } else {
                     expression = expression.replace(regex, match_function);
                 }
+
                 // An expression token has been matched. Break the for loop and start trying to
                 //  match the next template (if expression isn't empty.)
                 if (match_found) {
@@ -1263,9 +1262,8 @@ module.exports = function (Twig) {
         var that = this;
 
         // If the token isn't an array, make it one.
-        if (!(tokens instanceof Array)) {
+        if (!Twig.lib.isArray(tokens))
             tokens = [tokens];
-        }
 
         // The output stack
         var stack = [],
@@ -1313,24 +1311,22 @@ module.exports = function (Twig) {
             //If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
             //wrapped in an Array.
             if (tokens_are_parameters) {
-                var params = [];
-                while (stack.length > 0) {
-                    params.unshift(stack.pop());
-                }
+                var params = stack.splice(0);
 
                 stack.push(params);
             }
 
             if (allow_async)
-                return Twig.Promise.resolve(stack.pop());
-        })
-        .then(function(v) {
-            is_async = false;
-            return v;
+                return stack.pop();
         });
 
         if (allow_async)
             return promise;
+
+        promise.then(function(v) {
+            is_async = false;
+        });
+
 
         if (is_async)
             throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');

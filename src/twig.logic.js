@@ -312,7 +312,7 @@ module.exports = function (Twig) {
 
                 return Twig.expression.parseAsync.apply(this, [token.expression, context])
                 .then(function(result) {
-                    if (Twig.lib.is('Array', result)) {
+                    if (Twig.lib.isArray(result)) {
                         len = result.length;
                         Twig.async.forEach(result, function (value) {
                             var key = index;
@@ -1215,11 +1215,12 @@ module.exports = function (Twig) {
      * @return {Object} The matched token with type set to the token type and match to the regex match.
      */
     Twig.logic.tokenize = function (expression) {
-        var token = {},
-            token_template_type = null,
+        var token_template_type = null,
             token_type = null,
             token_regex = null,
             regex_array = null,
+            regex_len = null,
+            regex_i = null,
             regex = null,
             match = null;
 
@@ -1227,29 +1228,25 @@ module.exports = function (Twig) {
         expression = expression.trim();
 
         for (token_template_type in Twig.logic.handler) {
-            if (Twig.logic.handler.hasOwnProperty(token_template_type)) {
-                // Get the type and regex for this template type
-                token_type = Twig.logic.handler[token_template_type].type;
-                token_regex = Twig.logic.handler[token_template_type].regex;
+            // Get the type and regex for this template type
+            token_type = Twig.logic.handler[token_template_type].type;
+            token_regex = Twig.logic.handler[token_template_type].regex;
 
-                // Handle multiple regular expressions per type.
-                regex_array = [];
-                if (token_regex instanceof Array) {
-                    regex_array = token_regex;
-                } else {
-                    regex_array.push(token_regex);
-                }
+            // Handle multiple regular expressions per type.
+            regex_array = token_regex;
+            if (!Twig.lib.isArray(token_regex))
+                regex_array = [token_regex];
 
-                // Check regular expressions in the order they were specified in the definition.
-                while (regex_array.length > 0) {
-                    regex = regex_array.shift();
-                    match = regex.exec(expression.trim());
-                    if (match !== null) {
-                        token.type  = token_type;
-                        token.match = match;
-                        Twig.log.trace("Twig.logic.tokenize: ", "Matched a ", token_type, " regular expression of ", match);
-                        return token;
-                    }
+            regex_len = regex_array.length;
+            // Check regular expressions in the order they were specified in the definition.
+            for (regex_i = 0; regex_i < regex_len; regex_i++) {
+                match = regex_array[regex_i].exec(expression);
+                if (match !== null) {
+                    Twig.log.trace("Twig.logic.tokenize: ", "Matched a ", token_type, " regular expression of ", match);
+                    return {
+                        type: token_type,
+                        match: match
+                    };
                 }
             }
         }
@@ -1294,15 +1291,15 @@ module.exports = function (Twig) {
             output = token_template.parse.apply(this, [token, context, chain]);
         }
 
-        promise = Twig.isPromise(output) ? output : Twig.Promise.resolve(output);
+        promise = Twig.Promise.resolve(output);
+
+        if (allow_async)
+            return promise;
 
         promise.then(function(o) {
             is_async = false;
             output = o;
         });
-
-        if (allow_async)
-            return promise || Twig.Promise.resolve(output);
 
         if (is_async)
             throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');

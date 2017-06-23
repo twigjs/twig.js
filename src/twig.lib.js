@@ -21,10 +21,21 @@ module.exports = function(Twig) {
     Twig.lib.date = require('locutus/php/datetime/date');
     Twig.lib.boolval = require('locutus/php/var/boolval');
 
+    var toString = Object.prototype.toString;
+
     Twig.lib.is = function(type, obj) {
-        var clas = Object.prototype.toString.call(obj).slice(8, -1);
-        return obj !== undefined && obj !== null && clas === type;
+        if (typeof obj === 'undefined' || obj === null)
+            return false;
+
+        if (type === 'Array' && Array.isArray)
+            return Array.isArray(obj);
+
+        return toString.call(obj).slice(8, -1) === type;
     };
+
+    Twig.lib.isArray = Array.isArray || function(obj) {
+        return toString.call(obj).slice(8, -1) === 'Array';
+    }
 
     // shallow-copy an object
     Twig.lib.copy = function(src) {
