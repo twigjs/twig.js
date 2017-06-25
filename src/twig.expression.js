@@ -6,7 +6,7 @@ module.exports = function (Twig) {
 
     function parseParams(thisArg, params, context) {
         if (params)
-            return Twig.expression.parseAsync.apply(thisArg, [params, context]);
+            return Twig.expression.parseAsync.call(thisArg, params, context);
 
         return Twig.Promise.resolve(false);
     }
@@ -284,7 +284,7 @@ module.exports = function (Twig) {
                     stack.push(token);
                 } else if (token.params) {
                     // handle "{(expression):value}"
-                    return Twig.expression.parseAsync.apply(this, [token.params, context])
+                    return Twig.expression.parseAsync.call(this, token.params, context)
                     .then(function(key) {
                         token.key = key;
                         stack.push(token);
@@ -469,7 +469,7 @@ module.exports = function (Twig) {
                     value = null;
 
                 if (token.expression) {
-                    return Twig.expression.parseAsync.apply(this, [token.params, context])
+                    return Twig.expression.parseAsync.call(this, token.params, context)
                     .then(function(value) {
                         stack.push(value);
                     });
@@ -551,7 +551,7 @@ module.exports = function (Twig) {
                     value = null;
 
                 if (token.expression) {
-                    return Twig.expression.parseAsync.apply(this, [token.params, context])
+                    return Twig.expression.parseAsync.call(this, token.params, context)
                     .then(function(value) {
                         stack.push(value);
                     });
@@ -601,7 +601,7 @@ module.exports = function (Twig) {
                 var input = stack.pop(),
                     params = token.params;
 
-                stack.push(Twig.filter.apply(this, [token.value, input, params]));
+                stack.push(Twig.filter.call(this, token.value, input, params));
             }
         },
         {
@@ -757,7 +757,7 @@ module.exports = function (Twig) {
 
                 return parseParams(this, token.params, context)
                 .then(function(params) {
-                    return Twig.filter.apply(that, [token.value, input, params]);
+                    return Twig.filter.call(that, token.value, input, params);
                 })
                 .then(function(value) {
                     stack.push(value);
@@ -833,7 +833,7 @@ module.exports = function (Twig) {
             },
             parse: function(token, stack, context) {
                 // Get the variable from the context
-                return Twig.expression.resolveAsync.apply(this, [context[token.value], context])
+                return Twig.expression.resolveAsync.call(this, context[token.value], context)
                 .then(function(value) {
                     stack.push(value);
                 });
@@ -883,7 +883,7 @@ module.exports = function (Twig) {
                     }
 
                     // When resolving an expression we need to pass next_token in case the expression is a function
-                    return Twig.expression.resolveAsync.apply(that, [value, context, params, next_token, object]);
+                    return Twig.expression.resolveAsync.call(that, value, context, params, next_token, object);
                 })
                 .then(function(result) {
                     stack.push(result);
@@ -917,7 +917,7 @@ module.exports = function (Twig) {
                 return parseParams(this, token.params, context)
                 .then(function(parameters) {
                     params = parameters;
-                    return Twig.expression.parseAsync.apply(that, [token.stack, context]);
+                    return Twig.expression.parseAsync.call(that, token.stack, context);
                 })
                 .then(function(key) {
                     object = stack.pop();
@@ -938,7 +938,7 @@ module.exports = function (Twig) {
                     }
 
                     // When resolving an expression we need to pass next_token in case the expression is a function
-                    return Twig.expression.resolveAsync.apply(that, [value, object, params, next_token]);
+                    return Twig.expression.resolveAsync.call(that, value, object, params, next_token);
                 })
                 .then(function(result) {
                     stack.push(result);
@@ -1015,7 +1015,7 @@ module.exports = function (Twig) {
                 var tokens_are_parameters = true;
 
                 promise = promise.then(function() {
-                    return next_token.params && Twig.expression.parseAsync.apply(this, [next_token.params, context, tokens_are_parameters]);
+                    return next_token.params && Twig.expression.parseAsync.call(this, next_token.params, context, tokens_are_parameters);
                 })
                 .then(function(p) {
                     //Clean up the parentheses tokens on the next loop
@@ -1037,7 +1037,7 @@ module.exports = function (Twig) {
         var is_async = true,
             result;
 
-        Twig.expression.resolveAsync.apply(this, [value, context, params, next_token, object])
+        Twig.expression.resolveAsync.call(this, value, context, params, next_token, object)
         .then(function(r) {
             is_async = false;
             result = r;
@@ -1290,7 +1290,7 @@ module.exports = function (Twig) {
             token_template = Twig.expression.handler[token.type];
 
             if (token_template.parse)
-                result = token_template.parse.apply(that, [token, stack, context, next_token]);
+                result = token_template.parse.call(that, token, stack, context, next_token);
 
             //Store any binary tokens for later if we are in a loop.
             if (context.loop && token.type === Twig.expression.type.operator.binary) {

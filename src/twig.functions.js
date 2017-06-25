@@ -158,7 +158,7 @@ module.exports = function (Twig) {
         },
         block: function(block) {
             if (this.originalBlockTokens[block]) {
-                return Twig.logic.parse.apply(this, [this.originalBlockTokens[block], this.context]).output;
+                return Twig.logic.parse.call(this, this.originalBlockTokens[block], this.context).output;
             } else {
                 return this.blocks[block];
             }
@@ -211,9 +211,8 @@ module.exports = function (Twig) {
 
             function getRandomNumber(n) {
                 var random = Math.floor(Math.random() * LIMIT_INT31);
-                var limits = [0, n];
-                var min = Math.min.apply(null, limits),
-                    max = Math.max.apply(null, limits);
+                var min = Math.min.call(null, 0, n),
+                    max = Math.max.call(null, 0, n);
                 return min + Math.floor((max - min + 1) * random / LIMIT_INT31);
             }
 

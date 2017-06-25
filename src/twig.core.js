@@ -541,7 +541,7 @@ module.exports = function (Twig) {
                 next = null;
 
             var compile_output = function(token) {
-                Twig.expression.compile.apply(self, [token]);
+                Twig.expression.compile.call(self, token);
                 if (stack.length > 0) {
                     intermediate_output.push(token);
                 } else {
@@ -551,7 +551,7 @@ module.exports = function (Twig) {
 
             var compile_logic = function(token) {
                 // Compile the logic token
-                logic_token = Twig.logic.compile.apply(self, [token]);
+                logic_token = Twig.logic.compile.call(self, token);
 
                 type = logic_token.type;
                 open = Twig.logic.handler[type].open;
@@ -804,7 +804,7 @@ module.exports = function (Twig) {
                 case Twig.token.type.logic:
                     var logic_token = token.token;
 
-                    return Twig.logic.parseAsync.apply(that, [logic_token, context, chain])
+                    return Twig.logic.parseAsync.call(that, logic_token, context, chain)
                     .then(function(logic) {
                         if (logic.chain !== undefined) {
                             chain = logic.chain;
@@ -829,14 +829,14 @@ module.exports = function (Twig) {
                 case Twig.token.type.output:
                     Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                     // Parse the given expression in the given context
-                    return Twig.expression.parseAsync.apply(that, [token.stack, context])
+                    return Twig.expression.parseAsync.call(that, token.stack, context)
                     .then(function(o) {
                         output.push(o);
                     });
             }
         })
         .then(function() {
-            output = Twig.output.apply(that, [output]);
+            output = Twig.output.call(that, output);
             is_async = false;
             return output;
         })
@@ -876,11 +876,11 @@ module.exports = function (Twig) {
 
         // Tokenize
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
-        raw_tokens = Twig.tokenize.apply(this, [data]);
+        raw_tokens = Twig.tokenize.call(this, data);
 
         // Compile
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
-        tokens = Twig.compile.apply(this, [raw_tokens]);
+        tokens = Twig.compile.call(this, raw_tokens);
 
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
 
@@ -1208,7 +1208,7 @@ module.exports = function (Twig) {
         this.reset(blocks);
 
         if (is('String', data)) {
-            this.tokens = Twig.prepare.apply(this, [data]);
+            this.tokens = Twig.prepare.call(this, data);
         } else {
             this.tokens = data;
         }
@@ -1297,7 +1297,7 @@ module.exports = function (Twig) {
             }
         };
 
-        promise = Twig.parseAsync.apply(this, [this.tokens, this.context])
+        promise = Twig.parseAsync.call(this, this.tokens, this.context)
         .then(cb)
         .then(function(v) {
             is_async = false;
