@@ -722,7 +722,7 @@ module.exports = function (Twig) {
         if (!Twig.filters[filter]) {
             throw "Unable to find filter " + filter;
         }
-        return Twig.filters[filter].apply(this, [value, params]);
+        return Twig.filters[filter].call(this, value, params);
     };
 
     Twig.filter.extend = function(filter, definition) {

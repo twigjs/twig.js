@@ -16,11 +16,13 @@ module.exports = function (Twig) {
         parent: "{{|PARENT|}}"
     };
 
+    Twig.hasIndexOf = Array.prototype.hasOwnProperty("indexOf");
+
     /**
      * Fallback for Array.indexOf for IE8 et al
      */
     Twig.indexOf = function (arr, searchElement /*, fromIndex */ ) {
-        if (Array.prototype.hasOwnProperty("indexOf")) {
+        if (Twig.hasIndexOf) {
             return arr.indexOf(searchElement);
         }
         if (arr === void 0 || arr === null) {
@@ -126,6 +128,15 @@ module.exports = function (Twig) {
 
         return target;
     };
+
+    /**
+     * try/catch in a function causes the entire function body to remain unoptimized.
+     * Use this instead so only ``Twig.attempt` will be left unoptimized.
+     */
+    Twig.attempt = function(fn, exceptionHandler) {
+        try { return fn(); }
+        catch(ex) { return exceptionHandler(ex); }
+    }
 
     /**
      * Exception thrown by twig.js.
@@ -285,15 +296,16 @@ module.exports = function (Twig) {
     Twig.token.findStart = function (template) {
         var output = {
                 position: null,
-                close_position: null,
                 def: null
             },
+            close_position = null,
+            len = Twig.token.definitions.length,
             i,
             token_template,
             first_key_position,
             close_key_position;
 
-        for (i=0;i<Twig.token.definitions.length;i++) {
+        for (i=0;i<len;i++) {
             token_template = Twig.token.definitions[i];
             first_key_position = template.indexOf(token_template.open);
             close_key_position = template.indexOf(token_template.close);
@@ -315,7 +327,7 @@ module.exports = function (Twig) {
             if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
                 output.position = first_key_position;
                 output.def = token_template;
-                output.close_position = close_key_position;
+                close_position = close_key_position;
             } else if (first_key_position >= 0 && output.position !== null && first_key_position === output.position) {
                 /*This token exactly matches another token,
                 greedily match to check if this token has a greater specificity*/
@@ -323,30 +335,30 @@ module.exports = function (Twig) {
                     //This token's opening tag is more specific than the previous match
                     output.position = first_key_position;
                     output.def = token_template;
-                    output.close_position = close_key_position;
+                    close_position = close_key_position;
                 } else if (token_template.open.length === output.def.open.length) {
                     if (token_template.close.length > output.def.close.length) {
                         //This token's opening tag is as specific as the previous match,
                         //but the closing tag has greater specificity
-                        if (close_key_position >= 0 && close_key_position < output.close_position) {
+                        if (close_key_position >= 0 && close_key_position < close_position) {
                             //This token's closing tag exists in the template,
                             //and it occurs sooner than the previous match
                             output.position = first_key_position;
                             output.def = token_template;
-                            output.close_position = close_key_position;
+                            close_position = close_key_position;
                         }
-                    } else if (close_key_position >= 0 && close_key_position < output.close_position) {
+                    } else if (close_key_position >= 0 && close_key_position < close_position) {
                         //This token's closing tag is not more specific than the previous match,
                         //but it occurs sooner than the previous match
                         output.position = first_key_position;
                         output.def = token_template;
-                        output.close_position = close_key_position;
+                        close_position = close_key_position;
                     }
                 }
             }
         }
 
-        delete output['close_position'];
+        // delete output['close_position'];
 
         return output;
     };
@@ -497,9 +509,9 @@ module.exports = function (Twig) {
         return tokens;
     };
 
-
     Twig.compile = function (tokens) {
-        try {
+        var self = this;
+        return Twig.attempt(function() {
 
             // Output and intermediate stacks
             var output = [],
@@ -529,7 +541,7 @@ module.exports = function (Twig) {
                 next = null;
 
             var compile_output = function(token) {
-                Twig.expression.compile.apply(this, [token]);
+                Twig.expression.compile.call(self, token);
                 if (stack.length > 0) {
                     intermediate_output.push(token);
                 } else {
@@ -539,7 +551,7 @@ module.exports = function (Twig) {
 
             var compile_logic = function(token) {
                 // Compile the logic token
-                logic_token = Twig.logic.compile.apply(this, [token]);
+                logic_token = Twig.logic.compile.call(self, token);
 
                 type = logic_token.type;
                 open = Twig.logic.handler[type].open;
@@ -620,7 +632,7 @@ module.exports = function (Twig) {
                         break;
 
                     case Twig.token.type.logic:
-                        compile_logic.call(this, token);
+                        compile_logic.call(self, token);
                         break;
 
                     // Do nothing, comments should be ignored
@@ -628,7 +640,7 @@ module.exports = function (Twig) {
                         break;
 
                     case Twig.token.type.output:
-                        compile_output.call(this, token);
+                        compile_output.call(self, token);
                         break;
 
                     //Kill whitespace ahead and behind this token
@@ -673,12 +685,12 @@ module.exports = function (Twig) {
                             case Twig.token.type.output_whitespace_pre:
                             case Twig.token.type.output_whitespace_post:
                             case Twig.token.type.output_whitespace_both:
-                                compile_output.call(this, token);
+                                compile_output.call(self, token);
                                 break;
                             case Twig.token.type.logic_whitespace_pre:
                             case Twig.token.type.logic_whitespace_post:
                             case Twig.token.type.logic_whitespace_both:
-                                compile_logic.call(this, token);
+                                compile_logic.call(self, token);
                                 break;
                         }
 
@@ -713,23 +725,23 @@ module.exports = function (Twig) {
                                 ", expecting one of " + unclosed_token.next);
             }
             return output;
-        } catch (ex) {
-            if (this.options.rethrow) {
+        }, function(ex) {
+            if (self.options.rethrow) {
                 if (ex.type == 'TwigException' && !ex.file) {
-                    ex.file = this.id;
+                    ex.file = self.id;
                 }
 
                 throw ex
             }
             else {
-                Twig.log.error("Error compiling twig template " + this.id + ": ");
+                Twig.log.error("Error compiling twig template " + self.id + ": ");
                 if (ex.stack) {
                     Twig.log.error(ex.stack);
                 } else {
                     Twig.log.error(ex.toString());
                 }
             }
-        }
+        });
     };
 
     /**
@@ -792,7 +804,7 @@ module.exports = function (Twig) {
                 case Twig.token.type.logic:
                     var logic_token = token.token;
 
-                    return Twig.logic.parseAsync.apply(that, [logic_token, context, chain])
+                    return Twig.logic.parseAsync.call(that, logic_token, context, chain)
                     .then(function(logic) {
                         if (logic.chain !== undefined) {
                             chain = logic.chain;
@@ -817,14 +829,14 @@ module.exports = function (Twig) {
                 case Twig.token.type.output:
                     Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                     // Parse the given expression in the given context
-                    return Twig.expression.parseAsync.apply(that, [token.stack, context])
+                    return Twig.expression.parseAsync.call(that, token.stack, context)
                     .then(function(o) {
                         output.push(o);
                     });
             }
         })
         .then(function() {
-            output = Twig.output.apply(that, [output]);
+            output = Twig.output.call(that, output);
             is_async = false;
             return output;
         })
@@ -864,11 +876,11 @@ module.exports = function (Twig) {
 
         // Tokenize
         Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
-        raw_tokens = Twig.tokenize.apply(this, [data]);
+        raw_tokens = Twig.tokenize.call(this, data);
 
         // Compile
         Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
-        tokens = Twig.compile.apply(this, [raw_tokens]);
+        tokens = Twig.compile.call(this, raw_tokens);
 
         Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
 
@@ -1196,7 +1208,7 @@ module.exports = function (Twig) {
         this.reset(blocks);
 
         if (is('String', data)) {
-            this.tokens = Twig.prepare.apply(this, [data]);
+            this.tokens = Twig.prepare.call(this, data);
         } else {
             this.tokens = data;
         }
@@ -1285,7 +1297,7 @@ module.exports = function (Twig) {
             }
         };
 
-        promise = Twig.parseAsync.apply(this, [this.tokens, this.context])
+        promise = Twig.parseAsync.call(this, this.tokens, this.context)
         .then(cb)
         .then(function(v) {
             is_async = false;
