@@ -25,7 +25,7 @@ For a list of supported tags/filters/functions/tests see the [Implementation Not
 
 Download the latest twig.js release from github: https://github.com/twigjs/twig.js/releases or via NPM:
 
-```
+```bash
 npm install twig --save
 ```
 
@@ -54,10 +54,14 @@ A loader is available from [zimmo.be](https://github.com/zimmo-be/twig-loader).
 
 ## Node Usage (npm)
 
+Tested on node >=4.0.
+
 You can use twig in your app with
 
-    var Twig = require('twig'), // Twig module
-        twig = Twig.twig;       // Render function
+```js
+var Twig = require('twig'), // Twig module
+    twig = Twig.twig;       // Render function
+```    
 
 ### Usage without Express
 
