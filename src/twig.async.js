@@ -34,9 +34,8 @@ module.exports = function (Twig) {
     }
 
     function run(fn, resolve, reject) {
-        Twig.attempt(function() {
-            fn(resolve, reject);
-        }, reject);
+        try { fn(resolve, reject); }
+        catch(e) { reject(e); }
     }
 
     function pending(handlers, onResolved, onRejected) {
@@ -61,29 +60,37 @@ module.exports = function (Twig) {
     }
 
     Twig.Thenable.prototype.catch = function cc(onRejected) {
+        // THe promise will not throw, it has already resolved.
+        if (this._state == STATE_RESOLVED)
+            return this;
+
         return this.then(null, onRejected);
     }
 
     Twig.Thenable.resolvedThen = function(onResolved) {
-        // Shortcut for resolved twig promises
-        if (typeof onResolved != 'function')
-            return Twig.Promise.resolve(this._value);
+        // This method is only used on promises that immediately resolve.
+        // Because of this this condition cannot occur.
+        // if (!onResolved || typeof onResolved != 'function')
+            // return this;
 
-        var self = this;
-        return Twig.attempt(function() {
-            return Twig.Promise.resolve(onResolved(self._value));
-        }, Twig.Promise.reject);
+        try {
+            return Twig.Promise.resolve(onResolved(this._value));
+        } catch (e) {
+            return Twig.Promise.reject(e);
+        }
     }
 
     Twig.Thenable.rejectedThen = function(onResolved, onRejected) {
         // Shortcut for rejected twig promises
-        if (typeof onRejected != 'function')
-            return Twig.Promise.reject(this._value);
+        if (!onRejected || typeof onRejected != 'function')
+            return this;
 
-        var self = this;
-        return Twig.attempt(function() {
-            return Twig.Promise.resolve(onRejected(self._value));
+        var value = this._value;
+        var result = Twig.attempt(function() {
+            return onRejected(value);
         }, Twig.Promise.reject);
+
+        return Twig.Promise.resolve(result);
     }
 
     /**
@@ -95,9 +102,37 @@ module.exports = function (Twig) {
      * the synchronous behaviour is lost.
      */
     Twig.Promise = function(executor) {
-        // State
-        var handlers = null;
+        var state = STATE_UNKNOWN;
+        var value = null;
 
+        var changeState = function(nextState, nextValue) {
+            state = nextState;
+            value = nextValue;
+        }
+
+        function onReady(v) {
+            changeState(STATE_RESOLVED, v);
+        }
+
+        function onReject(e) {
+            changeState(STATE_REJECTED, e);
+        }
+
+        run(executor, onReady, onReject);
+
+        if (state === STATE_RESOLVED)
+            return Twig.Promise.resolve(value);
+
+        if (state === STATE_REJECTED)
+            return Twig.Promise.reject(value);
+
+        changeState = Twig.FullPromise();
+
+        return changeState.promise;
+    }
+
+    Twig.FullPromise = function() {
+        var handlers = null;
 
         // The state has been changed to either resolve, or reject
         // which means we should call the handler.
@@ -112,7 +147,6 @@ module.exports = function (Twig) {
             handlers = pending(handlers, onResolved, onRejected);
         };
 
-        function onReject(e) { changeState(STATE_REJECTED, e); }
         function changeState(newState, v) {
             if (p._state) return;
 
@@ -132,23 +166,6 @@ module.exports = function (Twig) {
                 append(h[0], h[1]);
             });
             handlers = null;
-        }
-
-        function ready(result) {
-            var isPromise = Twig.isPromise(result);
-            var state = STATE_RESOLVED;
-
-            if (isPromise && !result._state)
-                return run(result.then.bind(result), ready, onReject);
-
-            if (isPromise && result._state) {
-                state = result._state;
-                result = result._value;
-            }
-
-            Twig.attempt(function readyAttempt() {
-                changeState(state, result);
-            }, onReject);
         }
 
         var p = new Twig.Thenable(function then(onResolved, onRejected) {
@@ -180,12 +197,18 @@ module.exports = function (Twig) {
             });
         });
 
-        run(executor, ready, onReject);
+        changeState.promise = p;
 
-        return p;
+        return changeState;
     }
 
+    Twig.Promise.defaultResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, undefined, STATE_RESOLVED);
+
     Twig.Promise.resolve = function(value) {
+        if (typeof value === 'undefined') {
+            return Twig.Promise.defaultResolved;
+        }
+
         if (Twig.isPromise(value))
             return value;
 
@@ -231,7 +254,7 @@ module.exports = function (Twig) {
         var len = arr.length;
         var index = 0;
 
-        function next(value) {
+        function next() {
             var resp = null;
 
             do {

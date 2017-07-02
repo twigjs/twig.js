@@ -750,24 +750,22 @@ module.exports = function (Twig) {
             },
             parse: function (token, context, chain) {
                 // Resolve filename
-                var innerContext = {},
-                    i,
-                    template,
+                var innerContext = token.only ? {} : Twig.ChildContext(context),
+                    ignoreMissing = token.ignoreMissing,
                     that = this,
-                    promise = Twig.Promise.resolve();
+                    promise = null;
 
-                if (!token.only) {
-                    innerContext = Twig.ChildContext(context);
-                }
-
-                if (token.withStack !== undefined) {
+                if (typeof token.withStack !== 'undefined') {
                     promise = Twig.expression.parseAsync.call(this, token.withStack, context)
                     .then(function(withContext) {
+                        var i = null;
                         for (i in withContext) {
                             if (withContext.hasOwnProperty(i))
                                 innerContext[i] = withContext[i];
                         }
                     });
+                } else {
+                    promise = Twig.Promise.resolve();
                 }
 
                 return promise
@@ -776,21 +774,17 @@ module.exports = function (Twig) {
                 })
                 .then(function(file) {
                     if (file instanceof Twig.Template) {
-                        template = file;
-                    } else {
-                        // Import file
-                        try {
-                            template = that.importFile(file);
-                        } catch (err) {
-                            if (token.ignoreMissing) {
-                                return '';
-                            }
-
-                            throw err;
-                        }
+                        return file.renderAsync(innerContext);
                     }
 
-                    return template.renderAsync(innerContext);
+                    try {
+                        return that.importFile(file).renderAsync(innerContext);
+                    } catch(err) {
+                        if (ignoreMissing)
+                            return '';
+
+                        throw err;
+                    }
                 })
                 .then(function(output) {
                     return {

@@ -1267,20 +1267,21 @@ module.exports = function (Twig) {
 
         // The output stack
         var stack = [],
-            next_token,
             output = null,
             promise = null,
             is_async = true,
-            token_template = null,
-            loop_token_fixups = [];
+            loop_token_fixups = [],
+            binaryOperator = Twig.expression.type.operator.binary;
 
         promise = Twig.async.forEach(tokens, function (token, index) {
+            var token_template = null,
+                next_token = null,
+                result;
+
             //If the token is marked for cleanup, we don't need to parse it
             if (token.cleanup) {
                 return;
             }
-
-            var result = null;
 
             //Determine the token that follows this one so that we can pass it to the parser
             if (tokens.length > index + 1) {
@@ -1293,7 +1294,7 @@ module.exports = function (Twig) {
                 result = token_template.parse.call(that, token, stack, context, next_token);
 
             //Store any binary tokens for later if we are in a loop.
-            if (context.loop && token.type === Twig.expression.type.operator.binary) {
+            if (token.type === binaryOperator && context.loop) {
                 loop_token_fixups.push(token);
             }
 

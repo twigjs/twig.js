@@ -19,19 +19,19 @@ module.exports = function (Twig) {
      * @return {string}          The canonical version of the path
      */
      Twig.path.parsePath = function(template, file) {
-        var namespaces = null,
-            file = file || "";
+        var k = null,
+            value = null,
+            namespaces = template.options.namespaces,
+            file = file || "",
+            hasNamespaces = namespaces && typeof namespaces === 'object',
+            hasColon = file.indexOf('::') > 0,
+            hasAtSign = file.indexOf('@') > -1;
 
-        if (typeof template === 'object' && typeof template.options === 'object') {
-            namespaces = template.options.namespaces;
-        }
-
-        if (typeof namespaces === 'object' && (file.indexOf('::') > 0) || file.indexOf('@') >= 0){
-            for (var k in namespaces){
-                if (namespaces.hasOwnProperty(k)) {
-                    file = file.replace(k + '::', namespaces[k]);
-                    file = file.replace('@' + k, namespaces[k]);
-                }
+        if (hasNamespaces && (hasColon || hasAtSign)){
+            for (k in namespaces){
+                value = namespaces[k];
+                file = file.replace(k + '::', value);
+                file = file.replace('@' + k, value);
             }
 
             return file;
