@@ -1284,9 +1284,9 @@ module.exports = function (Twig) {
             }
 
             //Determine the token that follows this one so that we can pass it to the parser
-            if (tokens.length > index + 1) {
-                next_token = tokens[index + 1];
-            }
+            // if (tokens.length > index + 1) {
+            next_token = tokens[index + 1];
+            // }
 
             token_template = Twig.expression.handler[token.type];
 
@@ -1303,11 +1303,14 @@ module.exports = function (Twig) {
         .then(function() {
             //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
             //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
-            Twig.forEach(loop_token_fixups, function (loop_token_fixup) {
-                if (loop_token_fixup.params && loop_token_fixup.key) {
-                    delete loop_token_fixup["key"];
-                }
-            });
+            var len = loop_token_fixups.length;
+            var loop_token_fixup = null;
+
+            while(len-- > 0) {
+                loop_token_fixup = loop_token_fixups[len];
+                if (loop_token_fixup.params && loop_token_fixup.key)
+                    delete loop_token_fixup.key;
+            }
 
             //If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
             //wrapped in an Array.

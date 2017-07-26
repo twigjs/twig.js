@@ -792,6 +792,20 @@ module.exports = function (Twig) {
             // Track logic chains
             chain = true;
 
+        function output_push(o) { output.push(o); }
+
+        function parseTokenLogic(logic) {
+            if (typeof logic.chain !== 'undefined') {
+                chain = logic.chain;
+            }
+            if (typeof logic.context !== 'undefined') {
+                context = logic.context;
+            }
+            if (typeof logic.output !== 'undefined') {
+                output.push(logic.output);
+            }
+        }
+
         promise = Twig.async.forEach(tokens, function parseToken(token) {
             Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
 
@@ -802,17 +816,7 @@ module.exports = function (Twig) {
 
                 case Twig.token.type.logic:
                     return Twig.logic.parseAsync.call(that, token.token /*logic_token*/, context, chain)
-                    .then(function(logic) {
-                        if (typeof logic.chain !== 'undefined') {
-                            chain = logic.chain;
-                        }
-                        if (typeof logic.context !== 'undefined') {
-                            context = logic.context;
-                        }
-                        if (typeof logic.output !== 'undefined') {
-                            output.push(logic.output);
-                        }
-                    });
+                        .then(parseTokenLogic);
                     break;
 
                 case Twig.token.type.comment:
@@ -827,9 +831,7 @@ module.exports = function (Twig) {
                     Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                     // Parse the given expression in the given context
                     return Twig.expression.parseAsync.call(that, token.stack, context)
-                    .then(function(o) {
-                        output.push(o);
-                    });
+                        .then(output_push);
             }
         })
         .then(function() {
@@ -899,16 +901,26 @@ module.exports = function (Twig) {
         }
 
         var strategy = (typeof autoescape == 'string') ? autoescape : 'html';
+        var i = 0,
+            len = output.length,
+            str = '';
 
         // [].map would be better but it's not supported by IE8-
-        var escaped_output = [];
-        Twig.forEach(output, function (str) {
+        var escaped_output = '';
+        for (i = 0; i < len; i++) {
+            str = output[i];
+
             if (str && (str.twig_markup !== true && str.twig_markup != strategy)) {
                 str = Twig.filters.escape(str, [ strategy ]);
             }
-            escaped_output.push(str);
-        });
-        return Twig.Markup(escaped_output.join(""));
+
+            escaped_output += str;
+        }
+
+        if (escaped_output.length < 1)
+            return '';
+
+        return Twig.Markup(escaped_output, true);
     }
 
     // Namespace for template storage and retrieval
@@ -1414,15 +1426,13 @@ module.exports = function (Twig) {
      */
 
     Twig.Markup = function(content, strategy) {
-        if(typeof strategy == 'undefined') {
-            strategy = true;
-        }
+        if (typeof content !== 'string' || content.length < 1)
+            return content;
 
-        if (typeof content === 'string' && content.length > 0) {
-            content = new String(content);
-            content.twig_markup = strategy;
-        }
-        return content;
+        var output = new String(content);
+        output.twig_markup = (typeof strategy == 'undefined') ? true : strategy;
+
+        return output;
     };
 
     return Twig;
