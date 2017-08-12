@@ -998,55 +998,44 @@ module.exports = function (Twig) {
      * @param {Object} context The render context.
      */
     Twig.expression.resolveAsync = function(value, context, params, next_token, object) {
-        if (typeof value == 'function') {
-            var promise = Twig.Promise.resolve(params);
-
-            /*
-            If value is a function, it will have been impossible during the compile stage to determine that a following
-            set of parentheses were parameters for this function.
-
-            Those parentheses will have therefore been marked as an expression, with their own parameters, which really
-            belong to this function.
-
-            Those parameters will also need parsing in case they are actually an expression to pass as parameters.
-             */
-            if (next_token && next_token.type === Twig.expression.type.parameter.end) {
-                //When parsing these parameters, we need to get them all back, not just the last item on the stack.
-                var tokens_are_parameters = true;
-
-                promise = promise.then(function() {
-                    return next_token.params && Twig.expression.parseAsync.call(this, next_token.params, context, tokens_are_parameters);
-                })
-                .then(function(p) {
-                    //Clean up the parentheses tokens on the next loop
-                    next_token.cleanup = true;
-
-                    return p;
-                });
-            }
-
-            return promise.then(function(params) {
-                return value.apply(object || context, params || []);
-            });
-        } else {
+        if (typeof value != 'function')
             return Twig.Promise.resolve(value);
+
+        var promise = Twig.Promise.resolve(params);
+
+        /*
+        If value is a function, it will have been impossible during the compile stage to determine that a following
+        set of parentheses were parameters for this function.
+
+        Those parentheses will have therefore been marked as an expression, with their own parameters, which really
+        belong to this function.
+
+        Those parameters will also need parsing in case they are actually an expression to pass as parameters.
+            */
+        if (next_token && next_token.type === Twig.expression.type.parameter.end) {
+            //When parsing these parameters, we need to get them all back, not just the last item on the stack.
+            var tokens_are_parameters = true;
+
+            promise = promise.then(function() {
+                return next_token.params && Twig.expression.parseAsync.call(this, next_token.params, context, tokens_are_parameters);
+            })
+            .then(function(p) {
+                //Clean up the parentheses tokens on the next loop
+                next_token.cleanup = true;
+
+                return p;
+            });
         }
+
+        return promise.then(function(params) {
+            return value.apply(object || context, params || []);
+        });
     };
 
     Twig.expression.resolve = function(value, context, params, next_token, object) {
-        var is_async = true,
-            result;
-
-        Twig.expression.resolveAsync.call(this, value, context, params, next_token, object)
-        .then(function(r) {
-            is_async = false;
-            result = r;
+        return Twig.async.potentiallyAsync(this, false, function() {
+            return Twig.expression.resolveAsync.call(this, value, context, params, next_token, object);
         });
-
-        if (is_async)
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-        return result;
     }
 
     /**
@@ -1267,76 +1256,61 @@ module.exports = function (Twig) {
 
         // The output stack
         var stack = [],
-            output = null,
-            promise = null,
-            is_async = true,
             loop_token_fixups = [],
             binaryOperator = Twig.expression.type.operator.binary;
 
-        promise = Twig.async.forEach(tokens, function (token, index) {
-            var token_template = null,
-                next_token = null,
-                result;
+        return Twig.async.potentiallyAsync(this, allow_async, function() {
+            return Twig.async.forEach(tokens, function (token, index) {
+                var token_template = null,
+                    next_token = null,
+                    result;
 
-            //If the token is marked for cleanup, we don't need to parse it
-            if (token.cleanup) {
-                return;
-            }
+                //If the token is marked for cleanup, we don't need to parse it
+                if (token.cleanup) {
+                    return;
+                }
 
-            //Determine the token that follows this one so that we can pass it to the parser
-            // if (tokens.length > index + 1) {
-            next_token = tokens[index + 1];
-            // }
+                //Determine the token that follows this one so that we can pass it to the parser
+                if (tokens.length > index + 1) {
+                    next_token = tokens[index + 1];
+                }
 
-            token_template = Twig.expression.handler[token.type];
+                token_template = Twig.expression.handler[token.type];
 
-            if (token_template.parse)
-                result = token_template.parse.call(that, token, stack, context, next_token);
+                if (token_template.parse)
+                    result = token_template.parse.call(that, token, stack, context, next_token);
 
-            //Store any binary tokens for later if we are in a loop.
-            if (token.type === binaryOperator && context.loop) {
-                loop_token_fixups.push(token);
-            }
+                //Store any binary tokens for later if we are in a loop.
+                if (token.type === binaryOperator && context.loop) {
+                    loop_token_fixups.push(token);
+                }
 
-            return result;
-        })
-        .then(function() {
-            //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
-            //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
-            var len = loop_token_fixups.length;
-            var loop_token_fixup = null;
+                return result;
+            })
+            .then(function() {
+                //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
+                //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
+                var len = loop_token_fixups.length;
+                var loop_token_fixup = null;
 
-            while(len-- > 0) {
-                loop_token_fixup = loop_token_fixups[len];
-                if (loop_token_fixup.params && loop_token_fixup.key)
-                    delete loop_token_fixup.key;
-            }
+                while(len-- > 0) {
+                    loop_token_fixup = loop_token_fixups[len];
+                    if (loop_token_fixup.params && loop_token_fixup.key)
+                        delete loop_token_fixup.key;
+                }
 
-            //If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
-            //wrapped in an Array.
-            if (tokens_are_parameters) {
-                var params = stack.splice(0);
+                //If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
+                //wrapped in an Array.
+                if (tokens_are_parameters) {
+                    var params = stack.splice(0);
 
-                stack.push(params);
-            }
+                    stack.push(params);
+                }
 
-            if (allow_async)
+                // Pop the final value off the stack
                 return stack.pop();
+            });
         });
-
-        if (allow_async)
-            return promise;
-
-        promise.then(function(v) {
-            is_async = false;
-        });
-
-
-        if (is_async)
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-        // Pop the final value off the stack
-        return stack.pop();
     };
 
     return Twig;

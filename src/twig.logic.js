@@ -1082,6 +1082,8 @@ module.exports = function (Twig) {
                 }
 
                 return promise.then(function() {
+                    // Allow this function to be cleaned up early
+                    promise = null;
                     return Twig.expression.parseAsync.call(that, token.stack, innerContext);
                 })
                 .then(function(file) {
@@ -1095,6 +1097,10 @@ module.exports = function (Twig) {
                             if (token.ignoreMissing) {
                                 return '';
                             }
+
+                            // Errors preserve references to variables in scope,
+                            // this removes `this` from the scope.
+                            that = null;
 
                             throw err;
                         }
@@ -1111,6 +1117,7 @@ module.exports = function (Twig) {
                     });
                 })
                 .then(function(output) {
+                    // TODO: State can be cleaned up after this function, that's why it is slow.
                     return {
                         chain: chain,
                         output: output
@@ -1270,35 +1277,16 @@ module.exports = function (Twig) {
      *                        chain is closed and no further cases should be parsed.
      */
     Twig.logic.parse = function (token, context, chain, allow_async) {
-        var output = '',
-            promise,
-            is_async = true,
-            token_template;
+        return Twig.async.potentiallyAsync(this, allow_async, function() {
+            Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
 
-        context = context || { };
+            var token_template = Twig.logic.handler[token.type];
 
-        Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
+            if (!token_template.parse)
+                return '';
 
-        token_template = Twig.logic.handler[token.type];
-
-        if (token_template.parse) {
-            output = token_template.parse.call(this, token, context, chain);
-        }
-
-        promise = Twig.Promise.resolve(output);
-
-        if (allow_async)
-            return promise;
-
-        promise.then(function(o) {
-            is_async = false;
-            output = o;
+            return token_template.parse.call(this, token, context || {}, chain);
         });
-
-        if (is_async)
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-        return output;
     };
 
     return Twig;

@@ -33,6 +33,34 @@ module.exports = function (Twig) {
         return obj && obj.then && (typeof obj.then == 'function');
     }
 
+    Twig.async.potentiallyAsync = function potentiallyAsync(that, allow_async, action) {
+        var result = action.call(that),
+            err = null,
+            is_async = true;
+
+        if (allow_async)
+            return Twig.Promise.resolve(result);
+
+        if (!Twig.isPromise(result))
+            return result;
+
+        result.then(function(res) {
+            result = res;
+            is_async = false;
+        })
+        .catch(function(e) {
+            err = e;
+        });
+
+        if (err !== null)
+            throw err;
+
+        if (is_async)
+            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
+
+        return result;
+    }
+
     function run(fn, resolve, reject) {
         try { fn(resolve, reject); }
         catch(e) { reject(e); }

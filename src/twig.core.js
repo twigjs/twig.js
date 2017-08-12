@@ -1238,15 +1238,7 @@ module.exports = function (Twig) {
     };
 
     Twig.Template.prototype.render = function (context, params, allow_async) {
-        var that = this,
-
-            // Store any error that might be thrown by the promise chain.
-            err = null,
-
-            // This will be set to is_async if template renders synchronously
-            is_async = true,
-            promise = null,
-            result;
+        var that = this;
 
         this.context = context || {};
 
@@ -1259,76 +1251,54 @@ module.exports = function (Twig) {
             this.macros = params.macros;
         }
 
-        promise = Twig.parseAsync.call(this, this.tokens, this.context)
-        .then(function(output) {
-            var ext_template,
-                url;
+        return Twig.async.potentiallyAsync(this, allow_async, function() {
+            return Twig.parseAsync.call(this, this.tokens, this.context)
+            .then(function(output) {
+                var ext_template,
+                    url;
 
-            // Does this template extend another
-            if (that.extend) {
+                // Does this template extend another
+                if (that.extend) {
 
-                // check if the template is provided inline
-                if ( that.options.allowInlineIncludes ) {
-                    ext_template = Twig.Templates.load(that.extend);
-                    if ( ext_template ) {
-                        ext_template.options = that.options;
+                    // check if the template is provided inline
+                    if ( that.options.allowInlineIncludes ) {
+                        ext_template = Twig.Templates.load(that.extend);
+                        if ( ext_template ) {
+                            ext_template.options = that.options;
+                        }
                     }
-                }
 
-                // check for the template file via include
-                if (!ext_template) {
-                    url = Twig.path.parsePath(that, that.extend);
+                    // check for the template file via include
+                    if (!ext_template) {
+                        url = Twig.path.parsePath(that, that.extend);
 
-                    ext_template = Twig.Templates.loadRemote(url, {
-                        method: that.getLoaderMethod(),
-                        base: that.base,
-                        async:  false,
-                        id:     url,
-                        options: that.options
+                        ext_template = Twig.Templates.loadRemote(url, {
+                            method: that.getLoaderMethod(),
+                            base: that.base,
+                            async:  false,
+                            id:     url,
+                            options: that.options
+                        });
+                    }
+
+                    that.parent = ext_template;
+
+                    return that.parent.renderAsync(that.context, {
+                        blocks: that.blocks
                     });
                 }
 
-                that.parent = ext_template;
-
-                return that.parent.renderAsync(that.context, {
-                    blocks: that.blocks
-                });
-            }
-
-            if (!params) {
-                return output;
-            } else if (params.output == 'blocks') {
-                return that.blocks;
-            } else if (params.output == 'macros') {
-                return that.macros;
-            } else {
-                return output;
-            }
+                if (!params) {
+                    return output;
+                } else if (params.output == 'blocks') {
+                    return that.blocks;
+                } else if (params.output == 'macros') {
+                    return that.macros;
+                } else {
+                    return output;
+                }
+            });
         });
-
-        // If `allow_async` we will always return a promise since we do not
-        // know in advance if we are going to run asynchronously or not.
-        if (allow_async)
-            return promise;
-
-        promise.then(function(v) {
-            is_async = false;
-            result = v;
-        })
-        .catch(function(e) {
-            err = e;
-        });
-
-        // Handle errors here if we fail synchronously.
-        if (err !== null)
-            throw err;
-
-        // If `allow_async` is not true we should not allow the user
-        // to use asynchronous functions or filters.
-        if (is_async)
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-        return result;
     };
 
     Twig.Template.prototype.importFile = function(file) {
