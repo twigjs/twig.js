@@ -186,9 +186,10 @@ module.exports = function (Twig) {
      * @param {Object} context Values to initialize the context with.
      */
     Twig.ChildContext = function(context) {
-        var ChildContext = function ChildContext() {};
-        ChildContext.prototype = context;
-        return new ChildContext();
+        return Twig.lib.copy(context);
+        // var ChildContext = function ChildContext() {};
+        // ChildContext.prototype = context;
+        // return new ChildContext();
     };
 
     /**
