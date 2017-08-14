@@ -25,37 +25,37 @@ describe("Twig.js Path ->", function() {
         });
 
         it("should give the full path to a file when file is passed", function() {
-            relativePath({ url: "http://www.test.com/test.twig"}, "templates/myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
-            relativePath({ path: "test/test.twig"}, "templates/myFile.twig").should.equal("test/templates/myFile.twig");
+            relativePath({ url: "http://www.test.com/test.twig"}, "templates/myFile.twig")[0].should.equal("http://www.test.com/templates/myFile.twig");
+            relativePath({ path: "test/test.twig"}, "templates/myFile.twig")[0].should.equal("test/templates/myFile.twig");
         });
 
         it("should ascend directories", function() {
-            relativePath({ url: "http://www.test.com/templates/../test.twig"}, "myFile.twig").should.equal("http://www.test.com/myFile.twig");
-            relativePath({ path: "test/templates/../test.twig"}, "myFile.twig").should.equal("test/myFile.twig");
+            relativePath({ url: "http://www.test.com/templates/../test.twig"}, "myFile.twig")[0].should.equal("http://www.test.com/myFile.twig");
+            relativePath({ path: "test/templates/../test.twig"}, "myFile.twig")[0].should.equal("test/myFile.twig");
         });
 
         it("should respect relative directories", function() {
-            relativePath({ url: "http://www.test.com/templates/./test.twig"}, "myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
-            relativePath({ path: "test/templates/./test.twig"}, "myFile.twig").should.equal("test/templates/myFile.twig");
+            relativePath({ url: "http://www.test.com/templates/./test.twig"}, "myFile.twig")[0].should.equal("http://www.test.com/templates/myFile.twig");
+            relativePath({ path: "test/templates/./test.twig"}, "myFile.twig")[0].should.equal("test/templates/myFile.twig");
         });
 
         describe("url ->", function() {
             it("should use the url if no base is specified", function() {
-                relativePath({ url: "http://www.test.com/test.twig"}).should.equal("http://www.test.com/");
+                relativePath({ url: "http://www.test.com/test.twig"})[0].should.equal("http://www.test.com/");
             });
 
             it("should use the base if base is specified", function() {
-                relativePath({ url: "http://www.test.com/test.twig", base: "myTest" }).should.equal("myTest/");
+                relativePath({ url: "http://www.test.com/test.twig", base: "myTest" })[0].should.equal("myTest/");
             });
         });
 
         describe("path ->", function() {
             it("should use the path if no base is specified", function() {
-                relativePath({ path: "test/test.twig"}).should.equal("test/");
+                relativePath({ path: "test/test.twig"})[0].should.equal("test/");
             });
 
             it("should use the base if base is specified", function() {
-                relativePath({ path: "test/test.twig", base: "myTest" }).should.equal("myTest/");
+                relativePath({ path: "test/test.twig", base: "myTest" })[0].should.equal("myTest/");
             });
         });
     });

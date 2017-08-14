@@ -1127,7 +1127,7 @@ module.exports = function (Twig) {
 
         // Default to the URL so the template is cached.
         if (params.id === undefined) {
-            params.id = location;
+            params.id = Array.isArray(location) ? location[0] : location;
         }
 
         // Check for existing template
@@ -1275,8 +1275,8 @@ module.exports = function (Twig) {
                     ext_template = Twig.Templates.loadRemote(url, {
                         method: that.getLoaderMethod(),
                         base: that.base,
-                        async:  false,
-                        id:     url,
+                        async: false,
+                        id: url,
                         options: that.options
                     });
                 }

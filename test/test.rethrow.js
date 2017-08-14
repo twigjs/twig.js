@@ -31,6 +31,7 @@ describe("Twig.js Rethrow ->", function() {
             done(template);
         }
         catch(err) {
+            console.log(err);
             err.should.have.property('file', 'test/templates/error/compile/entry.twig');
 
             done();
@@ -71,4 +72,3 @@ describe("Twig.js Rethrow ->", function() {
         }
     });
 });
-
