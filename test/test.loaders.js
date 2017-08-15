@@ -29,7 +29,7 @@ describe("Twig.js Loaders ->", function() {
         });
         it("should load a simple template from a custom loader", function() {
             twig({
-                method: 'custom',
+                method: 'custom', 
                 name: 'custom_loader_simple'
             }).render({value: 'test succeeded'}).should.equal('the value is: test succeeded');
         });

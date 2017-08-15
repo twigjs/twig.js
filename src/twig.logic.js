@@ -640,6 +640,7 @@ module.exports = function (Twig) {
                     type:  Twig.expression.type.expression,
                     value: expression
                 }).stack;
+
                 return token;
             },
             parse: function (token, context, chain) {

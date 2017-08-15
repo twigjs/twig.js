@@ -1275,8 +1275,8 @@ module.exports = function (Twig) {
                     ext_template = Twig.Templates.loadRemote(url, {
                         method: that.getLoaderMethod(),
                         base: that.base,
-                        async: false,
-                        id: url,
+                        async:  false,
+                        id:     url,
                         options: that.options
                     });
                 }
