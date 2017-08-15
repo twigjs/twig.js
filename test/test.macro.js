@@ -10,7 +10,7 @@ describe("Twig.js Macro ->", function() {
             async: false
         });
         // Load the template
-        twig({ref: ['macro']}).render({ }).should.equal( '' );
+        twig({ref: 'macro'}).render({ }).should.equal( '' );
     });
 
     it("it should import macro", function() {
