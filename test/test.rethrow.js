@@ -71,4 +71,3 @@ describe("Twig.js Rethrow ->", function() {
         }
     });
 });
-
