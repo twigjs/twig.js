@@ -56,7 +56,7 @@ module.exports = function(Twig) {
             fs.stat(paths[index], function (err, stats) {
                 if (err || (!stats.isFile() && i === paths.length -1)) {
                     if (typeof error_callback === 'function') {
-                        error_callback(new Twig.Error('Unable to find any of the following template files ' + paths.join(', ')));
+                        error_callback(new Twig.Error('Unable to find template file(s): ' + paths.join(', ')));
                     }
                     return;
                 } else if (stats.isFile()) {
@@ -74,7 +74,6 @@ module.exports = function(Twig) {
         if (params.async) {
             asyncStat(params.path, 0);
         } else {
-            var errors = [];
             for (var i = 0; i < params.path.length; i++) {
                 try {
                     if (fs.statSync(params.path[i]).isFile()) {
@@ -82,13 +81,11 @@ module.exports = function(Twig) {
                         loadTemplateFn(undefined, data);
                         return template;
                     }
-                } catch(err) {
-                    errors.push(err);
+                } catch (err) { 
+                    if (err.file && i === params.path.length-1) {
+                        throw err;
+                    }
                 }
-            }
-
-            if (errors.length) {
-                throw new Twig.Error('Unable to find any of the following template files ' + errors[0]);
             }
         }
     });
