@@ -33,7 +33,7 @@ module.exports = function (Twig) {
         return obj && obj.then && (typeof obj.then == 'function');
     }
 
-    Twig.async.potentiallyAsync = function potentiallyAsync(that, allow_async, action) {
+    function potentiallyAsyncSlow(that, allow_async, action) {
         var result = action.call(that),
             err = null,
             is_async = true;
@@ -59,6 +59,13 @@ module.exports = function (Twig) {
             throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
 
         return result;
+    }
+
+    Twig.async.potentiallyAsync = function potentiallyAsync(that, allow_async, action) {
+        if (allow_async)
+            return Twig.Promise.resolve(action.call(that));
+
+        return potentiallyAsyncSlow(that, allow_async, action);
     }
 
     function run(fn, resolve, reject) {
