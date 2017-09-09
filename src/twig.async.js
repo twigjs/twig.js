@@ -33,13 +33,16 @@ module.exports = function (Twig) {
         return obj && obj.then && (typeof obj.then == 'function');
     }
 
+    /**
+     * Handling of code paths that might either return a promise
+     * or a value depending on whether async code is used.
+     *
+     * @see https://github.com/twigjs/twig.js/blob/master/ASYNC.md#detecting-asynchronous-behaviour
+     */
     function potentiallyAsyncSlow(that, allow_async, action) {
         var result = action.call(that),
             err = null,
             is_async = true;
-
-        if (allow_async)
-            return Twig.Promise.resolve(result);
 
         if (!Twig.isPromise(result))
             return result;
@@ -88,13 +91,17 @@ module.exports = function (Twig) {
         return handlers;
     }
 
+    /**
+     * Really small thenable to represent promises that resolve immediately.
+     *
+     */
     Twig.Thenable = function(then, value, state) {
         this.then = then;
         this._value = state ? value : null;
         this._state = state || STATE_UNKNOWN;
     }
 
-    Twig.Thenable.prototype.catch = function cc(onRejected) {
+    Twig.Thenable.prototype.catch = function thenableCatch(onRejected) {
         // THe promise will not throw, it has already resolved.
         if (this._state == STATE_RESOLVED)
             return this;
@@ -102,20 +109,20 @@ module.exports = function (Twig) {
         return this.then(null, onRejected);
     }
 
-    Twig.Thenable.resolvedThen = function(onResolved) {
-        // This method is only used on promises that immediately resolve.
-        // Because of this this condition cannot occur.
-        // if (!onResolved || typeof onResolved != 'function')
-            // return this;
-
-        try {
-            return Twig.Promise.resolve(onResolved(this._value));
-        } catch (e) {
-            return Twig.Promise.reject(e);
-        }
+    /**
+     * The `then` method attached to a Thenable when it has resolved.
+     *
+     */
+    Twig.Thenable.resolvedThen = function resolvedThen(onResolved) {
+        try { return Twig.Promise.resolve(onResolved(this._value)); }
+        catch(e) { return Twig.Promise.resolve(e); }
     }
 
-    Twig.Thenable.rejectedThen = function(onResolved, onRejected) {
+    /**
+     * The `then` method attached to a Thenable when it has rejected.
+     *
+     */
+    Twig.Thenable.rejectedThen = function rejectedThen(onResolved, onRejected) {
         // Shortcut for rejected twig promises
         if (!onRejected || typeof onRejected != 'function')
             return this;
@@ -155,17 +162,27 @@ module.exports = function (Twig) {
 
         run(executor, onReady, onReject);
 
+        // If the promise settles right after running the executor we can
+        // return a Promise with it's state already set.
+        //
+        // Twig.Promise.resolve and Twig.Promise.reject both use the more
+        // efficient `Twig.Thenable` for this purpose.
         if (state === STATE_RESOLVED)
             return Twig.Promise.resolve(value);
 
         if (state === STATE_REJECTED)
             return Twig.Promise.reject(value);
 
+        // If we managed to get here our promise is going to resolve asynchronous.
         changeState = Twig.FullPromise();
 
         return changeState.promise;
     }
 
+    /**
+     * Promise implementation that can handle being resolved at any later time.
+     *
+     */
     Twig.FullPromise = function() {
         var handlers = null;
 
@@ -238,14 +255,20 @@ module.exports = function (Twig) {
     }
 
     Twig.Promise.defaultResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, undefined, STATE_RESOLVED);
+    Twig.Promise.emptyStringResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, '', STATE_RESOLVED);
 
-    Twig.Promise.resolve = function(value) {
-        if (typeof value === 'undefined') {
+    Twig.Promise.resolve = function promiseResolve(value) {
+        if (arguments.length < 1 || typeof value === 'undefined')
             return Twig.Promise.defaultResolved;
-        }
 
         if (Twig.isPromise(value))
             return value;
+
+        // Twig often resolves with an empty string, we optimize for this
+        // scenario by returning a fixed promise. This reduces the load on
+        // garbage collection.
+        if (value === '')
+            return Twig.Promise.emptyStringResolved;
 
         return new Twig.Thenable(Twig.Thenable.resolvedThen, value, STATE_RESOLVED);
     };
@@ -298,6 +321,10 @@ module.exports = function (Twig) {
 
                 resp = callback(arr[index], index);
                 index++;
+
+            // While the result of the callback is not a promise or it is
+            // a promise that has settled we can use a regular loop which
+            // is much faster.
             } while(!resp || !Twig.isPromise(resp) || resp._state == STATE_RESOLVED);
 
             return resp.then(next);

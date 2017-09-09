@@ -1114,7 +1114,6 @@ module.exports = function (Twig) {
                     });
                 })
                 .then(function(output) {
-                    // TODO: State can be cleaned up after this function, that's why it is slow.
                     return {
                         chain: chain,
                         output: output

@@ -187,9 +187,6 @@ module.exports = function (Twig) {
      */
     Twig.ChildContext = function(context) {
         return Twig.lib.copy(context);
-        // var ChildContext = function ChildContext() {};
-        // ChildContext.prototype = context;
-        // return new ChildContext();
     };
 
     /**
@@ -793,6 +790,12 @@ module.exports = function (Twig) {
             // Track logic chains
             chain = true;
 
+        /*
+         * Extracted into it's own function such that the function
+         * does not get recreated over and over again in the `forEach`
+         * loop below. This method can be compiled and optimized
+         * a single time instead of being recreated on each iteration.
+         */
         function output_push(o) { output.push(o); }
 
         function parseTokenLogic(logic) {
@@ -1134,7 +1137,7 @@ module.exports = function (Twig) {
             cached = Twig.Templates.registry[id];
 
         // Check for existing template
-        if (Twig.cache && cached) {
+        if (Twig.cache && typeof cached != 'undefined') {
             // A template is already saved with the given id.
             if (typeof callback === 'function') {
                 callback(cached);

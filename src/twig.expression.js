@@ -1260,7 +1260,7 @@ module.exports = function (Twig) {
             binaryOperator = Twig.expression.type.operator.binary;
 
         return Twig.async.potentiallyAsync(this, allow_async, function() {
-            return Twig.async.forEach(tokens, function (token, index) {
+            return Twig.async.forEach(tokens, function expressionToken(token, index) {
                 var token_template = null,
                     next_token = null,
                     result;
@@ -1287,7 +1287,7 @@ module.exports = function (Twig) {
 
                 return result;
             })
-            .then(function() {
+            .then(function loopTokenFixups() {
                 //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
                 //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
                 var len = loop_token_fixups.length;
