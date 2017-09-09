@@ -748,21 +748,18 @@ module.exports = function (Twig) {
 
                 return token;
             },
-            parse: function (token, context, chain) {
+            parse: function logicTypeInclude(token, context, chain) {
                 // Resolve filename
                 var innerContext = token.only ? {} : Twig.ChildContext(context),
                     ignoreMissing = token.ignoreMissing,
                     that = this,
-                    promise = null;
+                    promise = null,
+                    result = { chain: chain, output: '' };
 
                 if (typeof token.withStack !== 'undefined') {
                     promise = Twig.expression.parseAsync.call(this, token.withStack, context)
                     .then(function(withContext) {
-                        var i = null;
-                        for (i in withContext) {
-                            if (withContext.hasOwnProperty(i))
-                                innerContext[i] = withContext[i];
-                        }
+                        Twig.lib.extend(innerContext, withContext);
                     });
                 } else {
                     promise = Twig.Promise.resolve();
@@ -772,7 +769,7 @@ module.exports = function (Twig) {
                 .then(function() {
                     return Twig.expression.parseAsync.call(that, token.stack, context);
                 })
-                .then(function(file) {
+                .then(function logicTypeIncludeImport(file) {
                     if (file instanceof Twig.Template) {
                         return file.renderAsync(innerContext);
                     }
@@ -786,11 +783,11 @@ module.exports = function (Twig) {
                         throw err;
                     }
                 })
-                .then(function(output) {
-                    return {
-                        chain: chain,
-                        output: output
-                    };
+                .then(function slowLogicReturn(output) {
+                    if (output)
+                        result.output = output;
+
+                    return result;
                 });
             }
         },
