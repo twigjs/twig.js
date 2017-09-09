@@ -784,7 +784,7 @@ module.exports = function (Twig) {
                     }
                 })
                 .then(function slowLogicReturn(output) {
-                    if (output)
+                    if (output !== '')
                         result.output = output;
 
                     return result;

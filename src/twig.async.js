@@ -115,7 +115,7 @@ module.exports = function (Twig) {
      */
     Twig.Thenable.resolvedThen = function resolvedThen(onResolved) {
         try { return Twig.Promise.resolve(onResolved(this._value)); }
-        catch(e) { return Twig.Promise.resolve(e); }
+        catch(e) { return Twig.Promise.reject(e); }
     }
 
     /**
