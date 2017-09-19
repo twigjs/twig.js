@@ -37,7 +37,9 @@ module.exports = function (Twig) {
         import_:   'Twig.logic.type.import',
         from:      'Twig.logic.type.from',
         embed:     'Twig.logic.type.embed',
-        endembed:  'Twig.logic.type.endembed'
+        endembed:  'Twig.logic.type.endembed',
+        'with':     'Twig.logic.type.with',
+        endwith:  'Twig.logic.type.endwith'
     };
 
 
@@ -1130,6 +1132,75 @@ module.exports = function (Twig) {
         {
             type: Twig.logic.type.endembed,
             regex: /^endembed$/,
+            next: [ ],
+            open: false
+        },
+        {
+            /**
+             * Block logic tokens.
+             *
+             *  Format: {% with {some: 'values'} [only] %}
+             */
+            type: Twig.logic.type['with'],
+            regex: /^(?:with\s+([\S\s]+?))(?:\s|$)(only)?$/,
+            next: [
+                Twig.logic.type.endwith
+            ],
+            open: true,
+            compile: function (token) {
+                var match = token.match,
+                    withContext = match[1],
+                    only = ((match[2] !== undefined) && match[2].length);
+
+                delete token.match;
+
+                token.only = only;
+
+                if (withContext !== undefined) {
+                    token.withStack = Twig.expression.compile.call(this, {
+                        type:  Twig.expression.type.expression,
+                        value: withContext.trim()
+                    }).stack;
+                }
+
+                return token;
+            },
+            parse: function (token, context, chain) {
+                // Resolve filename
+                var innerContext = {},
+                    i,
+                    that = this,
+                    promise = Twig.Promise.resolve();
+
+                if (!token.only) {
+                    innerContext = Twig.ChildContext(context);
+                }
+
+                if (token.withStack !== undefined) {
+                    promise = Twig.expression.parseAsync.call(this, token.withStack, context)
+                    .then(function(withContext) {
+                        for (i in withContext) {
+                            if (withContext.hasOwnProperty(i))
+                                innerContext[i] = withContext[i];
+                        }
+                    });
+                }
+
+                return promise
+                .then(function() {
+                    return Twig.parseAsync.call(that, token.output, innerContext);
+                })
+                .then(function(output) {
+                    return {
+                        chain: chain,
+                        output: output
+                    };
+                });
+            }
+        },
+        {
+            type: Twig.logic.type.endwith,
+            regex: /^endwith$/,
             next: [ ],
             open: false
         }
