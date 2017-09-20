@@ -37,9 +37,6 @@ module.exports = function (Twig) {
         if (params.trace !== undefined) {
             Twig.trace = params.trace;
         }
-        if (params.path && !Array.isArray(params.path)) {
-            params.path = [params.path]
-        }
 
         if (params.data !== undefined) {
             return Twig.Templates.parsers.twig({
@@ -55,7 +52,7 @@ module.exports = function (Twig) {
                 throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
-
+        
         } else if (params.method !== undefined) {
             if (!Twig.Templates.isRegisteredLoader(params.method)) {
                 throw new Twig.Error('Loader for "' + params.method + '" is not defined.');

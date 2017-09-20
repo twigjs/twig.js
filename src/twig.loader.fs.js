@@ -17,7 +17,6 @@ module.exports = function(Twig) {
             precompiled = params.precompiled,
             parser = this.parsers[params.parser] || this.parser.twig;
 
-
         if (!fs || !path) {
             throw new Twig.Error('Unsupported platform: Unable to load from file ' +
                                  'because there is no "fs" or "path" implementation');
@@ -47,49 +46,29 @@ module.exports = function(Twig) {
         };
         params.path = params.path || location;
 
-        if (!Array.isArray(params.path)) {
-            params.path = [params.path];
-        }
-
-        // TODO: test asyncStat
-        var asyncStat = function(paths, index){
-            fs.stat(paths[index], function (err, stats) {
-                if (err || (!stats.isFile() && i === paths.length -1)) {
+        if (params.async) {
+            fs.stat(params.path, function (err, stats) {
+                if (err || !stats.isFile()) {
                     if (typeof error_callback === 'function') {
-                        error_callback(new Twig.Error('Unable to find template file(s) ' + paths.join(', ')));
+                        error_callback(new Twig.Error('Unable to find template file ' + params.path));
                     }
                     return;
-                } else if (stats.isFile()) {
-                    location = paths[index];
-                    params.path = paths[index];
-                    fs.readFile(params.path, 'utf8', loadTemplateFn);
-                    // TODO: return deferred promise
-                    return true;
-                } else if (index < pahts.length - 1) {
-                    asyncStat(paths, index++);
                 }
+                fs.readFile(params.path, 'utf8', loadTemplateFn);
             });
-        }
-
-        if (params.async) {
-            asyncStat(params.path, 0);
+            // TODO: return deferred promise
+            return true;
         } else {
-            var errors = [];
-            for (var i = 0; i < params.path.length; i++) {
-                try {
-                    if (fs.statSync(params.path[i]).isFile()) {
-                        data = fs.readFileSync(params.path[i], 'utf8');
-                        loadTemplateFn(undefined, data);
-                        return template;
-                    }
-                } catch(err) {
-                    errors.push(err);
+            try {
+                if (!fs.statSync(params.path).isFile()) {
+                    throw new Twig.Error('Unable to find template file ' + params.path);
                 }
+            } catch (err) {
+                throw new Twig.Error('Unable to find template file ' + params.path);
             }
-
-            if (errors.length) {
-                throw new Twig.Error('Unable to find template file(s) ' + errors[0], params.path[0]);
-            }
+            data = fs.readFileSync(params.path, 'utf8');
+            loadTemplateFn(undefined, data);
+            return template
         }
     });
 
