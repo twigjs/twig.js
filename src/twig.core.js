@@ -1127,7 +1127,7 @@ module.exports = function (Twig) {
 
         // Default to the URL so the template is cached.
         if (params.id === undefined) {
-            params.id = Array.isArray(location) ? location[0] : location;
+            params.id = location;
         }
 
         // Check for existing template

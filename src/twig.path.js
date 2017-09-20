@@ -20,35 +20,24 @@ module.exports = function (Twig) {
      */
      Twig.path.parsePath = function(template, file) {
         var namespaces = null,
-            file = file || "",
-            files = [];
+            file = file || "";
 
         if (typeof template === 'object' && typeof template.options === 'object') {
             namespaces = template.options.namespaces;
         }
 
-        if (!Array.isArray(file)) {
-            files = [file];
-        } else {
-            files = file;
-        }
-
-        return files.reduce(function(acc, _file){
-            if (typeof namespaces === 'object' && (_file.indexOf('::') > 0) || _file.indexOf('@') >= 0){
-                for (var k in namespaces){
-                    if (namespaces.hasOwnProperty(k)) {
-                        _file = _file.replace(k + '::', namespaces[k]);
-                        _file = _file.replace('@' + k, namespaces[k]);
-                    }
+        if (typeof namespaces === 'object' && (file.indexOf('::') > 0) || file.indexOf('@') >= 0){
+            for (var k in namespaces){
+                if (namespaces.hasOwnProperty(k)) {
+                    file = file.replace(k + '::', namespaces[k]);
+                    file = file.replace('@' + k, namespaces[k]);
                 }
-
-                acc.push(_file);
-            } else {
-                acc = acc.concat(Twig.path.relativePath(template, _file));
             }
 
-            return acc;
-        }, []);
+            return file;
+        }
+
+        return Twig.path.relativePath(template, file);
     };
 
     /**
@@ -62,7 +51,6 @@ module.exports = function (Twig) {
     Twig.path.relativePath = function(template, file) {
         var base,
             base_path,
-            bases = [],
             sep_chr = "/",
             new_path = [],
             file = file || "",
@@ -74,63 +62,47 @@ module.exports = function (Twig) {
             } else {
                 base = template.url;
             }
-            bases.push(base);
         } else if (template.path) {
             // Get the system-specific path separator
             var path = require("path"),
                 sep = path.sep || sep_chr,
-                relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\")),
-                pathNormalize = function(_path){
-
-                    if (template.base !== undefined && file.match(relative) == null) {
-                        file = file.replace(template.base, '');
-                        base = template.base + sep;
-                    } else {
-                        base = path.normalize(_path);
-                    }
-
-                    return base.replace(sep+sep, sep);
-                };
-
+                relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\"));
             file = file.replace(/\//g, sep);
 
-            if (Array.isArray(template.path)) {
-                bases = template.path.map(pathNormalize);
+            if (template.base !== undefined && file.match(relative) == null) {
+                file = file.replace(template.base, '');
+                base = template.base + sep;
             } else {
-                bases.push(pathNormalize(template.path));
+                base = path.normalize(template.path);
             }
 
+            base = base.replace(sep+sep, sep);
             sep_chr = sep;
         } else if ((template.name || template.id) && template.method && template.method !== 'fs' && template.method !== 'ajax') {
             // Custom registered loader
             base = template.base || template.name || template.id;
-            bases.push(base);
         } else {
             throw new Twig.Error("Cannot extend an inline template.");
         }
 
+        base_path = base.split(sep_chr);
 
-        return bases.map(function(base){
-            base_path = base.split(sep_chr);
+        // Remove file from url
+        base_path.pop();
+        base_path = base_path.concat(file.split(sep_chr));
 
-            // Remove file from url
-            base_path.pop();
-            base_path = base_path.concat(file.split(sep_chr));
-
-            while (base_path.length > 0) {
-                val = base_path.shift();
-                if (val == ".") {
-                    // Ignore
-                } else if (val == ".." && new_path.length > 0 && new_path[new_path.length-1] != "..") {
-                    new_path.pop();
-                } else {
-                    new_path.push(val);
-                }
+        while (base_path.length > 0) {
+            val = base_path.shift();
+            if (val == ".") {
+                // Ignore
+            } else if (val == ".." && new_path.length > 0 && new_path[new_path.length-1] != "..") {
+                new_path.pop();
+            } else {
+                new_path.push(val);
             }
+        }
 
-            var res = new_path.join(sep_chr);
-            return res;
-        })
+        return new_path.join(sep_chr);
     };
 
     return Twig;
