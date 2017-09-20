@@ -20,4 +20,22 @@ describe("Twig.js Tags ->", function() {
         );
     });
 
+    it("should support with", function() {
+        twig({
+            autoescape: true,
+            data: "{% set prefix = \"Hello\" %}{% with { name: \"world\" } %}{{prefix}} {{name}}{% endwith %}"
+        }).render().should.equal(
+            "Hello world"
+        );
+    });
+
+    it("should limit scope of with only", function() {
+        twig({
+            autoescape: true,
+            data: "{% set prefix = \"Hello\" %}{% with { name: \"world\" } only %}{{prefix}} {{name}}{% endwith %}"
+        }).render().should.equal(
+            " world"
+        );
+    });
+
 });
