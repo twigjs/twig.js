@@ -63,6 +63,7 @@ app.configure(function () {
 		app.use(express.bodyParser());
     app.set('views', __dirname + '/public/views');
     app.set('view engine', 'twig');
+    app.set('twig options', {});
     // We don't need express to use a parent "page" layout
     // Twig.js has support for this using the {% extends parent %} tag
     app.set("view options", { layout: false });
@@ -140,4 +141,3 @@ var port = process.env.PORT || 9999,
 app.listen(port, host);
 
 console.log("Express Twig.js Demo is running on " + host + ":" + port);
-
