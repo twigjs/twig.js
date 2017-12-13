@@ -475,6 +475,8 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
+                var that = this;
+
                 return Twig.parseAsync.call(this, token.output, context)
                 .then(function(unfiltered) {
                     var stack = [{
