@@ -910,7 +910,7 @@ module.exports = function (Twig) {
             str = '';
 
         // [].map would be better but it's not supported by IE8-
-        var escaped_output = '';
+        var escaped_output = new Array(len);
         for (i = 0; i < len; i++) {
             str = output[i];
 
@@ -918,13 +918,13 @@ module.exports = function (Twig) {
                 str = Twig.filters.escape(str, [ strategy ]);
             }
 
-            escaped_output += str;
+            escaped_output[i] = str;
         }
 
         if (escaped_output.length < 1)
             return '';
 
-        return Twig.Markup(escaped_output, true);
+        return Twig.Markup(escaped_output.join(""), true);
     }
 
     // Namespace for template storage and retrieval
