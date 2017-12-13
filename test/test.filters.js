@@ -45,6 +45,11 @@ describe("Twig.js Filters ->", function() {
             var test_template = twig({data: '{{ undef|json_encode }}' });
             test_template.render().should.equal("null" );
         });
+        it("should encode dates correctly", function() {
+            var test_template = twig({data: '{{ test|json_encode }}' });
+            var data = {a: new Date("2011-10-10")};
+            test_template.render({test: data}).should.equal('{"a":"2011-10-10T00:00:00.000Z"}');
+        });
     });
 
     // String manipulation

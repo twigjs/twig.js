@@ -194,6 +194,9 @@ module.exports = function (Twig) {
 
                 return "[" + output.join(",") + "]";
             }
+            else if ((typeof value == 'object') && (is("Date", value))) {
+                return '"' + value.toISOString() + '"';
+            }
             else if (typeof value == 'object') {
                 var keyset = value._keys || Object.keys(value),
                 output = [];
