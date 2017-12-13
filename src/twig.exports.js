@@ -52,7 +52,7 @@ module.exports = function (Twig) {
                 throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
-        
+
         } else if (params.method !== undefined) {
             if (!Twig.Templates.isRegisteredLoader(params.method)) {
                 throw new Twig.Error('Loader for "' + params.method + '" is not defined.');
@@ -156,7 +156,7 @@ module.exports = function (Twig) {
      * @param {string} path The location of the template file on disk.
      * @param {Object|Function} The options or callback.
      * @param {Function} fn callback.
-     * 
+     *
      * @throws Twig.Error
      */
     Twig.exports.renderFile = function(path, options, fn) {
@@ -213,6 +213,8 @@ module.exports = function (Twig) {
     //Export our filters.
     //Resolves #307
     Twig.exports.filters = Twig.filters;
+
+    Twig.exports.Promise = Twig.Promise;
 
     return Twig;
 };

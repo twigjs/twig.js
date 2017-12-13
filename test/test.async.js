@@ -8,6 +8,14 @@ describe("Twig.js Async ->", function() {
         return Promise.resolve(a);
     });
 
+    Twig.extendFunction("echoAsyncInternal", function(a) {
+        return new Twig.Promise(function(resolve) {
+            setTimeout(function() {
+                resolve(a);
+            }, 100);
+        });
+    });
+
     Twig.extendFilter('asyncUpper', function(txt) {
         return Promise.resolve(txt.toUpperCase());
     });
@@ -48,6 +56,14 @@ describe("Twig.js Async ->", function() {
                 throw new Error('should not resolve');
             }, function(err) {
                 err.message.should.equal('async error test');
+            });
+        });
+        it("should handle slow executors for promises", function() {
+            return twig({
+                data: '{{ echoAsyncInternal("hello world") }}'
+            }).renderAsync()
+            .then(function(output) {
+                output.should.equal("hello world");
             });
         });
     });

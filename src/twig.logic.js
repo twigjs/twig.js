@@ -750,55 +750,46 @@ module.exports = function (Twig) {
 
                 return token;
             },
-            parse: function (token, context, chain) {
+            parse: function logicTypeInclude(token, context, chain) {
                 // Resolve filename
-                var innerContext = {},
-                    i,
-                    template,
+                var innerContext = token.only ? {} : Twig.ChildContext(context),
+                    ignoreMissing = token.ignoreMissing,
                     that = this,
-                    promise = Twig.Promise.resolve();
+                    promise = null,
+                    result = { chain: chain, output: '' };
 
-                if (!token.only) {
-                    innerContext = Twig.ChildContext(context);
-                }
-
-                if (token.withStack !== undefined) {
+                if (typeof token.withStack !== 'undefined') {
                     promise = Twig.expression.parseAsync.call(this, token.withStack, context)
                     .then(function(withContext) {
-                        for (i in withContext) {
-                            if (withContext.hasOwnProperty(i))
-                                innerContext[i] = withContext[i];
-                        }
+                        Twig.lib.extend(innerContext, withContext);
                     });
+                } else {
+                    promise = Twig.Promise.resolve();
                 }
 
                 return promise
                 .then(function() {
                     return Twig.expression.parseAsync.call(that, token.stack, context);
                 })
-                .then(function(file) {
+                .then(function logicTypeIncludeImport(file) {
                     if (file instanceof Twig.Template) {
-                        template = file;
-                    } else {
-                        // Import file
-                        try {
-                            template = that.importFile(file);
-                        } catch (err) {
-                            if (token.ignoreMissing) {
-                                return '';
-                            }
-
-                            throw err;
-                        }
+                        return file.renderAsync(innerContext);
                     }
 
-                    return template.renderAsync(innerContext);
+                    try {
+                        return that.importFile(file).renderAsync(innerContext);
+                    } catch(err) {
+                        if (ignoreMissing)
+                            return '';
+
+                        throw err;
+                    }
                 })
-                .then(function(output) {
-                    return {
-                        chain: chain,
-                        output: output
-                    };
+                .then(function slowLogicReturn(output) {
+                    if (output !== '')
+                        result.output = output;
+
+                    return result;
                 });
             }
         },
@@ -1090,6 +1081,8 @@ module.exports = function (Twig) {
                 }
 
                 return promise.then(function() {
+                    // Allow this function to be cleaned up early
+                    promise = null;
                     return Twig.expression.parseAsync.call(that, token.stack, innerContext);
                 })
                 .then(function(file) {
@@ -1103,6 +1096,10 @@ module.exports = function (Twig) {
                             if (token.ignoreMissing) {
                                 return '';
                             }
+
+                            // Errors preserve references to variables in scope,
+                            // this removes `this` from the scope.
+                            that = null;
 
                             throw err;
                         }
@@ -1347,35 +1344,16 @@ module.exports = function (Twig) {
      *                        chain is closed and no further cases should be parsed.
      */
     Twig.logic.parse = function (token, context, chain, allow_async) {
-        var output = '',
-            promise,
-            is_async = true,
-            token_template;
+        return Twig.async.potentiallyAsync(this, allow_async, function() {
+            Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
 
-        context = context || { };
+            var token_template = Twig.logic.handler[token.type];
 
-        Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
+            if (!token_template.parse)
+                return '';
 
-        token_template = Twig.logic.handler[token.type];
-
-        if (token_template.parse) {
-            output = token_template.parse.call(this, token, context, chain);
-        }
-
-        promise = Twig.Promise.resolve(output);
-
-        if (allow_async)
-            return promise;
-
-        promise.then(function(o) {
-            is_async = false;
-            output = o;
+            return token_template.parse.call(this, token, context || {}, chain);
         });
-
-        if (is_async)
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-        return output;
     };
 
     return Twig;

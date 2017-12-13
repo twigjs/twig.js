@@ -9,6 +9,10 @@ module.exports = function (Twig) {
      */
     Twig.path = {};
 
+
+    var colon = /.::/;
+    var atSign = /@/;
+
     /**
      * Generate the canonical version of a url based on the given base path and file path and in
      * the previously registered namespaces.
@@ -18,20 +22,19 @@ module.exports = function (Twig) {
      *
      * @return {string}          The canonical version of the path
      */
-     Twig.path.parsePath = function(template, file) {
-        var namespaces = null,
-            file = file || "";
+     Twig.path.parsePath = function(template, _file) {
+        var k = null,
+            value = null,
+            namespaces = template.options.namespaces,
+            file = _file || "",
+            hasNamespaces = namespaces && typeof namespaces === 'object';
 
-        if (typeof template === 'object' && typeof template.options === 'object') {
-            namespaces = template.options.namespaces;
-        }
-
-        if (typeof namespaces === 'object' && (file.indexOf('::') > 0) || file.indexOf('@') >= 0){
-            for (var k in namespaces){
-                if (namespaces.hasOwnProperty(k)) {
+        if (hasNamespaces){
+            for (k in namespaces) {
+                if (colon.test(file))
                     file = file.replace(k + '::', namespaces[k]);
+                else if(atSign.test(file))
                     file = file.replace('@' + k, namespaces[k]);
-                }
             }
 
             return file;
