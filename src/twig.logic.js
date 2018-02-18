@@ -1026,7 +1026,7 @@ module.exports = function (Twig) {
              *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.embed,
-            regex: /^embed\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,
+            regex: /^embed\s+(.+?)(?:\s+(ignore missing))?(?:\s+with\s+([\S\s]+?))?(?:\s+(only))?$/,
             next: [
                 Twig.logic.type.endembed
             ],
