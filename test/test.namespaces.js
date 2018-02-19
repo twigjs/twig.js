@@ -15,8 +15,24 @@ describe("Twig.js Namespaces ->", function() {
 
 				done();
             }
-    	});        
+    	});
     });
+
+  it("should support namespaces defined with :: in source method", function(done) {
+    twig({
+      namespaces: { 'test': 'test/templates/namespaces/' },
+      path: 'test/templates/namespaces_coloncolon_source.twig',
+      load: function(template) {
+        // Render the template
+        template.render({
+          test: "yes",
+          flag: true
+        }).should.equal("namespaces");
+
+        done();
+      }
+    });
+  });
 
     it("should support namespaces defined with @", function(done) {
     	twig({
@@ -31,8 +47,24 @@ describe("Twig.js Namespaces ->", function() {
 
 				done();
             }
-    	});        
+    	});
     });
+
+  it("should support namespaces defined with @ in source method", function(done) {
+    twig({
+      namespaces: { 'test': 'test/templates/namespaces/' },
+      path: 'test/templates/namespaces_@_source.twig',
+      load: function(template) {
+        // Render the template
+        template.render({
+          test: "yes",
+          flag: true
+        }).should.equal("namespaces");
+
+        done();
+      }
+    });
+  });
 
 
 });
