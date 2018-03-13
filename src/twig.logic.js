@@ -1108,16 +1108,18 @@ module.exports = function (Twig) {
                     }
 
                     // reset previous blocks
+                    that._blocks = Object.assign({}, that.blocks);
                     that.blocks = {};
 
                     // parse tokens. output will be not used
                     return Twig.parseAsync.call(that, token.output, innerContext)
                     .then(function() {
                         // render tempalte with blocks defined in embed block
-                        return template.renderAsync(innerContext, {'blocks':that.blocks});
+                        return template.renderAsync(innerContext, {'blocks': that.blocks});
                     });
                 })
                 .then(function(output) {
+                    that.blocks = Object.assign({}, that.blocks, that._blocks);
                     return {
                         chain: chain,
                         output: output
