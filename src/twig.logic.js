@@ -289,7 +289,7 @@ module.exports = function (Twig) {
                             Twig.Promise.resolve(true) :
                             Twig.expression.parseAsync.call(that, conditional, inner_context);
 
-                        promise.then(function(condition) {
+                        return promise.then(function(condition) {
                             if (!condition)
                                 return;
 
@@ -316,7 +316,7 @@ module.exports = function (Twig) {
                 .then(function(result) {
                     if (Twig.lib.isArray(result)) {
                         len = result.length;
-                        Twig.async.forEach(result, function (value) {
+                        return Twig.async.forEach(result, function (value) {
                             var key = index;
 
                             return loop(key, value);
@@ -328,14 +328,15 @@ module.exports = function (Twig) {
                             keyset = Object.keys(result);
                         }
                         len = keyset.length;
-                        Twig.forEach(keyset, function(key) {
+                        return Twig.async.forEach(keyset, function(key) {
                             // Ignore the _keys property, it's internal to twig.js
                             if (key === "_keys") return;
 
-                            loop(key,  result[key]);
+                            return loop(key,  result[key]);
                         });
                     }
-
+                })
+                .then(function() {
                     // Only allow else statements if no output was generated
                     continue_chain = (output.length === 0);
 
