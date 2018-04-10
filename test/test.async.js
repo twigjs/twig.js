@@ -134,4 +134,25 @@ describe("Twig.js Async ->", function() {
         });
     });
 
+    describe("Twig.js Control Structures ->", function() {
+        it("should have a loop context item available for arrays", function() {
+            function run(tpl, result) {
+                var test_template = twig({data: tpl});
+                return test_template.renderAsync({
+                    test: [1,2,3,4], 'async': () => Promise.resolve()
+                })
+                .then(res => res.should.equal(result));
+            }
+
+            return Promise.resolve()
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.index }}{% endfor %}', '1234'))
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.index0 }}{% endfor %}', '0123'))
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.revindex }}{% endfor %}', '4321'))
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.revindex0 }}{% endfor %}', '3210'))
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.length }}{% endfor %}', '4444'))
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.first }}{% endfor %}', 'truefalsefalsefalse'))
+                .then(() => run('{% for key,value in test %}{{async()}}{{ loop.last }}{% endfor %}', 'falsefalsefalsetrue'));
+        });
+    });
+
 });
