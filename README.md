@@ -109,6 +109,10 @@ Message of the moment: <b>{{ message }}</b>
 
 An [Express 2 Example](https://github.com/twigjs/twig.js/wiki/Express-2) is available on the wiki.
 
+# Alternatives
+
+- [Twing](https://github.com/ericmorand/twing)
+
 # Contributing
 
 If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js.
