@@ -531,9 +531,15 @@ module.exports = function (Twig) {
                     isImported = Twig.indexOf(this.importedBlocks, token.block) > -1,
                     hasParent = this.blocks[token.block] && Twig.indexOf(this.blocks[token.block], Twig.placeholders.parent) > -1;
 
+                // detect if in a for loop
+                Twig.forEach(this.parseStack, function (parent_token) {
+                    if (parent_token.type == Twig.logic.type.for_) {
+                        token.overwrite = true;
+                    }
+                });
+
                 // Don't override previous blocks unless they're imported with "use"
-                // Loops should be exempted as well.
-                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop || token.overwrite) {
+                if (this.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
                     if (token.expression) {
                         promise = Twig.expression.parseAsync.call(this, token.output, context)
                         .then(function(value) {
@@ -1350,12 +1356,28 @@ module.exports = function (Twig) {
         return Twig.async.potentiallyAsync(this, allow_async, function() {
             Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
 
-            var token_template = Twig.logic.handler[token.type];
+            var token_template = Twig.logic.handler[token.type],
+                result,
+                that = this;
+
 
             if (!token_template.parse)
                 return '';
 
-            return token_template.parse.call(this, token, context || {}, chain);
+            that.parseStack.unshift(token);
+            result = token_template.parse.call(that, token, context || {}, chain);
+
+            if (Twig.isPromise(result)) {
+                result = result.then(function (result) {
+                    that.parseStack.shift();
+
+                    return result;
+                })
+            } else {
+                that.parseStack.shift();
+            }
+
+            return result;
         });
     };
 
