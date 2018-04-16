@@ -1,6 +1,8 @@
 var Twig = Twig || requireUncached("../twig"),
     twig = twig || Twig.twig;
 
+Twig.cache(false);
+
 describe("Twig.js Embed ->", function() {
     // Test loading a template from a remote endpoint
     it("it should load embed and render", function() {
@@ -90,5 +92,17 @@ describe("Twig.js Embed ->", function() {
                 baz: 'qux'
             }).should.equal(test.expected);
         });
+    });
+
+    it('should override blocks in a for loop', function () {
+        twig({
+            data: '<{% block content %}original{% endblock %}>',
+            id: 'embed.twig'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% for i in 1..3 %}{% embed "embed.twig" %}{% block content %}override{% endblock %}{% endembed %}{% endfor %}'
+        }).render().should.equal('<override><override><override>');
     });
 });
