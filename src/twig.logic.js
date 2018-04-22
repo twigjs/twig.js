@@ -1396,23 +1396,23 @@ module.exports = function (Twig) {
 
             var token_template = Twig.logic.handler[token.type],
                 result,
-                that = this;
+                state = this;
 
 
             if (!token_template.parse)
                 return '';
 
-            that.parseStack.unshift(token);
-            result = token_template.parse.call(that, token, context || {}, chain);
+            state.template.parseStack.unshift(token);
+            result = token_template.parse.call(state.template, token, context || {}, chain);
 
             if (Twig.isPromise(result)) {
                 result = result.then(function (result) {
-                    that.parseStack.shift();
+                    state.template.parseStack.shift();
 
                     return result;
                 })
             } else {
-                that.parseStack.shift();
+                state.template.parseStack.shift();
             }
 
             return result;
