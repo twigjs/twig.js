@@ -77,7 +77,7 @@ describe("Twig.js Extensions ->", function() {
 
 	            	if (App.users[App.currentUser].level == level)
 	            	{
-		                output = Twig.parse.apply(this, [token.output, context]);
+                        output = Twig.parse.apply(this, [token.output, context]).output;
 		            }
 
 	                return {

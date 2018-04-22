@@ -786,7 +786,8 @@ module.exports = function (Twig) {
             // This will be set to is_async if template renders synchronously
             is_async = true,
             promise = null,
-
+            // the final object to be returned
+            result = {},
             // Track logic chains
             chain = true;
 
@@ -799,6 +800,7 @@ module.exports = function (Twig) {
             state = new Twig.ParseState(this);
         }
 
+        result.state = state;
 
         /*
          * Extracted into it's own function such that the function
@@ -849,9 +851,9 @@ module.exports = function (Twig) {
             }
         })
         .then(function() {
-            output = Twig.output.call(state.template, output);
+            result.output = Twig.output.call(state.template, output);
             is_async = false;
-            return output;
+            return result;
         })
         .catch(function(e) {
             if (allow_async)
@@ -874,7 +876,7 @@ module.exports = function (Twig) {
         if (is_async)
             throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
 
-        return output;
+        return result;
     };
 
     /**
@@ -1277,7 +1279,7 @@ module.exports = function (Twig) {
 
         return Twig.async.potentiallyAsync(this, allow_async, function() {
             return Twig.parseAsync.call(this, this.tokens, this.context)
-            .then(function(output) {
+            .then(function(result) {
                 var ext_template,
                     url;
 
@@ -1313,13 +1315,13 @@ module.exports = function (Twig) {
                 }
 
                 if (!params) {
-                    return output;
+                    return result.output;
                 } else if (params.output == 'blocks') {
                     return that.blocks;
                 } else if (params.output == 'macros') {
                     return that.macros;
                 } else {
-                    return output;
+                    return result.output;
                 }
             });
         });
