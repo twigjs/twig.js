@@ -1184,6 +1184,7 @@ module.exports = function (Twig) {
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
      */
     Twig.ParseState = function (template) {
+        this.extend = null;
         this.nestingStack = [];
         this.template = template;
     }
@@ -1260,7 +1261,6 @@ module.exports = function (Twig) {
         this.child = {
             blocks: blocks || {}
         };
-        this.extend = null;
     };
 
     Twig.Template.prototype.render = function (context, params, allow_async) {
@@ -1284,11 +1284,11 @@ module.exports = function (Twig) {
                     url;
 
                 // Does this template extend another
-                if (that.extend) {
+                if (result.state.extend) {
 
                     // check if the template is provided inline
                     if ( that.options.allowInlineIncludes ) {
-                        ext_template = Twig.Templates.load(that.extend);
+                        ext_template = Twig.Templates.load(result.state.extend);
                         if ( ext_template ) {
                             ext_template.options = that.options;
                         }
@@ -1296,7 +1296,7 @@ module.exports = function (Twig) {
 
                     // check for the template file via include
                     if (!ext_template) {
-                        url = Twig.path.parsePath(that, that.extend);
+                        url = Twig.path.parsePath(that, result.state.extend);
 
                         ext_template = Twig.Templates.loadRemote(url, {
                             method: that.getLoaderMethod(),

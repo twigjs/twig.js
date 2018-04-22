@@ -675,7 +675,7 @@ module.exports = function (Twig) {
                 return Twig.expression.parseAsync.call(state, token.stack, context)
                 .then(function(file) {
                     // Set parent template
-                    state.template.extend = file;
+                    state.extend = file;
 
                     if (file instanceof Twig.Template) {
                         template = file;
