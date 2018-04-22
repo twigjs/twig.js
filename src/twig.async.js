@@ -17,7 +17,9 @@ module.exports = function (Twig) {
     }
 
     Twig.logic.parseAsync = function (token, context, chain) {
-        return Twig.logic.parse.call(this, token, context, chain, true);
+        var state = this;
+
+        return Twig.logic.parse.call(state.template, token, context, chain, true);
     }
 
     Twig.Template.prototype.renderAsync = function (context, params) {

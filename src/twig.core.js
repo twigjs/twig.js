@@ -820,7 +820,7 @@ module.exports = function (Twig) {
                     break;
 
                 case Twig.token.type.logic:
-                    return Twig.logic.parseAsync.call(that, token.token /*logic_token*/, context, chain)
+                    return Twig.logic.parseAsync.call(state, token.token /*logic_token*/, context, chain)
                         .then(parseTokenLogic);
                     break;
 
