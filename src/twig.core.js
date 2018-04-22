@@ -778,6 +778,7 @@ module.exports = function (Twig) {
      */
     Twig.parse = function (tokens, context, allow_async) {
         var that = this,
+            state = new Twig.ParseState(this),
             output = [],
 
             // Store any error that might be thrown by the promise chain.
@@ -1164,6 +1165,15 @@ module.exports = function (Twig) {
     function is(type, obj) {
         var clas = Object.prototype.toString.call(obj).slice(8, -1);
         return obj !== undefined && obj !== null && clas === type;
+    }
+
+    /**
+     * Holds all the state associated with a specific call to Twig.parse.
+     *
+     * @param {Twig.Template} template The template that the tokens being parsed are associated with.
+     */
+    Twig.ParseState = function (template) {
+        this.template = template;
     }
 
     /**
