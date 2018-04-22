@@ -607,7 +607,7 @@ module.exports = function (Twig) {
                     params = token.params,
                     state = this;
 
-                stack.push(Twig.filter.call(state.template, token.value, input, params));
+                stack.push(Twig.filter.call(state, token.value, input, params));
             }
         },
         {
@@ -763,7 +763,7 @@ module.exports = function (Twig) {
 
                 return parseParams(state, token.params, context)
                 .then(function(params) {
-                    return Twig.filter.call(state.template, token.value, input, params);
+                    return Twig.filter.call(state, token.value, input, params);
                 })
                 .then(function(value) {
                     stack.push(value);
