@@ -845,7 +845,7 @@ module.exports = function (Twig) {
                 case Twig.token.type.output:
                     Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
                     // Parse the given expression in the given context
-                    return Twig.expression.parseAsync.call(that, token.stack, context)
+                    return Twig.expression.parseAsync.call(state, token.stack, context)
                         .then(output_push);
             }
         })
