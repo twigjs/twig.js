@@ -742,20 +742,20 @@ module.exports = function (Twig) {
         });
     };
 
-    function handleException(that, ex) {
-        if (that.options.rethrow) {
+    function handleException(state, ex) {
+        if (state.template.options.rethrow) {
             if (typeof ex === 'string') {
                 ex = new Twig.Error(ex)
             }
 
             if (ex.type == 'TwigException' && !ex.file) {
-                ex.file = that.id;
+                ex.file = state.template.id;
             }
 
             throw ex;
         }
         else {
-            Twig.log.error("Error parsing twig template " + that.id + ": ");
+            Twig.log.error("Error parsing twig template " + state.template.id + ": ");
             if (ex.stack) {
                 Twig.log.error(ex.stack);
             } else {
@@ -777,8 +777,7 @@ module.exports = function (Twig) {
      * @return {string} The parsed template.
      */
     Twig.parse = function (tokens, context, allow_async) {
-        var that = this,
-            state,
+        var state,
             output = [],
 
             // Store any error that might be thrown by the promise chain.
@@ -850,13 +849,13 @@ module.exports = function (Twig) {
             }
         })
         .then(function() {
-            output = Twig.output.call(that, output);
+            output = Twig.output.call(state.template, output);
             is_async = false;
             return output;
         })
         .catch(function(e) {
             if (allow_async)
-                handleException(that, e);
+                handleException(state, e);
 
             err = e;
         });
@@ -868,7 +867,7 @@ module.exports = function (Twig) {
 
         // Handle errors here if we fail synchronously.
         if (err !== null)
-            return handleException(this, err);
+            return handleException(state, err);
 
         // If `allow_async` is not true we should not allow the user
         // to use asynchronous functions or filters.
