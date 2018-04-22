@@ -778,7 +778,7 @@ module.exports = function (Twig) {
      */
     Twig.parse = function (tokens, context, allow_async) {
         var that = this,
-            state = new Twig.ParseState(this),
+            state,
             output = [],
 
             // Store any error that might be thrown by the promise chain.
@@ -790,6 +790,16 @@ module.exports = function (Twig) {
 
             // Track logic chains
             chain = true;
+
+        if (this instanceof Twig.ParseState) {
+            // the state is already set
+            state = this;
+        } else {
+            // initial call directly on the template
+            // create a new parse state
+            state = new Twig.ParseState(this);
+        }
+
 
         /*
          * Extracted into it's own function such that the function
