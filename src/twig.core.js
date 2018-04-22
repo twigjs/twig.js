@@ -1182,6 +1182,7 @@ module.exports = function (Twig) {
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
      */
     Twig.ParseState = function (template) {
+        this.nestingStack = [];
         this.template = template;
     }
 
@@ -1258,7 +1259,6 @@ module.exports = function (Twig) {
             blocks: blocks || {}
         };
         this.extend = null;
-        this.parseStack = [];
     };
 
     Twig.Template.prototype.render = function (context, params, allow_async) {

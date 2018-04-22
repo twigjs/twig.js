@@ -534,7 +534,7 @@ module.exports = function (Twig) {
                     hasParent = state.template.blocks[token.block] && Twig.indexOf(state.template.blocks[token.block], Twig.placeholders.parent) > -1;
 
                 // detect if in a for loop
-                Twig.forEach(state.template.parseStack, function (parent_token) {
+                Twig.forEach(state.nestingStack, function (parent_token) {
                     if (parent_token.type == Twig.logic.type.for_) {
                         token.overwrite = true;
                     }
@@ -1409,17 +1409,17 @@ module.exports = function (Twig) {
             if (!token_template.parse)
                 return '';
 
-            state.template.parseStack.unshift(token);
+            state.nestingStack.unshift(token);
             result = token_template.parse.call(state, token, context || {}, chain);
 
             if (Twig.isPromise(result)) {
                 result = result.then(function (result) {
-                    state.template.parseStack.shift();
+                    state.nestingStack.shift();
 
                     return result;
                 })
             } else {
-                state.template.parseStack.shift();
+                state.nestingStack.shift();
             }
 
             return result;
