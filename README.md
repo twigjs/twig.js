@@ -52,9 +52,17 @@ console.log(
 // outputs: "The cupcake is a lie."
 ```
 
-## Webpack
+## Optimizing for production
 
-A loader is available from [zimmo.be](https://github.com/zimmo-be/twig-loader).
+To improve performance in production, it's recommended that all templates are
+pre-compiled before being delivered to the browser.
+
+The easiest way to accomplish this is to use Webpack with [twig-loader], which
+will bundle compiled templates when they are required.
+
+If all of your templates are pre-compiled, you should include
+`twig.production.min.js` in the browser. This bundle excludes all code that
+compiles Twig templates, and is much smaller than `twig.min.js`.
 
 ## Node Usage (npm)
 
@@ -156,3 +164,4 @@ See the LICENSES.md file for copies of the referenced licenses.
 
 [mocha]:        http://visionmedia.github.com/mocha/
 [qunit]:        http://docs.jquery.com/QUnit
+[twig-loader]:  https://github.com/zimmo-be/twig-loader

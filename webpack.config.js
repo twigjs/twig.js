@@ -2,10 +2,13 @@ var webpack = require('webpack');
 var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 var env = process.env.WEBPACK_ENV;
+var entry = {};
+entry[env === 'browser' ? 'twig.min.js' : 'twig.js'] = './src/twig.js';
+entry[env === 'browser' ? 'twig.production.min.js' : 'twig.production.js'] = './src/twig.production.js';
 
 module.exports = {
     mode: 'production',
-    entry: './src/twig.js',
+    entry: entry,
     target: env === 'browser' ? 'web' : 'node',
     node: {
         __dirname: false,
@@ -13,7 +16,7 @@ module.exports = {
     },
     output: {
         path: __dirname,
-        filename: env === 'browser' ? 'twig.min.js' : 'twig.js',
+        filename: '[name]',
         library: 'Twig',
         libraryTarget: 'umd'
     },
