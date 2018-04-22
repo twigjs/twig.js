@@ -800,7 +800,7 @@ module.exports = function (Twig) {
                 .then(function(params) {
                     if (Twig.functions[fn]) {
                         // Get the function from the built-in functions
-                        value = Twig.functions[fn].apply(state.template, params);
+                        value = Twig.functions[fn].apply(state, params);
 
                     } else if (typeof context[fn] == 'function') {
                         // Get the function from the user/context defined functions

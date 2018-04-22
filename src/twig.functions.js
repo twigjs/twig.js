@@ -68,7 +68,9 @@ module.exports = function (Twig) {
         },
         dump: function() {
             // Don't pass arguments to `Array.slice`, that is a performance killer
-            var args_i = arguments.length; args = new Array(args_i);
+            var args_i = arguments.length,
+                args = new Array(args_i),
+                state = this;
             while(args_i-- > 0) args[args_i] = arguments[args_i];
 
             var EOL = '\n',
@@ -127,7 +129,7 @@ module.exports = function (Twig) {
                 };
 
             // handle no argument case by dumping the entire render context
-            if (args.length == 0) args.push(this.context);
+            if (args.length == 0) args.push(state.template.context);
 
             Twig.forEach(args, function(variable) {
                 dumpVar(variable);
@@ -157,10 +159,12 @@ module.exports = function (Twig) {
             return dateObj;
         },
         block: function(block) {
-            if (this.originalBlockTokens[block]) {
-                return Twig.logic.parse.call(this, this.originalBlockTokens[block], this.context).output;
+            var state = this;
+
+            if (state.template.originalBlockTokens[block]) {
+                return Twig.logic.parse.call(state, state.template.originalBlockTokens[block], state.template.context).output;
             } else {
-                return this.blocks[block];
+                return state.template.blocks[block];
             }
         },
         parent: function() {
@@ -198,11 +202,13 @@ module.exports = function (Twig) {
             return Twig.lib.min.apply(null, arguments);
         },
         template_from_string: function(template) {
+            var state = this;
+
             if (template === undefined) {
                 template = '';
             }
             return Twig.Templates.parsers.twig({
-                options: this.options,
+                options: state.template.options,
                 data: template
             });
         },
