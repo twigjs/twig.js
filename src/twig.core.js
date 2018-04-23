@@ -1270,7 +1270,9 @@ module.exports = function (Twig) {
         this.macros = macros;
         this.options = options;
 
-        this.reset(blocks);
+        this.child = {
+            blocks: blocks || {}
+        };
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.call(this, data);
@@ -1283,13 +1285,6 @@ module.exports = function (Twig) {
         }
     };
 
-    Twig.Template.prototype.reset = function(blocks) {
-        Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-        this.child = {
-            blocks: blocks || {}
-        };
-    };
-
     Twig.Template.prototype.render = function (context, params, allow_async) {
         var that = this;
 
@@ -1297,7 +1292,9 @@ module.exports = function (Twig) {
         params = params || {};
 
         // Clear any previous state
-        this.reset();
+        this.child = {
+            blocks: {}
+        };
         if (params.macros) {
             this.macros = params.macros;
         }
