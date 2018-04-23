@@ -539,7 +539,7 @@ module.exports = function (Twig) {
                     output,
                     promise = Twig.Promise.resolve(),
                     isImported = Twig.indexOf(state.template.importedBlocks, token.block) > -1,
-                    hasParent = state.template.blocks[token.block] && Twig.indexOf(state.template.blocks[token.block], Twig.placeholders.parent) > -1;
+                    hasParent = state.blocks[token.block] && Twig.indexOf(state.blocks[token.block], Twig.placeholders.parent) > -1;
 
                 // detect if in a for loop
                 Twig.forEach(state.nestingStack, function (parent_token) {
@@ -549,7 +549,7 @@ module.exports = function (Twig) {
                 });
 
                 // Don't override previous blocks unless they're imported with "use"
-                if (state.template.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
+                if (state.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
                     if (token.expression) {
                         promise = Twig.expression.parseAsync.call(state, token.output, context)
                         .then(function(value) {
@@ -575,9 +575,9 @@ module.exports = function (Twig) {
                         }
 
                         if (hasParent) {
-                            state.template.blocks[token.block] = Twig.Markup(state.template.blocks[token.block].replace(Twig.placeholders.parent, block_output));
+                            state.blocks[token.block] = Twig.Markup(state.blocks[token.block].replace(Twig.placeholders.parent, block_output));
                         } else {
-                            state.template.blocks[token.block] = block_output;
+                            state.blocks[token.block] = block_output;
                         }
 
                         state.template.originalBlockTokens[token.block] = {
@@ -594,7 +594,7 @@ module.exports = function (Twig) {
                     if (state.template.child.blocks[token.block]) {
                         output = state.template.child.blocks[token.block];
                     } else {
-                        output = state.template.blocks[token.block];
+                        output = state.blocks[token.block];
                     }
 
                     return {
@@ -1169,13 +1169,13 @@ module.exports = function (Twig) {
                     // store previous blocks
                     that._blocks = Twig.lib.copy(that.blocks);
                     // reset previous blocks
-                    state.template.blocks = {};
+                    state.blocks = {};
 
                     // parse tokens. output will be not used
                     return Twig.parseAsync.call(state, token.output, innerContext)
                     .then(function() {
                         // render tempalte with blocks defined in embed block
-                        return template.renderAsync(innerContext, {'blocks': state.template.blocks});
+                        return template.renderAsync(innerContext, {'blocks': state.blocks});
                     });
                 })
                 .then(function(output) {

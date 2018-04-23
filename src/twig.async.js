@@ -8,8 +8,8 @@ module.exports = function (Twig) {
     var STATE_RESOLVED = 1;
     var STATE_REJECTED = 2;
 
-    Twig.parseAsync = function (tokens, context) {
-        return Twig.parse.call(this, tokens, context, true);
+    Twig.parseAsync = function (tokens, context, blocks) {
+        return Twig.parse.call(this, tokens, context, true, blocks);
     }
 
     Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {

@@ -773,10 +773,11 @@ module.exports = function (Twig) {
      *
      * @param {Array} tokens The compiled tokens.
      * @param {Object} context The render context.
+     * @param {Object} blocks Blocks that should override any defined while parsing.
      *
      * @return {string} The parsed template.
      */
-    Twig.parse = function (tokens, context, allow_async) {
+    Twig.parse = function (tokens, context, allow_async, blocks) {
         var state,
             output = [],
 
@@ -797,7 +798,7 @@ module.exports = function (Twig) {
         } else {
             // initial call directly on the template
             // create a new parse state
-            state = new Twig.ParseState(this);
+            state = new Twig.ParseState(this, blocks);
         }
 
         result.state = state;
@@ -1182,8 +1183,10 @@ module.exports = function (Twig) {
      * Holds all the state associated with a specific call to Twig.parse.
      *
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
+     * @param {Object} blocks Blocks that should override any defined while parsing.
      */
-    Twig.ParseState = function (template) {
+    Twig.ParseState = function (template, blocks) {
+        this.blocks = blocks || {};
         this.extend = null;
         this.nestingStack = [];
         this.template = template;
@@ -1191,17 +1194,24 @@ module.exports = function (Twig) {
 
     Twig.ParseState.prototype.importBlocks = function(file, override) {
         var state = this,
-            importTemplate = state.template.importFile(file),
+            importedBlocks,
             key;
 
         override = override || false;
 
-        importTemplate.render(state.template.context);
+        importedBlocks = state.template
+            .importFile(file)
+            .render(
+                state.template.context,
+                {
+                    output: 'blocks'
+                }
+            )
 
         // Mixin blocks
-        Twig.forEach(Object.keys(importTemplate.blocks), function(key) {
-            if (override || state.template.blocks[key] === undefined) {
-                state.template.blocks[key] = importTemplate.blocks[key];
+        Twig.forEach(Object.keys(importedBlocks), function(key) {
+            if (override || state.blocks[key] === undefined) {
+                state.blocks[key] = importedBlocks[key];
                 state.template.importedBlocks.push(key);
             }
         });
@@ -1273,7 +1283,6 @@ module.exports = function (Twig) {
 
     Twig.Template.prototype.reset = function(blocks) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-        this.blocks = {};
         this.importedBlocks = [];
         this.originalBlockTokens = {};
         this.child = {
@@ -1285,18 +1294,16 @@ module.exports = function (Twig) {
         var that = this;
 
         this.context = context || {};
+        params = params || {};
 
         // Clear any previous state
         this.reset();
-        if (params && params.blocks) {
-            this.blocks = params.blocks;
-        }
-        if (params && params.macros) {
+        if (params.macros) {
             this.macros = params.macros;
         }
 
         return Twig.async.potentiallyAsync(this, allow_async, function() {
-            return Twig.parseAsync.call(this, this.tokens, this.context)
+            return Twig.parseAsync.call(this, this.tokens, this.context, params.blocks)
             .then(function(result) {
                 var ext_template,
                     url;
@@ -1328,14 +1335,14 @@ module.exports = function (Twig) {
                     that.parent = ext_template;
 
                     return that.parent.renderAsync(that.context, {
-                        blocks: that.blocks
+                        blocks: result.state.blocks
                     });
                 }
 
                 if (!params) {
                     return result.output;
                 } else if (params.output == 'blocks') {
-                    return that.blocks;
+                    return result.state.blocks;
                 } else if (params.output == 'macros') {
                     return that.macros;
                 } else {
