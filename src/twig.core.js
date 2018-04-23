@@ -1190,6 +1190,7 @@ module.exports = function (Twig) {
         this.extend = null;
         this.importedBlocks = [];
         this.nestingStack = [];
+        this.originalBlockTokens = {};
         this.template = template;
     }
 
@@ -1284,7 +1285,6 @@ module.exports = function (Twig) {
 
     Twig.Template.prototype.reset = function(blocks) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-        this.originalBlockTokens = {};
         this.child = {
             blocks: blocks || {}
         };

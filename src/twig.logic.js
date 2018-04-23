@@ -580,7 +580,7 @@ module.exports = function (Twig) {
                             state.blocks[token.block] = block_output;
                         }
 
-                        state.template.originalBlockTokens[token.block] = {
+                        state.originalBlockTokens[token.block] = {
                             type: token.type,
                             block: token.block,
                             output: token.output,
