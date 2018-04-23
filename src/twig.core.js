@@ -1188,6 +1188,7 @@ module.exports = function (Twig) {
     Twig.ParseState = function (template, blocks) {
         this.blocks = blocks || {};
         this.extend = null;
+        this.importedBlocks = [];
         this.nestingStack = [];
         this.template = template;
     }
@@ -1212,7 +1213,7 @@ module.exports = function (Twig) {
         Twig.forEach(Object.keys(importedBlocks), function(key) {
             if (override || state.blocks[key] === undefined) {
                 state.blocks[key] = importedBlocks[key];
-                state.template.importedBlocks.push(key);
+                state.importedBlocks.push(key);
             }
         });
     };
@@ -1283,7 +1284,6 @@ module.exports = function (Twig) {
 
     Twig.Template.prototype.reset = function(blocks) {
         Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-        this.importedBlocks = [];
         this.originalBlockTokens = {};
         this.child = {
             blocks: blocks || {}

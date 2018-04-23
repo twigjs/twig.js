@@ -538,7 +538,7 @@ module.exports = function (Twig) {
                     block_output,
                     output,
                     promise = Twig.Promise.resolve(),
-                    isImported = Twig.indexOf(state.template.importedBlocks, token.block) > -1,
+                    isImported = Twig.indexOf(state.importedBlocks, token.block) > -1,
                     hasParent = state.blocks[token.block] && Twig.indexOf(state.blocks[token.block], Twig.placeholders.parent) > -1;
 
                 // detect if in a for loop
@@ -571,7 +571,7 @@ module.exports = function (Twig) {
                     promise = promise.then(function(block_output) {
                         if (isImported) {
                             // once the block is overridden, remove it from the list of imported blocks
-                            state.template.importedBlocks.splice(state.template.importedBlocks.indexOf(token.block), 1);
+                            state.importedBlocks.splice(state.importedBlocks.indexOf(token.block), 1);
                         }
 
                         if (hasParent) {
