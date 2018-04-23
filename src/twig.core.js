@@ -1189,6 +1189,24 @@ module.exports = function (Twig) {
         this.template = template;
     }
 
+    Twig.ParseState.prototype.importBlocks = function(file, override) {
+        var state = this,
+            importTemplate = state.template.importFile(file),
+            key;
+
+        override = override || false;
+
+        importTemplate.render(state.template.context);
+
+        // Mixin blocks
+        Twig.forEach(Object.keys(importTemplate.blocks), function(key) {
+            if (override || state.template.blocks[key] === undefined) {
+                state.template.blocks[key] = importTemplate.blocks[key];
+                state.template.importedBlocks.push(key);
+            }
+        });
+    };
+
     /**
      * Create a new twig.js template.
      *
@@ -1364,25 +1382,6 @@ module.exports = function (Twig) {
         });
 
         return sub_template;
-    };
-
-    Twig.Template.prototype.importBlocks = function(file, override) {
-        var sub_template = this.importFile(file),
-            context = this.context,
-            that = this,
-            key;
-
-        override = override || false;
-
-        sub_template.render(context);
-
-        // Mixin blocks
-        Twig.forEach(Object.keys(sub_template.blocks), function(key) {
-            if (override || that.blocks[key] === undefined) {
-                that.blocks[key] = sub_template.blocks[key];
-                that.importedBlocks.push(key);
-            }
-        });
     };
 
     Twig.Template.prototype.importMacros = function(file) {

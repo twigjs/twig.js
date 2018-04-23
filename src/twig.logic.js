@@ -726,7 +726,7 @@ module.exports = function (Twig) {
                 return Twig.expression.parseAsync.call(state, token.stack, context)
                 .then(function(file) {
                     // Import blocks
-                    state.template.importBlocks(file);
+                    state.importBlocks(file);
 
                     return {
                         chain: chain,
