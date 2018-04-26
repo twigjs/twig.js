@@ -203,7 +203,7 @@ module.exports = function (Twig) {
              *  Format: {% for expression %}
              */
             type: Twig.logic.type.for_,
-            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([^\s].*?)(?:\s+if\s+([^\s].*))?$/,
+            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([\S\s]+?)(?:\s+if\s+([^\s].*))?$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.endfor
