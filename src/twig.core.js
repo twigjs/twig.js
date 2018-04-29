@@ -1218,7 +1218,6 @@ module.exports = function (Twig) {
      * Parameters: {
      *      data:   The template, either pre-compiled tokens or a string template
      *      id:     The name of this template
-     *      blocks: Any pre-existing block from a child template
      * }
      *
      * @param {Object} params The template parameters.
@@ -1226,7 +1225,6 @@ module.exports = function (Twig) {
     Twig.Template = function ( params ) {
         var data = params.data,
             id = params.id,
-            blocks = params.blocks,
             macros = params.macros || {},
             base = params.base,
             path = params.path,
@@ -1243,7 +1241,6 @@ module.exports = function (Twig) {
         //     {
         //          id:     The token ID (if any)
         //          tokens: The list of tokens that makes up this template.
-        //          blocks: The list of block this template contains.
         //          base:   The base template (if any)
         //            options:  {
         //                Compiler/parser options
@@ -1263,10 +1260,6 @@ module.exports = function (Twig) {
         this.macros = macros;
         this.options = options;
 
-        this.child = {
-            blocks: blocks || {}
-        };
-
         if (is('String', data)) {
             this.tokens = Twig.prepare.call(this, data);
         } else {
@@ -1285,9 +1278,6 @@ module.exports = function (Twig) {
         params = params || {};
 
         // Clear any previous state
-        this.child = {
-            blocks: {}
-        };
         if (params.macros) {
             this.macros = params.macros;
         }

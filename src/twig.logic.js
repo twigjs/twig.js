@@ -590,12 +590,7 @@ module.exports = function (Twig) {
                 }
 
                 return promise.then(function() {
-                    // Check if a child block has been set from a template extending this one.
-                    if (state.template.child.blocks[token.block]) {
-                        output = state.template.child.blocks[token.block];
-                    } else {
-                        output = state.blocks[token.block];
-                    }
+                    output = state.blocks[token.block];
 
                     return {
                         chain: chain,
