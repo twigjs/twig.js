@@ -1161,21 +1161,15 @@ module.exports = function (Twig) {
                         }
                     }
 
-                    // store previous blocks
-                    that._blocks = Twig.lib.copy(that.blocks);
-                    // reset previous blocks
-                    state.blocks = {};
-
-                    // parse tokens. output will be not used
-                    return Twig.parseAsync.call(state, token.output, innerContext)
-                    .then(function() {
-                        // render tempalte with blocks defined in embed block
-                        return template.renderAsync(innerContext, {'blocks': state.blocks});
-                    });
+                    // bind to template instead of the current state so a new parse state
+                    // is created and any defined blocks are created in isolation
+                    return Twig.parseAsync.call(state.template, token.output, innerContext)
+                        .then(function(result) {
+                            // render template with blocks defined in embed block
+                            return template.renderAsync(innerContext, {'blocks': result.state.blocks});
+                        });
                 })
                 .then(function(output) {
-                    // restore previous blocks
-                    that.blocks = Twig.lib.copy(that._blocks);
                     return {
                         chain: chain,
                         output: output
