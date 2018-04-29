@@ -1182,6 +1182,7 @@ module.exports = function (Twig) {
         this.context = context || {};
         this.extend = null;
         this.importedBlocks = [];
+        this.macros = {};
         this.nestingStack = [];
         this.originalBlockTokens = {};
         this.template = template;
@@ -1225,7 +1226,6 @@ module.exports = function (Twig) {
     Twig.Template = function ( params ) {
         var data = params.data,
             id = params.id,
-            macros = params.macros || {},
             base = params.base,
             path = params.path,
             url = params.url,
@@ -1257,7 +1257,6 @@ module.exports = function (Twig) {
         this.path   = path;
         this.url    = url;
         this.name   = name;
-        this.macros = macros;
         this.options = options;
 
         if (is('String', data)) {
@@ -1276,11 +1275,6 @@ module.exports = function (Twig) {
 
         context = context || {};
         params = params || {};
-
-        // Clear any previous state
-        if (params.macros) {
-            this.macros = params.macros;
-        }
 
         return Twig.async.potentiallyAsync(this, allow_async, function() {
             return Twig.parseAsync.call(this, this.tokens, context, params.blocks)
@@ -1324,7 +1318,7 @@ module.exports = function (Twig) {
                 } else if (params.output == 'blocks') {
                     return result.state.blocks;
                 } else if (params.output == 'macros') {
-                    return that.macros;
+                    return result.state.macros;
                 } else {
                     return result.output;
                 }
@@ -1369,19 +1363,6 @@ module.exports = function (Twig) {
         });
 
         return sub_template;
-    };
-
-    Twig.Template.prototype.importMacros = function(file) {
-        var url = Twig.path.parsePath(this, file);
-
-        // load remote template
-        var remoteTemplate = Twig.Templates.loadRemote(url, {
-            method: this.getLoaderMethod(),
-            async: false,
-            id: url
-        });
-
-        return remoteTemplate;
     };
 
     Twig.Template.prototype.getLoaderMethod = function() {

@@ -904,10 +904,10 @@ module.exports = function (Twig) {
             parse: function (token, context, chain) {
                 var state = this;
 
-                state.template.macros[token.macroName] = function() {
+                state.macros[token.macroName] = function() {
                     // Pass global context and other macros
                     var macroContext = {
-                        _self: template.macros
+                        _self: state.macros
                     };
                     // Save arguments
                     var args = Array.prototype.slice.call(arguments);
@@ -984,7 +984,7 @@ module.exports = function (Twig) {
                     output = { chain: chain, output: '' };
 
                 if (token.expression === '_self') {
-                    context[token.contextName] = state.template.macros;
+                    context[token.contextName] = state.macros;
                     return Twig.Promise.resolve(output);
                 }
 
@@ -1045,7 +1045,7 @@ module.exports = function (Twig) {
             },
             parse: function (token, context, chain) {
                 var state = this,
-                    promise = Twig.Promise.resolve(state.template.macros);
+                    promise = Twig.Promise.resolve(state.macros);
 
                 if (token.expression !== "_self") {
                     promise = Twig.expression.parseAsync.call(state, token.stack, context)
