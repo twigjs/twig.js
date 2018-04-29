@@ -283,7 +283,7 @@ module.exports = function (Twig) {
                     },
                     // run once for each iteration of the loop
                     loop = function(key, value) {
-                        var inner_context = Twig.ChildContext(context);
+                        var inner_context = Twig.lib.copy(context);
 
                         inner_context[token.value_var] = value;
 
@@ -669,7 +669,7 @@ module.exports = function (Twig) {
             parse: function (token, context, chain) {
                 var template,
                     state = this,
-                    innerContext = Twig.ChildContext(context);
+                    innerContext = Twig.lib.copy(context);
 
                 // Resolve filename
                 return Twig.expression.parseAsync.call(state, token.stack, context)
@@ -773,7 +773,7 @@ module.exports = function (Twig) {
             },
             parse: function logicTypeInclude(token, context, chain) {
                 // Resolve filename
-                var innerContext = token.only ? {} : Twig.ChildContext(context),
+                var innerContext = token.only ? {} : Twig.lib.copy(context),
                     ignoreMissing = token.ignoreMissing,
                     state = this,
                     promise = null,
@@ -1235,7 +1235,7 @@ module.exports = function (Twig) {
                     promise = Twig.Promise.resolve();
 
                 if (!token.only) {
-                    innerContext = Twig.ChildContext(context);
+                    innerContext = Twig.lib.copy(context);
                 }
 
                 if (token.withStack !== undefined) {
