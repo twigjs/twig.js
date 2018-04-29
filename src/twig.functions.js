@@ -129,7 +129,7 @@ module.exports = function (Twig) {
                 };
 
             // handle no argument case by dumping the entire render context
-            if (args.length == 0) args.push(state.template.context);
+            if (args.length == 0) args.push(state.context);
 
             Twig.forEach(args, function(variable) {
                 dumpVar(variable);
@@ -162,7 +162,7 @@ module.exports = function (Twig) {
             var state = this;
 
             if (state.originalBlockTokens[block]) {
-                return Twig.logic.parse.call(state, state.originalBlockTokens[block], state.template.context).output;
+                return Twig.logic.parse.call(state, state.originalBlockTokens[block], state.context).output;
             } else {
                 return state.blocks[block];
             }

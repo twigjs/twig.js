@@ -442,7 +442,7 @@ module.exports = function (Twig) {
                 return Twig.parseAsync.call(state, token.output, context)
                 .then(function(result) {
                     // set on both the global and local context
-                    state.template.context[key] = result.output;
+                    state.context[key] = result.output;
                     context[key] = result.output;
 
                     return {

@@ -789,7 +789,7 @@ module.exports = function (Twig) {
         } else {
             // initial call directly on the template
             // create a new parse state
-            state = new Twig.ParseState(this, blocks);
+            state = new Twig.ParseState(this, context, blocks);
         }
 
         result.state = state;
@@ -1174,10 +1174,12 @@ module.exports = function (Twig) {
      * Holds all the state associated with a specific call to Twig.parse.
      *
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
+     * @param {Object} context The initial context to use.
      * @param {Object} blocks Blocks that should override any defined while parsing.
      */
-    Twig.ParseState = function (template, blocks) {
+    Twig.ParseState = function (template, context, blocks) {
         this.blocks = blocks || {};
+        this.context = context || {};
         this.extend = null;
         this.importedBlocks = [];
         this.nestingStack = [];
@@ -1195,7 +1197,7 @@ module.exports = function (Twig) {
         importedBlocks = state.template
             .importFile(file)
             .render(
-                state.template.context,
+                state.context,
                 {
                     output: 'blocks'
                 }
@@ -1279,7 +1281,7 @@ module.exports = function (Twig) {
     Twig.Template.prototype.render = function (context, params, allow_async) {
         var that = this;
 
-        this.context = context || {};
+        context = context || {};
         params = params || {};
 
         // Clear any previous state
@@ -1291,7 +1293,7 @@ module.exports = function (Twig) {
         }
 
         return Twig.async.potentiallyAsync(this, allow_async, function() {
-            return Twig.parseAsync.call(this, this.tokens, this.context, params.blocks)
+            return Twig.parseAsync.call(this, this.tokens, context, params.blocks)
             .then(function(result) {
                 var ext_template,
                     url;
@@ -1322,7 +1324,7 @@ module.exports = function (Twig) {
 
                     that.parent = ext_template;
 
-                    return that.parent.renderAsync(that.context, {
+                    return that.parent.renderAsync(context, {
                         blocks: result.state.blocks
                     });
                 }
