@@ -13,7 +13,7 @@ module.exports = function (Twig) {
     }
 
     Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {
-        return Twig.expression.parse.call(this, tokens, context, tokens_are_parameters, true);
+      return Twig.expression.parse.call(this, tokens, context, tokens_are_parameters, true);
     }
 
     Twig.logic.parseAsync = function (token, context, chain) {

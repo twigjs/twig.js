@@ -1,5 +1,9 @@
 .idea/
 node_modules/
+package-lock.json
 twig.js
 twig.min.js
 twig.min.js.map
+twig.production.js
+twig.production.min.js
+twig.production.min.js.map
