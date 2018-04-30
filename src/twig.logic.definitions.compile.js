@@ -410,30 +410,54 @@ module.exports = function (Twig) {
             /**
              * Macro logic tokens.
              *
-             * Format: {% maro input(name, value, type, size) %}
+             * Format: {% macro input(name = default, value, type, size) %}
              *
              */
             type: Twig.logic.type.macro,
-            regex: /^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:,\s*)?)*)\s*\)$/,
+            regex: /^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:\s*=\s*([\s\S]+))?(?:,\s*)?)*)\s*\)$/,
             next: [
                 Twig.logic.type.endmacro
             ],
             open: true,
             compile: function (token) {
                 var macroName = token.match[1],
-                    parameters = token.match[2].split(/[\s,]+/);
+                    rawParameters = token.match[2].split(/\s*,\s*/),
+                    parameters = rawParameters.map(function (rawParameter) {
+                        return rawParameter.split(/\s*=\s*/)[0];
+                    }),
+                    parametersCount = parameters.length;
 
-                //TODO: Clean up duplicate check
-                for (var i=0; i<parameters.length; i++) {
-                    for (var j=0; j<parameters.length; j++){
-                        if (parameters[i] === parameters[j] && i !== j) {
-                            throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
+                // Duplicate check
+               if (parametersCount > 1) {
+                    var uniq = {};
+                    for (var i = 0; i < parametersCount; i++) {
+                        var parameter = parameters[i];
+                        if (!uniq[parameter]) {
+                            uniq[parameter] = 1;
+                        } else {
+                            throw new Twig.Error("Duplicate arguments for parameter: " + parameter);
                         }
                     }
                 }
 
                 token.macroName = macroName;
                 token.parameters = parameters;
+                token.defaults = rawParameters.reduce(function (defaults, rawParameter) {
+                    var pair = rawParameter.split(/\s*=\s*/);
+                    var key = pair[0];
+                    var expression = pair[1];
+
+                    if(expression) {
+                        defaults[key] = Twig.expression.compile.call(this, {
+                            type: Twig.expression.type.expression,
+                            value: expression
+                        }).stack;
+                    } else {
+                        defaults[key] = undefined;
+                    }
+
+                    return defaults;
+                }, {});
 
                 delete token.match;
                 return token;

@@ -526,19 +526,29 @@ module.exports = function (Twig) {
                     // Pass global context and other macros
                     var macroContext = {
                         _self: template.macros
-                    }
-                    // Add parameters from context to macroContext
-                    for (var i=0; i<token.parameters.length; i++) {
-                        var prop = token.parameters[i];
-                        if(typeof arguments[i] !== 'undefined') {
-                            macroContext[prop] = arguments[i];
+                    };
+                    // Save arguments
+                    var args = Array.prototype.slice.call(arguments);
+
+                    return Twig.async.forEach(token.parameters, function (prop, i) {
+                        // Add parameters from context to macroContext
+                        if (typeof args[i] !== 'undefined') {
+                            macroContext[prop] = args[i];
+                            return true;
+                        } else if (typeof token.defaults[prop] !== 'undefined') {
+                            return Twig.expression.parseAsync.call(this, token.defaults[prop], context)
+                                .then(function(value) {
+                                    macroContext[prop] = value;
+                                    return Twig.Promise.resolve();
+                                });
                         } else {
                             macroContext[prop] = undefined;
+                            return true;
                         }
-                    }
-
-                    // Render
-                    return Twig.parseAsync.call(template, token.output, macroContext);
+                    }).then(function () {
+                        // Render
+                        return Twig.parseAsync.call(template, token.output, macroContext);
+                    });
                 };
 
                 return {
