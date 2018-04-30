@@ -66,7 +66,7 @@ compiles Twig templates, and is much smaller than `twig.min.js`.
 
 ## Node Usage (npm)
 
-Tested on node >=4.0.
+Tested on node >=6.0.
 
 You can use twig in your app with
 
