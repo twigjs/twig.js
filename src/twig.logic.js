@@ -99,10 +99,7 @@ module.exports = function (Twig) {
                     if (Twig.lib.boolval(result)) {
                         chain = false;
 
-                        return Twig.parseAsync.call(state, token.output, context)
-                            .then(function (result) {
-                                return result.output;
-                            });
+                        return state.parseAsync(token.output, context);
                     }
 
                     return '';
@@ -147,10 +144,7 @@ module.exports = function (Twig) {
                     if (chain && Twig.lib.boolval(result)) {
                         chain = false;
 
-                        return Twig.parseAsync.call(state, token.output, context)
-                            .then(function (result) {
-                                return result.output;
-                            });
+                        return state.parseAsync(token.output, context);
                     }
 
                     return '';
@@ -181,9 +175,7 @@ module.exports = function (Twig) {
                     state = this;
 
                 if (chain) {
-                    promise = Twig.parseAsync.call(state, token.output, context).then(function (result) {
-                        return result.output;
-                    });
+                    promise = state.parseAsync(token.output, context);
                 }
 
                 return promise.then(function(output) {
@@ -302,9 +294,9 @@ module.exports = function (Twig) {
                             if (!condition)
                                 return;
 
-                            return Twig.parseAsync.call(state, token.output, inner_context)
-                            .then(function(result) {
-                                output.push(result.output);
+                            return state.parseAsync(token.output, inner_context)
+                            .then(function(tokenOutput) {
+                                output.push(tokenOutput);
                                 index += 1;
                             });
                         })
@@ -351,6 +343,7 @@ module.exports = function (Twig) {
 
                     return {
                         chain: continue_chain,
+                        context: context,
                         output: Twig.output.call(state.template, output)
                     };
                 });
@@ -439,11 +432,11 @@ module.exports = function (Twig) {
                 var state = this,
                     key = token.key;
 
-                return Twig.parseAsync.call(state, token.output, context)
-                .then(function(result) {
+                return state.parseAsync(token.output, context)
+                .then(function(output) {
                     // set on both the global and local context
-                    state.context[key] = result.output;
-                    context[key] = result.output;
+                    state.context[key] = output;
+                    context[key] = output;
 
                     return {
                         chain: continue_chain,
@@ -488,11 +481,11 @@ module.exports = function (Twig) {
             parse: function (token, context, chain) {
                 var state = this;
 
-                return Twig.parseAsync.call(state, token.output, context)
-                .then(function(result) {
+                return state.parseAsync(token.output, context)
+                .then(function(output) {
                     var stack = [{
                         type: Twig.expression.type.string,
-                        value: result.output
+                        value: output
                     }].concat(token.stack);
 
                     return Twig.expression.parseAsync.call(state, stack, context);
@@ -559,11 +552,11 @@ module.exports = function (Twig) {
                             }, context);
                         });
                     } else {
-                        promise = Twig.parseAsync.call(state, token.output, context)
-                        .then(function(result) {
+                        promise = state.parseAsync(token.output, context)
+                        .then(function(tokenOutput) {
                             return Twig.expression.parseAsync.call(state, {
                                 type: Twig.expression.type.string,
-                                value: result.output
+                                value: tokenOutput
                             }, context);
                         });
                     }
@@ -822,12 +815,12 @@ module.exports = function (Twig) {
                 var state = this;
 
                 // Parse the output without any filter
-                return Twig.parseAsync.call(state, token.output, context)
-                .then(function(result) {
+                return state.parseAsync(token.output, context)
+                .then(function(tokenOutput) {
                     var // A regular expression to find closing and opening tags with spaces between them
                         rBetweenTagSpaces = />\s+</g,
                         // Replace all space between closing and opening html tags
-                        output = result.output.replace(rBetweenTagSpaces,'><').trim();
+                        output = tokenOutput.replace(rBetweenTagSpaces,'><').trim();
                         // Rewrap output as a Twig.Markup
                         output = Twig.Markup(output);
                     return {
@@ -929,10 +922,7 @@ module.exports = function (Twig) {
                         }
                     }).then(function () {
                         // Render
-                        return Twig.parseAsync.call(state, token.output, macroContext)
-                            .then(function (result) {
-                                return result.output;
-                            });;
+                        return state.parseAsync(token.output, macroContext);
                     });
                 };
 
@@ -1142,6 +1132,8 @@ module.exports = function (Twig) {
                     return Twig.expression.parseAsync.call(state, token.stack, innerContext);
                 })
                 .then(function(file) {
+                    var embedState;
+
                     if (file instanceof Twig.Template) {
                         template = file;
                     } else {
@@ -1161,12 +1153,14 @@ module.exports = function (Twig) {
                         }
                     }
 
-                    // bind to template instead of the current state so a new parse state
-                    // is created and any defined blocks are created in isolation
-                    return Twig.parseAsync.call(state.template, token.output, innerContext)
-                        .then(function(result) {
+                    // create a new state instead of using the current state
+                    // any defined blocks will be created in isolation
+                    embedState = new Twig.ParseState(state.template);
+
+                    return embedState.parseAsync(token.output, innerContext)
+                        .then(function() {
                             // render template with blocks defined in embed block
-                            return template.renderAsync(innerContext, {'blocks': result.state.blocks});
+                            return template.renderAsync(innerContext, {'blocks': embedState.blocks});
                         });
                 })
                 .then(function(output) {
@@ -1239,12 +1233,12 @@ module.exports = function (Twig) {
 
                 return promise
                 .then(function() {
-                    return Twig.parseAsync.call(state, token.output, innerContext);
+                    return state.parseAsync(token.output, innerContext);
                 })
-                .then(function(result) {
+                .then(function(output) {
                     return {
                         chain: chain,
-                        output: result.output
+                        output: output
                     };
                 });
             }
