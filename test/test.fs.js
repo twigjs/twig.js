@@ -69,6 +69,17 @@ describe("Twig.js Include ->", function() {
         twig({ref: 'include'}).render({test: 'tst'}).should.equal( "BeforeTest template = tst\n\nAfter" );
     });
 
+    it("should load an included template using relative path", function() {
+        twig({
+            id:   'include-relative',
+            path: 'test/templates/include/relative.twig',
+            async: false
+        });
+
+        // Load the template
+        twig({ref: 'include-relative'}).render().should.equal( "Twig.js!" );
+    });
+
     it("should load an included template with additional context", function() {
         twig({
             id:   'include-with',
