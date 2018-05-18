@@ -154,5 +154,5 @@ See the LICENSES.md file for copies of the referenced licenses.
 [bsd-3]:        http://www.opensource.org/licenses/BSD-3-Clause
 [cc-by-sa-2.5]: http://creativecommons.org/licenses/by-sa/2.5/ "Creative Commons Attribution-ShareAlike 2.5 License"
 
-[mocha]:        http://visionmedia.github.com/mocha/
+[mocha]:        http://mochajs.org/
 [qunit]:        http://docs.jquery.com/QUnit
