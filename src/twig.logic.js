@@ -1149,7 +1149,7 @@ module.exports = function (Twig) {
                     }
 
                     // store previous blocks
-                    that._blocks = Object.assign({}, that.blocks);
+                    that._blocks = Twig.lib.copy(that.blocks);
                     // reset previous blocks
                     that.blocks = {};
 
@@ -1162,7 +1162,7 @@ module.exports = function (Twig) {
                 })
                 .then(function(output) {
                     // restore previous blocks
-                    that.blocks = Object.assign({}, that._blocks);
+                    that.blocks = Twig.lib.copy(that._blocks);
                     return {
                         chain: chain,
                         output: output
