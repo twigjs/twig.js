@@ -1148,6 +1148,8 @@ module.exports = function (Twig) {
                         }
                     }
 
+                    // store previous blocks
+                    that._blocks = Twig.lib.copy(that.blocks);
                     // reset previous blocks
                     that.blocks = {};
 
@@ -1155,10 +1157,12 @@ module.exports = function (Twig) {
                     return Twig.parseAsync.call(that, token.output, innerContext)
                     .then(function() {
                         // render tempalte with blocks defined in embed block
-                        return template.renderAsync(innerContext, {'blocks':that.blocks});
+                        return template.renderAsync(innerContext, {'blocks': that.blocks});
                     });
                 })
                 .then(function(output) {
+                    // restore previous blocks
+                    that.blocks = Twig.lib.copy(that._blocks);
                     return {
                         chain: chain,
                         output: output
