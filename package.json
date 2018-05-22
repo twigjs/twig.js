@@ -42,7 +42,8 @@
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "tokenizer": "1.1.x",
-    "webpack": "^1.13.3"
+    "webpack": "^4.6.0",
+    "webpack-cli": "^2.0.15"
   },
   "browser": {
     "fs": false

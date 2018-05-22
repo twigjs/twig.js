@@ -58,7 +58,7 @@ A loader is available from [zimmo.be](https://github.com/zimmo-be/twig-loader).
 
 ## Node Usage (npm)
 
-Tested on node >=4.0.
+Tested on node >=6.0.
 
 You can use twig in your app with
 
