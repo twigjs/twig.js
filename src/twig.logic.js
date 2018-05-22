@@ -1107,8 +1107,9 @@ module.exports = function (Twig) {
                         }
                     }
 
-                    // reset previous blocks
+                    // store previous blocks
                     that._blocks = Object.assign({}, that.blocks);
+                    // reset previous blocks
                     that.blocks = {};
 
                     // parse tokens. output will be not used
@@ -1119,7 +1120,8 @@ module.exports = function (Twig) {
                     });
                 })
                 .then(function(output) {
-                    that.blocks = Object.assign({}, that.blocks, that._blocks);
+                    // restore previous blocks
+                    that.blocks = Object.assign({}, that._blocks);
                     return {
                         chain: chain,
                         output: output
