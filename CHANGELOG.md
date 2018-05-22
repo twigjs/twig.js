@@ -1,3 +1,14 @@
+Version 1.11.1, released 2018-05-22
+-----------------------------------
+
+Major improvements:
+* Upgrade to Webpack 4 (#542)
+* Fix embed blocks logic (#537)
+
+Minor improvements:
+* Improve detection of when a block is in a loop (#541)
+* Add possibility to set default value for a macro parameter (#544)
+
 Version 1.11.0, released 2018-04-10
 -----------------------------------
 
