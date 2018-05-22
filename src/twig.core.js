@@ -1239,6 +1239,7 @@ module.exports = function (Twig) {
             blocks: blocks || {}
         };
         this.extend = null;
+        this.parseStack = [];
     };
 
     Twig.Template.prototype.render = function (context, params, allow_async) {
