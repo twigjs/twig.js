@@ -7,7 +7,7 @@
  */
 
 var Twig = {
-    VERSION: '1.11.0'
+    VERSION: '1.11.1'
 };
 
 require('./twig.core')(Twig);
