@@ -170,17 +170,23 @@ module.exports = function (Twig) {
 
         var settings = options.settings || {};
 
+        // mixin any options provided to the express app.
+        var view_options = settings['twig options'];
+
         var params = {
             path: path,
             base: settings.views,
             load: function(template) {
                 // render and return template as a simple string, see https://github.com/twigjs/twig.js/pull/348 for more information
-                fn(null, '' + template.render(options));
+                if (!view_options || !view_options.allow_async) {
+                    fn(null, '' + template.render(options));
+                    return;
+                }
+
+                template.renderAsync(options)
+                    .then(function(out) { fn(null, out); }, fn);
             }
         };
-
-        // mixin any options provided to the express app.
-        var view_options = settings['twig options'];
 
         if (view_options) {
             for (var option in view_options) {
