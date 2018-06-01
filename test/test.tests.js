@@ -1,4 +1,4 @@
-var Twig = Twig || requireUncached("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Tests ->", function() {
@@ -8,19 +8,19 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ 1 is empty }}'}).render().should.equal("false" );
             twig({data: '{{ 0 is empty }}'}).render().should.equal("false" );
         });
-        
+
         it("should identify empty strings", function() {
             // String
             twig({data: '{{ "" is empty }}'}).render().should.equal("true" );
             twig({data: '{{ "test" is empty }}'}).render().should.equal("false" );
         });
-        
+
         it("should identify empty arrays", function() {
             // Array
             twig({data: '{{ [] is empty }}'}).render().should.equal("true" );
             twig({data: '{{ ["1"] is empty }}'}).render().should.equal("false" );
         });
-        
+
         it("should identify empty objects", function() {
             // Object
             twig({data: '{{ {} is empty }}'}).render().should.equal("true" );
@@ -28,14 +28,14 @@ describe("Twig.js Tests ->", function() {
             twig({data: '{{ {"a":"b"} is not empty }}'}).render().should.equal("true" );
         });
     });
-        
+
     describe("odd test ->", function() {
         it("should identify a number as odd", function() {
             twig({data: '{{ (1 + 4) is odd }}'}).render().should.equal("true" );
             twig({data: '{{ 6 is odd }}'}).render().should.equal("false" );
         });
     });
-    
+
     describe("even test ->", function() {
         it("should identify a number as even", function() {
             twig({data: '{{ (1 + 4) is even }}'}).render().should.equal("false" );
