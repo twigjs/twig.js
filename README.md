@@ -9,7 +9,7 @@
 <img align="right" width="120" height="120"
      title="Twig.js"
      src="https://user-images.githubusercontent.com/3282350/29336704-ab1be05c-81dc-11e7-92e5-cf11cca7b344.png">
-     
+
 Twig.js is a pure JavaScript implementation of the Twig PHP templating language
 (<http://twig.sensiolabs.org/>)
 
@@ -65,7 +65,7 @@ You can use twig in your app with
 ```js
 var Twig = require('twig'), // Twig module
     twig = Twig.twig;       // Render function
-```    
+```
 
 ### Usage without Express
 
@@ -93,6 +93,7 @@ var Twig = require("twig"),
 
 // This section is optional and used to configure twig.
 app.set("twig options", {
+    allow_async: true, // Allow asynchronous compiling
     strict_variables: false
 });
 
