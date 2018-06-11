@@ -37,7 +37,6 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^4.1.0",
-    "require-uncached": "^1.0.3",
     "should": "11.1.x",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",

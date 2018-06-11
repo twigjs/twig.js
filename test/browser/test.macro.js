@@ -1,4 +1,4 @@
-var Twig = Twig || require("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Macro ->", function() {
@@ -12,7 +12,7 @@ describe("Twig.js Macro ->", function() {
         // Load the template
         twig({ref: 'macro'}).render({ }).should.equal( '' );
     });
-    
+
     it("it should import macro", function() {
         twig({
             id:   'import-macro',

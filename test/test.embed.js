@@ -1,4 +1,4 @@
-var Twig = Twig || requireUncached("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 Twig.cache(false);

@@ -1,4 +1,4 @@
-var Twig = Twig || require("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Browser Loading ->", function() {
@@ -16,7 +16,7 @@ describe("Twig.js Browser Loading ->", function() {
             flag: false
         }).should.equal("Test template = reload\n\n");
     });
-    
+
     it("Should trigger the error callback for a missing template", function(done) {
 
         twig({
