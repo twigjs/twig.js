@@ -53,6 +53,16 @@ describe("Twig.js Macro ->", function() {
         twig({ref: 'import-macro-context-self'}).render({ 'greetings': 'Howdy' }).trim().should.equal( 'Howdy Twigjs' );
     });
 
+    it("it should run wrapped macro with default value for a parameter and self reference", function() {
+        twig({
+            id:   'import-macro-defaults-self',
+            path: 'test/templates/macro-defaults.twig',
+            async: false
+        });
+        // Load the template
+        twig({ref: 'import-macro-defaults-self'}).render({ }).trim().should.equal( 'Howdy Twigjs' );
+    });
+
     it("it should run wrapped macro inside blocks", function() {
         twig({
             id:   'import-macro-inside-block',

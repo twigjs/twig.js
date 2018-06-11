@@ -1,8 +1,10 @@
 var webpack = require('webpack');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 var env = process.env.WEBPACK_ENV;
 
 module.exports = {
+    mode: 'production',
     entry: './src/twig.js',
     target: env === 'browser' ? 'web' : 'node',
     node: {
@@ -16,6 +18,6 @@ module.exports = {
         libraryTarget: 'umd'
     },
     plugins: env === 'browser' ? [
-        new webpack.optimize.UglifyJsPlugin({minimize: true})
+        new UglifyJsPlugin()
     ] : []
 };

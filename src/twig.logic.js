@@ -203,7 +203,7 @@ module.exports = function (Twig) {
              *  Format: {% for expression %}
              */
             type: Twig.logic.type.for_,
-            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([^\s].*?)(?:\s+if\s+([^\s].*))?$/,
+            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([\S\s]+?)(?:\s+if\s+([^\s].*))?$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.endfor
@@ -289,7 +289,7 @@ module.exports = function (Twig) {
                             Twig.Promise.resolve(true) :
                             Twig.expression.parseAsync.call(that, conditional, inner_context);
 
-                        promise.then(function(condition) {
+                        return promise.then(function(condition) {
                             if (!condition)
                                 return;
 
@@ -316,7 +316,7 @@ module.exports = function (Twig) {
                 .then(function(result) {
                     if (Twig.lib.isArray(result)) {
                         len = result.length;
-                        Twig.async.forEach(result, function (value) {
+                        return Twig.async.forEach(result, function (value) {
                             var key = index;
 
                             return loop(key, value);
@@ -328,14 +328,15 @@ module.exports = function (Twig) {
                             keyset = Object.keys(result);
                         }
                         len = keyset.length;
-                        Twig.forEach(keyset, function(key) {
+                        return Twig.async.forEach(keyset, function(key) {
                             // Ignore the _keys property, it's internal to twig.js
                             if (key === "_keys") return;
 
-                            loop(key,  result[key]);
+                            return loop(key,  result[key]);
                         });
                     }
-
+                })
+                .then(function() {
                     // Only allow else statements if no output was generated
                     continue_chain = (output.length === 0);
 
@@ -367,7 +368,7 @@ module.exports = function (Twig) {
             regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([\s\S]+)$/,
             next: [ ],
             open: true,
-            compile: function (token) {
+            compile: function (token) { //
                 var key = token.match[1].trim(),
                     expression = token.match[2],
                     // Compile the expression.
@@ -530,9 +531,15 @@ module.exports = function (Twig) {
                     isImported = Twig.indexOf(this.importedBlocks, token.block) > -1,
                     hasParent = this.blocks[token.block] && Twig.indexOf(this.blocks[token.block], Twig.placeholders.parent) > -1;
 
+                // detect if in a for loop
+                Twig.forEach(this.parseStack, function (parent_token) {
+                    if (parent_token.type == Twig.logic.type.for_) {
+                        token.overwrite = true;
+                    }
+                });
+
                 // Don't override previous blocks unless they're imported with "use"
-                // Loops should be exempted as well.
-                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop || token.overwrite) {
+                if (this.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
                     if (token.expression) {
                         promise = Twig.expression.parseAsync.call(this, token.output, context)
                         .then(function(value) {
@@ -833,30 +840,54 @@ module.exports = function (Twig) {
             /**
              * Macro logic tokens.
              *
-             * Format: {% maro input(name, value, type, size) %}
+             * Format: {% macro input(name = default, value, type, size) %}
              *
              */
             type: Twig.logic.type.macro,
-            regex: /^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:,\s*)?)*)\s*\)$/,
+            regex: /^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:\s*=\s*([\s\S]+))?(?:,\s*)?)*)\s*\)$/,
             next: [
                 Twig.logic.type.endmacro
             ],
             open: true,
             compile: function (token) {
                 var macroName = token.match[1],
-                    parameters = token.match[2].split(/[\s,]+/);
+                    rawParameters = token.match[2].split(/\s*,\s*/),
+                    parameters = rawParameters.map(function (rawParameter) {
+                        return rawParameter.split(/\s*=\s*/)[0];
+                    }),
+                    parametersCount = parameters.length;
 
-                //TODO: Clean up duplicate check
-                for (var i=0; i<parameters.length; i++) {
-                    for (var j=0; j<parameters.length; j++){
-                        if (parameters[i] === parameters[j] && i !== j) {
-                            throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
+                // Duplicate check
+               if (parametersCount > 1) {
+                    var uniq = {};
+                    for (var i = 0; i < parametersCount; i++) {
+                        var parameter = parameters[i];
+                        if (!uniq[parameter]) {
+                            uniq[parameter] = 1;
+                        } else {
+                            throw new Twig.Error("Duplicate arguments for parameter: " + parameter);
                         }
                     }
                 }
 
                 token.macroName = macroName;
                 token.parameters = parameters;
+                token.defaults = rawParameters.reduce(function (defaults, rawParameter) {
+                    var pair = rawParameter.split(/\s*=\s*/);
+                    var key = pair[0];
+                    var expression = pair[1];
+
+                    if(expression) {
+                        defaults[key] = Twig.expression.compile.call(this, {
+                            type: Twig.expression.type.expression,
+                            value: expression
+                        }).stack;
+                    } else {
+                        defaults[key] = undefined;
+                    }
+
+                    return defaults;
+                }, {});
 
                 delete token.match;
                 return token;
@@ -867,19 +898,29 @@ module.exports = function (Twig) {
                     // Pass global context and other macros
                     var macroContext = {
                         _self: template.macros
-                    }
-                    // Add parameters from context to macroContext
-                    for (var i=0; i<token.parameters.length; i++) {
-                        var prop = token.parameters[i];
-                        if(typeof arguments[i] !== 'undefined') {
-                            macroContext[prop] = arguments[i];
+                    };
+                    // Save arguments
+                    var args = Array.prototype.slice.call(arguments);
+
+                    return Twig.async.forEach(token.parameters, function (prop, i) {
+                        // Add parameters from context to macroContext
+                        if (typeof args[i] !== 'undefined') {
+                            macroContext[prop] = args[i];
+                            return true;
+                        } else if (typeof token.defaults[prop] !== 'undefined') {
+                            return Twig.expression.parseAsync.call(this, token.defaults[prop], context)
+                                .then(function(value) {
+                                    macroContext[prop] = value;
+                                    return Twig.Promise.resolve();
+                                });
                         } else {
                             macroContext[prop] = undefined;
+                            return true;
                         }
-                    }
-
-                    // Render
-                    return Twig.parseAsync.call(template, token.output, macroContext);
+                    }).then(function () {
+                        // Render
+                        return Twig.parseAsync.call(template, token.output, macroContext);
+                    });
                 };
 
                 return {
@@ -1026,7 +1067,7 @@ module.exports = function (Twig) {
              *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
              */
             type: Twig.logic.type.embed,
-            regex: /^embed\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,
+            regex: /^embed\s+(.+?)(?:\s+(ignore missing))?(?:\s+with\s+([\S\s]+?))?(?:\s+(only))?$/,
             next: [
                 Twig.logic.type.endembed
             ],
@@ -1107,6 +1148,8 @@ module.exports = function (Twig) {
                         }
                     }
 
+                    // store previous blocks
+                    that._blocks = Twig.lib.copy(that.blocks);
                     // reset previous blocks
                     that.blocks = {};
 
@@ -1114,10 +1157,12 @@ module.exports = function (Twig) {
                     return Twig.parseAsync.call(that, token.output, innerContext)
                     .then(function() {
                         // render tempalte with blocks defined in embed block
-                        return template.renderAsync(innerContext, {'blocks':that.blocks});
+                        return template.renderAsync(innerContext, {'blocks': that.blocks});
                     });
                 })
                 .then(function(output) {
+                    // restore previous blocks
+                    that.blocks = Twig.lib.copy(that._blocks);
                     return {
                         chain: chain,
                         output: output
@@ -1349,12 +1394,28 @@ module.exports = function (Twig) {
         return Twig.async.potentiallyAsync(this, allow_async, function() {
             Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
 
-            var token_template = Twig.logic.handler[token.type];
+            var token_template = Twig.logic.handler[token.type],
+                result,
+                that = this;
+
 
             if (!token_template.parse)
                 return '';
 
-            return token_template.parse.call(this, token, context || {}, chain);
+            that.parseStack.unshift(token);
+            result = token_template.parse.call(that, token, context || {}, chain);
+
+            if (Twig.isPromise(result)) {
+                result = result.then(function (result) {
+                    that.parseStack.shift();
+
+                    return result;
+                })
+            } else {
+                that.parseStack.shift();
+            }
+
+            return result;
         });
     };
 

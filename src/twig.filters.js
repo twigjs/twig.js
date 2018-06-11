@@ -336,12 +336,12 @@ module.exports = function (Twig) {
             return Twig.lib.vsprintf(value, params);
         },
 
-        striptags: function(value) {
+        striptags: function(value, allowed) {
             if (value === undefined || value === null){
                 return;
             }
 
-            return Twig.lib.strip_tags(value);
+            return Twig.lib.strip_tags(value, allowed);
         },
 
         escape: function(value, params) {

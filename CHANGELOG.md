@@ -1,3 +1,30 @@
+Version 1.11.1, released 2018-05-22
+-----------------------------------
+
+Major improvements:
+* Upgrade to Webpack 4 (#542)
+* Fix embed blocks logic (#537)
+
+Minor improvements:
+* Improve detection of when a block is in a loop (#541)
+* Add possibility to set default value for a macro parameter (#544)
+
+Version 1.11.0, released 2018-04-10
+-----------------------------------
+
+Major improvements:
+* Add support for 'with' tag (#497)
+* Add date support for json_encode filter (#515)
+* Fix 'embed' tag options (#534)
+* Performance improvements when including templates (#492)
+
+Minor improvements:
+* Fix incorrect 'and' and 'or' behaviour when comparing variables (#481)
+* Remove 'trim' filter autoescape (#488)
+* Fix empty output from loop with async call (#538)
+* Add allowable tags to strip tags filter (#524)
+
+
 Version 1.10.5, released 2017-05-24
 -----------------------------------
 
