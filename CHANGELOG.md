@@ -1,3 +1,14 @@
+Version 1.12.0, released 2018-06-11
+-----------------------------------
+
+Major improvements:
+* Fix array declaration on multiple lines (#546)
+* Fix extend when add is null (#559)
+
+Minor improvements:
+* Improve namespaces support (#556)
+* Allow express to render async (#558)
+
 Version 1.11.1, released 2018-05-22
 -----------------------------------
 
