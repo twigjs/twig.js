@@ -12,7 +12,7 @@ describe("Twig.js Factory ->", function() {
     });
 
     it("should not have access to extensions on the main Twig object", function() {
-        const fixt_options = {
+        var fixt_options = {
             rethrow: true,
             data: '{{ foo() }}'
         };
@@ -28,7 +28,7 @@ describe("Twig.js Factory ->", function() {
     });
 
     it("should not leak extensions to the main Twig object", function() {
-        const fixt_options = {
+        var fixt_options = {
             rethrow: true,
             data: '{{ bar() }}'
         };
