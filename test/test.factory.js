@@ -1,7 +1,7 @@
 var Twig = (Twig || require("../twig")),
     FreshTwig = Twig.factory();
 
-describe.only("Twig.js Factory ->", function() {
+describe("Twig.js Factory ->", function() {
 
     Twig.extendFunction("foo", function() {
         return 'foo';
