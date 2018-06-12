@@ -1,7 +1,7 @@
 var Twig = (Twig || require("../twig")),
     FreshTwig = Twig.factory();
 
-describe.only("Twig.js Factory ->", function() {
+describe("Twig.js Factory ->", function() {
 
     Twig.extendFunction("foo", function() {
         return 'foo';
@@ -12,7 +12,7 @@ describe.only("Twig.js Factory ->", function() {
     });
 
     it("should not have access to extensions on the main Twig object", function() {
-        const fixt_options = {
+        var fixt_options = {
             rethrow: true,
             data: '{{ foo() }}'
         };
@@ -28,7 +28,7 @@ describe.only("Twig.js Factory ->", function() {
     });
 
     it("should not leak extensions to the main Twig object", function() {
-        const fixt_options = {
+        var fixt_options = {
             rethrow: true,
             data: '{{ bar() }}'
         };
