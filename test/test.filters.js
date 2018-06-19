@@ -266,17 +266,36 @@ describe("Twig.js Filters ->", function() {
 
             template.render().should.equal( stringDate(date) );
         });
+
         it("should recognize timestamps, when they are passed as string", function() {
             var template = twig({data: '{{ "27571323556"|date("d/m/Y @ H:i:s") }}'})
                 , date = new Date(27571323556000); // 13/09/2843 @ 08:59:16 EST
 
             template.render().should.equal( stringDate(date) );
         });
+
         it("should recognize string date formats", function() {
             var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'})
                 , date = new Date(1187081535000); // 14/08/2007 @ 04:52:15 EST
 
             template.render().should.equal( stringDate(date) );
+        });
+
+        it("should escape words and characters in the date format (twig:data)]", function () {
+            var template = twig({data: '{{ "1970-01-01 00:00:00"|date("F jS \\a\\t g:ia") }}'});
+
+            template.render().should.equal( "January 1st at 12:00am" );
+        });
+
+        it("should escape words and characters in the date format (twig:ref)]", function () {
+            twig({
+                id: 'escape-date-format',
+                path: 'test/templates/escape-date-format.twig',
+                async: false
+            });
+
+            // Load the template
+            twig({ref: 'escape-date-format'}).render({}).should.equal("January 1st at 12:00am");
         });
 
         it("should handle undefined", function() {
