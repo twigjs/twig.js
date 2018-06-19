@@ -282,9 +282,9 @@ describe("Twig.js Filters ->", function() {
         });
 
         it("should escape words and characters in the date format (twig:data)]", function () {
-            var template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("F jS \\a\\t g:ia") }}'});
+            var template = twig({data: '{{ "1970-01-01 00:00:00"|date("F jS \\a\\t g:ia") }}'});
 
-            template.render().should.equal( "August 14th at 12:52pm" );
+            template.render().should.equal( "January 1st at 12:00am" );
         });
 
         it("should escape words and characters in the date format (twig:ref)]", function () {
@@ -295,7 +295,7 @@ describe("Twig.js Filters ->", function() {
             });
 
             // Load the template
-            twig({ref: 'escape-date-format'}).render({}).should.equal("August 14th at 12:52pm");
+            twig({ref: 'escape-date-format'}).render({}).should.equal("January 1st at 12:00am");
         });
 
         it("should handle undefined", function() {
