@@ -317,5 +317,11 @@ describe("Twig.js Functions ->", function() {
                 twig({data: '{{ max({2:"two", 1:"one", 3:"three", 5:"five", 4:"four"}) }}'}).render().should.equal('two');
             });
         });
+
+        describe("source ->", function() {
+            it("should allow loading an absolute path", function() {
+                twig({data: '{{ source("' + __dirname + '/templates/simple.twig") }}'}).render().should.equal('Twig.js!');
+            });
+        });
     });
 });
