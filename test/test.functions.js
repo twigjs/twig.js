@@ -322,6 +322,10 @@ describe("Twig.js Functions ->", function() {
             it("should allow loading an absolute path", function() {
                 twig({data: '{{ source("' + __dirname + '/templates/simple.twig") }}'}).render().should.equal('Twig.js!');
             });
+
+            it("should allow loading relative paths", function() {
+                twig({data: '{{ source("test/templates/simple.twig") }}'}).render().should.equal('Twig.js!');
+            });
         });
     });
 });
