@@ -284,10 +284,11 @@ module.exports = function (Twig) {
 
             return obj;
         },
+
         date: function(value, params) {
             var date = Twig.functions.date(value);
             var format = params && params.length ? params[0] : 'F j, Y H:i';
-            return Twig.lib.date(format, date);
+            return Twig.lib.date(format.replace(/\\\\/g, '\\'), date);
         },
 
         date_modify: function(value, params) {
@@ -336,12 +337,12 @@ module.exports = function (Twig) {
             return Twig.lib.vsprintf(value, params);
         },
 
-        striptags: function(value) {
+        striptags: function(value, allowed) {
             if (value === undefined || value === null){
                 return;
             }
 
-            return Twig.lib.strip_tags(value);
+            return Twig.lib.strip_tags(value, allowed);
         },
 
         escape: function(value, params) {

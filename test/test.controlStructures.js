@@ -1,4 +1,4 @@
-var Twig = Twig || requireUncached("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Control Structures ->", function() {
@@ -62,6 +62,10 @@ describe("Twig.js Control Structures ->", function() {
             test_template.render({test: [1,2,3,4]}).should.equal("0:11:22:33:4" );
             test_template.render({test: []}).should.equal("" );
         });
+        it("should provide both key and value for multiline array input", function() {
+            var test_template = twig({data: '{% for key,value in [\n"foo",\n"bar\n","baz"] %}{{key}}:{{ value }}{% endfor %}'});
+            test_template.render({ }).should.equal("0:foo1:bar\n2:baz" );
+        });
         it("should provide value only for object input", function() {
             var test_template = twig({data: '{% for value in test %}{{ value }}{% endfor %}'});
             test_template.render({test: {one: 1, two: 2, three: 3}}).should.equal("123" );
@@ -71,6 +75,10 @@ describe("Twig.js Control Structures ->", function() {
             var test_template = twig({data: '{% for key, value in test %}{{key}}:{{ value }}{% endfor %}'});
             test_template.render({test: {one: 1, two: 2, three: 3}}).should.equal("one:1two:2three:3" );
             test_template.render({test: {}}).should.equal("" );
+        });
+        it("should provide both key and value for multiline object input", function() {
+            var test_template = twig({data: '{% for key,value in {\n"foo":"bar\n",\n"baz":"bar"\n} %}{{key}}:{{ value }}{% endfor %}'});
+            test_template.render({ }).should.equal("foo:bar\nbaz:bar" );
         });
         it("should support else if the input is empty", function() {
             var test_template = twig({data: '{% for key,value in test %}{{ value }}{% else %}else{% endfor %}'});

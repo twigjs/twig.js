@@ -1,4 +1,4 @@
-var Twig = Twig || require("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Blocks ->", function() {
@@ -90,10 +90,10 @@ describe("Twig.js Blocks ->", function() {
                 load: function(template) {
                     template.render({
                         base: "block-function-parent.twig",
-                        val: "abcd" 
+                        val: "abcd"
                     })
                     .should.equal( "Child content = abcd / Result: Child content = abcd" );
-                    
+
                     done();
                 }
             })

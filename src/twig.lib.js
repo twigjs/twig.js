@@ -48,7 +48,7 @@ module.exports = function(Twig) {
     };
 
     Twig.lib.extend = function (src, add) {
-        var keys = Object.keys(add),
+        var keys = Object.keys(add || {}),
             i;
 
         i = keys.length;

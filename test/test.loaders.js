@@ -1,4 +1,4 @@
-var Twig = Twig || requireUncached("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Loaders ->", function() {
@@ -29,19 +29,19 @@ describe("Twig.js Loaders ->", function() {
         });
         it("should load a simple template from a custom loader", function() {
             twig({
-                method: 'custom', 
+                method: 'custom',
                 name: 'custom_loader_simple'
             }).render({value: 'test succeeded'}).should.equal('the value is: test succeeded');
         });
         it("should load a template that includes another from a custom loader", function() {
             twig({
-                method: 'custom', 
+                method: 'custom',
                 name: 'custom_loader_include'
             }).render({value: 'test succeeded'}).should.equal('include others from the same loader method - the value is: test succeeded');
         });
         it("should load a template that extends another from a custom loader", function() {
             twig({
-                method: 'custom', 
+                method: 'custom',
                 name: 'custom_loader_complex'
             }).render({value: 'test succeeded'}).should.equal('This lets you extend other templates and include others from the same loader method - the value is: test succeeded');
         });

@@ -1,5 +1,7 @@
-var Twig = Twig || requireUncached("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
+
+Twig.cache(false);
 
 describe("Twig.js Embed ->", function() {
     // Test loading a template from a remote endpoint
@@ -36,14 +38,107 @@ describe("Twig.js Embed ->", function() {
                                                                'END'].join('\n') );
     });
 
-    it("should skip an non existant embed flagged wth 'ignore missing'", function() {
-        twig({
-            id:   'embed-ignore-missing',
-            path: 'test/templates/embed-ignore-missing.twig',
-            async: false
+    it('should skip non-existent embeds flagged with "ignore missing"', function() {
+        [
+            '',
+            ' with {}',
+            ' with {} only',
+            ' only'
+        ].forEach(function (options) {
+            twig({
+                allowInlineIncludes: true,
+                data: 'ignore-{% embed "embed-not-there.twig" ignore missing' + options + ' %}{% endembed %}missing'
+            }).render().should.equal('ignore-missing');
         });
-
-        twig({ref: 'embed-ignore-missing'}).render().should.equal( "ignore-missing" );
     });
 
+    it('should include the correct context using "with" and "only"', function() {
+        twig({
+            data: '|{{ foo }}||{{ baz }}|',
+            id: 'embed.twig'
+        });
+
+        [
+            {
+                expected: '|bar||qux|',
+                options: ''
+            },
+            {
+                expected: '|bar||qux|',
+                options: ' with {}'
+            },
+            {
+                expected: '|bar||override|',
+                options: ' with {"baz": "override"}'
+            },
+            {
+                expected: '||||',
+                options: ' only'
+            },
+            {
+                expected: '||||',
+                options: ' with {} only'
+            },
+            {
+                expected: '|override|||',
+                options: ' with {"foo": "override"} only'
+            },
+        ].forEach(function (test) {
+            twig({
+                allowInlineIncludes: true,
+                data: '{% embed "embed.twig"' + test.options + ' %}{% endembed %}'
+            }).render({
+                foo: 'bar',
+                baz: 'qux'
+            }).should.equal(test.expected);
+        });
+    });
+
+    it('should override blocks in a for loop', function () {
+        twig({
+            data: '<{% block content %}original{% endblock %}>',
+            id: 'embed.twig'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% for i in 1..3 %}{% embed "embed.twig" %}{% block content %}override{% endblock %}{% endembed %}{% endfor %}'
+        }).render().should.equal('<override><override><override>');
+    });
+
+    it('should support complex nested embeds', function () {
+        twig({
+            data: '<{% block header %}outer-header{% endblock %}><{% block footer %}outer-footer{% endblock %}>',
+            id: 'embed-outer.twig'
+        });
+        twig({
+            data: '{% block content %}inner-content{% endblock %}',
+            id: 'embed-inner.twig'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% embed "embed-outer.twig" %}{% block header %}{% embed "embed-inner.twig" %}{% block content %}override-header{% endblock %}{% endembed %}{% endblock %}{% block footer %}{% embed "embed-inner.twig" %}{% block content %}override-footer{% endblock %}{% endembed %}{% endblock %}{% endembed %}'
+        }).render().should.equal('<override-header><override-footer>');
+    });
+
+    it('should support multiple inheritance and embeds', function () {
+        twig({
+            data: '<{% block header %}base-header{% endblock %}>{% block body %}<base-body>{% endblock %}<{% block footer %}base-footer{% endblock %}>',
+            id: 'base.twig'
+        });
+        twig({
+            data: '{% extends "base.twig" %}{% block header %}layout-header{% endblock %}{% block body %}<{% block body_header %}layout-body-header{% endblock %}>{% block body_content %}layout-body-content{% endblock %}<{% block body_footer %}layout-body-footer{% endblock %}>{% endblock %}',
+            id: 'layout.twig'
+        });
+        twig({
+            data: '<{% block section_title %}section-title{% endblock %}><{% block section_content %}section-content{% endblock %}>',
+            id: 'section.twig'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% extends "layout.twig" %}{% block body_header %}override-body-header{% endblock %}{% block body_content %}{% embed "section.twig" %}{% block section_content %}override-section-content{% endblock %}{% endembed %}{% endblock %}'
+        }).render().should.equal('<layout-header><override-body-header><section-title><override-section-content><layout-body-footer><base-footer>');
+    });
 });

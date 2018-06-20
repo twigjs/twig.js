@@ -1,4 +1,4 @@
-var Twig = Twig || requireUncached("../twig"),
+var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
 describe("Twig.js Exports __express ->", function() {
@@ -16,6 +16,31 @@ describe("Twig.js Exports __express ->", function() {
             var responseType = (typeof response);
             responseType.should.equal('string');
             done();
+        });
+    });
+
+    it("should allow async rendering", function(done) {
+        var flags = {};
+
+        Twig.__express('test/templates/test-async.twig', {
+          "settings": {
+            "twig options": {
+              "allow_async": true
+            }
+          },
+          "hello_world": function() {
+            return Promise.resolve('hello world');
+          }
+        }, function(err, response) {
+            if (err)
+                return done(err);
+
+            try {
+                var responseType = (typeof response);
+                responseType.should.equal('string');
+                response.should.equal('hello world\n');
+                done();
+            } catch(err) { done(err); }
         });
     });
 });

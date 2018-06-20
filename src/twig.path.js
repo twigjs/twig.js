@@ -31,13 +31,14 @@ module.exports = function (Twig) {
 
         if (hasNamespaces){
             for (k in namespaces) {
-                if (colon.test(file))
+                if (colon.test(file)) {
                     file = file.replace(k + '::', namespaces[k]);
-                else if(atSign.test(file))
+                    return file;
+                } else if (atSign.test(file)) {
                     file = file.replace('@' + k, namespaces[k]);
+                    return file;
+                }
             }
-
-            return file;
         }
 
         return Twig.path.relativePath(template, file);
