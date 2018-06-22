@@ -49,4 +49,24 @@ describe("Twig.js Namespaces ->", function() {
             }
     	});
     });
+
+  it("should support multiple namespaces", function(done) {
+    twig({
+      namespaces: {
+        'one': 'test/templates/namespaces/one/',
+        'two': 'test/templates/namespaces/two/'
+      },
+      path: 'test/templates/namespaces_multiple.twig',
+      load: function(template) {
+        // Render the template
+        template.render({
+            test: "yes",
+            flag: true
+        }).should.equal("namespace one\nnamespace two");
+
+        done();
+      }
+    });
+  });
+
 });

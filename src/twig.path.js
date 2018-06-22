@@ -9,10 +9,6 @@ module.exports = function (Twig) {
      */
     Twig.path = {};
 
-
-    var colon = /.::/;
-    var atSign = /@/;
-
     /**
      * Generate the canonical version of a url based on the given base path and file path and in
      * the previously registered namespaces.
@@ -31,6 +27,11 @@ module.exports = function (Twig) {
 
         if (hasNamespaces){
             for (k in namespaces) {
+
+                // check if keyed namespace exists at path's start
+                var colon = new RegExp(`^${k}::`);
+                var atSign = new RegExp(`^@${k}`);
+
                 if (colon.test(file)) {
                     file = file.replace(k + '::', namespaces[k]);
                     return file;
