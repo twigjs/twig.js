@@ -72,7 +72,7 @@ module.exports = function (Twig) {
              *  Format: {% if expression %}
              */
             type: Twig.logic.type.if_,
-            regex: /^if\s+([\s\S]+)$/,
+            regex: /^if\s?([\s\S]+)$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.elseif,
@@ -119,7 +119,7 @@ module.exports = function (Twig) {
              *  Format: {% elseif expression %}
              */
             type: Twig.logic.type.elseif,
-            regex: /^elseif\s+([^\s].*)$/,
+            regex: /^elseif\s?([^\s].*)$/,
             next: [
                 Twig.logic.type.else_,
                 Twig.logic.type.elseif,
@@ -159,9 +159,9 @@ module.exports = function (Twig) {
         },
         {
             /**
-             * Else if type logic tokens.
+             * Else type logic tokens.
              *
-             *  Format: {% elseif expression %}
+             *  Format: {% else %}
              */
             type: Twig.logic.type.else_,
             regex: /^else$/,
@@ -351,9 +351,9 @@ module.exports = function (Twig) {
         },
         {
             /**
-             * End if type logic tokens.
+             * End for type logic tokens.
              *
-             *  Format: {% endif %}
+             *  Format: {% endfor %}
              */
             type: Twig.logic.type.endfor,
             regex: /^endfor$/,
