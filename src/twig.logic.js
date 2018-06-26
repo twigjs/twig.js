@@ -159,9 +159,9 @@ module.exports = function (Twig) {
         },
         {
             /**
-             * Else if type logic tokens.
+             * Else type logic tokens.
              *
-             *  Format: {% elseif expression %}
+             *  Format: {% else %}
              */
             type: Twig.logic.type.else_,
             regex: /^else$/,
@@ -349,9 +349,9 @@ module.exports = function (Twig) {
         },
         {
             /**
-             * End if type logic tokens.
+             * End for type logic tokens.
              *
-             *  Format: {% endif %}
+             *  Format: {% endfor %}
              */
             type: Twig.logic.type.endfor,
             regex: /^endfor$/,
