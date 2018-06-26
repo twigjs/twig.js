@@ -10,4 +10,15 @@ describe("Twig.js Logic ->", function() {
 
         output.should.equal(JSON.stringify(expected));
     });
+
+    it("if should ignore spaces", function () {
+        twig({data: '{% if (1 == 1) %}true{% endif %}'}).render().should.equal('true');
+        twig({data: '{% if(1 == 1) %}true{% endif %}'}).render().should.equal('true');
+    });
+
+    it("elseif should ignore spaces", function () {
+        twig({data: '{% if (1 == 2) %}false{% elseif (1 == 1) %}true{% endif %}'}).render().should.equal('true');
+        twig({data: '{% if (1 == 2) %}false{% elseif(1 == 1) %}true{% endif %}'}).render().should.equal('true');
+    });
+
 });
