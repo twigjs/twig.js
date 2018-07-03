@@ -227,7 +227,7 @@ module.exports = function (Twig) {
                         throw new Twig.Error("Invalid expression in for loop: " + key_value);
                     }
                 } else {
-                    token.value_var = key_value;
+                    token.value_var = key_value.trim();
                 }
 
                 // Valid expressions for a for loop
