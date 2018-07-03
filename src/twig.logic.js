@@ -39,7 +39,9 @@ module.exports = function (Twig) {
         embed:     'Twig.logic.type.embed',
         endembed:  'Twig.logic.type.endembed',
         'with':     'Twig.logic.type.with',
-        endwith:  'Twig.logic.type.endwith'
+        endwith:  'Twig.logic.type.endwith',
+        verbatim:     'Twig.logic.type.verbatim',
+        endverbatim:  'Twig.logic.type.endverbatim'
     };
 
 
@@ -1245,6 +1247,30 @@ module.exports = function (Twig) {
         {
             type: Twig.logic.type.endwith,
             regex: /^endwith$/,
+            next: [ ],
+            open: false
+        },
+        {
+            type: Twig.logic.type.verbatim,
+            regex: /^verbatim/,
+            next: [
+                Twig.logic.type.endverbatim
+            ],
+            open: true,
+
+            // Return the output without any parse
+            parse: function (token, context, chain) {
+                return {
+                    chain: chain,
+                    output: context
+                };
+            }
+        },
+
+        // Add the {% endverbatim %} token
+        {
+            type: Twig.logic.type.endverbatim,
+            regex: /^endverbatim$/,
             next: [ ],
             open: false
         }
