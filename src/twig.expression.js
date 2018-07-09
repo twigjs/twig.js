@@ -4,9 +4,9 @@
 module.exports = function (Twig) {
     "use strict";
 
-    function parseParams(thisArg, params, context) {
+    function parseParams(state, params, context) {
         if (params)
-            return Twig.expression.parseAsync.call(thisArg, params, context);
+            return Twig.expression.parseAsync.call(state, params, context);
 
         return Twig.Promise.resolve(false);
     }
@@ -151,9 +151,10 @@ module.exports = function (Twig) {
                 output.push(token);
             },
             parse: function(token, stack, context) {
-                var value = stack.pop();
+                var value = stack.pop(),
+                    state = this;
 
-                return parseParams(this, token.params, context)
+                return parseParams(state, token.params, context)
                 .then(function(params) {
                     var result = Twig.test(token.filter, value, params);
 
@@ -279,12 +280,14 @@ module.exports = function (Twig) {
                 }
             },
             parse: function(token, stack, context) {
+                var state = this;
+
                 if (token.key) {
                     // handle ternary ':' operator
                     stack.push(token);
                 } else if (token.params) {
                     // handle "{(expression):value}"
-                    return Twig.expression.parseAsync.call(this, token.params, context)
+                    return Twig.expression.parseAsync.call(state, token.params, context)
                     .then(function(key) {
                         token.key = key;
                         stack.push(token);
@@ -466,10 +469,11 @@ module.exports = function (Twig) {
             parse: function(token, stack, context) {
                 var new_array = [],
                     array_ended = false,
-                    value = null;
+                    value = null,
+                    state = this;
 
                 if (token.expression) {
-                    return Twig.expression.parseAsync.call(this, token.params, context)
+                    return Twig.expression.parseAsync.call(state, token.params, context)
                     .then(function(value) {
                         stack.push(value);
                     });
@@ -548,10 +552,11 @@ module.exports = function (Twig) {
             parse: function(token, stack, context) {
                 var new_array = [],
                     array_ended = false,
-                    value = null;
+                    value = null,
+                    state = this;
 
                 if (token.expression) {
-                    return Twig.expression.parseAsync.call(this, token.params, context)
+                    return Twig.expression.parseAsync.call(state, token.params, context)
                     .then(function(value) {
                         stack.push(value);
                     });
@@ -599,9 +604,10 @@ module.exports = function (Twig) {
             },
             parse: function(token, stack, context) {
                 var input = stack.pop(),
-                    params = token.params;
+                    params = token.params,
+                    state = this;
 
-                stack.push(Twig.filter.call(this, token.value, input, params));
+                stack.push(Twig.filter.call(state, token.value, input, params));
             }
         },
         {
@@ -752,12 +758,12 @@ module.exports = function (Twig) {
                 output.push(token);
             },
             parse: function(token, stack, context) {
-                var that = this,
-                    input = stack.pop();
+                var input = stack.pop(),
+                    state = this;
 
-                return parseParams(this, token.params, context)
+                return parseParams(state, token.params, context)
                 .then(function(params) {
-                    return Twig.filter.call(that, token.value, input, params);
+                    return Twig.filter.call(state, token.value, input, params);
                 })
                 .then(function(value) {
                     stack.push(value);
@@ -786,16 +792,15 @@ module.exports = function (Twig) {
                 output.push(token);
             },
             parse: function(token, stack, context) {
-
-                var that = this,
+                var state = this,
                     fn = token.fn,
                     value;
 
-                return parseParams(this, token.params, context)
+                return parseParams(state, token.params, context)
                 .then(function(params) {
                     if (Twig.functions[fn]) {
                         // Get the function from the built-in functions
-                        value = Twig.functions[fn].apply(that, params);
+                        value = Twig.functions[fn].apply(state, params);
 
                     } else if (typeof context[fn] == 'function') {
                         // Get the function from the user/context defined functions
@@ -832,8 +837,10 @@ module.exports = function (Twig) {
                 return (Twig.indexOf(Twig.expression.reservedWords, match[0]) < 0);
             },
             parse: function(token, stack, context) {
+                var state = this;
+
                 // Get the variable from the context
-                return Twig.expression.resolveAsync.call(this, context[token.value], context)
+                return Twig.expression.resolveAsync.call(state, context[token.value], context)
                 .then(function(value) {
                     stack.push(value);
                 });
@@ -852,15 +859,15 @@ module.exports = function (Twig) {
                 output.push(token);
             },
             parse: function(token, stack, context, next_token) {
-                var that = this,
+                var state = this,
                     key = token.key,
                     object = stack.pop(),
                     value;
 
-                return parseParams(this, token.params, context)
+                return parseParams(state, token.params, context)
                 .then(function(params) {
                     if (object === null || object === undefined) {
-                        if (that.options.strict_variables) {
+                        if (state.template.options.strict_variables) {
                             throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                         } else {
                             value = undefined;
@@ -883,7 +890,7 @@ module.exports = function (Twig) {
                     }
 
                     // When resolving an expression we need to pass next_token in case the expression is a function
-                    return Twig.expression.resolveAsync.call(that, value, context, params, next_token, object);
+                    return Twig.expression.resolveAsync.call(state, value, context, params, next_token, object);
                 })
                 .then(function(result) {
                     stack.push(result);
@@ -909,21 +916,21 @@ module.exports = function (Twig) {
             },
             parse: function(token, stack, context, next_token) {
                 // Evaluate key
-                var that = this,
+                var state = this,
                     params = null,
                     object,
                     value;
 
-                return parseParams(this, token.params, context)
+                return parseParams(state, token.params, context)
                 .then(function(parameters) {
                     params = parameters;
-                    return Twig.expression.parseAsync.call(that, token.stack, context);
+                    return Twig.expression.parseAsync.call(state, token.stack, context);
                 })
                 .then(function(key) {
                     object = stack.pop();
 
                     if (object === null || object === undefined) {
-                        if (that.options.strict_variables) {
+                        if (state.template.options.strict_variables) {
                             throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                         } else {
                             return null;
@@ -938,7 +945,7 @@ module.exports = function (Twig) {
                     }
 
                     // When resolving an expression we need to pass next_token in case the expression is a function
-                    return Twig.expression.resolveAsync.call(that, value, object, params, next_token);
+                    return Twig.expression.resolveAsync.call(state, value, object, params, next_token);
                 })
                 .then(function(result) {
                     stack.push(result);
@@ -998,6 +1005,8 @@ module.exports = function (Twig) {
      * @param {Object} context The render context.
      */
     Twig.expression.resolveAsync = function(value, context, params, next_token, object) {
+        var state = this;
+
         if (typeof value != 'function')
             return Twig.Promise.resolve(value);
 
@@ -1017,7 +1026,7 @@ module.exports = function (Twig) {
             var tokens_are_parameters = true;
 
             promise = promise.then(function() {
-                return next_token.params && Twig.expression.parseAsync.call(this, next_token.params, context, tokens_are_parameters);
+                return next_token.params && Twig.expression.parseAsync.call(state, next_token.params, context, tokens_are_parameters);
             })
             .then(function(p) {
                 //Clean up the parentheses tokens on the next loop
@@ -1248,7 +1257,7 @@ module.exports = function (Twig) {
      *                  the given expression.
      */
     Twig.expression.parse = function (tokens, context, tokens_are_parameters, allow_async) {
-        var that = this;
+        var state = this;
 
         // If the token isn't an array, make it one.
         if (!Twig.lib.isArray(tokens))
@@ -1259,7 +1268,7 @@ module.exports = function (Twig) {
             loop_token_fixups = [],
             binaryOperator = Twig.expression.type.operator.binary;
 
-        return Twig.async.potentiallyAsync(this, allow_async, function() {
+        return Twig.async.potentiallyAsync(state, allow_async, function() {
             return Twig.async.forEach(tokens, function expressionToken(token, index) {
                 var token_template = null,
                     next_token = null,
@@ -1278,7 +1287,7 @@ module.exports = function (Twig) {
                 token_template = Twig.expression.handler[token.type];
 
                 if (token_template.parse)
-                    result = token_template.parse.call(that, token, stack, context, next_token);
+                    result = token_template.parse.call(state, token, stack, context, next_token);
 
                 //Store any binary tokens for later if we are in a loop.
                 if (token.type === binaryOperator && context.loop) {
