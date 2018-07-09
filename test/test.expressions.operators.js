@@ -55,6 +55,27 @@ describe("Twig.js Expression Operators ->", function() {
         });
     });
 
+    describe("?? ->", function() {
+        it("should support the null-coalescing operator for true conditions", function() {
+            var test_template = twig({data: '{{ a ?? b }}'})
+                , output_t = test_template.render({a: "one",  b: "two"})
+                , output_f = test_template.render({a: false, b: "two"});
+
+            output_t.should.equal( "one" );
+            output_f.should.equal( "false" );
+        });
+
+        it("should support the null-coalescing operator for false conditions", function() {
+            debugger;
+            var test_template = twig({data: '{{ a ?? b }}'})
+                , output_t = test_template.render({a: undefined, b: "two"})
+                , output_f = test_template.render({a: null, b: "two"});
+
+            output_t.should.equal( "two" );
+            output_f.should.equal( "two" );
+        });
+    });
+
     describe("b-and ->", function() {
         it("should return correct value if needed bit is set or 0 if not", function() {
             var test_template = twig({data: '{{ a b-and b }}'})
