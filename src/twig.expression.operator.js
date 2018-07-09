@@ -53,6 +53,12 @@ module.exports = function (Twig) {
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
+            // Null-coalescing operator
+            case '??':
+                token.precidence = 15;
+                token.associativity = Twig.expression.operator.rightToLeft;
+                break;
+
             case 'or':
                 token.precidence = 14;
                 token.associativity = Twig.expression.operator.leftToRight;
@@ -155,6 +161,19 @@ module.exports = function (Twig) {
                 // Ignore
                 break;
 
+            case '??':
+                if (a === undefined) {
+                    a = b;
+                    b = c;
+                    c = undefined;
+                }
+
+                if (a !== undefined && a !== null) {
+                    stack.push(a);
+                } else {
+                    stack.push(b);
+                }
+                break;
             case '?:':
                 if (Twig.lib.boolval(a)) {
                     stack.push(a);
