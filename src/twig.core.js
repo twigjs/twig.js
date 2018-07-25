@@ -1294,13 +1294,13 @@ module.exports = function (Twig) {
                 }
 
                 if (!params) {
-                    return output;
+                    return output.valueOf();
                 } else if (params.output == 'blocks') {
                     return that.blocks;
                 } else if (params.output == 'macros') {
                     return that.macros;
                 } else {
-                    return output;
+                    return output.valueOf();
                 }
             });
         });
