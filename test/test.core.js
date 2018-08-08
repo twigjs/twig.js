@@ -382,6 +382,27 @@ describe("Twig.js Core ->", function() {
             }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
         });
 
+        it("should not auto escape html_attr within the html strategy", function() {
+            twig({
+                autoescape: 'html',
+                data: "{{ value|escape('html_attr') }}"
+            }).render({
+                value: '" onclick="alert(\\"html_attr\\")"'
+            }).should.equal('&quot;&#x20;onclick&#x3D;&quot;alert&#x28;&#x5C;&quot;html_attr&#x5C;&quot;&#x29;&quot;');
+        });
+
+        it("should return a usable string after autoescaping", function() {
+            var result = twig({
+                autoescape: true,
+                data: '{{ value }}'
+            }).render({
+                value: '<test>&</test>'
+            });
+
+            (typeof result).should.equal('string');
+            result.valueOf().should.equal(result);
+        });
+
         it("should autoescape parent() output correctly", function() {
             twig({id: 'parent1', data: '{% block body %}<p>{{ value }}</p>{% endblock body %}'});
             twig({
