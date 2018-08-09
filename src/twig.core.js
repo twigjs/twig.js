@@ -1066,11 +1066,11 @@ module.exports = function (Twig) {
     Twig.ParseState = function (template) {
         this.blocks = {};
         this.context = {};
-        this.extend = null;
         this.importedBlocks = [];
         this.macros = {};
         this.nestingStack = [];
         this.originalBlockTokens = {};
+        this.parentTemplatePath = null;
         this.template = template;
     }
 
@@ -1275,25 +1275,26 @@ module.exports = function (Twig) {
 
             return state.parseAsync(this.tokens, context, params.blocks)
             .then(function(output) {
-                var ext_template,
+                var parentTemplate,
                     url;
 
-                // Does this template extend another
-                if (state.extend) {
+                if (state.parentTemplatePath !== null) {
+                    // this template extends another template
 
-                    // check if the template is provided inline
-                    if ( that.options.allowInlineIncludes ) {
-                        ext_template = Twig.Templates.load(state.extend);
-                        if ( ext_template ) {
-                            ext_template.options = that.options;
+                    if (that.options.allowInlineIncludes) {
+                        // the template is provided inline
+                        parentTemplate = Twig.Templates.load(state.parentTemplatePath);
+
+                        if (parentTemplate) {
+                            parentTemplate.options = that.options;
                         }
                     }
 
                     // check for the template file via include
-                    if (!ext_template) {
-                        url = Twig.path.parsePath(that, state.extend);
+                    if (!parentTemplate) {
+                        url = Twig.path.parsePath(that, state.parentTemplatePath);
 
-                        ext_template = Twig.Templates.loadRemote(url, {
+                        parentTemplate = Twig.Templates.loadRemote(url, {
                             method: that.getLoaderMethod(),
                             base: that.base,
                             async:  false,
@@ -1302,9 +1303,7 @@ module.exports = function (Twig) {
                         });
                     }
 
-                    that.parent = ext_template;
-
-                    return that.parent.renderAsync(state.context, {
+                    return parentTemplate.renderAsync(state.context, {
                         blocks: state.blocks
                     });
                 }

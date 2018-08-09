@@ -655,35 +655,27 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var template,
-                    state = this,
+                var state = this,
                     innerContext = Twig.lib.copy(context);
 
-                // Resolve filename
                 return Twig.expression.parseAsync.call(state, token.stack, context)
-                .then(function(file) {
-                    // Set parent template
-                    state.extend = file;
+                    .then(function(fileName) {
+                        var template = state.template.importFile(fileName);
 
-                    if (file instanceof Twig.Template) {
-                        template = file;
-                    } else {
-                        // Import file
-                        template = state.template.importFile(file);
-                    }
+                        state.parentTemplatePath = fileName;
 
-                    // Render the template in case it puts anything in its context
-                    return template.renderAsync(innerContext);
-                })
-                .then(function() {
-                    // Extend the parent context with the extended context
-                    Twig.lib.extend(context, innerContext);
+                        // render the template in case it puts anything in its context
+                        return template.renderAsync(innerContext);
+                    })
+                    .then(function() {
+                        // Extend the parent context with the extended context
+                        Twig.lib.extend(context, innerContext);
 
-                    return {
-                        chain: chain,
-                        output: ''
-                    };
-                });
+                        return {
+                            chain: chain,
+                            output: ''
+                        };
+                    });
             }
         },
         {
