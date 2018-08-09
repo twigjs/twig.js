@@ -914,7 +914,8 @@ module.exports = function (Twig) {
         for (i = 0; i < len; i++) {
             str = output[i];
 
-            if (str && (str.twig_markup !== true && str.twig_markup != strategy)) {
+            if (str && (str.twig_markup !== true && str.twig_markup !== strategy)
+                && !(strategy === 'html' && str.twig_markup === 'html_attr')) {
                 str = Twig.filters.escape(str, [ strategy ]);
             }
 
@@ -1294,13 +1295,13 @@ module.exports = function (Twig) {
                 }
 
                 if (!params) {
-                    return output;
+                    return output.valueOf();
                 } else if (params.output == 'blocks') {
                     return that.blocks;
                 } else if (params.output == 'macros') {
                     return that.macros;
                 } else {
-                    return output;
+                    return output.valueOf();
                 }
             });
         });
