@@ -1234,6 +1234,25 @@ module.exports = function (Twig) {
     };
 
     /**
+     * Get the closest token of a specific type to the current nest level.
+     *
+     * @param  {String} type  The logic token type
+     *
+     * @return {Object}
+     */
+    Twig.ParseState.prototype.getNestingStackToken = function (type) {
+        var matchingToken;
+
+        Twig.forEach(this.nestingStack, function (token) {
+            if (matchingToken === undefined && token.type == type) {
+                matchingToken = token;
+            }
+        });
+
+        return matchingToken;
+    };
+
+    /**
      * Parse a set of tokens using the current state.
      *
      * @param {Array} tokens The compiled tokens.
