@@ -164,7 +164,7 @@ module.exports = function (Twig) {
             if (state.originalBlockTokens[block]) {
                 return Twig.logic.parse.call(state, state.originalBlockTokens[block], state.context).output;
             } else {
-                return state.blocks[block];
+                return state.renderedBlocks[block];
             }
         },
         parent: function() {

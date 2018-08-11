@@ -532,7 +532,7 @@ module.exports = function (Twig) {
                     output,
                     promise = Twig.Promise.resolve(),
                     isImported = Twig.indexOf(state.importedBlocks, token.block) > -1,
-                    hasParent = state.blocks[token.block] && Twig.indexOf(state.blocks[token.block], Twig.placeholders.parent) > -1;
+                    hasParent = state.renderedBlocks[token.block] && Twig.indexOf(state.renderedBlocks[token.block], Twig.placeholders.parent) > -1;
 
                 // detect if in a for loop
                 Twig.forEach(state.nestingStack, function (parent_token) {
@@ -543,7 +543,7 @@ module.exports = function (Twig) {
                 state.template.blockDefinitions[token.blockName] = new Twig.Block(state.template, token);
 
                 // Don't override previous blocks unless they're imported with "use"
-                if (state.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
+                if (state.renderedBlocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
                     if (token.expression) {
                         promise = Twig.expression.parseAsync.call(state, token.output, context)
                         .then(function(value) {
@@ -569,9 +569,9 @@ module.exports = function (Twig) {
                         }
 
                         if (hasParent) {
-                            state.blocks[token.block] = Twig.Markup(state.blocks[token.block].replace(Twig.placeholders.parent, block_output));
+                            state.renderedBlocks[token.block] = Twig.Markup(state.renderedBlocks[token.block].replace(Twig.placeholders.parent, block_output));
                         } else {
-                            state.blocks[token.block] = block_output;
+                            state.renderedBlocks[token.block] = block_output;
                         }
 
                         state.originalBlockTokens[token.block] = {
@@ -584,7 +584,7 @@ module.exports = function (Twig) {
                 }
 
                 return promise.then(function() {
-                    output = state.blocks[token.block];
+                    output = state.renderedBlocks[token.block];
 
                     return {
                         chain: chain,
@@ -1153,7 +1153,7 @@ module.exports = function (Twig) {
                     return embedState.parseAsync(token.output, innerContext)
                         .then(function() {
                             // render template with blocks defined in embed block
-                            return template.renderAsync(innerContext, {'blocks': embedState.blocks});
+                            return template.renderAsync(innerContext, {'blocks': embedState.renderedBlocks});
                         });
                 })
                 .then(function(output) {

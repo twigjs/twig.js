@@ -1111,9 +1111,14 @@ module.exports = function (Twig) {
      * Holds the state needed to parse a template.
      *
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
+     * @param {Object} blockOverrides Any blocks that should override those defined in the associated template.
      */
-    Twig.ParseState = function (template) {
-        this.blocks = {};
+    Twig.ParseState = function (template, blockOverrides) {
+        this.renderedBlocks = {};
+        this.blocks = {
+            imported: {},
+            overrides: blockOverrides === undefined ? {} : blockOverrides
+        };
         this.context = {};
         this.importedBlocks = [];
         this.macros = {};
@@ -1141,11 +1146,91 @@ module.exports = function (Twig) {
 
         // Mixin blocks
         Twig.forEach(Object.keys(importedBlocks), function(key) {
-            if (override || state.blocks[key] === undefined) {
-                state.blocks[key] = importedBlocks[key];
+            if (override || state.renderedBlocks[key] === undefined) {
+                state.renderedBlocks[key] = importedBlocks[key];
                 state.importedBlocks.push(key);
             }
         });
+    };
+
+    /**
+     * Get a block by its name, resolving in the following order:
+     *     - override blocks specified when initialized (except when excluded)
+     *     - blocks defined in the associated template
+     *     - blocks imported from other templates
+     *     - blocks resolved from the parent template when extending
+     *
+     * @param {String} name The name of the block to return.
+     * @param {Boolean} checkOnlyInheritedBlocks Whether to skip checking the overrides and associated template, will not skip by default.
+     *
+     * @return {Twig.Block|undefined}
+     */
+    Twig.ParseState.prototype.getBlock = function (name, checkOnlyInheritedBlocks) {
+        var block;
+
+        if (checkOnlyInheritedBlocks !== true) {
+            // blocks specified when initialized
+            block = this.blocks.overrides[name];
+
+            if (block === undefined) {
+                // block defined by the associated template
+                block = this.template.blockDefinitions[name];
+            }
+        }
+
+        if (block === undefined) {
+            // block imported from another template
+            block = this.blocks.imported[name];
+        }
+
+        if (
+            block === undefined
+                &&
+            this.template.parentTemplate !== null
+        ) {
+            // block defined in the parent template when extending
+            block = this.template.parentTemplate.blockDefinitions[name];
+        }
+
+        return block;
+    };
+
+    /**
+     * Get all the available blocks, resolving in the following order:
+     *     - override blocks specified when initialized
+     *     - blocks defined in the associated template
+     *     - blocks imported from other templates
+     *     - blocks resolved from the parent template when extending
+     *
+     * @param {Boolean} includeParentBlocks Whether to get blocks from the parent template when extending, will always do so by default.
+     *
+     * @return {Object}
+     */
+    Twig.ParseState.prototype.getBlocks = function (includeParentBlocks) {
+        var blocks = {};
+
+        if (
+            includeParentBlocks !== false
+                &&
+            this.template.parentTemplate !== null
+                &&
+            // prevent infinite loop
+            this.template.parentTemplate !== this.template
+        ) {
+            // blocks defined in the parent template when extending
+            blocks = this.template.parentTemplate.blockDefinitions;
+        }
+
+        // override with any blocks imported from another template
+        Twig.lib.extend(blocks, this.blocks.imported);
+
+        // override with any blocks defined within the associated template
+        Twig.lib.extend(blocks, this.template.blockDefinitions);
+
+        // override with any blocks specified when initialized
+        Twig.lib.extend(blocks, this.blocks.overrides);
+
+        return blocks;
     };
 
     /**
@@ -1177,7 +1262,7 @@ module.exports = function (Twig) {
         }
 
         if (blocks) {
-            state.blocks = blocks;
+            state.renderedBlocks = blocks;
         }
 
         /*
@@ -1354,14 +1439,14 @@ module.exports = function (Twig) {
                     }
 
                     return parentTemplate.renderAsync(state.context, {
-                        blocks: state.blocks
+                        blocks: state.renderedBlocks
                     });
                 }
 
                 if (!params) {
                     return output;
                 } else if (params.output == 'blocks') {
-                    return state.blocks;
+                    return state.renderedBlocks;
                 } else if (params.output == 'macros') {
                     return state.macros;
                 } else {
