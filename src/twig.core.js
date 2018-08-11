@@ -12,10 +12,6 @@ module.exports = function (Twig) {
 
     Twig.noop = function() {};
 
-    Twig.placeholders = {
-        parent: "{{|PARENT|}}"
-    };
-
     Twig.hasIndexOf = Array.prototype.hasOwnProperty("indexOf");
 
     /**
@@ -1120,38 +1116,10 @@ module.exports = function (Twig) {
             overrides: blockOverrides === undefined ? {} : blockOverrides
         };
         this.context = {};
-        this.importedBlocks = [];
         this.macros = {};
         this.nestingStack = [];
-        this.originalBlockTokens = {};
-        this.parentTemplatePath = null;
         this.template = template;
     }
-
-    Twig.ParseState.prototype.importBlocks = function(file, override) {
-        var state = this,
-            importedBlocks,
-            key;
-
-        override = override || false;
-
-        importedBlocks = state.template
-            .importFile(file)
-            .render(
-                state.context,
-                {
-                    output: 'blocks'
-                }
-            )
-
-        // Mixin blocks
-        Twig.forEach(Object.keys(importedBlocks), function(key) {
-            if (override || state.renderedBlocks[key] === undefined) {
-                state.renderedBlocks[key] = importedBlocks[key];
-                state.importedBlocks.push(key);
-            }
-        });
-    };
 
     /**
      * Get a block by its name, resolving in the following order:
@@ -1263,7 +1231,7 @@ module.exports = function (Twig) {
      * @return {String} The rendered tokens.
      *
      */
-    Twig.ParseState.prototype.parse = function (tokens, context, allow_async, blocks) {
+    Twig.ParseState.prototype.parse = function (tokens, context, allow_async) {
         var state = this,
             output = [],
 
@@ -1278,10 +1246,6 @@ module.exports = function (Twig) {
 
         if (context) {
             state.context = context;
-        }
-
-        if (blocks) {
-            state.renderedBlocks = blocks;
         }
 
         /*
@@ -1371,7 +1335,7 @@ module.exports = function (Twig) {
      *
      * @param {Object} params The template parameters.
      */
-    Twig.Template = function ( params ) {
+    Twig.Template = function (params) {
         var data = params.data,
             id = params.id,
             base = params.base,
@@ -1399,14 +1363,15 @@ module.exports = function (Twig) {
         //     }
         //
 
+        this.base   = base;
         this.blockDefinitions = {};
         this.id     = id;
         this.method = method;
-        this.base   = base;
-        this.path   = path;
-        this.url    = url;
         this.name   = name;
         this.options = options;
+        this.parentTemplate = null;
+        this.path   = path;
+        this.url    = url;
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.call(this, data);
@@ -1420,58 +1385,61 @@ module.exports = function (Twig) {
     };
 
     Twig.Template.prototype.render = function (context, params, allow_async) {
-        var that = this;
+        var template = this;
 
         params = params || {};
 
-        return Twig.async.potentiallyAsync(this, allow_async, function() {
-            var state = new Twig.ParseState(this);
+        return Twig.async.potentiallyAsync(template, allow_async, function() {
+            var state = new Twig.ParseState(template, params.blocks);
 
-            return state.parseAsync(this.tokens, context, params.blocks)
-            .then(function(output) {
-                var parentTemplate,
-                    url;
+            return state.parseAsync(template.tokens, context)
+                .then(function(output) {
+                    var parentTemplate,
+                        url;
 
-                if (state.parentTemplatePath !== null) {
-                    // this template extends another template
+                    if (template.parentTemplate !== null) {
+                        // this template extends another template
 
-                    if (that.options.allowInlineIncludes) {
-                        // the template is provided inline
-                        parentTemplate = Twig.Templates.load(state.parentTemplatePath);
+                        if (template.options.allowInlineIncludes) {
+                            // the template is provided inline
+                            parentTemplate = Twig.Templates.load(template.parentTemplate);
 
-                        if (parentTemplate) {
-                            parentTemplate.options = that.options;
+                            if (parentTemplate) {
+                                parentTemplate.options = template.options;
+                            }
                         }
+
+                        // check for the template file via include
+                        if (!parentTemplate) {
+                            url = Twig.path.parsePath(template, template.parentTemplate);
+
+                            parentTemplate = Twig.Templates.loadRemote(url, {
+                                method: template.getLoaderMethod(),
+                                base: template.base,
+                                async:  false,
+                                id:     url,
+                                options: template.options
+                            });
+                        }
+
+                        template.parentTemplate = parentTemplate;
+
+                        return template.parentTemplate.renderAsync(
+                            state.context,
+                            {
+                                blocks: state.getBlocks(false)
+                            }
+                        );
                     }
 
-                    // check for the template file via include
-                    if (!parentTemplate) {
-                        url = Twig.path.parsePath(that, state.parentTemplatePath);
-
-                        parentTemplate = Twig.Templates.loadRemote(url, {
-                            method: that.getLoaderMethod(),
-                            base: that.base,
-                            async:  false,
-                            id:     url,
-                            options: that.options
-                        });
+                    if (!params) {
+                        return output;
+                    } else if (params.output == 'macros') {
+                        return state.macros;
+                    } else {
+                        return output;
                     }
-
-                    return parentTemplate.renderAsync(state.context, {
-                        blocks: state.renderedBlocks
-                    });
-                }
-
-                if (!params) {
-                    return output;
-                } else if (params.output == 'blocks') {
-                    return state.renderedBlocks;
-                } else if (params.output == 'macros') {
-                    return state.macros;
-                } else {
-                    return output;
-                }
-            });
+                });
         });
     };
 

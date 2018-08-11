@@ -98,20 +98,6 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 
-    it("should make the contents of blocks available after they're rendered", function(done) {
-        // Test rendering and loading one block
-        twig({
-            id:   'blocks',
-            path: 'test/templates/blocks.twig',
-
-            load: function(template) {
-                // Render the template with the blocks parameter
-                template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal("Coming soon to a block near you!" );
-                done();
-            }
-        });
-    });
-
     it("should render nested blocks", function(done) {
         // Test rendering of blocks within blocks
         twig({

@@ -158,18 +158,20 @@ module.exports = function (Twig) {
             }
             return dateObj;
         },
-        block: function(block) {
-            var state = this;
+        block: function(blockName) {
+            var block,
+                state = this;
 
-            if (state.originalBlockTokens[block]) {
-                return Twig.logic.parse.call(state, state.originalBlockTokens[block], state.context).output;
-            } else {
-                return state.renderedBlocks[block];
+            block = state.getBlock(blockName);
+
+            if (block !== undefined) {
+                return block.render(state, state.context);
             }
         },
         parent: function() {
-            // Add a placeholder
-            return Twig.placeholders.parent;
+            var state = this;
+
+            return state.getBlock(state.getNestingStackToken(Twig.logic.type.block).blockName, true).render(state, state.context);
         },
         attribute: function(object, method, params) {
             if (Twig.lib.is('Object', object)) {
