@@ -917,22 +917,30 @@ module.exports = function (Twig) {
             },
             parse: function (token, context, chain) {
                 var state = this,
-                    output = { chain: chain, output: '' };
+                    output = {
+                        chain: chain,
+                        output: ''
+                    },
+                    promise;
 
                 if (token.expression === '_self') {
                     context[token.contextName] = state.macros;
-                    return Twig.Promise.resolve(output);
-                }
-
-                return Twig.expression.parseAsync.call(state, token.stack, context)
-                .then(function(file) {
-                    return state.template.importFile(file || token.expression);
-                })
-                .then(function(template) {
-                    context[token.contextName] = template.renderAsync({}, {output: 'macros'});
-
                     return output;
-                });
+                } else {
+                    return Twig.expression.parseAsync.call(state, token.stack, context)
+                        .then(function(filePath) {
+                            return state.template.importFile(filePath || token.expression);
+                        })
+                        .then(function(importTemplate) {
+                            var importState = new Twig.ParseState(importTemplate);
+
+                            return importState.parseAsync(importTemplate.tokens).then(function () {
+                                context[token.contextName] = importState.macros;
+
+                                return output;
+                            });
+                        });
+                }
             }
         },
         {
@@ -981,31 +989,37 @@ module.exports = function (Twig) {
             },
             parse: function (token, context, chain) {
                 var state = this,
-                    promise = Twig.Promise.resolve(state.macros);
+                    promise;
 
-                if (token.expression !== "_self") {
+                if (token.expression === "_self") {
+                    promise = Twig.Promise.resolve(state.macros);
+                } else {
                     promise = Twig.expression.parseAsync.call(state, token.stack, context)
-                    .then(function(file) {
-                        return state.template.importFile(file || token.expression);
-                    })
-                    .then(function(template) {
-                        return template.renderAsync({}, {output: 'macros'});
-                    });
+                        .then(function(filePath) {
+                            return state.template.importFile(filePath || token.expression);
+                        })
+                        .then(function(importTemplate) {
+                            var importState = new Twig.ParseState(importTemplate);
+
+                            return importState.parseAsync(importTemplate.tokens).then(function () {
+                                return importState.macros;
+                            });
+                        });
                 }
 
                 return promise
-                .then(function(macros) {
-                    for (var macroName in token.macroNames) {
-                        if (macros.hasOwnProperty(macroName)) {
-                            context[token.macroNames[macroName]] = macros[macroName];
+                    .then(function(macros) {
+                        for (var macroName in token.macroNames) {
+                            if (macros[macroName] !== undefined) {
+                                context[token.macroNames[macroName]] = macros[macroName];
+                            }
                         }
-                    }
 
-                    return {
-                        chain: chain,
-                        output: ''
-                    }
-                });
+                        return {
+                            chain: chain,
+                            output: ''
+                        }
+                    });
             }
         },
         {

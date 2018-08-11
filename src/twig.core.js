@@ -1432,13 +1432,7 @@ module.exports = function (Twig) {
                         );
                     }
 
-                    if (!params) {
-                        return output;
-                    } else if (params.output == 'macros') {
-                        return state.macros;
-                    } else {
-                        return output;
-                    }
+                    return output;
                 });
         });
     };
