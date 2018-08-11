@@ -149,6 +149,18 @@ describe("Twig.js Blocks ->", function() {
         }).render().should.equal("Title: child");
     });
 
+    it('should override blocks in loop when extending', function () {
+        twig({
+            id: 'block-loop.twig',
+            data: '{% for label in ["foo", "bar", "baz"] %}<{% block content %}base-{{ label }}-{{ loop.index }}{% endblock %}>{% endfor %}'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% extends "block-loop.twig" %}{% block content %}overriding-{{ parent() }}-at-index-{{ loop.index0 }}{% endblock %}'
+        }).render().should.equal('<overriding-base-foo-1-at-index-0><overriding-base-bar-2-at-index-1><overriding-base-baz-3-at-index-2>')
+    });
+
     describe("block function ->", function() {
         it("should render block content from an included block", function(done) {
             twig({
@@ -203,7 +215,6 @@ describe("Twig.js Blocks ->", function() {
             }).render()
             .should.equal("original changed");
         });
-
     });
 
     describe("block shorthand ->", function() {
