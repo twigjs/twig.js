@@ -1059,6 +1059,55 @@ module.exports = function (Twig) {
     }
 
     /**
+     * A wrapper for template blocks.
+     *
+     * @param  {Twig.Template} The template that the block was originally defined in.
+     * @param  {Object} The compiled block token.
+     */
+    Twig.Block = function (template, token) {
+        this.template = template;
+        this.token = token;
+    };
+
+    /**
+     * Render the block using a specific parse state and context.
+     *
+     * @param  {Twig.ParseState} parseState
+     * @param  {Object} context
+     *
+     * @return {Promise}
+     */
+    Twig.Block.prototype.render = function (parseState, context) {
+        var originalTemplate = parseState.template,
+            promise;
+
+        parseState.template = this.template;
+
+        if (this.token.expression) {
+            promise = Twig.expression.parseAsync.call(parseState, this.token.output, context);
+        } else {
+            promise = parseState.parseAsync(this.token.output, context);
+        }
+
+        return promise
+            .then(function (value) {
+                return Twig.expression.parseAsync.call(
+                    parseState,
+                    {
+                        type: Twig.expression.type.string,
+                        value: value
+                    },
+                    context
+                );
+            })
+            .then(function (output) {
+                parseState.template = originalTemplate;
+
+                return output;
+            });
+    };
+
+    /**
      * Holds the state needed to parse a template.
      *
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
@@ -1246,6 +1295,7 @@ module.exports = function (Twig) {
         //     }
         //
 
+        this.blockDefinitions = {};
         this.id     = id;
         this.method = method;
         this.base   = base;

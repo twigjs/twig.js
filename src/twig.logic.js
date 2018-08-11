@@ -540,6 +540,7 @@ module.exports = function (Twig) {
                         token.overwrite = true;
                     }
                 });
+                state.template.blockDefinitions[token.blockName] = new Twig.Block(state.template, token);
 
                 // Don't override previous blocks unless they're imported with "use"
                 if (state.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
