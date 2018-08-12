@@ -531,7 +531,7 @@ module.exports = function (Twig) {
                 var state = this,
                     promise = Twig.Promise.resolve();
 
-                state.template.blockDefinitions[token.blockName] = new Twig.Block(state.template, token);
+                state.template.blocks.defined[token.blockName] = new Twig.Block(state.template, token);
 
                 if (
                     state.template.parentTemplate === null
@@ -658,7 +658,7 @@ module.exports = function (Twig) {
                         useState = new Twig.ParseState(useTemplate)
                         return useState.parseAsync(useTemplate.tokens)
                             .then(function () {
-                                Twig.lib.extend(state.blocks.imported, useState.getBlocks());
+                                Twig.lib.extend(state.template.blocks.imported, useState.getBlocks());
                             });
                     })
                     .then(function() {
