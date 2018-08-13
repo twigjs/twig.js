@@ -27,6 +27,9 @@ module.exports = function (Twig) {
 
         if (hasNamespaces){
             for (k in namespaces) {
+              if (file.indexOf(k) === -1) {
+                continue
+              }
 
                 // check if keyed namespace exists at path's start
                 var colon = new RegExp(`^${k}::`);
