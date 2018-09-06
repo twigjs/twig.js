@@ -12,7 +12,7 @@ module.exports = function (Twig) {
         rightToLeft: 'rightToLeft'
     };
 
-    var containment = function(a, b) {
+    var containment = function (a, b) {
         if (b === undefined || b === null) {
             return null;
         } else if (b.indexOf !== undefined) {
@@ -121,6 +121,21 @@ module.exports = function (Twig) {
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
+            case 'matches':
+                token.precidence = 8;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
+            case 'starts with':
+                token.precidence = 8;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
+            case 'ends with':
+                token.precidence = 8;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
             default:
                 throw new Twig.Error("Failed to lookup operator: " + operator + " is an unknown operator.");
         }
@@ -153,6 +168,15 @@ module.exports = function (Twig) {
 
             if (b && Array.isArray(b)) {
                 b = b.length;
+            }
+        }
+
+        if (operator === 'matches') {
+            if (b && typeof b === 'string') {
+                var reParts = b.match(/^\/(.*)\/([gims]?)$/);
+                var reBody = reParts[1];
+                var reFlags = reParts[2];
+                b = new RegExp(reBody, reFlags);
             }
         }
 
@@ -304,6 +328,18 @@ module.exports = function (Twig) {
 
             case 'in':
                 stack.push( containment(a, b) );
+                break;
+
+            case 'matches':
+                stack.push( b.test(a) );
+                break;
+
+            case 'starts with':
+                stack.push( a.startsWith(b) );
+                break;
+
+            case 'ends with':
+                stack.push( a.endsWith(b) );
                 break;
 
             case '..':
