@@ -290,6 +290,24 @@ describe("Twig.js Expressions ->", function() {
             test_template.render({test1: false, test2: true, test3: false}).should.equal("false");
         });
 
+        it("should support regular expressions", function () {
+            var test_template = twig({data: '{{ a matches "/^[\\d\\.]+$/" }}'});
+            test_template.render({a:'123'}).should.equal('true');
+            test_template.render({a:'1ab'}).should.equal('false');
+        });
+
+        it("should support starts with", function () {
+            var test_template = twig({data: '{{ a starts with "f" }}'});
+            test_template.render({a:'foo'}).should.equal('true');
+            test_template.render({a:'bar'}).should.equal('false');
+        });
+
+        it("should support ends with", function () {
+            var test_template = twig({data: '{{ a ends with "o" }}'});
+            test_template.render({a:'foo'}).should.equal('true');
+            test_template.render({a:'bar'}).should.equal('false');
+        });
+
         it("should correctly cast arrays", function () {
             var test_template = twig({data: '{{ a == true }}'});
             test_template.render({a:['value']}).should.equal('true');
