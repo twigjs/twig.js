@@ -335,11 +335,11 @@ module.exports = function (Twig) {
                 break;
 
             case 'starts with':
-                stack.push( a.startsWith(b) );
+                stack.push( a.indexOf(b) === 0 );
                 break;
 
             case 'ends with':
-                stack.push( a.endsWith(b) );
+                stack.push( a.indexOf(b, a.length - b.length) !== -1 );
                 break;
 
             case '..':
