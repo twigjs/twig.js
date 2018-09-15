@@ -22,12 +22,23 @@
     "twigjs": "./bin/twigjs"
   },
   "scripts": {
+    "precommit": "lint-staged",
     "preversion": "npm test && git diff --exit-code --quiet",
     "postversion": "git push origin master && git push origin master --tags",
     "test": "npm run build && mocha -r should",
+    "lint": "eslint",
     "build-node": "webpack",
     "build-browser": "WEBPACK_ENV=browser webpack",
     "build": "npm run build-node && npm run build-browser"
+  },
+  "lint-staged": {
+    "linters": {
+      "**/*.js": ["npm run lint -- --fix .", "git add"]
+    },
+    "ignore": [
+      "twig.js",
+      "twig.min.js"
+    ]
   },
   "dependencies": {
     "minimatch": "3.0.x",
@@ -36,6 +47,8 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "eslint": "^5.6.0",
+    "lint-staged": "^7.2.2",
     "mocha": "^4.1.0",
     "should": "11.1.x",
     "sinon": "^1.17.6",
