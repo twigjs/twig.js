@@ -138,6 +138,30 @@ module.exports = function (Twig) {
                 return;
             }
 
+            if (Twig.lib.is('Object', value)) {
+                var serialize = function (obj, prefix) {
+                    var result = [];
+                    var keyset = obj._keys || Object.keys(obj);
+
+                    Twig.forEach(keyset, function (key) {
+                        if (!Object.prototype.hasOwnProperty.call(obj, key)) return;
+
+                        var resultKey = prefix ? prefix + '[' + key + ']' : key;
+                        var resultValue = obj[key];
+
+                        result.push(
+                            (Twig.lib.is('Object', resultValue) || Twig.lib.isArray(resultValue)) ?
+                            serialize(resultValue, resultKey) :
+                            encodeURIComponent(resultKey) + '=' + encodeURIComponent(resultValue)
+                        );
+                    });
+
+                    return result.join('&amp;');
+                }
+
+                return serialize(value);
+            }
+
             var result = encodeURIComponent(value);
             result = result.replace("'", "%27");
             return result;
