@@ -17,7 +17,10 @@ module.exports = {
         library: 'Twig',
         libraryTarget: 'umd'
     },
-    plugins: env === 'browser' ? [
-        new UglifyJsPlugin()
-    ] : []
+    optimization: {
+        minimize: true,
+        minimizer: [new UglifyJsPlugin({
+            include: /\.min\.js$/
+        })]
+    }
 };
