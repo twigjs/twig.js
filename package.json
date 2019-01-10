@@ -16,7 +16,7 @@
   },
   "main": "twig.js",
   "engines": {
-    "node": ">=4.0"
+    "node": ">=6.0"
   },
   "bin": {
     "twigjs": "./bin/twigjs"
