@@ -1,3 +1,19 @@
+Version 1.13.0, released 2019-01-09
+-----------------------------------
+
+Major improvements:
+* Unminified sources in the npm package ([#598](https://github.com/twigjs/twig.js/pull/598))
+
+Minor improvements:
+* Multiple namespace performance improvement ([#580](https://github.com/twigjs/twig.js/pull/580))
+* `|url_encode` can now extend parameters ([#588](https://github.com/twigjs/twig.js/pull/588))
+* Fix `.startsWith` and `.endsWith` with `.indexOf` for IE ([#587](https://github.com/twigjs/twig.js/pull/587))
+* Autoescaping improvement ([#577](https://github.com/twigjs/twig.js/pull/577))
+* Support null-coalescing operator `??` ([#575](https://github.com/twigjs/twig.js/pull/575))
+* Add `verbatim` tag ([#574](https://github.com/twigjs/twig.js/pull/574))
+* Fix bug in `for` loop ([#573](https://github.com/twigjs/twig.js/pull/573))
+* Fix twig `{% if(x) %}` and `{% elseif(x) %}` blocks parsing error ([#570](https://github.com/twigjs/twig.js/pull/570))
+
 Version 1.12.0, released 2018-06-11
 -----------------------------------
 
