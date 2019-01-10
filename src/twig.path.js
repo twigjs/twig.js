@@ -27,10 +27,13 @@ module.exports = function (Twig) {
 
         if (hasNamespaces){
             for (k in namespaces) {
+               if (file.indexOf(k) === -1) {
+                  continue
+               }
 
                 // check if keyed namespace exists at path's start
-                var colon = new RegExp(`^${k}::`);
-                var atSign = new RegExp(`^@${k}`);
+                var colon = new RegExp('^' + k + '::');
+                var atSign = new RegExp('^@' + k);
 
                 if (colon.test(file)) {
                     file = file.replace(k + '::', namespaces[k]);
