@@ -1,3 +1,8 @@
+Version 1.13.1, released 2019-01-19
+-----------------------------------
+Minor improvements:
+* Fix for not autoescaping includes ([#604](https://github.com/twigjs/twig.js/pull/604))
+
 Version 1.13.0, released 2019-01-09
 -----------------------------------
 
