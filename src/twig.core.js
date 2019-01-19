@@ -1300,6 +1300,8 @@ module.exports = function (Twig) {
                     return that.blocks;
                 } else if (params.output == 'macros') {
                     return that.macros;
+                } else if (params.isInclude === true) {
+                    return output
                 } else {
                     return output.valueOf();
                 }
