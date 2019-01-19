@@ -367,10 +367,19 @@ describe("Twig.js Core ->", function() {
         it("should support autoescape option", function() {
             twig({
                 autoescape: true,
-                data: '{{ value }}'
+                data: '&& {{ value }} &&'
             }).render({
                 value: "<test>&</test>"
-            }).should.equal('&lt;test&gt;&amp;&lt;/test&gt;');
+            }).should.equal('&& &lt;test&gt;&amp;&lt;/test&gt; &&');
+        });
+
+        it("should not autoescape includes", function() {
+            twig({id: 'included2', data: '& {{ value }} &'});
+            twig({
+                allowInlineIncludes: true,
+                autoescape: true,
+                data: '&& {% include "included2" %} &&'
+            }).render({ value: "&" }).should.equal('&& & &amp; & &&');
         });
 
         it("should support autoescape option with alternative strategy", function() {

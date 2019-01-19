@@ -784,11 +784,11 @@ module.exports = function (Twig) {
                 })
                 .then(function logicTypeIncludeImport(file) {
                     if (file instanceof Twig.Template) {
-                        return file.renderAsync(innerContext);
+                        return file.renderAsync(innerContext, { isInclude: true });
                     }
 
                     try {
-                        return that.importFile(file).renderAsync(innerContext);
+                        return that.importFile(file).renderAsync(innerContext, { isInclude: true });
                     } catch(err) {
                         if (ignoreMissing)
                             return '';
