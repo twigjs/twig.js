@@ -730,11 +730,21 @@ module.exports = function (Twig) {
                 })
                 .then(function logicTypeIncludeImport(file) {
                     if (file instanceof Twig.Template) {
-                        return file.renderAsync(innerContext);
+                        return file.renderAsync(
+                            innerContext,
+                            {
+                                isInclude: true,
+                            }
+                        );
                     }
 
                     try {
-                        return state.template.importFile(file).renderAsync(innerContext);
+                        return state.template.importFile(file).renderAsync(
+                            innerContext,
+                            {
+                                isInclude: true,
+                            }
+                        );
                     } catch(err) {
                         if (ignoreMissing)
                             return '';

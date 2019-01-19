@@ -1467,7 +1467,11 @@ module.exports = function (Twig) {
                         );
                     }
 
-                    return output.valueOf();
+                    if (params.isInclude === true) {
+                        return output;
+                    } else {
+                        return output.valueOf();
+                    }
                 });
         });
     };
