@@ -1,11 +1,14 @@
 demos
 tools
 test
+test-ext
+docs
 qtest
 src
 .hg
 .git
 .gitignore
+.gitmodules
 .travis.yml
 .idea
 webpack.config.js
