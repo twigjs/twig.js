@@ -1462,7 +1462,8 @@ module.exports = function (Twig) {
                         return template.parentTemplate.renderAsync(
                             state.context,
                             {
-                                blocks: state.getBlocks(false)
+                                blocks: state.getBlocks(false),
+                                isInclude: true,
                             }
                         );
                     }
