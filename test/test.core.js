@@ -382,6 +382,16 @@ describe("Twig.js Core ->", function() {
             }).render({ value: "&" }).should.equal('&& & &amp; & &&');
         });
 
+        it("should not autoescape includes having a parent", function() {
+            twig({id: 'included3', data: '{% extends "parent2" %}{% block body %}& {{ value }} &{% endblock %}'});
+            twig({id: 'parent2', data: '&& {% block body %}{% endblock body %} &&'});
+            twig({
+                allowInlineIncludes: true,
+                autoescape: true,
+                data: '&&& {% include "included3" %} &&&'
+            }).render({ value: "&" }).should.equal('&&& && & &amp; & && &&&');
+        });
+
         it("should support autoescape option with alternative strategy", function() {
             twig({
                 autoescape: 'js',
@@ -417,10 +427,10 @@ describe("Twig.js Core ->", function() {
             twig({
                 allowInlineIncludes: true,
                 autoescape: true,
-                data: '{% extends "parent1" %}{% block body %}{{ parent() }}{% endblock %}'
+                data: '{% extends "parent1" %}{% block body %} & {{ parent() }} & {% endblock %}'
             }).render({
                 value: "<test>&</test>"
-            }).should.equal('<p>&lt;test&gt;&amp;&lt;/test&gt;</p>');
+            }).should.equal(' & <p>&lt;test&gt;&amp;&lt;/test&gt;</p> & ');
         });
 
         it("should use a correct context in the extended template", function() {
