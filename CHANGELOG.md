@@ -1,3 +1,8 @@
+Version 1.13.2, released 2019-01-22
+-----------------------------------
+Minor improvements:
+* fix for not autoescaping includes having a parent ([#606](https://github.com/twigjs/twig.js/pull/606))
+
 Version 1.13.1, released 2019-01-19
 -----------------------------------
 Minor improvements:
