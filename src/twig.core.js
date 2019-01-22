@@ -1290,7 +1290,8 @@ module.exports = function (Twig) {
                     that.parent = ext_template;
 
                     return that.parent.renderAsync(that.context, {
-                        blocks: that.blocks
+                        blocks: that.blocks,
+                        isInclude: true
                     });
                 }
 
