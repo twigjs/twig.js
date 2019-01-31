@@ -1,0 +1,14 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 5
+    },
+    "env": {
+        "browser": true,
+        "mocha": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "semi": ["error", "always"]
+    }
+}
