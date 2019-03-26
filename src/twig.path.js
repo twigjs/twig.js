@@ -14,32 +14,33 @@ module.exports = function (Twig) {
      * the previously registered namespaces.
      *
      * @param  {string} template The Twig Template
-     * @param  {string} file     The file path, may be relative and may contain namespaces.
+     * @param  {string} _file    The file path, may be relative and may contain namespaces.
      *
      * @return {string}          The canonical version of the path
      */
-     Twig.path.parsePath = function(template, _file) {
+    Twig.path.parsePath = function (template, _file) {
         var k = null,
-            value = null,
             namespaces = template.options.namespaces,
             file = _file || "",
-            hasNamespaces = namespaces && typeof namespaces === 'object';
+            hasNamespaces = namespaces && typeof namespaces === "object";
 
-        if (hasNamespaces){
+        if (hasNamespaces) {
             for (k in namespaces) {
-               if (file.indexOf(k) === -1) {
-                  continue
-               }
+                if (file.indexOf(k) === -1) {
+                    continue
+                }
 
                 // check if keyed namespace exists at path's start
-                var colon = new RegExp('^' + k + '::');
-                var atSign = new RegExp('^@' + k);
+                var colon = new RegExp("^" + k + "::");
+                var atSign = new RegExp("^@" + k + "/");
+                // add slash to the end of path
+                var namespacePath = namespaces[k].replace(/([^\/])$/, "$1/");
 
                 if (colon.test(file)) {
-                    file = file.replace(k + '::', namespaces[k]);
+                    file = file.replace(colon, namespacePath);
                     return file;
                 } else if (atSign.test(file)) {
-                    file = file.replace('@' + k, namespaces[k]);
+                    file = file.replace(atSign, namespacePath);
                     return file;
                 }
             }
@@ -52,21 +53,22 @@ module.exports = function (Twig) {
      * Generate the relative canonical version of a url based on the given base path and file path.
      *
      * @param {Twig.Template} template The Twig.Template.
-     * @param {string} file The file path, relative to the base path.
+     * @param {string} _file The file path, relative to the base path.
      *
      * @return {string} The canonical version of the path.
      */
-    Twig.path.relativePath = function(template, file) {
+    Twig.path.relativePath = function (template, _file) {
         var base,
             base_path,
             sep_chr = "/",
             new_path = [],
-            file = file || "",
+            file = _file || "",
             val;
 
         if (template.url) {
-            if (typeof template.base !== 'undefined') {
-                base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
+            if (typeof template.base !== "undefined") {
+                // add slash to the end of path
+                base = template.base.replace(/([^\/])$/, "$1/");
             } else {
                 base = template.url;
             }
@@ -78,15 +80,15 @@ module.exports = function (Twig) {
             file = file.replace(/\//g, sep);
 
             if (template.base !== undefined && file.match(relative) == null) {
-                file = file.replace(template.base, '');
+                file = file.replace(template.base, "");
                 base = template.base + sep;
             } else {
                 base = path.normalize(template.path);
             }
 
-            base = base.replace(sep+sep, sep);
+            base = base.replace(sep + sep, sep);
             sep_chr = sep;
-        } else if ((template.name || template.id) && template.method && template.method !== 'fs' && template.method !== 'ajax') {
+        } else if ((template.name || template.id) && template.method && template.method !== "fs" && template.method !== "ajax") {
             // Custom registered loader
             base = template.base || template.name || template.id;
         } else {
@@ -101,9 +103,9 @@ module.exports = function (Twig) {
 
         while (base_path.length > 0) {
             val = base_path.shift();
-            if (val == ".") {
+            if (val === ".") {
                 // Ignore
-            } else if (val == ".." && new_path.length > 0 && new_path[new_path.length-1] != "..") {
+            } else if (val === ".." && new_path.length > 0 && new_path[new_path.length - 1] !== "..") {
                 new_path.pop();
             } else {
                 new_path.push(val);
