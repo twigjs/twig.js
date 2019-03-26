@@ -1,72 +1,104 @@
 var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+	twig = twig || Twig.twig;
 
 describe("Twig.js Namespaces ->", function() {
-    it("should support namespaces defined with ::", function(done) {
-    	twig({
+	it("should support namespaces defined with ::", function(done) {
+		twig({
 			namespaces: { 'test': 'test/templates/namespaces/' },
 			path: 'test/templates/namespaces_coloncolon.twig',
 			load: function(template) {
 				// Render the template
 				template.render({
-				    test: "yes",
-				    flag: true
+					test: "yes",
+					flag: true
 				}).should.equal("namespaces");
 
 				done();
-            }
-    	});
-    });
+			}
+		});
+	});
 
-    it("should support namespaces defined with @", function(done) {
-    	twig({
+	it("should support namespaces defined with :: and  without slash at the end of path", function(done) {
+		twig({
+			namespaces: { 'test': 'test/templates/namespaces' },
+			path: 'test/templates/namespaces_coloncolon.twig',
+			load: function(template) {
+				// Render the template
+				template.render({
+					test: "yes",
+					flag: true
+				}).should.equal("namespaces");
+
+				done();
+			}
+		});
+	});
+
+	it("should support namespaces defined with @", function(done) {
+		twig({
 			namespaces: { 'test': 'test/templates/namespaces/' },
 			path: 'test/templates/namespaces_@.twig',
 			load: function(template) {
 				// Render the template
 				template.render({
-				    test: "yes",
-				    flag: true
+					test: "yes",
+					flag: true
 				}).should.equal("namespaces");
 
 				done();
-            }
-    	});
+			}
+		});
+	});
+
+	it("should support namespaces defined with @ and  without slash at the end of path", function(done) {
+		twig({
+			namespaces: { 'test': 'test/templates/namespaces' },
+			path: 'test/templates/namespaces_@.twig',
+			load: function(template) {
+				// Render the template
+				template.render({
+					test: "yes",
+					flag: true
+				}).should.equal("namespaces");
+
+				done();
+			}
+		});
 	});
 
 	it("should support non-namespaced includes with namespaces configured", function(done) {
-    	twig({
+		twig({
 			namespaces: { 'test': 'test/templates/namespaces/' },
 			path: 'test/templates/namespaces_without_namespace.twig',
 			load: function(template) {
 				// Render the template
 				template.render({
-				    test: "yes",
-				    flag: true
+					test: "yes",
+					flag: true
 				}).should.equal("namespaces\nnamespaces");
 
 				done();
-            }
-    	});
-    });
+			}
+		});
+	});
 
-  it("should support multiple namespaces", function(done) {
-    twig({
-      namespaces: {
-        'one': 'test/templates/namespaces/one/',
-        'two': 'test/templates/namespaces/two/'
-      },
-      path: 'test/templates/namespaces_multiple.twig',
-      load: function(template) {
-        // Render the template
-        template.render({
-            test: "yes",
-            flag: true
-        }).should.equal("namespace one\nnamespace two");
+	it("should support multiple namespaces", function(done) {
+		twig({
+			namespaces: {
+				'one': 'test/templates/namespaces/one/',
+				'two': 'test/templates/namespaces/two/'
+			},
+			path: 'test/templates/namespaces_multiple.twig',
+			load: function(template) {
+				// Render the template
+				template.render({
+					test: "yes",
+					flag: true
+				}).should.equal("namespace one\nnamespace two");
 
-        done();
-      }
-    });
-  });
+				done();
+			}
+		});
+	});
 
 });
