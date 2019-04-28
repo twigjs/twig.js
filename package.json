@@ -26,7 +26,7 @@
     "postversion": "git push origin master && git push origin master --tags",
     "test": "npm run build && mocha -r should",
     "build-node": "webpack",
-    "build-browser": "WEBPACK_ENV=browser webpack",
+    "build-browser": "cross-env WEBPACK_ENV=browser webpack",
     "build": "npm run build-node && npm run build-browser"
   },
   "dependencies": {
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "cross-env": "^5.2.0",
     "mocha": "^4.1.0",
     "should": "11.1.x",
     "sinon": "^1.17.6",
