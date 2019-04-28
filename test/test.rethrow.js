@@ -1,3 +1,4 @@
+const path = require('path')
 var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
@@ -65,7 +66,7 @@ describe("Twig.js Rethrow ->", function() {
             done(output);
         }
         catch(err) {
-            err.should.have.property('file', 'test/templates/error/parse/in-entry/entry.twig');
+            err.should.have.property('file', path.join('test/templates/error/parse/in-entry/entry.twig'));
 
             done();
         }

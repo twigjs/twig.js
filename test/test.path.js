@@ -1,3 +1,4 @@
+const path = require('path')
 var Twig = (Twig || require("../twig")).factory(),
     twig = twig || Twig.twig;
 
@@ -26,17 +27,17 @@ describe("Twig.js Path ->", function() {
 
         it("should give the full path to a file when file is passed", function() {
             relativePath({ url: "http://www.test.com/test.twig"}, "templates/myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
-            relativePath({ path: "test/test.twig"}, "templates/myFile.twig").should.equal("test/templates/myFile.twig");
+            relativePath({ path: "test/test.twig"}, "templates/myFile.twig").should.equal(path.join("test/templates/myFile.twig"));
         });
 
         it("should ascend directories", function() {
             relativePath({ url: "http://www.test.com/templates/../test.twig"}, "myFile.twig").should.equal("http://www.test.com/myFile.twig");
-            relativePath({ path: "test/templates/../test.twig"}, "myFile.twig").should.equal("test/myFile.twig");
+            relativePath({ path: "test/templates/../test.twig"}, "myFile.twig").should.equal(path.join("test/myFile.twig"));
         });
 
         it("should respect relative directories", function() {
             relativePath({ url: "http://www.test.com/templates/./test.twig"}, "myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
-            relativePath({ path: "test/templates/./test.twig"}, "myFile.twig").should.equal("test/templates/myFile.twig");
+            relativePath({ path: "test/templates/./test.twig"}, "myFile.twig").should.equal(path.join("test/templates/myFile.twig"));
         });
 
         describe("url ->", function() {
@@ -51,11 +52,11 @@ describe("Twig.js Path ->", function() {
 
         describe("path ->", function() {
             it("should use the path if no base is specified", function() {
-                relativePath({ path: "test/test.twig"}).should.equal("test/");
+                relativePath({ path: "test/test.twig"}).should.equal(path.join("test/"));
             });
 
             it("should use the base if base is specified", function() {
-                relativePath({ path: "test/test.twig", base: "myTest" }).should.equal("myTest/");
+                relativePath({ path: "test/test.twig", base: "myTest" }).should.equal(path.join("myTest/"));
             });
         });
     });
