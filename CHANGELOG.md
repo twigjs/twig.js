@@ -1,3 +1,10 @@
+Version 1.13.3, released 2019-05-03
+-----------------------------------
+Minor improvements:
+* Allow project development on Windows ([#611](https://github.com/twigjs/twig.js/pull/611))
+* Add possibility to define namespace without slash at the end of the path ([#609](https://github.com/twigjs/twig.js/pull/609))
+* Update `verbatim` tag ([#584](https://github.com/twigjs/twig.js/pull/584))
+
 Version 1.13.2, released 2019-01-22
 -----------------------------------
 Minor improvements:
