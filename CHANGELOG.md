@@ -1,3 +1,11 @@
+Version 1.14.0, unreleased
+-----------------------------------
+Major improvements:
+* Nothing yet
+
+Minor improvements:
+* Nothing yet
+
 Version 1.13.3, released 2019-05-03
 -----------------------------------
 Minor improvements:
