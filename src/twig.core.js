@@ -12,10 +12,6 @@ module.exports = function (Twig) {
 
     Twig.noop = function() {};
 
-    Twig.placeholders = {
-        parent: "{{|PARENT|}}"
-    };
-
     Twig.hasIndexOf = Array.prototype.hasOwnProperty("indexOf");
 
     /**
@@ -1059,44 +1055,157 @@ module.exports = function (Twig) {
     }
 
     /**
+     * A wrapper for template blocks.
+     *
+     * @param  {Twig.Template} The template that the block was originally defined in.
+     * @param  {Object} The compiled block token.
+     */
+    Twig.Block = function (template, token) {
+        this.template = template;
+        this.token = token;
+    };
+
+    /**
+     * Render the block using a specific parse state and context.
+     *
+     * @param  {Twig.ParseState} parseState
+     * @param  {Object} context
+     *
+     * @return {Promise}
+     */
+    Twig.Block.prototype.render = function (parseState, context) {
+        var originalTemplate = parseState.template,
+            promise;
+
+        parseState.template = this.template;
+
+        if (this.token.expression) {
+            promise = Twig.expression.parseAsync.call(parseState, this.token.output, context);
+        } else {
+            promise = parseState.parseAsync(this.token.output, context);
+        }
+
+        return promise
+            .then(function (value) {
+                return Twig.expression.parseAsync.call(
+                    parseState,
+                    {
+                        type: Twig.expression.type.string,
+                        value: value
+                    },
+                    context
+                );
+            })
+            .then(function (output) {
+                parseState.template = originalTemplate;
+
+                return output;
+            });
+    };
+
+    /**
      * Holds the state needed to parse a template.
      *
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
+     * @param {Object} blockOverrides Any blocks that should override those defined in the associated template.
      */
-    Twig.ParseState = function (template) {
-        this.blocks = {};
+    Twig.ParseState = function (template, blockOverrides) {
+        this.renderedBlocks = {};
+        this.overrideBlocks = blockOverrides === undefined ? {} : blockOverrides;
         this.context = {};
-        this.extend = null;
-        this.importedBlocks = [];
         this.macros = {};
         this.nestingStack = [];
-        this.originalBlockTokens = {};
         this.template = template;
     }
 
-    Twig.ParseState.prototype.importBlocks = function(file, override) {
-        var state = this,
-            importedBlocks,
-            key;
+    /**
+     * Get a block by its name, resolving in the following order:
+     *     - override blocks specified when initialized (except when excluded)
+     *     - blocks resolved from the associated template
+     *     - blocks resolved from the parent template when extending
+     *
+     * @param {String} name The name of the block to return.
+     * @param {Boolean} checkOnlyInheritedBlocks Whether to skip checking the overrides and associated template, will not skip by default.
+     *
+     * @return {Twig.Block|undefined}
+     */
+    Twig.ParseState.prototype.getBlock = function (name, checkOnlyInheritedBlocks) {
+        var block;
 
-        override = override || false;
+        if (checkOnlyInheritedBlocks !== true) {
+            // blocks specified when initialized
+            block = this.overrideBlocks[name];
 
-        importedBlocks = state.template
-            .importFile(file)
-            .render(
-                state.context,
-                {
-                    output: 'blocks'
-                }
-            )
+        }
 
-        // Mixin blocks
-        Twig.forEach(Object.keys(importedBlocks), function(key) {
-            if (override || state.blocks[key] === undefined) {
-                state.blocks[key] = importedBlocks[key];
-                state.importedBlocks.push(key);
+        if (block === undefined) {
+            // block defined by the associated template
+            block = this.template.getBlock(name, checkOnlyInheritedBlocks);
+        }
+
+        if (
+            block === undefined
+                &&
+            this.template.parentTemplate !== null
+        ) {
+            // block defined in the parent template when extending
+            block = this.template.parentTemplate.getBlock(name);
+        }
+
+        return block;
+    };
+
+    /**
+     * Get all the available blocks, resolving in the following order:
+     *     - override blocks specified when initialized
+     *     - blocks resolved from the associated template
+     *     - blocks resolved from the parent template when extending (except when excluded)
+     *
+     * @param {Boolean} includeParentBlocks Whether to get blocks from the parent template when extending, will always do so by default.
+     *
+     * @return {Object}
+     */
+    Twig.ParseState.prototype.getBlocks = function (includeParentBlocks) {
+        var blocks = {};
+
+        if (
+            includeParentBlocks !== false
+                &&
+            this.template.parentTemplate !== null
+                &&
+            // prevent infinite loop
+            this.template.parentTemplate !== this.template
+        ) {
+            // blocks from the parent template when extending
+            blocks = this.template.parentTemplate.getBlocks();
+        }
+
+        // override with any blocks defined within the associated template
+        Twig.lib.extend(blocks, this.template.getBlocks());
+
+        // override with any blocks specified when initialized
+        Twig.lib.extend(blocks, this.overrideBlocks);
+
+        return blocks;
+    };
+
+    /**
+     * Get the closest token of a specific type to the current nest level.
+     *
+     * @param  {String} type  The logic token type
+     *
+     * @return {Object}
+     */
+    Twig.ParseState.prototype.getNestingStackToken = function (type) {
+        var matchingToken;
+
+        Twig.forEach(this.nestingStack, function (token) {
+            if (matchingToken === undefined && token.type == type) {
+                matchingToken = token;
             }
         });
+
+        return matchingToken;
     };
 
     /**
@@ -1110,7 +1219,7 @@ module.exports = function (Twig) {
      * @return {String} The rendered tokens.
      *
      */
-    Twig.ParseState.prototype.parse = function (tokens, context, allow_async, blocks) {
+    Twig.ParseState.prototype.parse = function (tokens, context, allow_async) {
         var state = this,
             output = [],
 
@@ -1125,10 +1234,6 @@ module.exports = function (Twig) {
 
         if (context) {
             state.context = context;
-        }
-
-        if (blocks) {
-            state.blocks = blocks;
         }
 
         /*
@@ -1218,7 +1323,7 @@ module.exports = function (Twig) {
      *
      * @param {Object} params The template parameters.
      */
-    Twig.Template = function ( params ) {
+    Twig.Template = function (params) {
         var data = params.data,
             id = params.id,
             base = params.base,
@@ -1246,13 +1351,18 @@ module.exports = function (Twig) {
         //     }
         //
 
+        this.base   = base;
+        this.blocks = {
+            defined: {},
+            imported: {}
+        };
         this.id     = id;
         this.method = method;
-        this.base   = base;
-        this.path   = path;
-        this.url    = url;
         this.name   = name;
         this.options = options;
+        this.parentTemplate = null;
+        this.path   = path;
+        this.url    = url;
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.call(this, data);
@@ -1265,60 +1375,99 @@ module.exports = function (Twig) {
         }
     };
 
+    /**
+     * Get a block by its name, resolving in the following order:
+     *     - blocks defined in the template itself
+     *     - blocks imported from another template
+     *
+     * @param {String} name The name of the block to return.
+     * @param {Boolean} checkOnlyInheritedBlocks Whether to skip checking the blocks defined in the template itself, will not skip by default.
+     *
+     * @return {Twig.Block|undefined}
+     */
+    Twig.Template.prototype.getBlock = function (name, checkOnlyInheritedBlocks) {
+        var block;
+
+        if (checkOnlyInheritedBlocks !== true) {
+            block = this.blocks.defined[name];
+        }
+
+        if (block === undefined) {
+            block = this.blocks.imported[name];
+        }
+
+        return block;
+    };
+
+    /**
+     * Get all the available blocks, resolving in the following order:
+     *     - blocks defined in the template itself
+     *     - blocks imported from other templates
+     *
+     * @return {Object}
+     */
+    Twig.Template.prototype.getBlocks = function () {
+        var blocks = {};
+
+        // get any blocks imported from other templates
+        blocks = Twig.lib.extend(blocks, this.blocks.imported);
+
+        // override with any blocks defined within the template itself
+        Twig.lib.extend(blocks, this.blocks.defined);
+
+        return blocks;
+    };
+
     Twig.Template.prototype.render = function (context, params, allow_async) {
-        var that = this;
+        var template = this;
 
         params = params || {};
 
-        return Twig.async.potentiallyAsync(this, allow_async, function() {
-            var state = new Twig.ParseState(this);
+        return Twig.async.potentiallyAsync(template, allow_async, function() {
+            var state = new Twig.ParseState(template, params.blocks);
 
-            return state.parseAsync(this.tokens, context, params.blocks)
-            .then(function(output) {
-                var ext_template,
-                    url;
+            return state.parseAsync(template.tokens, context)
+                .then(function(output) {
+                    var parentTemplate,
+                        url;
 
-                // Does this template extend another
-                if (state.extend) {
+                    if (template.parentTemplate !== null) {
+                        // this template extends another template
 
-                    // check if the template is provided inline
-                    if ( that.options.allowInlineIncludes ) {
-                        ext_template = Twig.Templates.load(state.extend);
-                        if ( ext_template ) {
-                            ext_template.options = that.options;
+                        if (template.options.allowInlineIncludes) {
+                            // the template is provided inline
+                            parentTemplate = Twig.Templates.load(template.parentTemplate);
+
+                            if (parentTemplate) {
+                                parentTemplate.options = template.options;
+                            }
                         }
+
+                        // check for the template file via include
+                        if (!parentTemplate) {
+                            url = Twig.path.parsePath(template, template.parentTemplate);
+
+                            parentTemplate = Twig.Templates.loadRemote(url, {
+                                method: template.getLoaderMethod(),
+                                base: template.base,
+                                async:  false,
+                                id:     url,
+                                options: template.options
+                            });
+                        }
+
+                        template.parentTemplate = parentTemplate;
+
+                        return template.parentTemplate.renderAsync(
+                            state.context,
+                            {
+                                blocks: state.getBlocks(false)
+                            }
+                        );
                     }
 
-                    // check for the template file via include
-                    if (!ext_template) {
-                        url = Twig.path.parsePath(that, state.extend);
-
-                        ext_template = Twig.Templates.loadRemote(url, {
-                            method: that.getLoaderMethod(),
-                            base: that.base,
-                            async:  false,
-                            id:     url,
-                            options: that.options
-                        });
-                    }
-
-                    that.parent = ext_template;
-
-                    return that.parent.renderAsync(state.context, {
-                        blocks: state.blocks
-                    });
-                }
-
-                if (!params) {
                     return output;
-                } else if (params.output == 'blocks') {
-                    return state.blocks;
-                } else if (params.output == 'macros') {
-                    return state.macros;
-                } else {
-                    return output;
-                }
-            });
+                });
         });
     };
 

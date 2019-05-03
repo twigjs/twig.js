@@ -522,69 +522,26 @@ module.exports = function (Twig) {
             ],
             open: true,
             compile: function (token) {
-                token.block = token.match[1].trim();
+                token.blockName = token.match[1].trim();
                 delete token.match;
+
                 return token;
             },
             parse: function (token, context, chain) {
                 var state = this,
-                    block_output,
-                    output,
-                    promise = Twig.Promise.resolve(),
-                    isImported = Twig.indexOf(state.importedBlocks, token.block) > -1,
-                    hasParent = state.blocks[token.block] && Twig.indexOf(state.blocks[token.block], Twig.placeholders.parent) > -1;
+                    promise = Twig.Promise.resolve();
 
-                // detect if in a for loop
-                Twig.forEach(state.nestingStack, function (parent_token) {
-                    if (parent_token.type == Twig.logic.type.for_) {
-                        token.overwrite = true;
-                    }
-                });
+                state.template.blocks.defined[token.blockName] = new Twig.Block(state.template, token);
 
-                // Don't override previous blocks unless they're imported with "use"
-                if (state.blocks[token.block] === undefined || isImported || hasParent || token.overwrite) {
-                    if (token.expression) {
-                        promise = Twig.expression.parseAsync.call(state, token.output, context)
-                        .then(function(value) {
-                            return Twig.expression.parseAsync.call(state, {
-                                type: Twig.expression.type.string,
-                                value: value
-                            }, context);
-                        });
-                    } else {
-                        promise = state.parseAsync(token.output, context)
-                        .then(function(tokenOutput) {
-                            return Twig.expression.parseAsync.call(state, {
-                                type: Twig.expression.type.string,
-                                value: tokenOutput
-                            }, context);
-                        });
-                    }
-
-                    promise = promise.then(function(block_output) {
-                        if (isImported) {
-                            // once the block is overridden, remove it from the list of imported blocks
-                            state.importedBlocks.splice(state.importedBlocks.indexOf(token.block), 1);
-                        }
-
-                        if (hasParent) {
-                            state.blocks[token.block] = Twig.Markup(state.blocks[token.block].replace(Twig.placeholders.parent, block_output));
-                        } else {
-                            state.blocks[token.block] = block_output;
-                        }
-
-                        state.originalBlockTokens[token.block] = {
-                            type: token.type,
-                            block: token.block,
-                            output: token.output,
-                            overwrite: true
-                        };
-                    });
+                if (
+                    state.template.parentTemplate === null
+                        ||
+                    state.template.parentTemplate instanceof Twig.Template
+                ) {
+                    promise = state.getBlock(token.blockName).render(state, context);
                 }
 
-                return promise.then(function() {
-                    output = state.blocks[token.block];
-
+                return promise.then(function (output) {
                     return {
                         chain: chain,
                         output: output
@@ -603,16 +560,15 @@ module.exports = function (Twig) {
             next: [ ],
             open: true,
             compile: function (token) {
-                token.expression = token.match[2].trim();
+                var template = this;
 
+                token.expression = token.match[2].trim();
                 token.output = Twig.expression.compile({
                     type: Twig.expression.type.expression,
                     value: token.expression
                 }).stack;
 
-                token.block = token.match[1].trim();
-                delete token.match;
-                return token;
+                return Twig.logic.handler[Twig.logic.type.block].compile.apply(template, arguments);
             },
             parse: function (token, context, chain) {
                 var args = new Array(arguments.length),
@@ -655,35 +611,17 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                var template,
-                    state = this,
-                    innerContext = Twig.lib.copy(context);
+                var state = this;
 
-                // Resolve filename
                 return Twig.expression.parseAsync.call(state, token.stack, context)
-                .then(function(file) {
-                    // Set parent template
-                    state.extend = file;
+                    .then(function(fileName) {
+                        state.template.parentTemplate = fileName;
 
-                    if (file instanceof Twig.Template) {
-                        template = file;
-                    } else {
-                        // Import file
-                        template = state.template.importFile(file);
-                    }
-
-                    // Render the template in case it puts anything in its context
-                    return template.renderAsync(innerContext);
-                })
-                .then(function() {
-                    // Extend the parent context with the extended context
-                    Twig.lib.extend(context, innerContext);
-
-                    return {
-                        chain: chain,
-                        output: ''
-                    };
-                });
+                        return {
+                            chain: chain,
+                            output: ''
+                        };
+                    });
             }
         },
         {
@@ -710,17 +648,25 @@ module.exports = function (Twig) {
             parse: function (token, context, chain) {
                 var state = this;
 
-                // Resolve filename
                 return Twig.expression.parseAsync.call(state, token.stack, context)
-                .then(function(file) {
-                    // Import blocks
-                    state.importBlocks(file);
+                    .then(function(filePath) {
+                        // create a new state instead of using the current state
+                        // any defined blocks will be created in isolation
+                        var useState,
+                            useTemplate = state.template.importFile(filePath);
 
-                    return {
-                        chain: chain,
-                        output: ''
-                    };
-                });
+                        useState = new Twig.ParseState(useTemplate)
+                        return useState.parseAsync(useTemplate.tokens)
+                            .then(function () {
+                                Twig.lib.extend(state.template.blocks.imported, useState.getBlocks());
+                            });
+                    })
+                    .then(function() {
+                        return {
+                            chain: chain,
+                            output: ''
+                        };
+                    });
             }
         },
         {
@@ -971,22 +917,30 @@ module.exports = function (Twig) {
             },
             parse: function (token, context, chain) {
                 var state = this,
-                    output = { chain: chain, output: '' };
+                    output = {
+                        chain: chain,
+                        output: ''
+                    },
+                    promise;
 
                 if (token.expression === '_self') {
                     context[token.contextName] = state.macros;
-                    return Twig.Promise.resolve(output);
-                }
-
-                return Twig.expression.parseAsync.call(state, token.stack, context)
-                .then(function(file) {
-                    return state.template.importFile(file || token.expression);
-                })
-                .then(function(template) {
-                    context[token.contextName] = template.renderAsync({}, {output: 'macros'});
-
                     return output;
-                });
+                } else {
+                    return Twig.expression.parseAsync.call(state, token.stack, context)
+                        .then(function(filePath) {
+                            return state.template.importFile(filePath || token.expression);
+                        })
+                        .then(function(importTemplate) {
+                            var importState = new Twig.ParseState(importTemplate);
+
+                            return importState.parseAsync(importTemplate.tokens).then(function () {
+                                context[token.contextName] = importState.macros;
+
+                                return output;
+                            });
+                        });
+                }
             }
         },
         {
@@ -1035,31 +989,37 @@ module.exports = function (Twig) {
             },
             parse: function (token, context, chain) {
                 var state = this,
-                    promise = Twig.Promise.resolve(state.macros);
+                    promise;
 
-                if (token.expression !== "_self") {
+                if (token.expression === "_self") {
+                    promise = Twig.Promise.resolve(state.macros);
+                } else {
                     promise = Twig.expression.parseAsync.call(state, token.stack, context)
-                    .then(function(file) {
-                        return state.template.importFile(file || token.expression);
-                    })
-                    .then(function(template) {
-                        return template.renderAsync({}, {output: 'macros'});
-                    });
+                        .then(function(filePath) {
+                            return state.template.importFile(filePath || token.expression);
+                        })
+                        .then(function(importTemplate) {
+                            var importState = new Twig.ParseState(importTemplate);
+
+                            return importState.parseAsync(importTemplate.tokens).then(function () {
+                                return importState.macros;
+                            });
+                        });
                 }
 
                 return promise
-                .then(function(macros) {
-                    for (var macroName in token.macroNames) {
-                        if (macros.hasOwnProperty(macroName)) {
-                            context[token.macroNames[macroName]] = macros[macroName];
+                    .then(function(macros) {
+                        for (var macroName in token.macroNames) {
+                            if (macros[macroName] !== undefined) {
+                                context[token.macroNames[macroName]] = macros[macroName];
+                            }
                         }
-                    }
 
-                    return {
-                        chain: chain,
-                        output: ''
-                    }
-                });
+                        return {
+                            chain: chain,
+                            output: ''
+                        }
+                    });
             }
         },
         {
@@ -1102,44 +1062,39 @@ module.exports = function (Twig) {
                 return token;
             },
             parse: function (token, context, chain) {
-                // Resolve filename
-                var innerContext = {},
-                    state = this,
-                    i,
-                    template,
-                    promise = Twig.Promise.resolve();
+                var embedContext = {},
+                    promise = Twig.Promise.resolve(),
+                    state = this;
 
                 if (!token.only) {
-                    for (i in context) {
-                        if (context.hasOwnProperty(i))
-                            innerContext[i] = context[i];
-                    }
+                    embedContext = Twig.lib.copy(context);
                 }
 
                 if (token.withStack !== undefined) {
-                    promise = Twig.expression.parseAsync.call(state, token.withStack, context)
-                    .then(function(withContext) {
-                        for (i in withContext) {
-                            if (withContext.hasOwnProperty(i))
-                                innerContext[i] = withContext[i];
-                        }
+                    promise = Twig.expression.parseAsync.call(state, token.withStack, context).then(function(withContext) {
+                        Twig.lib.extend(embedContext, withContext);
                     });
                 }
 
-                return promise.then(function() {
-                    // Allow this function to be cleaned up early
-                    promise = null;
-                    return Twig.expression.parseAsync.call(state, token.stack, innerContext);
-                })
-                .then(function(file) {
-                    var embedState;
+                return promise
+                    .then(function() {
+                        return Twig.expression.parseAsync.call(state, token.stack, embedContext);
+                    })
+                    .then(function(fileName) {
+                        var embedOverrideTemplate = new Twig.Template({
+                                data: token.output,
+                                id: state.template.id,
+                                base: state.template.base,
+                                path: state.template.path,
+                                url: state.template.url,
+                                name: state.template.name,
+                                method: state.template.method,
+                                options: state.template.options
+                            }),
+                            embedSourceTemplate;
 
-                    if (file instanceof Twig.Template) {
-                        template = file;
-                    } else {
-                        // Import file
                         try {
-                            template = state.template.importFile(file);
+                            embedSourceTemplate = embedOverrideTemplate.importFile(fileName);
                         } catch (err) {
                             if (token.ignoreMissing) {
                                 return '';
@@ -1151,24 +1106,17 @@ module.exports = function (Twig) {
 
                             throw err;
                         }
-                    }
 
-                    // create a new state instead of using the current state
-                    // any defined blocks will be created in isolation
-                    embedState = new Twig.ParseState(state.template);
+                        embedOverrideTemplate.parentTemplate = fileName;
 
-                    return embedState.parseAsync(token.output, innerContext)
-                        .then(function() {
-                            // render template with blocks defined in embed block
-                            return template.renderAsync(innerContext, {'blocks': embedState.blocks});
-                        });
-                })
-                .then(function(output) {
-                    return {
-                        chain: chain,
-                        output: output
-                    };
-                });
+                        return embedOverrideTemplate.renderAsync(embedContext);
+                    })
+                    .then(function(output) {
+                        return {
+                            chain: chain,
+                            output: output
+                        };
+                    });
             }
         },
         /* Add the {% endembed %} token
