@@ -35,15 +35,15 @@
     "walk": "2.3.x"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "mocha": "^4.1.0",
-    "should": "11.1.x",
-    "sinon": "^1.17.6",
-    "sinon-chai": "^2.8.0",
+    "should": "^13.2.3",
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0",
     "tokenizer": "1.1.x",
     "uglifyjs-webpack-plugin": "^2.0.1",
-    "webpack": "^4.12.0",
+    "webpack": "^4.30.0",
     "webpack-cli": "^3.0.3"
   },
   "browser": {
