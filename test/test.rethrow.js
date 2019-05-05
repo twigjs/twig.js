@@ -18,7 +18,7 @@ describe("Twig.js Rethrow ->", function() {
                 rethrow: true,
                 data: 'missing closing bracket {% }'
             }).render()
-        }).should.throw(" Unable to find closing bracket '%}");
+        }).should.throw("Unable to find closing bracket '%}' opened near template position 26");
     });
 
     it("should throw a compile error having its file property set to the file", function(done) {
