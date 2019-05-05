@@ -1,5 +1,5 @@
 var webpack = require('webpack');
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+var TerserJsPlugin = require('terser-webpack-plugin');
 
 var env = process.env.WEBPACK_ENV;
 
@@ -19,7 +19,7 @@ module.exports = {
     },
     optimization: {
         minimize: true,
-        minimizer: [new UglifyJsPlugin({
+        minimizer: [new TerserJsPlugin({
             include: /\.min\.js$/
         })]
     }
