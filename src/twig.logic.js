@@ -1119,7 +1119,12 @@ module.exports = function (Twig) {
 
                         embedOverrideTemplate.parentTemplate = fileName;
 
-                        return embedOverrideTemplate.renderAsync(embedContext);
+                        return embedOverrideTemplate.renderAsync(
+                            embedContext,
+                            {
+                                isInclude: true,
+                            }
+                        );
                     })
                     .then(function(output) {
                         return {
