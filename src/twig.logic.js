@@ -1157,7 +1157,7 @@ module.exports = function (Twig) {
                     return Twig.parseAsync.call(that, token.output, innerContext)
                     .then(function() {
                         // render tempalte with blocks defined in embed block
-                        return template.renderAsync(innerContext, {'blocks': that.blocks});
+                        return template.renderAsync(innerContext, {'blocks': that.blocks, isInclude: true});
                     });
                 })
                 .then(function(output) {

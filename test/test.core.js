@@ -392,6 +392,16 @@ describe("Twig.js Core ->", function() {
             }).render({ value: "&" }).should.equal('&&& && & &amp; & && &&&');
         });
 
+        it("should not autoescape embeds having a parent", function() {
+            twig({id: 'included4', data: '{% embed "parent3" %}{% block body %}& {{ value }} &{% endblock %}{% endembed %}'});
+            twig({id: 'parent3', data: '&& {% block body %}{% endblock body %} &&'});
+            twig({
+                allowInlineIncludes: true,
+                autoescape: true,
+                data: '&&& {% include "included4" %} &&&'
+            }).render({ value: "&" }).should.equal('&&& && & &amp; & && &&&');
+        });
+
         it("should support autoescape option with alternative strategy", function() {
             twig({
                 autoescape: 'js',
