@@ -1001,6 +1001,7 @@ module.exports = function (Twig) {
         if (typeof value != 'function')
             return Twig.Promise.resolve(value);
 
+        var that = this;
         var promise = Twig.Promise.resolve(params);
 
         /*
@@ -1017,7 +1018,7 @@ module.exports = function (Twig) {
             var tokens_are_parameters = true;
 
             promise = promise.then(function() {
-                return next_token.params && Twig.expression.parseAsync.call(this, next_token.params, context, tokens_are_parameters);
+                return next_token.params && Twig.expression.parseAsync.call(that, next_token.params, context, tokens_are_parameters);
             })
             .then(function(p) {
                 //Clean up the parentheses tokens on the next loop

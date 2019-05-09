@@ -12,6 +12,13 @@ describe("Twig.js Functions ->", function() {
     Twig.extendFunction("list", function() {
         return Array.prototype.slice.call(arguments);
     });
+    Twig.extendFunction("include", function(tpl) {
+        (typeof this).should.equal('object');
+        this.should.not.equal(global, 'function should not be called on global');
+        (typeof this.context).should.equal('object');
+
+        return 'success';
+    });
 
     it("should allow you to define a function", function() {
         twig({data: '{{ square(a) }}'}).render({a:4}).should.equal("16");
@@ -30,6 +37,14 @@ describe("Twig.js Functions ->", function() {
     });
     it("should work with boolean operations", function() {
         twig({data: '{% if echo(true) or echo(false) %}yes{% endif %}'}).render().should.equal("yes");
+    });
+
+    it('should call function on template instance', function() {
+        const macro = '{% macro testMacro(data) %}success{% endmacro %}';
+        const tpl = '{% import "testMacro" as m %}{{ m.testMacro({ key: include() }) }}';
+
+        twig({data: macro, id: 'testMacro'});
+        twig({data: tpl, allowInlineIncludes: true}).render().should.equal('success');
     });
 
     it("should execute functions passed as context values", function() {
