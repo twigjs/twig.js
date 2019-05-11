@@ -41,20 +41,6 @@ describe("Twig.js Blocks ->", function() {
         });
     });
 
-    it("Should give access to rendered blocks", function(done) {
-        // Test rendering and loading one block
-        twig({
-            id:   'blocks',
-            href: 'templates/blocks.twig',
-
-            load: function(template) {
-                // Render the template with the blocks parameter
-                template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal( "Coming soon to a block near you!" );
-                done();
-            }
-        });
-    });
-
     it("should render nested blocks", function(done) {
         // Test rendering of blocks within blocks
         twig({
