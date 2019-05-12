@@ -130,15 +130,6 @@ module.exports = function (Twig) {
     };
 
     /**
-     * try/catch in a function causes the entire function body to remain unoptimized.
-     * Use this instead so only ``Twig.attempt` will be left unoptimized.
-     */
-    Twig.attempt = function(fn, exceptionHandler) {
-        try { return fn(); }
-        catch(ex) { return exceptionHandler(ex); }
-    }
-
-    /**
      * Exception thrown by twig.js.
      */
     Twig.Error = function(message, file) {
@@ -509,7 +500,7 @@ module.exports = function (Twig) {
 
     Twig.compile = function (tokens) {
         var self = this;
-        return Twig.attempt(function() {
+        try {
 
             // Output and intermediate stacks
             var output = [],
@@ -723,7 +714,7 @@ module.exports = function (Twig) {
                                 ", expecting one of " + unclosed_token.next);
             }
             return output;
-        }, function(ex) {
+        } catch(ex) {
             if (self.options.rethrow) {
                 if (ex.type == 'TwigException' && !ex.file) {
                     ex.file = self.id;
@@ -739,7 +730,7 @@ module.exports = function (Twig) {
                     Twig.log.error(ex.toString());
                 }
             }
-        });
+        }
     };
 
     function handleException(that, ex) {
