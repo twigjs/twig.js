@@ -1,7 +1,7 @@
-module.exports = function(Twig) {
+module.exports = function (Twig) {
     'use strict';
 
-    Twig.Templates.registerLoader('ajax', function(location, params, callback, error_callback) {
+    Twig.Templates.registerLoader('ajax', function (location, params, callback, errorCallback) {
         var template,
             xmlhttp,
             precompiled = params.precompiled,
@@ -35,8 +35,8 @@ module.exports = function(Twig) {
                         callback(template);
                     }
                 } else {
-                    if (typeof error_callback === 'function') {
-                        error_callback(xmlhttp);
+                    if (typeof errorCallback === 'function') {
+                        errorCallback(xmlhttp);
                     }
                 }
             }

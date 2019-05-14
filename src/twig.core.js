@@ -12,10 +12,6 @@ module.exports = function (Twig) {
 
     Twig.noop = function() {};
 
-    Twig.placeholders = {
-        parent: "{{|PARENT|}}"
-    };
-
     Twig.hasIndexOf = Array.prototype.hasOwnProperty("indexOf");
 
     /**
@@ -130,15 +126,6 @@ module.exports = function (Twig) {
     };
 
     /**
-     * try/catch in a function causes the entire function body to remain unoptimized.
-     * Use this instead so only ``Twig.attempt` will be left unoptimized.
-     */
-    Twig.attempt = function(fn, exceptionHandler) {
-        try { return fn(); }
-        catch(ex) { return exceptionHandler(ex); }
-    }
-
-    /**
      * Exception thrown by twig.js.
      */
     Twig.Error = function(message, file) {
@@ -179,15 +166,6 @@ module.exports = function (Twig) {
     } else {
         Twig.log.error = function(){};
     }
-
-    /**
-     * Wrapper for child context objects in Twig.
-     *
-     * @param {Object} context Values to initialize the context with.
-     */
-    Twig.ChildContext = function(context) {
-        return Twig.lib.copy(context);
-    };
 
     /**
      * Container for methods related to handling high level template tokens
@@ -509,7 +487,7 @@ module.exports = function (Twig) {
 
     Twig.compile = function (tokens) {
         var self = this;
-        return Twig.attempt(function() {
+        try {
 
             // Output and intermediate stacks
             var output = [],
@@ -723,7 +701,7 @@ module.exports = function (Twig) {
                                 ", expecting one of " + unclosed_token.next);
             }
             return output;
-        }, function(ex) {
+        } catch(ex) {
             if (self.options.rethrow) {
                 if (ex.type == 'TwigException' && !ex.file) {
                     ex.file = self.id;
@@ -739,23 +717,23 @@ module.exports = function (Twig) {
                     Twig.log.error(ex.toString());
                 }
             }
-        });
+        }
     };
 
-    function handleException(that, ex) {
-        if (that.options.rethrow) {
+    function handleException(state, ex) {
+        if (state.template.options.rethrow) {
             if (typeof ex === 'string') {
                 ex = new Twig.Error(ex)
             }
 
             if (ex.type == 'TwigException' && !ex.file) {
-                ex.file = that.id;
+                ex.file = state.template.id;
             }
 
             throw ex;
         }
         else {
-            Twig.log.error("Error parsing twig template " + that.id + ": ");
+            Twig.log.error("Error parsing twig template " + state.template.id + ": ");
             if (ex.stack) {
                 Twig.log.error(ex.stack);
             } else {
@@ -767,105 +745,6 @@ module.exports = function (Twig) {
             }
         }
     }
-
-    /**
-     * Parse a compiled template.
-     *
-     * @param {Array} tokens The compiled tokens.
-     * @param {Object} context The render context.
-     *
-     * @return {string} The parsed template.
-     */
-    Twig.parse = function (tokens, context, allow_async) {
-        var that = this,
-            output = [],
-
-            // Store any error that might be thrown by the promise chain.
-            err = null,
-
-            // This will be set to is_async if template renders synchronously
-            is_async = true,
-            promise = null,
-
-            // Track logic chains
-            chain = true;
-
-        /*
-         * Extracted into it's own function such that the function
-         * does not get recreated over and over again in the `forEach`
-         * loop below. This method can be compiled and optimized
-         * a single time instead of being recreated on each iteration.
-         */
-        function output_push(o) { output.push(o); }
-
-        function parseTokenLogic(logic) {
-            if (typeof logic.chain !== 'undefined') {
-                chain = logic.chain;
-            }
-            if (typeof logic.context !== 'undefined') {
-                context = logic.context;
-            }
-            if (typeof logic.output !== 'undefined') {
-                output.push(logic.output);
-            }
-        }
-
-        promise = Twig.async.forEach(tokens, function parseToken(token) {
-            Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
-
-            switch (token.type) {
-                case Twig.token.type.raw:
-                    output.push(Twig.filters.raw(token.value));
-                    break;
-
-                case Twig.token.type.logic:
-                    return Twig.logic.parseAsync.call(that, token.token /*logic_token*/, context, chain)
-                        .then(parseTokenLogic);
-                    break;
-
-                case Twig.token.type.comment:
-                    // Do nothing, comments should be ignored
-                    break;
-
-                //Fall through whitespace to output
-                case Twig.token.type.output_whitespace_pre:
-                case Twig.token.type.output_whitespace_post:
-                case Twig.token.type.output_whitespace_both:
-                case Twig.token.type.output:
-                    Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
-                    // Parse the given expression in the given context
-                    return Twig.expression.parseAsync.call(that, token.stack, context)
-                        .then(output_push);
-            }
-        })
-        .then(function() {
-            output = Twig.output.call(that, output);
-            is_async = false;
-            return output;
-        })
-        .catch(function(e) {
-            if (allow_async)
-                handleException(that, e);
-
-            err = e;
-        });
-
-        // If `allow_async` we will always return a promise since we do not
-        // know in advance if we are going to run asynchronously or not.
-        if (allow_async)
-            return promise;
-
-        // Handle errors here if we fail synchronously.
-        if (err !== null)
-            return handleException(this, err);
-
-        // If `allow_async` is not true we should not allow the user
-        // to use asynchronous functions or filters.
-        if (is_async)
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-        return output;
-    };
 
     /**
      * Tokenize and compile a string template.
@@ -1168,21 +1047,277 @@ module.exports = function (Twig) {
     }
 
     /**
+     * A wrapper for template blocks.
+     *
+     * @param  {Twig.Template} The template that the block was originally defined in.
+     * @param  {Object} The compiled block token.
+     */
+    Twig.Block = function (template, token) {
+        this.template = template;
+        this.token = token;
+    };
+
+    /**
+     * Render the block using a specific parse state and context.
+     *
+     * @param  {Twig.ParseState} parseState
+     * @param  {Object} context
+     *
+     * @return {Promise}
+     */
+    Twig.Block.prototype.render = function (parseState, context) {
+        var originalTemplate = parseState.template,
+            promise;
+
+        parseState.template = this.template;
+
+        if (this.token.expression) {
+            promise = Twig.expression.parseAsync.call(parseState, this.token.output, context);
+        } else {
+            promise = parseState.parseAsync(this.token.output, context);
+        }
+
+        return promise
+            .then(function (value) {
+                return Twig.expression.parseAsync.call(
+                    parseState,
+                    {
+                        type: Twig.expression.type.string,
+                        value: value
+                    },
+                    context
+                );
+            })
+            .then(function (output) {
+                parseState.template = originalTemplate;
+
+                return output;
+            });
+    };
+
+    /**
+     * Holds the state needed to parse a template.
+     *
+     * @param {Twig.Template} template The template that the tokens being parsed are associated with.
+     * @param {Object} blockOverrides Any blocks that should override those defined in the associated template.
+     */
+    Twig.ParseState = function (template, blockOverrides) {
+        this.renderedBlocks = {};
+        this.overrideBlocks = blockOverrides === undefined ? {} : blockOverrides;
+        this.context = {};
+        this.macros = {};
+        this.nestingStack = [];
+        this.template = template;
+    }
+
+    /**
+     * Get a block by its name, resolving in the following order:
+     *     - override blocks specified when initialized (except when excluded)
+     *     - blocks resolved from the associated template
+     *     - blocks resolved from the parent template when extending
+     *
+     * @param {String} name The name of the block to return.
+     * @param {Boolean} checkOnlyInheritedBlocks Whether to skip checking the overrides and associated template, will not skip by default.
+     *
+     * @return {Twig.Block|undefined}
+     */
+    Twig.ParseState.prototype.getBlock = function (name, checkOnlyInheritedBlocks) {
+        var block;
+
+        if (checkOnlyInheritedBlocks !== true) {
+            // blocks specified when initialized
+            block = this.overrideBlocks[name];
+
+        }
+
+        if (block === undefined) {
+            // block defined by the associated template
+            block = this.template.getBlock(name, checkOnlyInheritedBlocks);
+        }
+
+        if (
+            block === undefined
+                &&
+            this.template.parentTemplate !== null
+        ) {
+            // block defined in the parent template when extending
+            block = this.template.parentTemplate.getBlock(name);
+        }
+
+        return block;
+    };
+
+    /**
+     * Get all the available blocks, resolving in the following order:
+     *     - override blocks specified when initialized
+     *     - blocks resolved from the associated template
+     *     - blocks resolved from the parent template when extending (except when excluded)
+     *
+     * @param {Boolean} includeParentBlocks Whether to get blocks from the parent template when extending, will always do so by default.
+     *
+     * @return {Object}
+     */
+    Twig.ParseState.prototype.getBlocks = function (includeParentBlocks) {
+        var blocks = {};
+
+        if (
+            includeParentBlocks !== false
+                &&
+            this.template.parentTemplate !== null
+                &&
+            // prevent infinite loop
+            this.template.parentTemplate !== this.template
+        ) {
+            // blocks from the parent template when extending
+            blocks = this.template.parentTemplate.getBlocks();
+        }
+
+        // override with any blocks defined within the associated template
+        Twig.lib.extend(blocks, this.template.getBlocks());
+
+        // override with any blocks specified when initialized
+        Twig.lib.extend(blocks, this.overrideBlocks);
+
+        return blocks;
+    };
+
+    /**
+     * Get the closest token of a specific type to the current nest level.
+     *
+     * @param  {String} type  The logic token type
+     *
+     * @return {Object}
+     */
+    Twig.ParseState.prototype.getNestingStackToken = function (type) {
+        var matchingToken;
+
+        Twig.forEach(this.nestingStack, function (token) {
+            if (matchingToken === undefined && token.type == type) {
+                matchingToken = token;
+            }
+        });
+
+        return matchingToken;
+    };
+
+    /**
+     * Parse a set of tokens using the current state.
+     *
+     * @param {Array} tokens The compiled tokens.
+     * @param {Object} context The context to set the state to while parsing.
+     * @param {Boolean} allow_async Whether to parse asynchronously.
+     * @param {Object} blocks Blocks that should override any defined while parsing.
+     *
+     * @return {String} The rendered tokens.
+     *
+     */
+    Twig.ParseState.prototype.parse = function (tokens, context, allow_async) {
+        var state = this,
+            output = [],
+
+            // Store any error that might be thrown by the promise chain.
+            err = null,
+
+            // This will be set to is_async if template renders synchronously
+            is_async = true,
+            promise = null,
+            // Track logic chains
+            chain = true;
+
+        if (context) {
+            state.context = context;
+        }
+
+        /*
+         * Extracted into it's own function such that the function
+         * does not get recreated over and over again in the `forEach`
+         * loop below. This method can be compiled and optimized
+         * a single time instead of being recreated on each iteration.
+         */
+        function output_push(o) { output.push(o); }
+
+        function parseTokenLogic(logic) {
+            if (typeof logic.chain !== 'undefined') {
+                chain = logic.chain;
+            }
+            if (typeof logic.context !== 'undefined') {
+                state.context = logic.context;
+            }
+            if (typeof logic.output !== 'undefined') {
+                output.push(logic.output);
+            }
+        }
+
+        promise = Twig.async.forEach(tokens, function parseToken(token) {
+            Twig.log.debug("Twig.ParseState.parse: ", "Parsing token: ", token);
+
+            switch (token.type) {
+                case Twig.token.type.raw:
+                    output.push(Twig.filters.raw(token.value));
+                    break;
+
+                case Twig.token.type.logic:
+                    return Twig.logic.parseAsync.call(state, token.token /*logic_token*/, state.context, chain)
+                        .then(parseTokenLogic);
+                    break;
+
+                case Twig.token.type.comment:
+                    // Do nothing, comments should be ignored
+                    break;
+
+                //Fall through whitespace to output
+                case Twig.token.type.output_whitespace_pre:
+                case Twig.token.type.output_whitespace_post:
+                case Twig.token.type.output_whitespace_both:
+                case Twig.token.type.output:
+                    Twig.log.debug("Twig.ParseState.parse: ", "Output token: ", token.stack);
+                    // Parse the given expression in the given context
+                    return Twig.expression.parseAsync.call(state, token.stack, state.context)
+                        .then(output_push);
+            }
+        })
+        .then(function() {
+            output = Twig.output.call(state.template, output);
+            is_async = false;
+            return output;
+        })
+        .catch(function(e) {
+            if (allow_async)
+                handleException(state, e);
+
+            err = e;
+        });
+
+        // If `allow_async` we will always return a promise since we do not
+        // know in advance if we are going to run asynchronously or not.
+        if (allow_async)
+            return promise;
+
+        // Handle errors here if we fail synchronously.
+        if (err !== null)
+            return handleException(state, err);
+
+        // If `allow_async` is not true we should not allow the user
+        // to use asynchronous functions or filters.
+        if (is_async)
+            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
+
+        return output;
+    };
+
+    /**
      * Create a new twig.js template.
      *
      * Parameters: {
      *      data:   The template, either pre-compiled tokens or a string template
      *      id:     The name of this template
-     *      blocks: Any pre-existing block from a child template
      * }
      *
      * @param {Object} params The template parameters.
      */
-    Twig.Template = function ( params ) {
+    Twig.Template = function (params) {
         var data = params.data,
             id = params.id,
-            blocks = params.blocks,
-            macros = params.macros || {},
             base = params.base,
             path = params.path,
             url = params.url,
@@ -1198,7 +1333,6 @@ module.exports = function (Twig) {
         //     {
         //          id:     The token ID (if any)
         //          tokens: The list of tokens that makes up this template.
-        //          blocks: The list of block this template contains.
         //          base:   The base template (if any)
         //            options:  {
         //                Compiler/parser options
@@ -1209,16 +1343,18 @@ module.exports = function (Twig) {
         //     }
         //
 
+        this.base   = base;
+        this.blocks = {
+            defined: {},
+            imported: {}
+        };
         this.id     = id;
         this.method = method;
-        this.base   = base;
+        this.name   = name;
+        this.options = options;
+        this.parentTemplate = null;
         this.path   = path;
         this.url    = url;
-        this.name   = name;
-        this.macros = macros;
-        this.options = options;
-
-        this.reset(blocks);
 
         if (is('String', data)) {
             this.tokens = Twig.prepare.call(this, data);
@@ -1231,82 +1367,104 @@ module.exports = function (Twig) {
         }
     };
 
-    Twig.Template.prototype.reset = function(blocks) {
-        Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-        this.blocks = {};
-        this.importedBlocks = [];
-        this.originalBlockTokens = {};
-        this.child = {
-            blocks: blocks || {}
-        };
-        this.extend = null;
-        this.parseStack = [];
+    /**
+     * Get a block by its name, resolving in the following order:
+     *     - blocks defined in the template itself
+     *     - blocks imported from another template
+     *
+     * @param {String} name The name of the block to return.
+     * @param {Boolean} checkOnlyInheritedBlocks Whether to skip checking the blocks defined in the template itself, will not skip by default.
+     *
+     * @return {Twig.Block|undefined}
+     */
+    Twig.Template.prototype.getBlock = function (name, checkOnlyInheritedBlocks) {
+        var block;
+
+        if (checkOnlyInheritedBlocks !== true) {
+            block = this.blocks.defined[name];
+        }
+
+        if (block === undefined) {
+            block = this.blocks.imported[name];
+        }
+
+        return block;
+    };
+
+    /**
+     * Get all the available blocks, resolving in the following order:
+     *     - blocks defined in the template itself
+     *     - blocks imported from other templates
+     *
+     * @return {Object}
+     */
+    Twig.Template.prototype.getBlocks = function () {
+        var blocks = {};
+
+        // get any blocks imported from other templates
+        blocks = Twig.lib.extend(blocks, this.blocks.imported);
+
+        // override with any blocks defined within the template itself
+        Twig.lib.extend(blocks, this.blocks.defined);
+
+        return blocks;
     };
 
     Twig.Template.prototype.render = function (context, params, allow_async) {
-        var that = this;
+        var template = this;
 
-        this.context = context || {};
+        params = params || {};
 
-        // Clear any previous state
-        this.reset();
-        if (params && params.blocks) {
-            this.blocks = params.blocks;
-        }
-        if (params && params.macros) {
-            this.macros = params.macros;
-        }
+        return Twig.async.potentiallyAsync(template, allow_async, function() {
+            var state = new Twig.ParseState(template, params.blocks);
 
-        return Twig.async.potentiallyAsync(this, allow_async, function() {
-            return Twig.parseAsync.call(this, this.tokens, this.context)
-            .then(function(output) {
-                var ext_template,
-                    url;
+            return state.parseAsync(template.tokens, context)
+                .then(function(output) {
+                    var parentTemplate,
+                        url;
 
-                // Does this template extend another
-                if (that.extend) {
+                    if (template.parentTemplate !== null) {
+                        // this template extends another template
 
-                    // check if the template is provided inline
-                    if ( that.options.allowInlineIncludes ) {
-                        ext_template = Twig.Templates.load(that.extend);
-                        if ( ext_template ) {
-                            ext_template.options = that.options;
+                        if (template.options.allowInlineIncludes) {
+                            // the template is provided inline
+                            parentTemplate = Twig.Templates.load(template.parentTemplate);
+
+                            if (parentTemplate) {
+                                parentTemplate.options = template.options;
+                            }
                         }
+
+                        // check for the template file via include
+                        if (!parentTemplate) {
+                            url = Twig.path.parsePath(template, template.parentTemplate);
+
+                            parentTemplate = Twig.Templates.loadRemote(url, {
+                                method: template.getLoaderMethod(),
+                                base: template.base,
+                                async:  false,
+                                id:     url,
+                                options: template.options
+                            });
+                        }
+
+                        template.parentTemplate = parentTemplate;
+
+                        return template.parentTemplate.renderAsync(
+                            state.context,
+                            {
+                                blocks: state.getBlocks(false),
+                                isInclude: true,
+                            }
+                        );
                     }
 
-                    // check for the template file via include
-                    if (!ext_template) {
-                        url = Twig.path.parsePath(that, that.extend);
-
-                        ext_template = Twig.Templates.loadRemote(url, {
-                            method: that.getLoaderMethod(),
-                            base: that.base,
-                            async:  false,
-                            id:     url,
-                            options: that.options
-                        });
+                    if (params.isInclude === true) {
+                        return output;
+                    } else {
+                        return output.valueOf();
                     }
-
-                    that.parent = ext_template;
-
-                    return that.parent.renderAsync(that.context, {
-                        blocks: that.blocks,
-                        isInclude: true
-                    });
-                }
-
-                if (!params) {
-                    return output.valueOf();
-                } else if (params.output == 'blocks') {
-                    return that.blocks;
-                } else if (params.output == 'macros') {
-                    return that.macros;
-                } else if (params.isInclude === true) {
-                    return output
-                } else {
-                    return output.valueOf();
-                }
-            });
+                });
         });
     };
 
@@ -1347,38 +1505,6 @@ module.exports = function (Twig) {
         });
 
         return sub_template;
-    };
-
-    Twig.Template.prototype.importBlocks = function(file, override) {
-        var sub_template = this.importFile(file),
-            context = this.context,
-            that = this,
-            key;
-
-        override = override || false;
-
-        sub_template.render(context);
-
-        // Mixin blocks
-        Twig.forEach(Object.keys(sub_template.blocks), function(key) {
-            if (override || that.blocks[key] === undefined) {
-                that.blocks[key] = sub_template.blocks[key];
-                that.importedBlocks.push(key);
-            }
-        });
-    };
-
-    Twig.Template.prototype.importMacros = function(file) {
-        var url = Twig.path.parsePath(this, file);
-
-        // load remote template
-        var remoteTemplate = Twig.Templates.loadRemote(url, {
-            method: this.getLoaderMethod(),
-            async: false,
-            id: url
-        });
-
-        return remoteTemplate;
     };
 
     Twig.Template.prototype.getLoaderMethod = function() {
