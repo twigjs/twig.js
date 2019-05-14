@@ -132,9 +132,13 @@ module.exports = function (Twig) {
             return this;
 
         var value = this._value;
-        var result = Twig.attempt(function() {
-            return onRejected(value);
-        }, Twig.Promise.reject);
+
+        var result;
+        try {
+            result = onRejected(value);
+        } catch(err) {
+            result = Twig.Promise.reject(err);
+        }
 
         return Twig.Promise.resolve(result);
     }
@@ -231,23 +235,29 @@ module.exports = function (Twig) {
             if (p._state == STATE_RESOLVED && !hasResolved) {
                 return Twig.Promise.resolve(p._value);
             } else if (p._state === STATE_RESOLVED) {
-                return Twig.attempt(function() {
+                try {
                     return Twig.Promise.resolve(onResolved(p._value));
-                }, Twig.Promise.reject);
+                } catch(err) {
+                    return Twig.Promise.reject(err);
+                }
             }
 
             var hasRejected = typeof onRejected == 'function';
             return Twig.Promise(function thenExecutor(resolve, reject) {
                 append(
                     hasResolved ? function thenResolve(result) {
-                        Twig.attempt(function thenAttemptResolve() {
+                        try {
                             resolve(onResolved(result));
-                        }, reject);
+                        } catch(err) {
+														reject(err)
+												}
                     } : resolve,
                     hasRejected ? function thenReject(err) {
-                        Twig.attempt(function thenAttemptReject() {
+                        try {
                             resolve(onRejected(err));
-                        }, reject);
+                        } catch(err) {
+														reject(err)
+												}
                     } : reject
                 );
             });
