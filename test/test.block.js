@@ -1,7 +1,11 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+var factory = require("../twig").factory,
+    twig;
 
 describe("Twig.js Blocks ->", function() {
+    beforeEach(function () {
+        twig = factory().twig;
+    });
+
     // Test loading a template from a remote endpoint
     it("should load a parent template and render the default values", function() {
         twig({
@@ -50,63 +54,6 @@ describe("Twig.js Blocks ->", function() {
                     base: "template.twig",
                     inner: ':value'
                 }).should.equal( "Other Title - body:value:child" );
-                done();
-            }
-        });
-    });
-
-
-    it("should include blocks from another template for horizontal reuse", function(done) {
-        // Test horizontal reuse
-        twig({
-            id:   'use',
-            path: 'test/templates/use.twig',
-
-            load: function(template) {
-                // Load the template
-                template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
-                done();
-            }
-        });
-    });
-
-    it("should allow overriding of included blocks", function(done) {
-        // Test overriding of included blocks
-        twig({
-            id:   'use-override-block',
-            path: 'test/templates/use-override-block.twig',
-
-            load: function(template) {
-                // Load the template
-                template.render({ place: "diner" }).should.equal("Sorry, can't come to a diner today." );
-                done();
-            }
-        });
-    });
-
-    it("should allow overriding of included nested blocks", function(done) {
-        // Test overriding of included blocks
-        twig({
-            id:   'use-override-nested-block',
-            path: 'test/templates/use-override-nested-block.twig',
-
-            load: function(template) {
-                // Load the template
-                template.render().should.equal("parent:new-child1:new-child2");
-                done();
-            }
-        });
-    });
-
-    it("should make the contents of blocks available after they're rendered", function(done) {
-        // Test rendering and loading one block
-        twig({
-            id:   'blocks',
-            path: 'test/templates/blocks.twig',
-
-            load: function(template) {
-                // Render the template with the blocks parameter
-                template.render({ place: "block" }, {output: 'blocks'}).msg.should.equal("Coming soon to a block near you!" );
                 done();
             }
         });
@@ -163,6 +110,110 @@ describe("Twig.js Blocks ->", function() {
         }).render().should.equal("Title: child");
     });
 
+    it('should override blocks in loop when extending', function () {
+        twig({
+            id: 'block-loop.twig',
+            data: '{% for label in ["foo", "bar", "baz"] %}<{% block content %}base-{{ label }}-{{ loop.index }}{% endblock %}>{% endfor %}'
+        });
+
+        twig({
+            allowInlineIncludes: true,
+            data: '{% extends "block-loop.twig" %}{% block content %}overriding-{{ parent() }}-at-index-{{ loop.index0 }}{% endblock %}'
+        }).render().should.equal('<overriding-base-foo-1-at-index-0><overriding-base-bar-2-at-index-1><overriding-base-baz-3-at-index-2>')
+    });
+
+    describe('"use" tag ->', function () {
+        it("should include blocks from another template for horizontal reuse", function(done) {
+            // Test horizontal reuse
+            twig({
+                id:   'use',
+                path: 'test/templates/use.twig',
+
+                load: function(template) {
+                    // Load the template
+                    template.render({ place: "diner" }).should.equal("Coming soon to a diner near you!" );
+                    done();
+                }
+            });
+        });
+
+        it("should allow overriding of included blocks", function(done) {
+            // Test overriding of included blocks
+            twig({
+                id:   'use-override-block',
+                path: 'test/templates/use-override-block.twig',
+
+                load: function(template) {
+                    // Load the template
+                    template.render({ place: "diner" }).should.equal("Sorry, can't come to a diner today." );
+                    done();
+                }
+            });
+        });
+
+        it("should allow overriding of included nested blocks", function(done) {
+            // Test overriding of included blocks
+            twig({
+                id:   'use-override-nested-block',
+                path: 'test/templates/use-override-nested-block.twig',
+
+                load: function(template) {
+                    // Load the template
+                    template.render().should.equal("parent:new-child1:new-child2");
+                    done();
+                }
+            });
+        });
+
+        it('should allow "parent()" call when importing blocks', function () {
+            twig({
+                id: 'blocks.twig',
+                data: '{% block content "blocks.twig" %}'
+            });
+            twig({
+                id: 'base.twig',
+                data: '{% use "blocks.twig" %}{% block content %}base.twig > {{ parent() }}{% endblock %}'
+            })
+
+            twig({
+                allowInlineIncludes: true,
+                data: '{% extends "base.twig" %}{% block content %}main.twig > {{ parent() }}{% endblock %}'
+            }).render().should.equal('main.twig > base.twig > blocks.twig');
+        });
+
+        it('should allow "use" in template with "extends"', function () {
+            twig({
+                id: 'blocks.twig',
+                data: '{% block content "blocks.twig" %}'
+            });
+            twig({
+                id: 'base.twig',
+                data: '<{% block content %}base.twig{% endblock %}><{% block footer %}footer{% endblock %}>'
+            })
+
+            twig({
+                allowInlineIncludes: true,
+                data: '{% extends "base.twig" %}{% use "blocks.twig" %}{% block content %}main.twig - {{ parent() }}{% endblock %}'
+            }).render().should.equal('<main.twig - blocks.twig><footer>');
+        });
+
+        it('should allow "use" in template with "extends" and nested blocks', function () {
+            twig({
+                id: 'blocks.twig',
+                data: '{% block sidebar %}blocks-sidebar{% endblock %}{% block header %}blocks-header{% endblock %}{% block content %}blocks-content{% endblock %}{% block footer %}blocks-footer{% endblock %}{% block masthead %}<blocks-masthead>{% endblock %}'
+            });
+            twig({
+                id: 'base.twig',
+                data: '<{% block sidebar %}base-sidebar{% endblock %}><{% block header %}base-header{% endblock %}><{% block content %}base-content{% endblock %}><{% block footer "base-footer" %}>'
+            });
+
+            twig({
+                allowInlineIncludes: true,
+                data: '{% extends "base.twig" %}{% use "blocks.twig" %}{% block sidebar %}main-sidebar{% endblock %}{% block header %}main-header - {{ parent() }}{% endblock %}{% block footer %}main-footer{% block masthead %}{{ parent() }}{% endblock %}{% endblock %}'
+            }).render().should.equal('<main-sidebar><main-header - blocks-header><blocks-content><main-footer<blocks-masthead>>');
+        });
+    });
+
     describe("block function ->", function() {
         it("should render block content from an included block", function(done) {
             twig({
@@ -217,7 +268,6 @@ describe("Twig.js Blocks ->", function() {
             }).render()
             .should.equal("original changed");
         });
-
     });
 
     describe("block shorthand ->", function() {
@@ -230,11 +280,21 @@ describe("Twig.js Blocks ->", function() {
         });
         it("should overload blocks from an extended template using shorthand syntax", function() {
             twig({
+                data: '{% block title %}Default Title{% endblock %} - {% block body %}body{{inner}}{% endblock %}',
+                id: 'template.twig'
+            });
+            twig({
                 allowInlineIncludes: true,
-                data: '{% extends "child-extends" %}{% block title "New Title" %}{% block body "new body uses the " ~ base ~ " template" %}'
-            })
-            .render({ base: "template.twig" })
-            .should.equal( "New Title - new body uses the template.twig template" );
+                data: '{% extends base %}{% block title %}Other Title{% endblock %}{% block body %}child{% endblock %}',
+                id: 'child.twig',
+            });
+
+            twig({
+                allowInlineIncludes: true,
+                data: '{% extends "child.twig" %}{% block title "New Title" %}{% block body "new body uses the " ~ base ~ " template" %}'
+            }).render({
+                base: 'template.twig'
+            }).should.equal('New Title - new body uses the template.twig template');
         });
     });
 });

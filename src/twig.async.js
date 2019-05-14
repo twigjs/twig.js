@@ -8,16 +8,20 @@ module.exports = function (Twig) {
     var STATE_RESOLVED = 1;
     var STATE_REJECTED = 2;
 
-    Twig.parseAsync = function (tokens, context) {
-        return Twig.parse.call(this, tokens, context, true);
+    Twig.ParseState.prototype.parseAsync = function (tokens, context) {
+        return this.parse(tokens, context, true);
     }
 
     Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {
-        return Twig.expression.parse.call(this, tokens, context, tokens_are_parameters, true);
+        var state = this;
+
+        return Twig.expression.parse.call(state, tokens, context, tokens_are_parameters, true);
     }
 
     Twig.logic.parseAsync = function (token, context, chain) {
-        return Twig.logic.parse.call(this, token, context, chain, true);
+        var state = this;
+
+        return Twig.logic.parse.call(state, token, context, chain, true);
     }
 
     Twig.Template.prototype.renderAsync = function (context, params) {
