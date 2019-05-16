@@ -57,14 +57,14 @@ module.exports = function (Twig) {
     }
 
     Twig.forEach = function (arr, callback, thisArg) {
-        if (Array.prototype.forEach ) {
+        if (Array.isArray(arr)) {
             return arr.forEach(callback, thisArg);
         }
 
         var T, k;
 
         if ( arr == null ) {
-          throw new TypeError( " this is null or not defined" );
+          return;
         }
 
         // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
