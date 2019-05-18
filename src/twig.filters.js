@@ -401,7 +401,7 @@ module.exports = function (Twig) {
                 return;
             }
 
-            return Twig.lib.strip_tags(value, allowed);
+            return Twig.lib.stripTags(value, allowed);
         },
 
         escape(value, params) {
