@@ -2,7 +2,7 @@
 //
 // This file handles operator lookups and parsing.
 module.exports = function (Twig) {
-    "use strict";
+    'use strict';
 
     /**
      * Operator associativity constants.
@@ -12,21 +12,24 @@ module.exports = function (Twig) {
         rightToLeft: 'rightToLeft'
     };
 
-    var containment = function (a, b) {
+    const containment = function (a, b) {
         if (b === undefined || b === null) {
             return null;
-        } else if (b.indexOf !== undefined) {
-            // String
-            return a === b || a !== '' && b.indexOf(a) > -1;
-        } else {
-            var el;
-            for (el in b) {
-                if (b.hasOwnProperty(el) && b[el] === a) {
-                    return true;
-                }
-            }
-            return false;
         }
+
+        if (b.indexOf !== undefined) {
+            // String
+            return (a === b || a !== '') && b.indexOf(a) > -1;
+        }
+
+        let el;
+        for (el in b) {
+            if (Object.hasOwnProperty.call(b, el) && b[el] === a) {
+                return true;
+            }
+        }
+
+        return false;
     };
 
     /**
@@ -35,7 +38,7 @@ module.exports = function (Twig) {
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
-            case "..":
+            case '..':
                 token.precidence = 20;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
@@ -137,8 +140,9 @@ module.exports = function (Twig) {
                 break;
 
             default:
-                throw new Twig.Error("Failed to lookup operator: " + operator + " is an unknown operator.");
+                throw new Twig.Error('Failed to lookup operator: ' + operator + ' is an unknown operator.');
         }
+
         token.operator = operator;
         return token;
     };
@@ -149,8 +153,10 @@ module.exports = function (Twig) {
      * Returns the updated stack.
      */
     Twig.expression.operator.parse = function (operator, stack) {
-        Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
-        var a, b, c;
+        Twig.log.trace('Twig.expression.operator.parse: ', 'Handling ', operator);
+        let a;
+        let b;
+        let c;
 
         if (operator === '?') {
             c = stack.pop();
@@ -173,9 +179,9 @@ module.exports = function (Twig) {
 
         if (operator === 'matches') {
             if (b && typeof b === 'string') {
-                var reParts = b.match(/^\/(.*)\/([gims]?)$/);
-                var reBody = reParts[1];
-                var reFlags = reParts[2];
+                const reParts = b.match(/^\/(.*)\/([gims]?)$/);
+                const reBody = reParts[1];
+                const reFlags = reParts[2];
                 b = new RegExp(reBody, reFlags);
             }
         }
@@ -197,6 +203,7 @@ module.exports = function (Twig) {
                 } else {
                     stack.push(b);
                 }
+
                 break;
             case '?:':
                 if (Twig.lib.boolval(a)) {
@@ -204,10 +211,11 @@ module.exports = function (Twig) {
                 } else {
                     stack.push(b);
                 }
+
                 break;
             case '?':
                 if (a === undefined) {
-                    //An extended ternary.
+                    // An extended ternary.
                     a = b;
                     b = c;
                     c = undefined;
@@ -218,6 +226,7 @@ module.exports = function (Twig) {
                 } else {
                     stack.push(c);
                 }
+
                 break;
 
             case '+':
@@ -257,8 +266,8 @@ module.exports = function (Twig) {
                 break;
 
             case '~':
-                stack.push( (a != null ? a.toString() : "")
-                          + (b != null ? b.toString() : "") );
+                stack.push((typeof a !== 'undefined' && a !== null ? a.toString() : '') +
+                          (typeof b !== 'undefined' && b !== null ? b.toString() : ''));
                 break;
 
             case 'not':
@@ -287,6 +296,7 @@ module.exports = function (Twig) {
                 break;
 
             case '==':
+                /* eslint-disable-next-line eqeqeq */
                 stack.push(a == b);
                 break;
 
@@ -295,6 +305,7 @@ module.exports = function (Twig) {
                 break;
 
             case '!=':
+                /* eslint-disable-next-line eqeqeq */
                 stack.push(a != b);
                 break;
 
@@ -319,39 +330,37 @@ module.exports = function (Twig) {
                 break;
 
             case '**':
-                stack.push(Math.pow(a, b));
+                stack.push(a ** b);
                 break;
 
             case 'not in':
-                stack.push( !containment(a, b) );
+                stack.push(!containment(a, b));
                 break;
 
             case 'in':
-                stack.push( containment(a, b) );
+                stack.push(containment(a, b));
                 break;
 
             case 'matches':
-                stack.push( b.test(a) );
+                stack.push(b.test(a));
                 break;
 
             case 'starts with':
-                stack.push( a.indexOf(b) === 0 );
+                stack.push(a.indexOf(b) === 0);
                 break;
 
             case 'ends with':
-                stack.push( a.indexOf(b, a.length - b.length) !== -1 );
+                stack.push(a.indexOf(b, a.length - b.length) !== -1);
                 break;
 
             case '..':
-                stack.push( Twig.functions.range(a, b) );
+                stack.push(Twig.functions.range(a, b));
                 break;
 
             default:
-                debugger;
-                throw new Twig.Error("Failed to parse operator: " + operator + " is an unknown operator.");
+                throw new Twig.Error('Failed to parse operator: ' + operator + ' is an unknown operator.');
         }
     };
 
     return Twig;
-
 };
