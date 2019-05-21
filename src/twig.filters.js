@@ -130,7 +130,7 @@ module.exports = function (Twig) {
             const keyset = value._keys || Object.keys(value);
             const output = [];
 
-            Twig.forEach(keyset, key => {
+            keyset.forEach(key => {
                 if (key === '_keys') {
                     return;
                 } // Ignore the _keys property
@@ -152,7 +152,7 @@ module.exports = function (Twig) {
                     const result = [];
                     const keyset = obj._keys || Object.keys(obj);
 
-                    Twig.forEach(keyset, key => {
+                    keyset.forEach(key => {
                         if (!Object.prototype.hasOwnProperty.call(obj, key)) {
                             return;
                         }
@@ -194,7 +194,7 @@ module.exports = function (Twig) {
                 output = value;
             } else {
                 keyset = value._keys || Object.keys(value);
-                Twig.forEach(keyset, key => {
+                keyset.forEach(key => {
                     if (key === '_keys') {
                         return;
                     } // Ignore the _keys property
@@ -231,7 +231,7 @@ module.exports = function (Twig) {
             if ((typeof value === 'object') && (is('Array', value))) {
                 const output = [];
 
-                Twig.forEach(value, v => {
+                value.forEach(v => {
                     output.push(Twig.filters.json_encode(v));
                 });
 
@@ -246,7 +246,7 @@ module.exports = function (Twig) {
                 const keyset = value._keys || Object.keys(value);
                 const output = [];
 
-                Twig.forEach(keyset, key => {
+                keyset.forEach(key => {
                     output.push(JSON.stringify(key) + ':' + Twig.filters.json_encode(value[key]));
                 });
 
@@ -262,7 +262,7 @@ module.exports = function (Twig) {
 
             // Check to see if all the objects being merged are arrays
             if (is('Array', value)) {
-                Twig.forEach(params, param => {
+                params.forEach(param => {
                     if (!is('Array', param)) {
                         obj = { };
                     }
@@ -277,7 +277,7 @@ module.exports = function (Twig) {
             }
 
             if (is('Array', value)) {
-                Twig.forEach(value, val => {
+                value.forEach(val => {
                     if (obj._keys) {
                         obj._keys.push(arrIndex);
                     }
@@ -287,7 +287,7 @@ module.exports = function (Twig) {
                 });
             } else {
                 keyset = value._keys || Object.keys(value);
-                Twig.forEach(keyset, key => {
+                keyset.forEach(key => {
                     obj[key] = value[key];
                     obj._keys.push(key);
 
@@ -306,9 +306,9 @@ module.exports = function (Twig) {
             }
 
             // Mixin the merge arrays
-            Twig.forEach(params, param => {
+            params.forEach(param => {
                 if (is('Array', param)) {
-                    Twig.forEach(param, val => {
+                    param.forEach(val => {
                         if (obj._keys) {
                             obj._keys.push(arrIndex);
                         }
@@ -318,7 +318,7 @@ module.exports = function (Twig) {
                     });
                 } else {
                     keyset = param._keys || Object.keys(param);
-                    Twig.forEach(keyset, key => {
+                    keyset.forEach(key => {
                         if (!obj[key]) {
                             obj._keys.push(key);
                         }

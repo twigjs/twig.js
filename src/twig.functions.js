@@ -135,7 +135,7 @@ module.exports = function (Twig) {
                 argsCopy.push(state.context);
             }
 
-            Twig.forEach(argsCopy, variable => {
+            argsCopy.forEach(variable => {
                 dumpVar(variable);
             });
 
