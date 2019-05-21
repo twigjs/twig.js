@@ -489,7 +489,7 @@ module.exports = function (Twig) {
             validate(match, tokens) {
                 const lastToken = tokens[tokens.length - 1];
                 // We can't use the regex to test if we follow a space because expression is trimmed
-                return lastToken && (Twig.indexOf(Twig.expression.reservedWords, lastToken.value.trim()) < 0);
+                return lastToken && (Twig.expression.reservedWords.indexOf(lastToken.value.trim()) < 0);
             },
             compile: Twig.expression.fn.compile.pushBoth,
             parse: Twig.expression.fn.parse.push
@@ -782,7 +782,7 @@ module.exports = function (Twig) {
             next: Twig.expression.type.parameter.start,
             validate(match) {
                 // Make sure this function is not a reserved word
-                return match[1] && (Twig.indexOf(Twig.expression.reservedWords, match[1]) < 0);
+                return match[1] && (Twig.expression.reservedWords.indexOf(match[1]) < 0);
             },
             transform() {
                 return '(';
@@ -838,7 +838,7 @@ module.exports = function (Twig) {
             ]),
             compile: Twig.expression.fn.compile.push,
             validate(match) {
-                return (Twig.indexOf(Twig.expression.reservedWords, match[0]) < 0);
+                return (Twig.expression.reservedWords.indexOf(match[0]) < 0);
             },
             parse(token, stack, context) {
                 const state = this;
@@ -1138,7 +1138,7 @@ module.exports = function (Twig) {
             Twig.log.trace('Twig.expression.tokenize',
                 'Matched a ', type, ' regular expression of ', match);
 
-            if (next && Twig.indexOf(next, type) < 0) {
+            if (next && next.indexOf(type) < 0) {
                 invalidMatches.push(
                     type + ' cannot follow a ' + tokens[tokens.length - 1].type +
                            ' at template:' + expOffset + ' near \'' + match[0].substring(0, 20) +

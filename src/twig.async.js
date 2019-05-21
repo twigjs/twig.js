@@ -241,7 +241,7 @@ module.exports = function (Twig) {
                 handlers = null;
             }
 
-            Twig.forEach(handlers, h => {
+            handlers.forEach(h => {
                 append(h[0], h[1]);
             });
             handlers = null;

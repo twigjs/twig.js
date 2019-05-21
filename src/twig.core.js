@@ -12,113 +12,8 @@ module.exports = function (Twig) {
 
     Twig.noop = function () {};
 
-    Twig.hasIndexOf = Object.hasOwnProperty.call(Array.prototype, 'indexOf');
-
-    /**
-     * Fallback for Array.indexOf for IE8 et al
-     */
-    Twig.indexOf = function (arr, searchElement) {
-        if (Twig.hasIndexOf) {
-            return arr.indexOf(searchElement);
-        }
-
-        if (arr === undefined || arr === null) {
-            throw new TypeError('\'arr\' cannot be null or undefined');
-        }
-
-        const t = [...arr];
-        const len = t.length >>> 0;
-        if (len === 0) {
-            return -1;
-        }
-
-        let n = 0;
-        if (arguments.length > 0) {
-            n = Number(searchElement);
-            if (Number.isNaN(n)) { // Shortcut for verifying if it's NaN
-                n = 0;
-            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
-                n = (n > 0 || -1) * Math.floor(Math.abs(n));
-            }
-        }
-
-        if (n >= len) {
-            return -1;
-        }
-
-        let k = (n >= 0) ? n : Math.max(len - Math.abs(n), 0);
-        for (; k < len; k++) {
-            if (k in t && t[k] === searchElement) {
-                return k;
-            }
-        }
-
-        if (arr === searchElement) {
-            return 0;
-        }
-
-        return -1;
-    };
-
-    Twig.forEach = function (arr, callback, thisArg) {
-        if (Array.prototype.forEach) {
-            return arr.forEach(callback, thisArg);
-        }
-
-        let T;
-        let k;
-
-        if (arr === null) {
-            throw new TypeError(' this is null or not defined');
-        }
-
-        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
-        const O = [...arr];
-
-        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
-        // 3. Let len be ToUint32(lenValue).
-        const len = O.length >>> 0; // Hack to convert O.length to a UInt32
-
-        // 4. If IsCallable(callback) is false, throw a TypeError exception.
-        // See: http://es5.github.com/#x9.11
-        if ({}.toString.call(callback) !== '[object Function]') {
-            throw new TypeError(callback + ' is not a function');
-        }
-
-        // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
-        if (thisArg) {
-            T = thisArg;
-        }
-
-        // 6. Let k be 0
-        k = 0;
-
-        // 7. Repeat, while k < len
-        while (k < len) {
-            let kValue;
-
-            // A. Let Pk be ToString(k).
-            //   This is implicit for LHS operands of the in operator
-            // B. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
-            //   This step can be combined with c
-            // C. If kPresent is true, then
-            if (k in O) {
-                // I. Let kValue be the result of calling the Get internal method of O with argument Pk.
-                kValue = O[k];
-
-                // II. Call the Call internal method of callback with T as the this value and
-                // argument list containing kValue, k, and O.
-                callback.call(T, kValue, k, O);
-            }
-            // D. Increase k by 1.
-
-            k++;
-        }
-        // 8. return undefined
-    };
-
     Twig.merge = function (target, source, onlyChanged) {
-        Twig.forEach(Object.keys(source), key => {
+        Object.keys(source).forEach(key => {
             if (onlyChanged && !(key in target)) {
                 return;
             }
@@ -552,7 +447,7 @@ module.exports = function (Twig) {
                     prevToken = stack.pop();
                     prevTemplate = Twig.logic.handler[prevToken.type];
 
-                    if (Twig.indexOf(prevTemplate.next, type) < 0) {
+                    if (prevTemplate.next.indexOf(type) < 0) {
                         throw new Error(type + ' not expected after a ' + prevToken.type);
                     }
 
@@ -1202,7 +1097,7 @@ module.exports = function (Twig) {
     Twig.ParseState.prototype.getNestingStackToken = function (type) {
         let matchingToken;
 
-        Twig.forEach(this.nestingStack, token => {
+        this.nestingStack.forEach(token => {
             if (matchingToken === undefined && token.type === type) {
                 matchingToken = token;
             }
