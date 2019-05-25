@@ -1,31 +1,32 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+const Twig = require('../twig').factory();
 
-describe("Twig.js Regression Tests ->", function() {
-    it("\#47 should not match variables starting with not", function() {
+const {twig} = Twig;
+
+describe('Twig.js Regression Tests ->', function () {
+    it('#47 should not match variables starting with not', function () {
         // Define and save a template
-        twig({data: '{% for note in notes %}{{note}}{% endfor %}'}).render({notes:['a', 'b', 'c']}).should.equal("abc");
+        twig({data: '{% for note in notes %}{{note}}{% endfor %}'}).render({notes: ['a', 'b', 'c']}).should.equal('abc');
     });
 
-    it("\#56 functions work inside parentheses", function() {
+    it('#56 functions work inside parentheses', function () {
         // Define and save a template
-        Twig.extendFunction('custom', function(value) {
+        Twig.extendFunction('custom', _ => {
             return true;
         });
 
-        twig({data: '{% if (custom("val") and custom("val")) %}out{% endif %}'}).render({}).should.equal("out");
+        twig({data: '{% if (custom("val") and custom("val")) %}out{% endif %}'}).render({}).should.equal('out');
     });
 
-    it("\#83 Support for trailing commas in arrays", function() {
-        twig({data: '{{ [1,2,3,4,] }}'}).render().should.equal("1,2,3,4");
+    it('#83 Support for trailing commas in arrays', function () {
+        twig({data: '{{ [1,2,3,4,] }}'}).render().should.equal('1,2,3,4');
     });
 
-    it("\#83 Support for trailing commas in objects", function() {
+    it('#83 Support for trailing commas in objects', function () {
         twig({data: '{{ {a:1, b:2, c:3, } }}'}).render();
     });
 
-    it("\#283 should support quotes between raw tags", function() {
+    it('#283 should support quotes between raw tags', function () {
         twig({data: '{% raw %}\n"\n{% endraw %}'}).render().should.equal('"');
-        twig({data: "{% raw %}\n'\n{% endraw %}"}).render().should.equal("'");
+        twig({data: '{% raw %}\n\'\n{% endraw %}'}).render().should.equal('\'');
     });
 });

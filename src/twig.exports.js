@@ -182,7 +182,7 @@ module.exports = function (Twig) {
             base: settings.views,
             load(template) {
                 // Render and return template as a simple string, see https://github.com/twigjs/twig.js/pull/348 for more information
-                if (!viewOptions || !viewOptions.allow_async) {
+                if (!viewOptions || !viewOptions.allowAsync) {
                     fn(null, String(template.render(options)));
                     return;
                 }

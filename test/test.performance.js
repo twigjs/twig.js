@@ -1,41 +1,38 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+const Twig = require('../twig').factory();
 
-describe("Twig.js Performance Regressions ->", function() {
+describe('Twig.js Performance Regressions ->', function () {
+    const template = '{{ echoTest }}\n' +
+    '{% for item in items %}\n' +
+        '<h1>{{ item.title }}</h1>\n' +
+        '{% if item.isActive %}\n' +
+            '<h3 style="color: green;">Active</h3>\n' +
+        '{% else %}\n' +
+            '<h3 style="color: red;">Inactive</h3>\n' +
+        '{% endif %}\n' +
+    '{% endfor %}';
 
-    var template = "{{ echo_test }}\
-    {% for item in items %}\
-        <h1>{{ item.title }}</h1>\
-        {% if item.is_active %}\
-            <h3 style=\"color: green;\">Active</h3>\
-        {% else %}\
-            <h3 style=\"color: red;\">Inactive</h3>\
-        {% endif %}\
-    {% endfor %}";
-
-    it("Should not start running slower", function() {
+    it('Should not start running slower', function () {
         this.timeout(500);
         this.retries(3);
         this.slow(300);
 
         console.time('Should not start running slower ');
-        for(var i = 0; i < 1000; i++) {
+        for (let i = 0; i < 1000; i++) {
             Twig.twig({
                 data: template
             }).render({
-                echo_test: 'Data for echo',
+                echoTest: 'Data for echo',
                 items: [
                     {
-                        title: "This is a title",
-                        is_active: true
+                        title: 'This is a title',
+                        isActive: true
                     },
                     {
-                        title: "This is a title",
-                        is_active: false
+                        title: 'This is a title',
+                        isActive: false
                     }
                 ]
             });
         }
     });
-
 });
