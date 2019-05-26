@@ -181,6 +181,12 @@ module.exports = function (Twig) {
                 return value;
             }
         },
+	json_decode: function(value) {
+            if(value === undefined || value === null) {
+                return "null";
+            }
+            return JSON.parse(value);
+        },
         json_encode: function(value) {
             if(value === undefined || value === null) {
                 return "null";
