@@ -1,20 +1,21 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+const Twig = require('../twig').factory();
 
-describe("Twig.js Optional Functionality ->", function() {
-    it("should support inline includes by ID", function() {
+const {twig} = Twig;
+
+describe('Twig.js Optional Functionality ->', function () {
+    it('should support inline includes by ID', function () {
         twig({
-            id:   'other',
+            id: 'other',
             data: 'another template'
         });
 
-        var template = twig({
-                allowInlineIncludes: true,
-                data: 'template with {% include "other" %}'
-            }),
-            output = template.render()
+        const template = twig({
+            allowInlineIncludes: true,
+            data: 'template with {% include "other" %}'
+        });
+        const output = template.render();
 
-        output.should.equal("template with another template");
+        output.should.equal('template with another template');
     });
 });
 

@@ -1,50 +1,53 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+const Twig = require('../twig').factory();
+
+const {twig} = Twig;
 
 Twig.cache(false);
 
-describe("Twig.js Embed ->", function() {
+describe('Twig.js Embed ->', function () {
     // Test loading a template from a remote endpoint
-    it("it should load embed and render", function() {
+    it('it should load embed and render', function () {
         twig({
-            id:   'embed',
+            id: 'embed',
             path: 'test/templates/embed-simple.twig',
             async: false
         });
         // Load the template
-        twig({ref: 'embed'}).render({ }).trim().should.equal( ['START',
-                                                               'A',
-                                                               'new header',
-                                                               'base footer',
-                                                               'B',
-                                                               '',
-                                                               'A',
-                                                               'base header',
-                                                               'base footer',
-                                                               'extended',
-                                                               'B',
-                                                               '',
-                                                               'A',
-                                                               'base header',
-                                                               'extended',
-                                                               'base footer',
-                                                               'extended',
-                                                               'B',
-                                                               '',
-                                                               'A',
-                                                               'Super cool new header',
-                                                               'Cool footer',
-                                                               'B',
-                                                               'END'].join('\n') );
+        twig({ref: 'embed'}).render({ }).trim().should.equal([
+            'START',
+            'A',
+            'new header',
+            'base footer',
+            'B',
+            '',
+            'A',
+            'base header',
+            'base footer',
+            'extended',
+            'B',
+            '',
+            'A',
+            'base header',
+            'extended',
+            'base footer',
+            'extended',
+            'B',
+            '',
+            'A',
+            'Super cool new header',
+            'Cool footer',
+            'B',
+            'END'
+        ].join('\n'));
     });
 
-    it('should skip non-existent embeds flagged with "ignore missing"', function() {
+    it('should skip non-existent embeds flagged with "ignore missing"', function () {
         [
             '',
             ' with {}',
             ' with {} only',
             ' only'
-        ].forEach(function (options) {
+        ].forEach(options => {
             twig({
                 allowInlineIncludes: true,
                 data: 'ignore-{% embed "embed-not-there.twig" ignore missing' + options + ' %}{% endembed %}missing'
@@ -52,7 +55,7 @@ describe("Twig.js Embed ->", function() {
         });
     });
 
-    it('should include the correct context using "with" and "only"', function() {
+    it('should include the correct context using "with" and "only"', function () {
         twig({
             data: '|{{ foo }}||{{ baz }}|',
             id: 'embed.twig'
@@ -82,8 +85,8 @@ describe("Twig.js Embed ->", function() {
             {
                 expected: '|override|||',
                 options: ' with {"foo": "override"} only'
-            },
-        ].forEach(function (test) {
+            }
+        ].forEach(test => {
             twig({
                 allowInlineIncludes: true,
                 data: '{% embed "embed.twig"' + test.options + ' %}{% endembed %}'

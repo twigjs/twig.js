@@ -1,45 +1,45 @@
-var Twig = (Twig || require("../twig")),
-    FreshTwig = Twig.factory();
+const Twig = require('../twig');
 
-describe("Twig.js Factory ->", function() {
+const FreshTwig = Twig.factory();
 
-    Twig.extendFunction("foo", function() {
+describe('Twig.js Factory ->', function () {
+    Twig.extendFunction('foo', () => {
         return 'foo';
     });
 
-    FreshTwig.extendFunction("bar", function() {
+    FreshTwig.extendFunction('bar', () => {
         return 'bar';
     });
 
-    it("should not have access to extensions on the main Twig object", function() {
-        var fixt_options = {
+    it('should not have access to extensions on the main Twig object', function () {
+        const fixtOptions = {
             rethrow: true,
             data: '{{ foo() }}'
         };
 
-        Twig.twig(fixt_options).render();
+        Twig.twig(fixtOptions).render();
 
         try {
-            FreshTwig.twig(fixt_options).render();
+            FreshTwig.twig(fixtOptions).render();
             throw new Error('should have thrown an error');
-        } catch(err) {
-            err.message.should.equal('foo function does not exist and is not defined in the context');
+        } catch (error) {
+            error.message.should.equal('foo function does not exist and is not defined in the context');
         }
     });
 
-    it("should not leak extensions to the main Twig object", function() {
-        var fixt_options = {
+    it('should not leak extensions to the main Twig object', function () {
+        const fixtOptions = {
             rethrow: true,
             data: '{{ bar() }}'
         };
 
-        FreshTwig.twig(fixt_options).render();
+        FreshTwig.twig(fixtOptions).render();
 
         try {
-            Twig.twig(fixt_options).render();
+            Twig.twig(fixtOptions).render();
             throw new Error('should have thrown an error');
-        } catch(err) {
-            err.message.should.equal('bar function does not exist and is not defined in the context');
+        } catch (error) {
+            error.message.should.equal('bar function does not exist and is not defined in the context');
         }
     });
 });
