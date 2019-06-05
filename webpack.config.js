@@ -11,6 +11,27 @@ module.exports = {
         __dirname: false,
         __filename: false,
     },
+    module: {
+        rules: [
+            {
+                exclude: /(node_modules)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                        plugins: [
+                            [
+                                "@babel/plugin-transform-modules-commonjs", {
+                                    "allowTopLevelThis": true
+                                }
+                            ],
+                            '@babel/plugin-transform-runtime'
+                        ]
+                    }
+                }
+            }
+        ]
+    },
     output: {
         path: __dirname,
         filename: env === 'browser' ? 'twig.min.js' : 'twig.js',

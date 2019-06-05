@@ -1,7 +1,7 @@
 Version 1.14.0, unreleased
 -----------------------------------
 Major improvements:
-* Nothing yet
+* Add [Babel](https://babeljs.io) to the webpack build
 
 Minor improvements:
 * Nothing yet
