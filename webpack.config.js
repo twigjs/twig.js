@@ -20,7 +20,6 @@ module.exports = {
                     options: {
                         presets: ['@babel/preset-env'],
                         plugins: [
-                            '@babel/plugin-transform-modules-commonjs',
                             '@babel/plugin-transform-runtime'
                         ]
                     }
