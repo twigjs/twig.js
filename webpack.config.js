@@ -18,9 +18,11 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['@babel/preset-env'],
+                        presets: [
+                            '@babel/preset-env',
+                            {modules: false}
+                        ],
                         plugins: [
-                            '@babel/plugin-transform-modules-commonjs',
                             '@babel/plugin-transform-runtime'
                         ]
                     }
