@@ -69,10 +69,8 @@ module.exports = function (Twig) {
                 base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
-                async: params.async,
                 options
-
-            }, params.load, params.error);
+            });
         }
 
         if (params.href !== undefined) {
@@ -83,10 +81,8 @@ module.exports = function (Twig) {
                 base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
-                async: params.async,
                 options
-
-            }, params.load, params.error);
+            });
         }
 
         if (params.path !== undefined) {
@@ -97,9 +93,8 @@ module.exports = function (Twig) {
                 base: params.base,
                 module: params.module,
                 precompiled: params.precompiled,
-                async: params.async,
                 options
-            }, params.load, params.error);
+            });
         }
     };
 
@@ -179,17 +174,7 @@ module.exports = function (Twig) {
 
         const params = {
             path,
-            base: settings.views,
-            load(template) {
-                // Render and return template as a simple string, see https://github.com/twigjs/twig.js/pull/348 for more information
-                if (!viewOptions || !viewOptions.allowAsync) {
-                    fn(null, String(template.render(options)));
-                    return;
-                }
-
-                template.renderAsync(options)
-                    .then(out => fn(null, out), fn);
-            }
+            base: settings.views
         };
 
         if (viewOptions) {
@@ -200,7 +185,9 @@ module.exports = function (Twig) {
             }
         }
 
-        Twig.exports.twig(params);
+        Twig.exports.twig(params).then(
+            template => template.render(options)
+        ).then(out => fn(null, out), fn);
     };
 
     // Express 3 handler
@@ -223,8 +210,6 @@ module.exports = function (Twig) {
     // Export our filters.
     // Resolves #307
     Twig.exports.filters = Twig.filters;
-
-    Twig.exports.Promise = Twig.Promise;
 
     return Twig;
 };

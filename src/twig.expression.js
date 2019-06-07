@@ -1,3 +1,4 @@
+const awaity = require('awaity');
 // ## twig.expression.js
 //
 // This file handles tokenizing, compiling and parsing expressions.
@@ -6,10 +7,10 @@ module.exports = function (Twig) {
 
     function parseParams(state, params, context) {
         if (params) {
-            return Twig.expression.parseAsync.call(state, params, context);
+            return Twig.expression.parse.call(state, params, context);
         }
 
-        return Twig.Promise.resolve(false);
+        return Promise.resolve(false);
     }
 
     /**
@@ -289,7 +290,7 @@ module.exports = function (Twig) {
                     stack.push(token);
                 } else if (token.params) {
                     // Handle "{(expression):value}"
-                    return Twig.expression.parseAsync.call(state, token.params, context)
+                    return Twig.expression.parse.call(state, token.params, context)
                         .then(key => {
                             token.key = key;
                             stack.push(token);
@@ -470,7 +471,7 @@ module.exports = function (Twig) {
                 const state = this;
 
                 if (token.expression) {
-                    return Twig.expression.parseAsync.call(state, token.params, context)
+                    return Twig.expression.parse.call(state, token.params, context)
                         .then(value => {
                             stack.push(value);
                         });
@@ -550,7 +551,7 @@ module.exports = function (Twig) {
                 const state = this;
 
                 if (token.expression) {
-                    return Twig.expression.parseAsync.call(state, token.params, context)
+                    return Twig.expression.parse.call(state, token.params, context)
                         .then(value => {
                             stack.push(value);
                         });
@@ -930,7 +931,7 @@ module.exports = function (Twig) {
                 return parseParams(state, token.params, context)
                     .then(parameters => {
                         params = parameters;
-                        return Twig.expression.parseAsync.call(state, token.stack, context);
+                        return Twig.expression.parse.call(state, token.stack, context);
                     })
                     .then(key => {
                         object = stack.pop();
@@ -1015,10 +1016,10 @@ module.exports = function (Twig) {
         const state = this;
 
         if (typeof value !== 'function') {
-            return Twig.Promise.resolve(value);
+            return Promise.resolve(value);
         }
 
-        let promise = Twig.Promise.resolve(params);
+        let promise = Promise.resolve(params);
 
         /*
         If value is a function, it will have been impossible during the compile stage to determine that a following
@@ -1034,7 +1035,7 @@ module.exports = function (Twig) {
             const tokensAreParameters = true;
 
             promise = promise.then(() => {
-                return nextToken.params && Twig.expression.parseAsync.call(state, nextToken.params, context, tokensAreParameters);
+                return nextToken.params && Twig.expression.parse.call(state, nextToken.params, context, tokensAreParameters);
             })
                 .then(p => {
                 // Clean up the parentheses tokens on the next loop
@@ -1276,7 +1277,7 @@ module.exports = function (Twig) {
      *                  can be anything, String, Array, Object, etc... based on
      *                  the given expression.
      */
-    Twig.expression.parse = function (tokens, context, tokensAreParameters, allowAsync) {
+    Twig.expression.parse = function (tokens, context, tokensAreParameters) {
         const state = this;
 
         // If the token isn't an array, make it one.
@@ -1289,59 +1290,56 @@ module.exports = function (Twig) {
         const loopTokenFixups = [];
         const binaryOperator = Twig.expression.type.operator.binary;
 
-        return Twig.async.potentiallyAsync(state, allowAsync, () => {
-            return Twig.async.forEach(tokens, (token, index) => {
-                let tokenTemplate = null;
-                let nextToken = null;
-                let result;
+        return awaity.each(tokens, (token, index) => {
+            let tokenTemplate = null;
+            let nextToken = null;
+            let result;
 
-                // If the token is marked for cleanup, we don't need to parse it
-                if (token.cleanup) {
-                    return;
+            // If the token is marked for cleanup, we don't need to parse it
+            if (token.cleanup) {
+                return;
+            }
+
+            // Determine the token that follows this one so that we can pass it to the parser
+            if (tokens.length > index + 1) {
+                nextToken = tokens[index + 1];
+            }
+
+            tokenTemplate = Twig.expression.handler[token.type];
+
+            if (tokenTemplate.parse) {
+                result = tokenTemplate.parse.call(state, token, stack, context, nextToken);
+            }
+
+            // Store any binary tokens for later if we are in a loop.
+            if (token.type === binaryOperator && context.loop) {
+                loopTokenFixups.push(token);
+            }
+
+            return result;
+        }).then(() => {
+        // Check every fixup and remove "key" as long as they still have "params". This covers the use case where
+        // a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
+            let len = loopTokenFixups.length;
+            let loopTokenFixup = null;
+
+            while (len-- > 0) {
+                loopTokenFixup = loopTokenFixups[len];
+                if (loopTokenFixup.params && loopTokenFixup.key) {
+                    delete loopTokenFixup.key;
                 }
+            }
 
-                // Determine the token that follows this one so that we can pass it to the parser
-                if (tokens.length > index + 1) {
-                    nextToken = tokens[index + 1];
-                }
+            // If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
+            // wrapped in an Array.
+            if (tokensAreParameters) {
+                const params = stack.splice(0);
 
-                tokenTemplate = Twig.expression.handler[token.type];
+                stack.push(params);
+            }
 
-                if (tokenTemplate.parse) {
-                    result = tokenTemplate.parse.call(state, token, stack, context, nextToken);
-                }
-
-                // Store any binary tokens for later if we are in a loop.
-                if (token.type === binaryOperator && context.loop) {
-                    loopTokenFixups.push(token);
-                }
-
-                return result;
-            })
-                .then(() => {
-                // Check every fixup and remove "key" as long as they still have "params". This covers the use case where
-                // a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
-                    let len = loopTokenFixups.length;
-                    let loopTokenFixup = null;
-
-                    while (len-- > 0) {
-                        loopTokenFixup = loopTokenFixups[len];
-                        if (loopTokenFixup.params && loopTokenFixup.key) {
-                            delete loopTokenFixup.key;
-                        }
-                    }
-
-                    // If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
-                    // wrapped in an Array.
-                    if (tokensAreParameters) {
-                        const params = stack.splice(0);
-
-                        stack.push(params);
-                    }
-
-                    // Pop the final value off the stack
-                    return stack.pop();
-                });
+            // Pop the final value off the stack
+            return stack.pop();
         });
     };
 

@@ -1,3 +1,4 @@
+const awaity = require('awaity');
 // ## twig.logic.js
 //
 // This file handles tokenizing, compiling and parsing logic tokens. {% ... %}
@@ -91,14 +92,14 @@ module.exports = function (Twig) {
             parse(token, context, chain) {
                 const state = this;
 
-                return Twig.expression.parseAsync.call(state, token.stack, context)
+                return Twig.expression.parse.call(state, token.stack, context)
                     .then(result => {
                         chain = true;
 
                         if (Twig.lib.boolval(result)) {
                             chain = false;
 
-                            return state.parseAsync(token.output, context);
+                            return state.parse(token.output, context);
                         }
 
                         return '';
@@ -138,12 +139,12 @@ module.exports = function (Twig) {
             parse(token, context, chain) {
                 const state = this;
 
-                return Twig.expression.parseAsync.call(state, token.stack, context)
+                return Twig.expression.parse.call(state, token.stack, context)
                     .then(result => {
                         if (chain && Twig.lib.boolval(result)) {
                             chain = false;
 
-                            return state.parseAsync(token.output, context);
+                            return state.parse(token.output, context);
                         }
 
                         return '';
@@ -170,11 +171,11 @@ module.exports = function (Twig) {
             ],
             open: false,
             parse(token, context, chain) {
-                let promise = Twig.Promise.resolve('');
+                let promise = Promise.resolve('');
                 const state = this;
 
                 if (chain) {
-                    promise = state.parseAsync(token.output, context);
+                    promise = state.parse(token.output, context);
                 }
 
                 return promise.then(output => {
@@ -287,15 +288,15 @@ module.exports = function (Twig) {
                     innerContext.loop = buildLoop(index, len);
 
                     const promise = conditional === undefined ?
-                        Twig.Promise.resolve(true) :
-                        Twig.expression.parseAsync.call(state, conditional, innerContext);
+                        Promise.resolve(true) :
+                        Twig.expression.parse.call(state, conditional, innerContext);
 
                     return promise.then(condition => {
                         if (!condition) {
                             return;
                         }
 
-                        return state.parseAsync(token.output, innerContext)
+                        return state.parse(token.output, innerContext)
                             .then(tokenOutput => {
                                 output.push(tokenOutput);
                                 index += 1;
@@ -313,11 +314,11 @@ module.exports = function (Twig) {
                         });
                 };
 
-                return Twig.expression.parseAsync.call(state, token.expression, context)
+                return Twig.expression.parse.call(state, token.expression, context)
                     .then(result => {
                         if (Twig.lib.isArray(result)) {
                             len = result.length;
-                            return Twig.async.forEach(result, value => {
+                            return awaity.each(result, value => {
                                 const key = index;
 
                                 return loop(key, value);
@@ -332,7 +333,7 @@ module.exports = function (Twig) {
                             }
 
                             len = keyset.length;
-                            return Twig.async.forEach(keyset, key => {
+                            return awaity.each(keyset, key => {
                             // Ignore the _keys property, it's internal to twig.js
                                 if (key === '_keys') {
                                     return;
@@ -394,7 +395,7 @@ module.exports = function (Twig) {
                 const {key} = token;
                 const state = this;
 
-                return Twig.expression.parseAsync.call(state, token.expression, context)
+                return Twig.expression.parse.call(state, token.expression, context)
                     .then(value => {
                         if (value === context) {
                         /*  If storing the context in a variable, it needs to be a clone of the current state of context.
@@ -437,7 +438,7 @@ module.exports = function (Twig) {
                 const state = this;
                 const {key} = token;
 
-                return state.parseAsync(token.output, context)
+                return state.parse(token.output, context)
                     .then(output => {
                     // Set on both the global and local context
                         state.context[key] = output;
@@ -486,14 +487,14 @@ module.exports = function (Twig) {
             parse(token, context, chain) {
                 const state = this;
 
-                return state.parseAsync(token.output, context)
+                return state.parse(token.output, context)
                     .then(output => {
                         const stack = [{
                             type: Twig.expression.type.string,
                             value: output
                         }].concat(token.stack);
 
-                        return Twig.expression.parseAsync.call(state, stack, context);
+                        return Twig.expression.parse.call(state, stack, context);
                     })
                     .then(output => {
                         return {
@@ -534,7 +535,7 @@ module.exports = function (Twig) {
             },
             parse(token, context, chain) {
                 const state = this;
-                let promise = Twig.Promise.resolve();
+                let promise = Promise.resolve();
 
                 state.template.blocks.defined[token.blockName] = new Twig.Block(state.template, token);
 
@@ -615,7 +616,7 @@ module.exports = function (Twig) {
             parse(token, context, chain) {
                 const state = this;
 
-                return Twig.expression.parseAsync.call(state, token.stack, context)
+                return Twig.expression.parse.call(state, token.stack, context)
                     .then(fileName => {
                         state.template.parentTemplate = fileName;
 
@@ -650,15 +651,15 @@ module.exports = function (Twig) {
             parse(token, context, chain) {
                 const state = this;
 
-                return Twig.expression.parseAsync.call(state, token.stack, context)
-                    .then(filePath => {
+                return Twig.expression.parse.call(state, token.stack, context)
+                    .then(async filePath => {
                         // Create a new state instead of using the current state
                         // any defined blocks will be created in isolation
 
-                        const useTemplate = state.template.importFile(filePath);
+                        const useTemplate = await state.template.importFile(filePath);
 
                         const useState = new Twig.ParseState(useTemplate);
-                        return useState.parseAsync(useTemplate.tokens)
+                        return useState.parse(useTemplate.tokens)
                             .then(() => {
                                 Twig.lib.extend(state.template.blocks.imported, useState.getBlocks());
                             });
@@ -716,9 +717,9 @@ module.exports = function (Twig) {
                 const result = {chain, output: ''};
 
                 if (typeof token.withStack === 'undefined') {
-                    promise = Twig.Promise.resolve();
+                    promise = Promise.resolve();
                 } else {
-                    promise = Twig.expression.parseAsync.call(state, token.withStack, context)
+                    promise = Twig.expression.parse.call(state, token.withStack, context)
                         .then(withContext => {
                             Twig.lib.extend(innerContext, withContext);
                         });
@@ -726,11 +727,11 @@ module.exports = function (Twig) {
 
                 return promise
                     .then(() => {
-                        return Twig.expression.parseAsync.call(state, token.stack, context);
+                        return Twig.expression.parse.call(state, token.stack, context);
                     })
-                    .then(file => {
+                    .then(async file => {
                         if (file instanceof Twig.Template) {
-                            return file.renderAsync(
+                            return file.render(
                                 innerContext,
                                 {
                                     isInclude: true
@@ -739,11 +740,9 @@ module.exports = function (Twig) {
                         }
 
                         try {
-                            return state.template.importFile(file).renderAsync(
+                            return (await state.template.importFile(file)).render(
                                 innerContext,
-                                {
-                                    isInclude: true
-                                }
+                                {isInclude: true}
                             );
                         } catch (error) {
                             if (ignoreMissing) {
@@ -775,7 +774,7 @@ module.exports = function (Twig) {
                 const state = this;
 
                 // Parse the output without any filter
-                return state.parseAsync(token.output, context)
+                return state.parse(token.output, context)
                     .then(tokenOutput => {
                         const // A regular expression to find closing and opening tags with spaces between them
                             rBetweenTagSpaces = />\s+</g;
@@ -864,7 +863,7 @@ module.exports = function (Twig) {
                     };
                     // Save arguments
 
-                    return Twig.async.forEach(token.parameters, function (prop, i) {
+                    return awaity.each(token.parameters, function (prop, i) {
                         // Add parameters from context to macroContext
                         if (typeof args[i] !== 'undefined') {
                             macroContext[prop] = args[i];
@@ -872,10 +871,10 @@ module.exports = function (Twig) {
                         }
 
                         if (typeof token.defaults[prop] !== 'undefined') {
-                            return Twig.expression.parseAsync.call(this, token.defaults[prop], context)
+                            return Twig.expression.parse.call(this, token.defaults[prop], context)
                                 .then(value => {
                                     macroContext[prop] = value;
-                                    return Twig.Promise.resolve();
+                                    return Promise.resolve();
                                 });
                         }
 
@@ -883,7 +882,7 @@ module.exports = function (Twig) {
                         return true;
                     }).then(() => {
                         // Render
-                        return state.parseAsync(token.output, macroContext);
+                        return state.parse(token.output, macroContext);
                     });
                 };
 
@@ -941,14 +940,14 @@ module.exports = function (Twig) {
                     return output;
                 }
 
-                return Twig.expression.parseAsync.call(state, token.stack, context)
+                return Twig.expression.parse.call(state, token.stack, context)
                     .then(filePath => {
                         return state.template.importFile(filePath || token.expression);
                     })
                     .then(importTemplate => {
                         const importState = new Twig.ParseState(importTemplate);
 
-                        return importState.parseAsync(importTemplate.tokens).then(() => {
+                        return importState.parse(importTemplate.tokens).then(() => {
                             context[token.contextName] = importState.macros;
 
                             return output;
@@ -1002,16 +1001,16 @@ module.exports = function (Twig) {
                 let promise;
 
                 if (token.expression === '_self') {
-                    promise = Twig.Promise.resolve(state.macros);
+                    promise = Promise.resolve(state.macros);
                 } else {
-                    promise = Twig.expression.parseAsync.call(state, token.stack, context)
+                    promise = Twig.expression.parse.call(state, token.stack, context)
                         .then(filePath => {
                             return state.template.importFile(filePath || token.expression);
                         })
                         .then(importTemplate => {
                             const importState = new Twig.ParseState(importTemplate);
 
-                            return importState.parseAsync(importTemplate.tokens).then(() => {
+                            return importState.parse(importTemplate.tokens).then(() => {
                                 return importState.macros;
                             });
                         });
@@ -1073,7 +1072,7 @@ module.exports = function (Twig) {
             },
             parse(token, context, chain) {
                 let embedContext = {};
-                let promise = Twig.Promise.resolve();
+                let promise = Promise.resolve();
                 let state = this;
 
                 if (!token.only) {
@@ -1081,16 +1080,16 @@ module.exports = function (Twig) {
                 }
 
                 if (token.withStack !== undefined) {
-                    promise = Twig.expression.parseAsync.call(state, token.withStack, context).then(withContext => {
+                    promise = Twig.expression.parse.call(state, token.withStack, context).then(withContext => {
                         Twig.lib.extend(embedContext, withContext);
                     });
                 }
 
                 return promise
                     .then(() => {
-                        return Twig.expression.parseAsync.call(state, token.stack, embedContext);
+                        return Twig.expression.parse.call(state, token.stack, embedContext);
                     })
-                    .then(fileName => {
+                    .then(async fileName => {
                         const embedOverrideTemplate = new Twig.Template({
                             data: token.output,
                             id: state.template.id,
@@ -1103,7 +1102,7 @@ module.exports = function (Twig) {
                         });
 
                         try {
-                            embedOverrideTemplate.importFile(fileName);
+                            await embedOverrideTemplate.importFile(fileName);
                         } catch (error) {
                             if (token.ignoreMissing) {
                                 return '';
@@ -1118,11 +1117,9 @@ module.exports = function (Twig) {
 
                         embedOverrideTemplate.parentTemplate = fileName;
 
-                        return embedOverrideTemplate.renderAsync(
+                        return embedOverrideTemplate.render(
                             embedContext,
-                            {
-                                isInclude: true
-                            }
+                            {isInclude: true}
                         );
                     })
                     .then(output => {
@@ -1177,14 +1174,14 @@ module.exports = function (Twig) {
                 let innerContext = {};
                 let i;
                 const state = this;
-                let promise = Twig.Promise.resolve();
+                let promise = Promise.resolve();
 
                 if (!token.only) {
                     innerContext = Twig.lib.copy(context);
                 }
 
                 if (token.withStack !== undefined) {
-                    promise = Twig.expression.parseAsync.call(state, token.withStack, context)
+                    promise = Twig.expression.parse.call(state, token.withStack, context)
                         .then(withContext => {
                             for (i in withContext) {
                                 if (Object.hasOwnProperty.call(withContext, i)) {
@@ -1196,7 +1193,7 @@ module.exports = function (Twig) {
 
                 return promise
                     .then(() => {
-                        return state.parseAsync(token.output, innerContext);
+                        return state.parse(token.output, innerContext);
                     })
                     .then(output => {
                         return {
@@ -1355,33 +1352,31 @@ module.exports = function (Twig) {
      * @param {boolean} chain Is this an open logic chain. If false, that means a
      *                        chain is closed and no further cases should be parsed.
      */
-    Twig.logic.parse = function (token, context, chain, allowAsync) {
-        return Twig.async.potentiallyAsync(this, allowAsync, function () {
-            Twig.log.debug('Twig.logic.parse: ', 'Parsing logic token ', token);
+    Twig.logic.parse = function (token, context, chain) {
+        Twig.log.debug('Twig.logic.parse: ', 'Parsing logic token ', token);
 
-            const tokenTemplate = Twig.logic.handler[token.type];
-            let result;
-            const state = this;
+        const tokenTemplate = Twig.logic.handler[token.type];
+        let result;
+        const state = this;
 
-            if (!tokenTemplate.parse) {
-                return '';
-            }
+        if (!tokenTemplate.parse) {
+            return '';
+        }
 
-            state.nestingStack.unshift(token);
-            result = tokenTemplate.parse.call(state, token, context || {}, chain);
+        state.nestingStack.unshift(token);
+        result = tokenTemplate.parse.call(state, token, context || {}, chain);
 
-            if (Twig.isPromise(result)) {
-                result = result.then(result => {
-                    state.nestingStack.shift();
-
-                    return result;
-                });
-            } else {
+        if (result instanceof Promise) {
+            result = result.then(result => {
                 state.nestingStack.shift();
-            }
 
-            return result;
-        });
+                return result;
+            });
+        } else {
+            state.nestingStack.shift();
+        }
+
+        return result;
     };
 
     return Twig;

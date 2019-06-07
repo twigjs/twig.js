@@ -24,51 +24,40 @@ describe('Twig.js Rethrow ->', function () {
         }).should.throw('Unable to find closing bracket \'%}\' opened near template position 26');
     });
 
-    it('should throw a compile error having its file property set to the file', function (done) {
+    it('should throw a compile error having its file property set to the file', async function () {
         try {
-            const template = twig({
+            await twig({
                 path: 'test/templates/error/compile/entry.twig',
-                async: false,
+                rethrow: true
+            });
+        } catch (error) {
+            error.should.have.property('file', 'test/templates/error/compile/entry.twig');
+        }
+    });
+
+    it('should throw a parse error having its file property set to the entry file', async function () {
+        try {
+            const testTemplate = await twig({
+                path: 'test/templates/error/parse/in-entry/entry.twig',
                 rethrow: true
             });
 
-            done(template);
-        } catch (error) {
-            error.should.have.property('file', 'test/templates/error/compile/entry.twig');
-
-            done();
-        }
-    });
-
-    it('should throw a parse error having its file property set to the entry file', function (done) {
-        try {
-            const output = twig({
-                path: 'test/templates/error/parse/in-entry/entry.twig',
-                async: false,
-                rethrow: true
-            }).render();
-
-            done(output);
+            await testTemplate.render();
         } catch (error) {
             error.should.have.property('file', 'test/templates/error/parse/in-entry/entry.twig');
-
-            done();
         }
     });
 
-    it('should throw a parse error having its file property set to the partial file', function (done) {
+    it('should throw a parse error having its file property set to the partial file', async function () {
         try {
-            const output = twig({
+            const testTemplate = await twig({
                 path: 'test/templates/error/parse/in-partial/entry.twig',
-                async: false,
                 rethrow: true
-            }).render();
+            });
 
-            done(output);
+            await testTemplate.render();
         } catch (error) {
             error.should.have.property('file', path.join('test/templates/error/parse/in-entry/entry.twig'));
-
-            done();
         }
     });
 });

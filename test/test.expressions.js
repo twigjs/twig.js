@@ -1,6 +1,9 @@
+const awaity = require('awaity');
 const Twig = require('../twig').factory();
 
 const {twig} = Twig;
+
+const {mapTestDataToAssertions} = require('./helpers')(twig);
 
 describe('Twig.js Expressions ->', function () {
     const numericTestData = [
@@ -22,139 +25,154 @@ describe('Twig.js Expressions ->', function () {
             {a: '', b: ''}
         ];
 
-        it('should parse parenthesis', function () {
+        it('should parse parenthesis', async function () {
             const testTemplate = twig({data: '{{ a - (b + c) }}'});
             const d = {a: 10, b: 4, c: 2};
             const output = testTemplate.render(d);
 
-            output.should.equal((d.a - (d.b + d.c)).toString());
+            return output.should.be.fulfilledWith((d.a - (d.b + d.c)).toString());
         });
 
-        it('should parse nested parenthesis', function () {
+        it('should parse nested parenthesis', async function () {
             const testTemplate = twig({data: '{{ a - ((b) + (1 + c)) }}'});
             const d = {a: 10, b: 4, c: 2};
             const output = testTemplate.render(d);
 
-            output.should.equal((d.a - (d.b + 1 + d.c)).toString());
+            return output.should.be.fulfilledWith((d.a - (d.b + 1 + d.c)).toString());
         });
 
-        it('should add numbers', function () {
+        it('should add numbers', async function () {
             const testTemplate = twig({data: '{{ a + b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a + pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a + pair.b).toString());
             });
         });
-        it('should subtract numbers', function () {
+        it('should subtract numbers', async function () {
             const testTemplate = twig({data: '{{ a - b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a - pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a - pair.b).toString());
             });
         });
-        it('should multiply numbers', function () {
+        it('should multiply numbers', async function () {
             const testTemplate = twig({data: '{{ a * b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a * pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a * pair.b).toString());
             });
         });
-        it('should divide numbers', function () {
+        it('should divide numbers', async function () {
             const testTemplate = twig({data: '{{ a / b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a / pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a / pair.b).toString());
             });
         });
 
-        it('should divide numbers and return a floored result', function () {
+        it('should divide numbers and return a floored result', async function () {
             const testTemplate = twig({data: '{{ a // b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
                 // Get expected truncated result
                 const c = Math.floor(pair.a / pair.b);
 
-                output.should.equal(c.toString());
+                return output.should.be.fulfilledWith(c.toString());
             });
         });
 
-        it('should raise numbers to a power', function () {
+        it('should raise numbers to a power', async function () {
             const testTemplate = twig({data: '{{ a ** b }}'});
             const powTestData = [
                 {a: 2, b: 3, c: 8},
                 {a: 4, b: 0.5, c: 2},
                 {a: 5, b: 1, c: 5}
             ];
-            powTestData.forEach(pair => {
+            return awaity.map(powTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal(pair.c.toString());
+                return output.should.be.fulfilledWith(pair.c.toString());
             });
         });
 
-        it('should concatanate values', function () {
-            twig({data: '{{ "test" ~ a }}'}).render({a: 1234}).should.equal('test1234');
-            twig({data: '{{ a ~ "test" ~ a }}'}).render({a: 1234}).should.equal('1234test1234');
-            twig({data: '{{ "this" ~ "test" }}'}).render({a: 1234}).should.equal('thistest');
+        it('should concatanate values', async function () {
+            const templateData = [
+                '{{ "test" ~ a }}',
+                '{{ a ~ "test" ~ a }}',
+                '{{ "this" ~ "test" }}'
+            ];
 
-            // Test numbers
-            let testTemplate = twig({data: '{{ a ~ b }}'});
-            numericTestData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                output.should.equal(pair.a.toString() + pair.b.toString());
-            });
-            // Test strings
-            testTemplate = twig({data: '{{ a ~ b }}'});
-            stringData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                output.should.equal(pair.a.toString() + pair.b.toString());
-            });
+            const expected = [
+                'test1234',
+                '1234test1234',
+                'thistest'
+            ];
+
+            const testTemplate = twig({data: '{{ a ~ b }}'});
+
+            return Promise.all([
+                mapTestDataToAssertions(templateData, expected, {a: 1234}),
+                awaity.map(numericTestData, pair => {
+                    // Test numbers
+                    const output = testTemplate.render(pair);
+                    output.should.be.fulfilledWith(pair.a.toString() + pair.b.toString());
+                }),
+                awaity.map(stringData, pair => {
+                    // Test strings
+                    const output = testTemplate.render(pair);
+                    output.should.be.fulfilledWith(pair.a.toString() + pair.b.toString());
+                })
+            ]);
         });
-        it('should concatenate null and undefined values and not throw an exception', function () {
-            twig({data: '{{ a ~ b }}'}).render().should.equal('');
-            twig({data: '{{ a ~ b }}'}).render({
-                a: null,
-                b: null
-            }).should.equal('');
+        it('should concatenate null and undefined values and not throw an exception', async function () {
+            const testTemplate = twig({data: '{{ a ~ b }}'});
+
+            return Promise.all([
+                testTemplate.render().should.be.fulfilledWith(''),
+                testTemplate.render({
+                    a: null,
+                    b: null
+                }).should.be.fulfilledWith('')
+            ]);
         });
-        it('should handle multiple chained operations', function () {
+        it('should handle multiple chained operations', async function () {
             const data = {a: 4.5, b: 10, c: 12, d: -0.25, e: 0, f: 65, g: 21, h: -0.0002};
             const testTemplate = twig({data: '{{a/b+c*d-e+f/g*h}}'});
             const output = testTemplate.render(data);
             const expected = (data.a / data.b) + (data.c * data.d) - data.e + ((data.f / data.g) * data.h);
-            output.should.equal(expected.toString());
+            return output.should.be.fulfilledWith(expected.toString());
         });
-        it('should handle parenthesis in chained operations', function () {
+        it('should handle parenthesis in chained operations', async function () {
             const data = {a: 4.5, b: 10, c: 12, d: -0.25, e: 0, f: 65, g: 21, h: -0.0002};
             const testTemplate = twig({data: '{{a   /(b+c )*d-(e+f)/(g*h)}}'});
             const output = testTemplate.render(data);
             const expected = ((data.a / (data.b + data.c)) * data.d) - ((data.e + data.f) / (data.g * data.h));
-            output.should.equal(expected.toString());
+            return output.should.be.fulfilledWith(expected.toString());
         });
 
-        it('should handle positive numbers', function () {
+        it('should handle positive numbers', async function () {
             const testTemplate = twig({data: '{{ 100 }}'});
             const output = testTemplate.render();
-            output.should.equal('100');
+            return output.should.be.fulfilledWith('100');
         });
 
-        it('should handle negative numbers', function () {
+        it('should handle negative numbers', async function () {
             const testTemplate = twig({data: '{{ -100 }}'});
             const output = testTemplate.render();
-            output.should.equal('-100');
+            return output.should.be.fulfilledWith('-100');
         });
 
-        it('should allow expressions after period accessors', function () {
-            let testTemplate;
-            let output;
+        it('should allow expressions after period accessors', async function () {
+            const templateData = [
+                '{{ app.id and (true) }}',
+                '{{ app.id and true }}'
+            ];
 
-            testTemplate = twig({data: '{{ app.id and (true) }}'});
-            output = testTemplate.render({app: {id: 1}});
-            output.should.equal('true');
+            const expected = [
+                'true',
+                'true'
+            ];
 
-            // Check that parenless data works as well
-            testTemplate = twig({data: '{{ app.id and true }}'});
-            output = testTemplate.render({app: {id: 1}});
-            output.should.equal('true');
+            return mapTestDataToAssertions(templateData, expected, {app: {id: 1}});
         });
     });
 
@@ -173,323 +191,395 @@ describe('Twig.js Expressions ->', function () {
             {a: false, b: true},
             {a: false, b: false}
         ];
-        it('should support less then', function () {
+        it('should support less then', async function () {
             const testTemplate = twig({data: '{{ a < b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a < pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a < pair.b).toString());
             });
         });
-        it('should support less then or equal', function () {
+        it('should support less then or equal', async function () {
             const testTemplate = twig({data: '{{ a <= b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a <= pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a <= pair.b).toString());
             });
         });
-        it('should support greater then', function () {
+        it('should support greater then', async function () {
             const testTemplate = twig({data: '{{ a > b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a > pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a > pair.b).toString());
             });
         });
-        it('should support greater then or equal', function () {
+        it('should support greater then or equal', async function () {
             const testTemplate = twig({data: '{{ a >= b }}'});
-            numericTestData.forEach(pair => {
+            return awaity.map(numericTestData, pair => {
                 const output = testTemplate.render(pair);
-                output.should.equal((pair.a >= pair.b).toString());
+                return output.should.be.fulfilledWith((pair.a >= pair.b).toString());
             });
         });
-        it('should support equals', function () {
+        it('should support equals', async function () {
             const testTemplate = twig({data: '{{ a == b }}'});
-            booleanData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                output.should.equal((pair.a === pair.b).toString());
-            });
-
-            equalityData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                /* eslint-disable-next-line eqeqeq */
-                output.should.equal((pair.a == pair.b).toString());
-            });
+            return Promise.all([
+                awaity.map(booleanData, pair => {
+                    const output = testTemplate.render(pair);
+                    output.should.be.fulfilledWith((pair.a === pair.b).toString());
+                }),
+                awaity.map(equalityData, pair => {
+                    const output = testTemplate.render(pair);
+                    /* eslint-disable-next-line eqeqeq */
+                    output.should.be.fulfilledWith((pair.a == pair.b).toString());
+                })
+            ]);
         });
-        it('should support not equals', function () {
+        it('should support not equals', async function () {
             const testTemplate = twig({data: '{{ a != b }}'});
-            booleanData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                output.should.equal((pair.a !== pair.b).toString());
-            });
-            equalityData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                /* eslint-disable-next-line eqeqeq */
-                output.should.equal((pair.a != pair.b).toString());
-            });
+            return Promise.all([
+                awaity.map(booleanData, pair => {
+                    const output = testTemplate.render(pair);
+                    output.should.be.fulfilledWith((pair.a !== pair.b).toString());
+                }),
+                awaity.map(equalityData, pair => {
+                    const output = testTemplate.render(pair);
+                    /* eslint-disable-next-line eqeqeq */
+                    output.should.be.fulfilledWith((pair.a != pair.b).toString());
+                })
+            ]);
         });
-        it('should support boolean or', function () {
+        it('should support boolean or', async function () {
             const testTemplate = twig({data: '{{ a or b }}'});
-            booleanData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                output.should.equal((pair.a || pair.b).toString());
-            });
 
-            testTemplate.render({a: 0, b: 1}).should.equal('true');
-            testTemplate.render({a: '0', b: 1}).should.equal('true');
-            testTemplate.render({a: '0', b: '0'}).should.equal('false');
+            const contexts = [
+                {a: 0, b: 1},
+                {a: '0', b: 1},
+                {a: '0', b: '0'}
+            ];
+
+            const expected = [
+                'true',
+                'true',
+                'false'
+            ];
+
+            return Promise.all([
+                awaity.map(booleanData, pair => {
+                    const output = testTemplate.render(pair);
+                    output.should.be.fulfilledWith((pair.a || pair.b).toString());
+                }),
+                mapTestDataToAssertions('{{ a or b }}', expected, contexts)
+            ]);
         });
-        it('should support boolean and', function () {
+        it('should support boolean and', async function () {
             const testTemplate = twig({data: '{{ a and b }}'});
-            booleanData.forEach(pair => {
-                const output = testTemplate.render(pair);
-                output.should.equal((pair.a && pair.b).toString());
-            });
 
-            testTemplate.render({a: 0, b: 1}).should.equal('false');
-            testTemplate.render({a: '0', b: 1}).should.equal('false');
-            testTemplate.render({a: '0', b: '0'}).should.equal('false');
+            const contexts = [
+                {a: 0, b: 1},
+                {a: '0', b: 1},
+                {a: '0', b: '0'}
+            ];
+
+            const expected = [
+                'false',
+                'false',
+                'false'
+            ];
+
+            return Promise.all([
+                awaity.map(booleanData, pair => {
+                    const output = testTemplate.render(pair);
+                    output.should.be.fulfilledWith((pair.a && pair.b).toString());
+                }),
+                mapTestDataToAssertions('{{ a and b }}', expected, contexts)
+            ]);
         });
-        it('should support boolean not', function () {
-            let testTemplate = twig({data: '{{ not a }}'});
-            testTemplate.render({a: false}).should.equal('true');
-            testTemplate.render({a: true}).should.equal('false');
-            testTemplate.render({a: '0'}).should.equal('true');
-
-            testTemplate = twig({data: '{{ a and not b }}'});
-            testTemplate.render({a: true, b: false}).should.equal('true');
-            testTemplate.render({a: true, b: true}).should.equal('false');
-
-            testTemplate = twig({data: '{{ a or not b }}'});
-            testTemplate.render({a: false, b: false}).should.equal('true');
-            testTemplate.render({a: false, b: true}).should.equal('false');
-
-            testTemplate = twig({data: '{{ a or not not b }}'});
-            testTemplate.render({a: false, b: true}).should.equal('true');
-            testTemplate.render({a: false, b: false}).should.equal('false');
+        it('should support boolean not', async function () {
+            return Promise.all([
+                mapTestDataToAssertions(
+                    '{{ not a }}',
+                    ['true', 'false', 'true'],
+                    [{a: false}, {a: true}, {a: '0'}]
+                ),
+                mapTestDataToAssertions(
+                    '{{ a and not b }}',
+                    ['true', 'false'],
+                    [{a: true, b: false}, {a: true, b: true}]
+                ),
+                mapTestDataToAssertions(
+                    '{{ a or not b }}',
+                    ['true', 'false'],
+                    [{a: false, b: false}, {a: false, b: true}]
+                ),
+                mapTestDataToAssertions(
+                    '{{ a or not not b }}',
+                    ['true', 'false'],
+                    [{a: false, b: true}, {a: false, b: false}]
+                )
+            ]);
         });
-        it('should support boolean not in parentheses', function () {
-            let testTemplate;
-
-            testTemplate = twig({data: '{{ (test1 or test2) and test3 }}'});
-            testTemplate.render({test1: true, test2: false, test3: true}).should.equal('true');
-            testTemplate.render({test1: false, test2: false, test3: true}).should.equal('false');
-            testTemplate.render({test1: true, test2: false, test3: false}).should.equal('false');
-
-            testTemplate = twig({data: '{{ (test1 or test2) and not test3 }}'});
-            testTemplate.render({test1: true, test2: false, test3: false}).should.equal('true');
-            testTemplate.render({test1: false, test2: false, test3: false}).should.equal('false');
-            testTemplate.render({test1: true, test2: false, test3: true}).should.equal('false');
-
-            testTemplate = twig({data: '{{ (not test1 or test2) and test3 }}'});
-            testTemplate.render({test1: false, test2: false, test3: true}).should.equal('true');
-            testTemplate.render({test1: true, test2: false, test3: true}).should.equal('false');
-            testTemplate.render({test1: false, test2: false, test3: false}).should.equal('false');
-
-            testTemplate = twig({data: '{{ (test1 or not test2) and test3 }}'});
-            testTemplate.render({test1: true, test2: true, test3: true}).should.equal('true');
-            testTemplate.render({test1: false, test2: true, test3: true}).should.equal('false');
-            testTemplate.render({test1: true, test2: true, test3: false}).should.equal('false');
-
-            testTemplate = twig({data: '{{ (not test1 or not test2) and test3 }}'});
-            testTemplate.render({test1: false, test2: true, test3: true}).should.equal('true');
-            testTemplate.render({test1: true, test2: true, test3: true}).should.equal('false');
-            testTemplate.render({test1: false, test2: true, test3: false}).should.equal('false');
+        it('should support boolean not in parentheses', async function () {
+            return Promise.all([
+                mapTestDataToAssertions(
+                    '{{ (test1 or test2) and test3 }}',
+                    ['true', 'false', 'false'],
+                    [
+                        {test1: true, test2: false, test3: true},
+                        {test1: false, test2: false, test3: true},
+                        {test1: true, test2: false, test3: false}
+                    ]
+                ),
+                mapTestDataToAssertions(
+                    '{{ (test1 or test2) and not test3 }}',
+                    ['true', 'false', 'false'],
+                    [
+                        {test1: true, test2: false, test3: false},
+                        {test1: false, test2: false, test3: false},
+                        {test1: true, test2: false, test3: true}
+                    ]
+                ),
+                mapTestDataToAssertions(
+                    '{{ (not test1 or test2) and test3 }}',
+                    ['true', 'false', 'false'],
+                    [
+                        {test1: false, test2: false, test3: true},
+                        {test1: true, test2: false, test3: true},
+                        {test1: false, test2: false, test3: false}
+                    ]
+                ),
+                mapTestDataToAssertions(
+                    '{{ (test1 or not test2) and test3 }}',
+                    ['true', 'false', 'false'],
+                    [
+                        {test1: true, test2: true, test3: true},
+                        {test1: false, test2: true, test3: true},
+                        {test1: true, test2: true, test3: false}
+                    ]
+                ),
+                mapTestDataToAssertions(
+                    '{{ (not test1 or not test2) and test3 }}',
+                    ['true', 'false', 'false'],
+                    [
+                        {test1: false, test2: true, test3: true},
+                        {test1: true, test2: true, test3: true},
+                        {test1: false, test2: true, test3: false}
+                    ]
+                )
+            ]);
         });
 
-        it('should support regular expressions', function () {
-            const testTemplate = twig({data: '{{ a matches "/^[\\d\\.]+$/" }}'});
-            testTemplate.render({a: '123'}).should.equal('true');
-            testTemplate.render({a: '1ab'}).should.equal('false');
+        it('should support regular expressions', async function () {
+            return mapTestDataToAssertions(
+                '{{ a matches "/^[\\d\\.]+$/" }}',
+                ['true', 'false'],
+                [{a: '123'}, {a: '1ab'}]
+            );
         });
 
-        it('should support starts with', function () {
-            const testTemplate = twig({data: '{{ a starts with "f" }}'});
-            testTemplate.render({a: 'foo'}).should.equal('true');
-            testTemplate.render({a: 'bar'}).should.equal('false');
+        it('should support starts with', async function () {
+            return mapTestDataToAssertions(
+                '{{ a starts with "f" }}',
+                ['true', 'false'],
+                [{a: 'foo'}, {a: 'bar'}]
+            );
         });
 
-        it('should support ends with', function () {
-            const testTemplate = twig({data: '{{ a ends with "o" }}'});
-            testTemplate.render({a: 'foo'}).should.equal('true');
-            testTemplate.render({a: 'bar'}).should.equal('false');
+        it('should support ends with', async function () {
+            return mapTestDataToAssertions(
+                '{{ a ends with "o" }}',
+                ['true', 'false'],
+                [{a: 'foo'}, {a: 'bar'}]
+            );
         });
 
-        it('should correctly cast arrays', function () {
-            const testTemplate = twig({data: '{{ a == true }}'});
-            testTemplate.render({a: ['value']}).should.equal('true');
-            testTemplate.render({a: []}).should.equal('false');
+        it('should correctly cast arrays', async function () {
+            return mapTestDataToAssertions(
+                '{{ a == true }}',
+                ['true', 'false'],
+                [{a: ['value']}, {a: []}]
+            );
         });
 
-        it('should correctly cast arrays in control structures', function () {
+        it('should correctly cast arrays in control structures', async function () {
             const testTemplate = twig({data: '{% if a is defined and a %}true{% else %}false{% endif %}'});
-            testTemplate.render({a: ['value']}).should.equal('true');
+            return testTemplate.render({a: ['value']}).should.be.fulfilledWith('true');
         });
     });
 
     describe('Other Operators ->', function () {
-        it('should support the ternary operator', function () {
+        it('should support the ternary operator', async function () {
             const testTemplate = twig({data: '{{ a ? b:c }}'});
             const outputT = testTemplate.render({a: true, b: 'one', c: 'two'});
             const outputF = testTemplate.render({a: false, b: 'one', c: 'two'});
 
-            outputT.should.equal('one');
-            outputF.should.equal('two');
+            return Promise.all([
+                outputT.should.be.fulfilledWith('one'),
+                outputF.should.be.fulfilledWith('two')
+            ]);
         });
-        it('should support the ternary operator with objects in it', function () {
+        it('should support the ternary operator with objects in it', async function () {
             const testTemplate2 = twig({data: '{{ (a ? {"a":e+f}:{"a":1}).a }}'});
             const output2 = testTemplate2.render({a: true, b: false, e: 1, f: 2});
 
-            output2.should.equal('3');
+            return output2.should.be.fulfilledWith('3');
         });
-        it('should support the ternary operator inside objects', function () {
+        it('should support the ternary operator inside objects', async function () {
             const testTemplate2 = twig({data: '{{ {"b" : a or b ? {"a":e+f}:{"a":1} }.b.a }}'});
             const output2 = testTemplate2.render({a: false, b: false, e: 1, f: 2});
 
-            output2.should.equal('1');
+            return output2.should.be.fulfilledWith('1');
         });
-        it('should support non-boolean values in ternary statement', function () {
-            const testTemplate = twig({data: '{{ test ? "true" : "false" }}'});
-
-            testTemplate.render({test: 'one'}).should.equal('true');
-            testTemplate.render({test: 0}).should.equal('false');
-            testTemplate.render({test: 0.0}).should.equal('false');
-            testTemplate.render({test: ''}).should.equal('false');
-            testTemplate.render({test: '0'}).should.equal('false');
-            testTemplate.render({test: []}).should.equal('false');
-            testTemplate.render({test: null}).should.equal('false');
-            testTemplate.render({test: undefined}).should.equal('false');
-        });
-
-        it('should support in/containment functionality for arrays', function () {
-            let testTemplate;
-
-            testTemplate = twig({data: '{{ "a" in ["a", "b", "c"] }}'});
-            testTemplate.render().should.equal(true.toString());
-
-            testTemplate = twig({data: '{{ "d" in ["a", "b", "c"] }}'});
-            testTemplate.render().should.equal(false.toString());
-        });
-
-        it('should support not in/containment functionality for arrays', function () {
-            let testTemplate;
-
-            testTemplate = twig({data: '{{ "a" not in ["a", "b", "c"] }}'});
-            testTemplate.render().should.equal(false.toString());
-
-            testTemplate = twig({data: '{{ "d" not in ["a", "b", "c"] }}'});
-            testTemplate.render().should.equal(true.toString());
+        it('should support non-boolean values in ternary statement', async function () {
+            return mapTestDataToAssertions(
+                '{{ test ? "true" : "false" }}',
+                [
+                    'true',
+                    'false',
+                    'false',
+                    'false',
+                    'false',
+                    'false',
+                    'false',
+                    'false'
+                ],
+                [
+                    {test: 'one'},
+                    {test: 0},
+                    {test: 0.0},
+                    {test: ''},
+                    {test: '0'},
+                    {test: []},
+                    {test: null},
+                    {test: undefined}
+                ]
+            );
         });
 
-        it('should support in/containment functionality for strings', function () {
-            let testTemplate;
-
-            testTemplate = twig({data: '{{ "at" in "hat" }}'});
-            testTemplate.render().should.equal(true.toString());
-
-            testTemplate = twig({data: '{{ "d" in "not" }}'});
-            testTemplate.render().should.equal(false.toString());
+        it('should support in/containment functionality for arrays', async function () {
+            return mapTestDataToAssertions(
+                [
+                    '{{ "a" in ["a", "b", "c"] }}',
+                    '{{ "d" in ["a", "b", "c"] }}'
+                ],
+                [true.toString(), false.toString()]
+            );
         });
 
-        it('should support not in/containment functionality for strings', function () {
-            let testTemplate;
-
-            testTemplate = twig({data: '{{ "at" not in "hat" }}'});
-            testTemplate.render().should.equal(false.toString());
-
-            testTemplate = twig({data: '{{ "d" not in "not" }}'});
-            testTemplate.render().should.equal(true.toString());
+        it('should support not in/containment functionality for arrays', async function () {
+            return mapTestDataToAssertions(
+                [
+                    '{{ "a" not in ["a", "b", "c"] }}',
+                    '{{ "d" not in ["a", "b", "c"] }}'
+                ],
+                [false.toString(), true.toString()]
+            );
         });
 
-        it('should support in/containment functionality for objects', function () {
-            let testTemplate;
-
-            testTemplate = twig({data: '{{ "value" in {"key" : "value", "2": "other"} }}'});
-            testTemplate.render().should.equal(true.toString());
-
-            testTemplate = twig({data: '{{ "d" in {"key_a" : "no"} }}'});
-            testTemplate.render().should.equal(false.toString());
+        it('should support in/containment functionality for strings', async function () {
+            return mapTestDataToAssertions(
+                ['{{ "at" in "hat" }}', '{{ "d" in "not" }}'],
+                [true.toString(), false.toString()]
+            );
         });
 
-        it('should support not in/containment functionality for objects', function () {
-            let testTemplate;
-            testTemplate = twig({data: '{{ "value" not in {"key" : "value", "2": "other"} }}'});
-            testTemplate.render().should.equal(false.toString());
-
-            testTemplate = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
-            testTemplate.render().should.equal(true.toString());
+        it('should support not in/containment functionality for strings', async function () {
+            return mapTestDataToAssertions(
+                ['{{ "at" not in "hat" }}', '{{ "d" not in "not" }}'],
+                [false.toString(), true.toString()]
+            );
         });
 
-        it('should support undefined and null for the in operator', function () {
+        it('should support in/containment functionality for objects', async function () {
+            return mapTestDataToAssertions(
+                [
+                    '{{ "value" in {"key" : "value", "2": "other"} }}',
+                    '{{ "d" in {"key_a" : "no"} }}'
+                ],
+                [true.toString(), false.toString()]
+            );
+        });
+
+        it('should support not in/containment functionality for objects', async function () {
+            return mapTestDataToAssertions(
+                [
+                    '{{ "value" not in {"key" : "value", "2": "other"} }}',
+                    '{{ "d" not in {"key_a" : "no"} }}'
+                ],
+                [false.toString(), true.toString()]
+            );
+        });
+
+        it('should support undefined and null for the in operator', async function () {
             const testTemplate = twig({data: '{{ 0 in undefined }} {{ 0 in null }}'});
-            testTemplate.render().should.equal(' ');
+            return testTemplate.render().should.be.fulfilledWith(' ');
         });
 
-        it('should support expressions as object keys', function () {
-            let testTemplate;
-            testTemplate = twig({data: '{% set a = {(foo): "value"} %}{{ a.bar }}'});
-            testTemplate.render({foo: 'bar'}).should.equal('value');
-
-            testTemplate = twig({data: '{{ {(foo): "value"}.bar }}'});
-            testTemplate.render({foo: 'bar'}).should.equal('value');
-
-            testTemplate = twig({data: '{{ {(not foo): "value"}.true }}'});
-            testTemplate.render({foo: false}).should.equal('value');
+        it('should support expressions as object keys', async function () {
+            return mapTestDataToAssertions(
+                [
+                    '{% set a = {(foo): "value"} %}{{ a.bar }}',
+                    '{{ {(foo): "value"}.bar }}',
+                    '{{ {(not foo): "value"}.true }}'
+                ],
+                ['value', 'value', 'value'],
+                [{foo: 'bar'}, {foo: 'bar'}, {foo: false}]
+            );
         });
 
-        it('should not corrupt the stack when accessing a property of an undefined object', function () {
+        it('should not corrupt the stack when accessing a property of an undefined object', async function () {
             const testTemplate = twig({data: '{% if true and somethingUndefined.property is not defined %}ok{% endif %}'});
             const output = testTemplate.render({});
-            output.should.equal('ok');
+            return output.should.be.fulfilledWith('ok');
         });
 
-        it('should support keys as expressions', function () {
+        it('should support keys as expressions', async function () {
             const testTemplate = twig({data: '{% for val in arr %}{{{(val.value):null}|json_encode}}{% endfor %}'});
             const output = testTemplate.render({arr: [{value: 'one'}, {value: 'two'}]});
-            output.should.equal('{"one":null}{"two":null}');
+            return output.should.be.fulfilledWith('{"one":null}{"two":null}');
         });
 
-        it('should support slice shorthand (full form)', function () {
+        it('should support slice shorthand (full form)', async function () {
             const testTemplate = twig({data: '{{ "12345"[1:2] }}'});
             const output = testTemplate.render();
-            output.should.equal('23');
+            return output.should.be.fulfilledWith('23');
         });
 
-        it('should support slice shorthand (omit first)', function () {
+        it('should support slice shorthand (omit first)', async function () {
             const testTemplate = twig({data: '{{ "12345"[:2] }}'});
             const output = testTemplate.render();
-            output.should.equal('12');
+            return output.should.be.fulfilledWith('12');
         });
 
-        it('should support slice shorthand (omit last)', function () {
+        it('should support slice shorthand (omit last)', async function () {
             const testTemplate = twig({data: '{{ "12345"[2:] }}'});
             const output = testTemplate.render();
-            output.should.equal('345');
+            return output.should.be.fulfilledWith('345');
         });
 
-        it('should support slice shorthand for arrays (full form)', function () {
+        it('should support slice shorthand for arrays (full form)', async function () {
             const testTemplate = twig({data: '{{ [1, 2, 3, 4, 5][1:2] }}'});
             const output = testTemplate.render();
-            output.should.equal('2,3');
+            return output.should.be.fulfilledWith('2,3');
         });
 
-        it('should support slice shorthand for arrays (omit first)', function () {
+        it('should support slice shorthand for arrays (omit first)', async function () {
             const testTemplate = twig({data: '{{ [1, 2, 3, 4, 5][:2] }}'});
             const output = testTemplate.render();
-            output.should.equal('1,2');
+            return output.should.be.fulfilledWith('1,2');
         });
 
-        it('should support slice shorthand for arrays (omit last)', function () {
+        it('should support slice shorthand for arrays (omit last)', async function () {
             const testTemplate = twig({data: '{{ [1, 2, 3, 4, 5][2:] }}'});
             const output = testTemplate.render();
-            output.should.equal('3,4,5');
+            return output.should.be.fulfilledWith('3,4,5');
         });
 
-        it('should support parenthesised expressions after test', function () {
+        it('should support parenthesised expressions after test', async function () {
             const testTemplate = twig({data: '{% if true is defined and (true) %}ok!{% endif %}'});
             const output = testTemplate.render();
-            output.should.equal('ok!');
+            return output.should.be.fulfilledWith('ok!');
         });
 
-        it('should support keys as expressions in function parameters', function () {
+        it('should support keys as expressions in function parameters', async function () {
             const testTemplate = twig({data: '{{ func({(foo): \'stuff\'}) }}'});
             const output = testTemplate.render({
                 func() {
@@ -498,7 +588,7 @@ describe('Twig.js Expressions ->', function () {
                 foo: 'bar'
             });
 
-            output.should.equal('ok!');
+            return output.should.be.fulfilledWith('ok!');
         });
     });
 });

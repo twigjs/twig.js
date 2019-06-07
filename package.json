@@ -34,6 +34,9 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.4.5",
+    "awaity": "^1.0.0",
+    "ky": "^0.11.0",
+    "ky-universal": "^0.2.1",
     "locutus": "^2.0.5",
     "minimatch": "3.0.x",
     "walk": "2.3.x"

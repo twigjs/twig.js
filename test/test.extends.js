@@ -3,7 +3,7 @@ const Twig = require('../twig').factory();
 const {twig} = Twig;
 
 describe('Twig.js Extensions ->', function () {
-    it('should be able to extend a meta-type tag', function () {
+    it('should be able to extend a meta-type tag', async function () {
         const flags = {};
 
         Twig.extend(Twig => {
@@ -24,8 +24,8 @@ describe('Twig.js Extensions ->', function () {
                     delete token.match;
                     return token;
                 },
-                parse(token, context, _) {
-                    const name = Twig.expression.parse.apply(this, [token.stack, context]);
+                async parse(token, context, _) {
+                    const name = await Twig.expression.parse.apply(this, [token.stack, context]);
                     const output = '';
 
                     flags[name] = true;
@@ -38,11 +38,12 @@ describe('Twig.js Extensions ->', function () {
             });
         });
 
-        twig({data: '{% flag \'enabled\' %}'}).render();
+        const testTemplate = twig({data: '{% flag \'enabled\' %}'});
+        await testTemplate.render();
         flags.enabled.should.equal(true);
     });
 
-    it('should be able to extend paired tags', function () {
+    it('should be able to extend paired tags', async function () {
         // Demo data
         const App = {
             user: 'john',
@@ -72,12 +73,12 @@ describe('Twig.js Extensions ->', function () {
                     delete token.match;
                     return token;
                 },
-                parse(token, context, chain) {
-                    const level = Twig.expression.parse.apply(this, [token.stack, context]);
+                async parse(token, context, chain) {
+                    const level = await Twig.expression.parse.apply(this, [token.stack, context]);
                     let output = '';
 
                     if (App.users[App.currentUser].level === level) {
-                        output = this.parse(token.output, context);
+                        output = await this.parse(token.output, context);
                     }
 
                     return {
@@ -96,14 +97,18 @@ describe('Twig.js Extensions ->', function () {
 
         const template = twig({data: 'Welcome{% auth \'admin\' %} ADMIN{% endauth %}!'});
 
+        let result;
         App.currentUser = 'john';
-        template.render().should.equal('Welcome ADMIN!');
+        result = await template.render();
+        result.should.equal('Welcome ADMIN!');
 
         App.currentUser = 'tom';
-        template.render().should.equal('Welcome!');
+        result = await template.render();
+        result.should.be.equal('Welcome!');
     });
 
-    it('should be able to extend the same tag twice, replacing it', function () {
+    it('should be able to extend the same tag twice, replacing it', async function () {
+        let testTemplate;
         let result;
 
         Twig.extend(Twig => {
@@ -112,7 +117,7 @@ describe('Twig.js Extensions ->', function () {
                 regex: /^noop$/,
                 next: [],
                 open: true,
-                parse(_) {
+                async parse(_) {
                     return {
                         chain: false,
                         output: 'noop1'
@@ -121,7 +126,8 @@ describe('Twig.js Extensions ->', function () {
             });
         });
 
-        result = twig({data: '{% noop %}'}).render();
+        testTemplate = twig({data: '{% noop %}'});
+        result = await testTemplate.render();
         result.should.equal('noop1');
 
         Twig.extend(Twig => {
@@ -130,7 +136,7 @@ describe('Twig.js Extensions ->', function () {
                 regex: /^noop$/,
                 next: [],
                 open: true,
-                parse(_) {
+                async parse(_) {
                     return {
                         chain: false,
                         output: 'noop2'
@@ -139,17 +145,17 @@ describe('Twig.js Extensions ->', function () {
             });
         });
 
-        result = twig({data: '{% noop %}'}).render();
+        testTemplate = twig({data: '{% noop %}'});
+        result = await testTemplate.render();
         result.should.equal('noop2');
     });
 
-    it('should extend the parent context when extending', function () {
-        const template = twig({
-            path: 'test/templates/extender.twig',
-            async: false
+    it('should extend the parent context when extending', async function () {
+        const testTemplate = await twig({
+            path: 'test/templates/extender.twig'
         });
 
-        const output = template.render();
+        const output = await testTemplate.render();
 
         output.trim().should.equal('ok!');
     });

@@ -11,16 +11,20 @@ describe('Twig.js Performance Regressions ->', function () {
         '{% endif %}\n' +
     '{% endfor %}';
 
-    it('Should not start running slower', function () {
+    it('Should not start running slower', async function () {
         this.timeout(500);
         this.retries(3);
         this.slow(300);
 
         console.time('Should not start running slower ');
+        const results = [];
+
         for (let i = 0; i < 1000; i++) {
-            Twig.twig({
+            const testTemplate = Twig.twig({
                 data: template
-            }).render({
+            });
+
+            const result = testTemplate.render({
                 echoTest: 'Data for echo',
                 items: [
                     {
@@ -33,6 +37,10 @@ describe('Twig.js Performance Regressions ->', function () {
                     }
                 ]
             });
+
+            results.push(result);
         }
+
+        return Promise.all(results);
     });
 });

@@ -1,3 +1,4 @@
+const awaity = require('awaity');
 // ## twig.core.js
 //
 // This file handles template level tokenizing, compiling and parsing.
@@ -684,7 +685,8 @@ module.exports = function (Twig) {
      *
      * @return {string|String} Autoescaped output
      */
-    Twig.output = function (output) {
+    Twig.output = async function (output) {
+        output = await output;
         const {autoescape} = this.options;
 
         if (!autoescape) {
@@ -924,7 +926,7 @@ module.exports = function (Twig) {
      *
      *
      */
-    Twig.Templates.loadRemote = function (location, params, callback, errorCallback) {
+    Twig.Templates.loadRemote = async function (location, params) {
         // Default to the URL so the template is cached.
         const id = typeof params.id === 'undefined' ? location : params.id;
         const cached = Twig.Templates.registry[id];
@@ -932,10 +934,6 @@ module.exports = function (Twig) {
         // Check for existing template
         if (Twig.cache && typeof cached !== 'undefined') {
             // A template is already saved with the given id.
-            if (typeof callback === 'function') {
-                callback(cached);
-            }
-            // TODO: if async, return deferred promise
 
             return cached;
         }
@@ -944,14 +942,9 @@ module.exports = function (Twig) {
         params.parser = params.parser || 'twig';
         params.id = id;
 
-        // Default to async
-        if (typeof params.async === 'undefined') {
-            params.async = true;
-        }
-
         // Assume 'fs' if the loader is not defined
         const loader = this.loaders[params.method] || this.loaders.fs;
-        return loader.call(this, location, params, callback, errorCallback);
+        return loader.call(this, location, params);
     };
 
     // Determine object type
@@ -979,34 +972,28 @@ module.exports = function (Twig) {
      *
      * @return {Promise}
      */
-    Twig.Block.prototype.render = function (parseState, context) {
+    Twig.Block.prototype.render = async function (parseState, context) {
         const originalTemplate = parseState.template;
-        let promise;
+        let value = parseState.parse(this.token.output, context);
 
         parseState.template = this.template;
 
         if (this.token.expression) {
-            promise = Twig.expression.parseAsync.call(parseState, this.token.output, context);
-        } else {
-            promise = parseState.parseAsync(this.token.output, context);
+            value = Twig.expression.parse.call(parseState, this.token.output, context);
         }
 
-        return promise
-            .then(value => {
-                return Twig.expression.parseAsync.call(
-                    parseState,
-                    {
-                        type: Twig.expression.type.string,
-                        value
-                    },
-                    context
-                );
-            })
-            .then(output => {
-                parseState.template = originalTemplate;
+        const output = Twig.expression.parse.call(
+            parseState,
+            {
+                type: Twig.expression.type.string,
+                value: await value
+            },
+            context
+        );
 
-                return output;
-            });
+        parseState.template = originalTemplate;
+
+        return output;
     };
 
     /**
@@ -1111,22 +1098,15 @@ module.exports = function (Twig) {
      *
      * @param {Array} tokens The compiled tokens.
      * @param {Object} context The context to set the state to while parsing.
-     * @param {Boolean} allowAsync Whether to parse asynchronously.
      * @param {Object} blocks Blocks that should override any defined while parsing.
      *
      * @return {String} The rendered tokens.
      *
      */
-    Twig.ParseState.prototype.parse = function (tokens, context, allowAsync) {
+    Twig.ParseState.prototype.parse = async function (tokens, context) {
         const state = this;
         let output = [];
 
-        // Store any error that might be thrown by the promise chain.
-        let err = null;
-
-        // This will be set to isAsync if template renders synchronously
-        let isAsync = true;
-        let promise = null;
         // Track logic chains
         let chain = true;
 
@@ -1158,63 +1138,46 @@ module.exports = function (Twig) {
             }
         }
 
-        promise = Twig.async.forEach(tokens, token => {
-            Twig.log.debug('Twig.ParseState.parse: ', 'Parsing token: ', token);
+        try {
+            await awaity.each(tokens, token => {
+                Twig.log.debug('Twig.ParseState.parse: ', 'Parsing token: ', token);
 
-            switch (token.type) {
-                case Twig.token.type.raw:
-                    output.push(Twig.filters.raw(token.value));
-                    break;
+                let logic;
+                switch (token.type) {
+                    case Twig.token.type.raw:
+                        output.push(Twig.filters.raw(token.value));
+                        break;
 
-                case Twig.token.type.logic:
-                    return Twig.logic.parseAsync.call(state, token.token /* logicToken */, state.context, chain)
-                        .then(parseTokenLogic);
-                case Twig.token.type.comment:
-                    // Do nothing, comments should be ignored
-                    break;
+                    case Twig.token.type.logic:
+                        logic = Twig.logic.parse.call(state, token.token /* logicToken */, state.context, chain);
+                        if (logic instanceof Promise) {
+                            return logic.then(parseTokenLogic);
+                        }
 
-                // Fall through whitespace to output
-                case Twig.token.type.outputWhitespacePre:
-                case Twig.token.type.outputWhitespacePost:
-                case Twig.token.type.outputWhitespaceBoth:
-                case Twig.token.type.output:
-                    Twig.log.debug('Twig.ParseState.parse: ', 'Output token: ', token.stack);
-                    // Parse the given expression in the given context
-                    return Twig.expression.parseAsync.call(state, token.stack, state.context)
-                        .then(outputPush);
-                default:
-                    break;
-            }
-        }).then(() => {
-            output = Twig.output.call(state.template, output);
-            isAsync = false;
+                        parseTokenLogic(logic);
+                        break;
+                    case Twig.token.type.comment:
+                        // Do nothing, comments should be ignored
+                        break;
+
+                    // Fall through whitespace to output
+                    case Twig.token.type.outputWhitespacePre:
+                    case Twig.token.type.outputWhitespacePost:
+                    case Twig.token.type.outputWhitespaceBoth:
+                    case Twig.token.type.output:
+                        Twig.log.debug('Twig.ParseState.parse: ', 'Output token: ', token.stack);
+                        // Parse the given expression in the given context
+                        return Twig.expression.parse.call(state, token.stack, state.context).then(outputPush);
+                    default:
+                        break;
+                }
+            });
+
+            output = Twig.output.call(state.template, Promise.all(output));
             return output;
-        }).catch(error => {
-            if (allowAsync) {
-                handleException(state, error);
-            }
-
-            err = error;
-        });
-
-        // If `allowAsync` we will always return a promise since we do not
-        // know in advance if we are going to run asynchronously or not.
-        if (allowAsync) {
-            return promise;
+        } catch (error) {
+            handleException(state, error);
         }
-
-        // Handle errors here if we fail synchronously.
-        if (err !== null) {
-            return handleException(state, err);
-        }
-
-        // If `allowAsync` is not true we should not allow the user
-        // to use asynchronous functions or filters.
-        if (isAsync) {
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-        }
-
-        return output;
     };
 
     /**
@@ -1314,65 +1277,60 @@ module.exports = function (Twig) {
         return blocks;
     };
 
-    Twig.Template.prototype.render = function (context, params, allowAsync) {
+    Twig.Template.prototype.render = async function (context, params) {
         const template = this;
 
         params = params || {};
 
-        return Twig.async.potentiallyAsync(template, allowAsync, () => {
-            const state = new Twig.ParseState(template, params.blocks);
+        const state = new Twig.ParseState(template, params.blocks);
 
-            return state.parseAsync(template.tokens, context)
-                .then(output => {
-                    let parentTemplate;
-                    let url;
+        const output = await state.parse(template.tokens, context);
+        let parentTemplate;
+        let url;
 
-                    if (template.parentTemplate !== null) {
-                        // This template extends another template
+        if (template.parentTemplate !== null) {
+            // This template extends another template
 
-                        if (template.options.allowInlineIncludes) {
-                            // The template is provided inline
-                            parentTemplate = Twig.Templates.load(template.parentTemplate);
+            if (template.options.allowInlineIncludes) {
+                // The template is provided inline
+                parentTemplate = Twig.Templates.load(template.parentTemplate);
 
-                            if (parentTemplate) {
-                                parentTemplate.options = template.options;
-                            }
-                        }
+                if (parentTemplate) {
+                    parentTemplate.options = template.options;
+                }
+            }
 
-                        // Check for the template file via include
-                        if (!parentTemplate) {
-                            url = Twig.path.parsePath(template, template.parentTemplate);
+            // Check for the template file via include
+            if (!parentTemplate) {
+                url = Twig.path.parsePath(template, template.parentTemplate);
 
-                            parentTemplate = Twig.Templates.loadRemote(url, {
-                                method: template.getLoaderMethod(),
-                                base: template.base,
-                                async: false,
-                                id: url,
-                                options: template.options
-                            });
-                        }
-
-                        template.parentTemplate = parentTemplate;
-
-                        return template.parentTemplate.renderAsync(
-                            state.context,
-                            {
-                                blocks: state.getBlocks(false),
-                                isInclude: true
-                            }
-                        );
-                    }
-
-                    if (params.isInclude === true) {
-                        return output;
-                    }
-
-                    return output.valueOf();
+                parentTemplate = await Twig.Templates.loadRemote(url, {
+                    method: template.getLoaderMethod(),
+                    base: template.base,
+                    id: url,
+                    options: template.options
                 });
-        });
+            }
+
+            template.parentTemplate = parentTemplate;
+
+            return template.parentTemplate.render(
+                state.context,
+                {
+                    blocks: state.getBlocks(false),
+                    isInclude: true
+                }
+            );
+        }
+
+        if (params.isInclude === true) {
+            return output;
+        }
+
+        return output.valueOf();
     };
 
-    Twig.Template.prototype.importFile = function (file) {
+    Twig.Template.prototype.importFile = async function (file) {
         let url = null;
         let subTemplate;
         if (!this.url && this.options.allowInlineIncludes) {
@@ -1380,10 +1338,9 @@ module.exports = function (Twig) {
             subTemplate = Twig.Templates.load(file);
 
             if (!subTemplate) {
-                subTemplate = Twig.Templates.loadRemote(url, {
+                subTemplate = await Twig.Templates.loadRemote(url, {
                     id: file,
                     method: this.getLoaderMethod(),
-                    async: false,
                     path: file,
                     options: this.options
                 });
@@ -1404,7 +1361,6 @@ module.exports = function (Twig) {
         subTemplate = Twig.Templates.loadRemote(url, {
             method: this.getLoaderMethod(),
             base: this.base,
-            async: false,
             options: this.options,
             id: url
         });

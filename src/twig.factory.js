@@ -19,7 +19,6 @@ module.exports = function factory() {
     require('./twig.parser.twig')(Twig);
     require('./twig.path')(Twig);
     require('./twig.tests')(Twig);
-    require('./twig.async')(Twig);
     require('./twig.exports')(Twig);
 
     Twig.exports.factory = factory;

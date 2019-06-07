@@ -30,22 +30,28 @@ describe('Twig.js Loaders ->', function () {
             });
         });
         it('should load a simple template from a custom loader', function () {
-            twig({
+            return twig({
                 method: 'custom',
                 name: 'customLoaderSimple'
-            }).render({value: 'test succeeded'}).should.equal('the value is: test succeeded');
+            }).then(
+                testTemplate => testTemplate.render({value: 'test succeeded'})
+            ).should.be.fulfilledWith('the value is: test succeeded');
         });
         it('should load a template that includes another from a custom loader', function () {
-            twig({
+            return twig({
                 method: 'custom',
                 name: 'customLoaderInclude'
-            }).render({value: 'test succeeded'}).should.equal('include others from the same loader method - the value is: test succeeded');
+            }).then(
+                testTemplate => testTemplate.render({value: 'test succeeded'})
+            ).should.be.fulfilledWith('include others from the same loader method - the value is: test succeeded');
         });
         it('should load a template that extends another from a custom loader', function () {
-            twig({
+            return twig({
                 method: 'custom',
                 name: 'customLoaderComplex'
-            }).render({value: 'test succeeded'}).should.equal('This lets you extend other templates and include others from the same loader method - the value is: test succeeded');
+            }).then(
+                testTemplate => testTemplate.render({value: 'test succeeded'})
+            ).should.be.fulfilledWith('This lets you extend other templates and include others from the same loader method - the value is: test succeeded');
         });
         it('should remove a registered loader', function () {
             Twig.extend(Twig => {

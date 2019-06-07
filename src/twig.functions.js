@@ -255,7 +255,7 @@ module.exports = function (Twig) {
          * @param {boolean} [ignoreMissing=false]
          * @returns {string}
          */
-        source(name, ignoreMissing) {
+        async source(name, ignoreMissing) {
             let templateSource;
             let templateFound = false;
             const isNodeEnvironment = typeof module !== 'undefined' && typeof module.exports !== 'undefined' && typeof window === 'undefined';
@@ -288,7 +288,7 @@ module.exports = function (Twig) {
             //
             // on exception, log it
             try {
-                templateSource = Twig.Templates.loadRemote(name, params);
+                templateSource = await Twig.Templates.loadRemote(name, params);
 
                 // If the template is undefined or null, set the template to an empty string and do NOT flip the
                 // boolean indicating we found the template
