@@ -20,52 +20,34 @@ module.exports = function (Twig) {
     Twig.lib.date = require('locutus/php/datetime/date');
     Twig.lib.boolval = require('locutus/php/var/boolval');
 
-    const {toString} = Object.prototype;
-
     Twig.lib.is = function (type, obj) {
         if (typeof obj === 'undefined' || obj === null) {
             return false;
         }
 
-        if (type === 'Array' && Array.isArray) {
-            return Array.isArray(obj);
+        switch (type) {
+            case 'Array':
+                return Array.isArray(obj);
+            case 'Date':
+                return obj instanceof Date;
+            case 'String':
+                return (typeof obj === 'string' || obj instanceof String);
+            case 'Number':
+                return (typeof obj === 'number' || obj instanceof Number);
+            case 'Function':
+                return (typeof obj === 'function');
+            case 'Object':
+                return obj instanceof Object;
+            default:
+                return false;
         }
-
-        return toString.call(obj).slice(8, -1) === type;
-    };
-
-    Twig.lib.isArray = Array.isArray || function (obj) {
-        return toString.call(obj).slice(8, -1) === 'Array';
-    };
-
-    // Shallow-copy an object
-    Twig.lib.copy = function (src) {
-        const target = {};
-        let key;
-        for (key in src) {
-            if (Object.hasOwnProperty.call(src, key)) {
-                target[key] = src[key];
-            }
-        }
-
-        return target;
-    };
-
-    Twig.lib.extend = function (src, add) {
-        const keys = Object.keys(add || {});
-        let i;
-
-        i = keys.length;
-
-        while (i--) {
-            src[keys[i]] = add[keys[i]];
-        }
-
-        return src;
     };
 
     Twig.lib.replaceAll = function (string, search, replace) {
-        return string.split(search).join(replace);
+        // Escape possible regular expression syntax
+        const searchEscaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        return string.replace(new RegExp(searchEscaped, 'g'), replace);
     };
 
     // Chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
@@ -74,7 +56,7 @@ module.exports = function (Twig) {
         let x = 0;
         const len = arr.length;
 
-        if (size < 1 || !Twig.lib.is('Array', arr)) {
+        if (size < 1 || !Array.isArray(arr)) {
             return [];
         }
 

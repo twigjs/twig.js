@@ -161,7 +161,7 @@ module.exports = function (Twig) {
                         const resultValue = obj[key];
 
                         result.push(
-                            (Twig.lib.is('Object', resultValue) || Twig.lib.isArray(resultValue)) ?
+                            (Twig.lib.is('Object', resultValue) || Array.isArray(resultValue)) ?
                                 serialize(resultValue, resultKey) :
                                 encodeURIComponent(resultKey) + '=' + encodeURIComponent(resultValue)
                         );

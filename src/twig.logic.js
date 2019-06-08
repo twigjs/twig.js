@@ -275,7 +275,7 @@ module.exports = function (Twig) {
 
                 // Run once for each iteration of the loop
                 const loop = function (key, value) {
-                    const innerContext = Twig.lib.copy(context);
+                    const innerContext = {...context};
 
                     innerContext[token.valueVar] = value;
 
@@ -315,7 +315,7 @@ module.exports = function (Twig) {
 
                 return Twig.expression.parseAsync.call(state, token.expression, context)
                     .then(result => {
-                        if (Twig.lib.isArray(result)) {
+                        if (Array.isArray(result)) {
                             len = result.length;
                             return Twig.async.forEach(result, value => {
                                 const key = index;
@@ -401,7 +401,7 @@ module.exports = function (Twig) {
                             Otherwise we have a context with infinite recursion.
                             Fixes #341
                         */
-                            value = Twig.lib.copy(value);
+                            value = {...value};
                         }
 
                         context[key] = value;
@@ -660,7 +660,10 @@ module.exports = function (Twig) {
                         const useState = new Twig.ParseState(useTemplate);
                         return useState.parseAsync(useTemplate.tokens)
                             .then(() => {
-                                Twig.lib.extend(state.template.blocks.imported, useState.getBlocks());
+                                state.template.blocks.imported = {
+                                    ...state.template.blocks.imported,
+                                    ...useState.getBlocks()
+                                };
                             });
                     })
                     .then(() => {
@@ -709,7 +712,7 @@ module.exports = function (Twig) {
             },
             parse(token, context, chain) {
                 // Resolve filename
-                const innerContext = token.only ? {} : Twig.lib.copy(context);
+                let innerContext = token.only ? {} : {...context};
                 const {ignoreMissing} = token;
                 const state = this;
                 let promise = null;
@@ -720,7 +723,10 @@ module.exports = function (Twig) {
                 } else {
                     promise = Twig.expression.parseAsync.call(state, token.withStack, context)
                         .then(withContext => {
-                            Twig.lib.extend(innerContext, withContext);
+                            innerContext = {
+                                ...innerContext,
+                                ...withContext
+                            };
                         });
                 }
 
@@ -1077,12 +1083,12 @@ module.exports = function (Twig) {
                 let state = this;
 
                 if (!token.only) {
-                    embedContext = Twig.lib.copy(context);
+                    embedContext = {...context};
                 }
 
                 if (token.withStack !== undefined) {
                     promise = Twig.expression.parseAsync.call(state, token.withStack, context).then(withContext => {
-                        Twig.lib.extend(embedContext, withContext);
+                        embedContext = {...embedContext, ...withContext};
                     });
                 }
 
@@ -1180,7 +1186,7 @@ module.exports = function (Twig) {
                 let promise = Twig.Promise.resolve();
 
                 if (!token.only) {
-                    innerContext = Twig.lib.copy(context);
+                    innerContext = {...context};
                 }
 
                 if (token.withStack !== undefined) {
@@ -1312,7 +1318,7 @@ module.exports = function (Twig) {
 
                 // Handle multiple regular expressions per type.
                 regexArray = tokenRegex;
-                if (!Twig.lib.isArray(tokenRegex)) {
+                if (!Array.isArray(tokenRegex)) {
                     regexArray = [tokenRegex];
                 }
 
