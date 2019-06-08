@@ -1,15 +1,28 @@
-var webpack = require('webpack');
-var TerserJsPlugin = require('terser-webpack-plugin');
+const TerserJsPlugin = require('terser-webpack-plugin');
 
-var env = process.env.WEBPACK_ENV;
-
-module.exports = {
+const serverBuild = {
     mode: 'production',
     entry: './src/twig.js',
-    target: env === 'browser' ? 'web' : 'node',
+    target: 'node',
+    node: false,
+    output: {
+        path: __dirname,
+        filename: 'twig.js',
+        library: 'Twig',
+        libraryTarget: 'umd'
+    },
+    optimization: {
+        minimize: false
+    }
+};
+
+const clientBuild = {
+    mode: 'production',
+    entry: './src/twig.js',
+    target: 'web',
     node: {
         __dirname: false,
-        __filename: false,
+        __filename: false
     },
     module: {
         rules: [
@@ -30,7 +43,7 @@ module.exports = {
     },
     output: {
         path: __dirname,
-        filename: env === 'browser' ? 'twig.min.js' : 'twig.js',
+        filename: 'twig.min.js',
         library: 'Twig',
         libraryTarget: 'umd'
     },
@@ -41,3 +54,5 @@ module.exports = {
         })]
     }
 };
+
+module.exports = [serverBuild, clientBuild];
