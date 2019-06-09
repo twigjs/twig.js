@@ -1190,7 +1190,7 @@ module.exports = function (Twig) {
 
                     matchFound = false;
 
-                    if (Twig.lib.isArray(regex)) {
+                    if (Array.isArray(regex)) {
                         regexI = regex.length;
                         while (regexI-- > 0) {
                             expression = expression.replace(regex[regexI], matchFunction);
@@ -1280,7 +1280,7 @@ module.exports = function (Twig) {
         const state = this;
 
         // If the token isn't an array, make it one.
-        if (!Twig.lib.isArray(tokens)) {
+        if (!Array.isArray(tokens)) {
             tokens = [tokens];
         }
 

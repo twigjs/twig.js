@@ -1078,11 +1078,13 @@ module.exports = function (Twig) {
             blocks = this.template.parentTemplate.getBlocks();
         }
 
-        // Override with any blocks defined within the associated template
-        Twig.lib.extend(blocks, this.template.getBlocks());
-
-        // Override with any blocks specified when initialized
-        Twig.lib.extend(blocks, this.overrideBlocks);
+        blocks = {
+            ...blocks,
+            // Override with any blocks defined within the associated template
+            ...this.template.getBlocks(),
+            // Override with any blocks specified when initialized
+            ...this.overrideBlocks
+        };
 
         return blocks;
     };
@@ -1305,11 +1307,13 @@ module.exports = function (Twig) {
     Twig.Template.prototype.getBlocks = function () {
         let blocks = {};
 
-        // Get any blocks imported from other templates
-        blocks = Twig.lib.extend(blocks, this.blocks.imported);
-
-        // Override with any blocks defined within the template itself
-        Twig.lib.extend(blocks, this.blocks.defined);
+        blocks = {
+            ...blocks,
+            // Get any blocks imported from other templates
+            ...this.blocks.imported,
+            // Override with any blocks defined within the template itself
+            ...this.blocks.defined
+        };
 
         return blocks;
     };
