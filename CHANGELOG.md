@@ -1,3 +1,44 @@
+Version 1.14.0, unreleased
+-----------------------------------
+Major improvements:
+* Add [Babel](https://babeljs.io) to the webpack build
+
+Minor improvements:
+* Nothing yet
+
+Version 1.13.3, released 2019-05-03
+-----------------------------------
+Minor improvements:
+* Allow project development on Windows ([#611](https://github.com/twigjs/twig.js/pull/611))
+* Add possibility to define namespace without slash at the end of the path ([#609](https://github.com/twigjs/twig.js/pull/609))
+* Update `verbatim` tag ([#584](https://github.com/twigjs/twig.js/pull/584))
+
+Version 1.13.2, released 2019-01-22
+-----------------------------------
+Minor improvements:
+* fix for not autoescaping includes having a parent ([#606](https://github.com/twigjs/twig.js/pull/606))
+
+Version 1.13.1, released 2019-01-19
+-----------------------------------
+Minor improvements:
+* Fix for not autoescaping includes ([#604](https://github.com/twigjs/twig.js/pull/604))
+
+Version 1.13.0, released 2019-01-09
+-----------------------------------
+
+Major improvements:
+* Unminified sources in the npm package ([#598](https://github.com/twigjs/twig.js/pull/598))
+
+Minor improvements:
+* Multiple namespace performance improvement ([#580](https://github.com/twigjs/twig.js/pull/580))
+* `|url_encode` can now extend parameters ([#588](https://github.com/twigjs/twig.js/pull/588))
+* Fix `.startsWith` and `.endsWith` with `.indexOf` for IE ([#587](https://github.com/twigjs/twig.js/pull/587))
+* Autoescaping improvement ([#577](https://github.com/twigjs/twig.js/pull/577))
+* Support null-coalescing operator `??` ([#575](https://github.com/twigjs/twig.js/pull/575))
+* Add `verbatim` tag ([#574](https://github.com/twigjs/twig.js/pull/574))
+* Fix bug in `for` loop ([#573](https://github.com/twigjs/twig.js/pull/573))
+* Fix twig `{% if(x) %}` and `{% elseif(x) %}` blocks parsing error ([#570](https://github.com/twigjs/twig.js/pull/570))
+
 Version 1.12.0, released 2018-06-11
 -----------------------------------
 

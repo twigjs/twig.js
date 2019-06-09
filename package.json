@@ -2,7 +2,7 @@
   "author": "John Roepke <john@justjohn.us> (http://john.sh/)",
   "name": "twig",
   "description": "JS port of the Twig templating language.",
-  "version": "1.12.0",
+  "version": "1.14.0",
   "homepage": "https://github.com/twigjs/twig.js",
   "licenses": [
     {
@@ -16,7 +16,7 @@
   },
   "main": "twig.js",
   "engines": {
-    "node": ">=4.0"
+    "node": ">=6.0"
   },
   "bin": {
     "twigjs": "./bin/twigjs"
@@ -24,27 +24,49 @@
   "scripts": {
     "preversion": "npm test && git diff --exit-code --quiet",
     "postversion": "git push origin master && git push origin master --tags",
-    "test": "npm run build && mocha -r should",
-    "build-node": "webpack",
-    "build-browser": "WEBPACK_ENV=browser webpack",
-    "build": "npm run build-node && npm run build-browser"
+    "pretest": "npm run build",
+    "test": "mocha -r should",
+    "build": "webpack",
+    "posttest": "xo src lib bin"
   },
   "dependencies": {
-    "minimatch": "3.0.x",
+    "@babel/runtime": "^7.4.5",
     "locutus": "^2.0.5",
+    "minimatch": "3.0.x",
     "walk": "2.3.x"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-transform-runtime": "^7.4.4",
+    "@babel/preset-env": "^7.4.5",
+    "babel-loader": "^8.0.6",
+    "eslint-plugin-mocha": "^5.3.0",
     "mocha": "^4.1.0",
-    "should": "11.1.x",
-    "sinon": "^1.17.6",
-    "sinon-chai": "^2.8.0",
+    "should": "^13.2.3",
+    "should-sinon": "0.0.6",
+    "sinon": "^7.3.2",
+    "terser-webpack-plugin": "^1.2.3",
     "tokenizer": "1.1.x",
-    "webpack": "^4.12.0",
-    "webpack-cli": "^3.0.3"
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.0.3",
+    "xo": "^0.24.0"
   },
   "browser": {
     "fs": false
+  },
+  "xo": {
+    "space": 4,
+    "envs": [
+      "browser",
+      "node",
+      "mocha"
+    ],
+    "plugins": [
+      "mocha"
+    ],
+    "rules": {
+      "prefer-arrow-callback": 0,
+      "mocha/prefer-arrow-callback": 2
+    }
   }
 }

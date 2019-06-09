@@ -6,8 +6,7 @@
 // LICENSES.md file.
 //
 
-module.exports = function(Twig) {
-
+module.exports = function (Twig) {
     // Namespace for libraries
     Twig.lib = { };
 
@@ -16,61 +15,48 @@ module.exports = function(Twig) {
     Twig.lib.round = require('locutus/php/math/round');
     Twig.lib.max = require('locutus/php/math/max');
     Twig.lib.min = require('locutus/php/math/min');
-    Twig.lib.strip_tags = require('locutus/php/strings/strip_tags');
+    Twig.lib.stripTags = require('locutus/php/strings/strip_tags');
     Twig.lib.strtotime = require('locutus/php/datetime/strtotime');
     Twig.lib.date = require('locutus/php/datetime/date');
     Twig.lib.boolval = require('locutus/php/var/boolval');
 
-    var toString = Object.prototype.toString;
-
-    Twig.lib.is = function(type, obj) {
-        if (typeof obj === 'undefined' || obj === null)
+    Twig.lib.is = function (type, obj) {
+        if (typeof obj === 'undefined' || obj === null) {
             return false;
-
-        if (type === 'Array' && Array.isArray)
-            return Array.isArray(obj);
-
-        return toString.call(obj).slice(8, -1) === type;
-    };
-
-    Twig.lib.isArray = Array.isArray || function(obj) {
-        return toString.call(obj).slice(8, -1) === 'Array';
-    }
-
-    // shallow-copy an object
-    Twig.lib.copy = function(src) {
-        var target = {},
-            key;
-        for (key in src)
-            target[key] = src[key];
-
-        return target;
-    };
-
-    Twig.lib.extend = function (src, add) {
-        var keys = Object.keys(add || {}),
-            i;
-
-        i = keys.length;
-
-        while (i--) {
-            src[keys[i]] = add[keys[i]];
         }
 
-        return src;
+        switch (type) {
+            case 'Array':
+                return Array.isArray(obj);
+            case 'Date':
+                return obj instanceof Date;
+            case 'String':
+                return (typeof obj === 'string' || obj instanceof String);
+            case 'Number':
+                return (typeof obj === 'number' || obj instanceof Number);
+            case 'Function':
+                return (typeof obj === 'function');
+            case 'Object':
+                return obj instanceof Object;
+            default:
+                return false;
+        }
     };
 
-    Twig.lib.replaceAll = function(string, search, replace) {
-        return string.split(search).join(replace);
+    Twig.lib.replaceAll = function (string, search, replace) {
+        // Escape possible regular expression syntax
+        const searchEscaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        return string.replace(new RegExp(searchEscaped, 'g'), replace);
     };
 
-    // chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
+    // Chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
     Twig.lib.chunkArray = function (arr, size) {
-        var returnVal = [],
-            x = 0,
-            len = arr.length;
+        const returnVal = [];
+        let x = 0;
+        const len = arr.length;
 
-        if (size < 1 || !Twig.lib.is("Array", arr)) {
+        if (size < 1 || !Array.isArray(arr)) {
             return [];
         }
 

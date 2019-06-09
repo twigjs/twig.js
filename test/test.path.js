@@ -1,78 +1,75 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+const path = require('path');
 
-describe("Twig.js Path ->", function() {
-    var chai = require("chai"),
-        sinon = require("sinon"),
-        sinonChai = require("sinon-chai");
+const Twig = require('../twig').factory();
 
-    before(function() {
-        chai.Should();
-        chai.use(sinonChai);
-    });
+describe('Twig.js Path ->', function () {
+    const sinon = require('sinon');
+    /* eslint-disable-next-line import/no-unassigned-import */
+    require('should-sinon');
 
-    describe("relativePath ->", function() {
-        var relativePath;
+    describe('relativePath ->', function () {
+        let relativePath;
 
-        before(function() {
+        before(function () {
             relativePath = Twig.path.relativePath;
         });
 
-        it("should throw an error if trying to get a relative path in an inline template", function() {
+        it('should throw an error if trying to get a relative path in an inline template', function () {
+            /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
             (function () {
                 relativePath({});
-            }).should.throw("Cannot extend an inline template.");
+            }).should.throw('Cannot extend an inline template.');
         });
 
-        it("should give the full path to a file when file is passed", function() {
-            relativePath({ url: "http://www.test.com/test.twig"}, "templates/myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
-            relativePath({ path: "test/test.twig"}, "templates/myFile.twig").should.equal("test/templates/myFile.twig");
+        it('should give the full path to a file when file is passed', function () {
+            relativePath({url: 'http://www.test.com/test.twig'}, 'templates/myFile.twig').should.equal('http://www.test.com/templates/myFile.twig');
+            relativePath({path: 'test/test.twig'}, 'templates/myFile.twig').should.equal(path.join('test/templates/myFile.twig'));
         });
 
-        it("should ascend directories", function() {
-            relativePath({ url: "http://www.test.com/templates/../test.twig"}, "myFile.twig").should.equal("http://www.test.com/myFile.twig");
-            relativePath({ path: "test/templates/../test.twig"}, "myFile.twig").should.equal("test/myFile.twig");
+        it('should ascend directories', function () {
+            relativePath({url: 'http://www.test.com/templates/../test.twig'}, 'myFile.twig').should.equal('http://www.test.com/myFile.twig');
+            relativePath({path: 'test/templates/../test.twig'}, 'myFile.twig').should.equal(path.join('test/myFile.twig'));
         });
 
-        it("should respect relative directories", function() {
-            relativePath({ url: "http://www.test.com/templates/./test.twig"}, "myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
-            relativePath({ path: "test/templates/./test.twig"}, "myFile.twig").should.equal("test/templates/myFile.twig");
+        it('should respect relative directories', function () {
+            relativePath({url: 'http://www.test.com/templates/./test.twig'}, 'myFile.twig').should.equal('http://www.test.com/templates/myFile.twig');
+            relativePath({path: 'test/templates/./test.twig'}, 'myFile.twig').should.equal(path.join('test/templates/myFile.twig'));
         });
 
-        describe("url ->", function() {
-            it("should use the url if no base is specified", function() {
-                relativePath({ url: "http://www.test.com/test.twig"}).should.equal("http://www.test.com/");
+        describe('url ->', function () {
+            it('should use the url if no base is specified', function () {
+                relativePath({url: 'http://www.test.com/test.twig'}).should.equal('http://www.test.com/');
             });
 
-            it("should use the base if base is specified", function() {
-                relativePath({ url: "http://www.test.com/test.twig", base: "myTest" }).should.equal("myTest/");
+            it('should use the base if base is specified', function () {
+                relativePath({url: 'http://www.test.com/test.twig', base: 'myTest'}).should.equal('myTest/');
             });
         });
 
-        describe("path ->", function() {
-            it("should use the path if no base is specified", function() {
-                relativePath({ path: "test/test.twig"}).should.equal("test/");
+        describe('path ->', function () {
+            it('should use the path if no base is specified', function () {
+                relativePath({path: 'test/test.twig'}).should.equal(path.join('test/'));
             });
 
-            it("should use the base if base is specified", function() {
-                relativePath({ path: "test/test.twig", base: "myTest" }).should.equal("myTest/");
+            it('should use the base if base is specified', function () {
+                relativePath({path: 'test/test.twig', base: 'myTest'}).should.equal(path.join('myTest/'));
             });
         });
     });
 
-    describe("parsePath ->", function() {
-        var parsePath;
+    describe('parsePath ->', function () {
+        let parsePath;
 
-        before(function() {
+        before(function () {
             parsePath = Twig.path.parsePath;
         });
 
-        it("should fall back to relativePath if the template has no namespaces defined", function() {
-            var relativePathStub = sinon.stub(Twig.path, "relativePath");
+        it('should fall back to relativePath if the template has no namespaces defined', function () {
+            const relativePathStub = sinon.stub(Twig.path, 'relativePath');
 
-            parsePath({ options: {} });
+            parsePath({options: {}});
 
-            relativePathStub.should.have.been.called;
+            relativePathStub.should.be.called();
         });
     });
 });

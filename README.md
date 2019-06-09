@@ -1,6 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/twigjs/twig.js.png?label=ready&title=Ready)](https://waffle.io/twigjs/twig.js)
 [![Known Vulnerabilities](https://snyk.io/test/github/twigjs/twig.js/badge.svg)](https://snyk.io/test/github/twigjs/twig.js)
-[![Build Status](https://secure.travis-ci.org/twigjs/twig.js.svg)](http://travis-ci.org/#!/twigjs/twig.js)
+[![Build Status](https://secure.travis-ci.org/twigjs/twig.js.svg)](http://travis-ci.org/twigjs/twig.js)
 [![NPM version](https://badge.fury.io/js/twig.svg)](http://badge.fury.io/js/twig)
 [![Gitter](https://badges.gitter.im/twigjs/twig.js.svg)](https://gitter.im/twigjs/twig.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -120,11 +120,14 @@ An [Express 2 Example](https://github.com/twigjs/twig.js/wiki/Express-2) is avai
 
 # Contributing
 
-If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js.
+If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in `src/*.js`.
 
 twig.js is built by running `npm run build`
 
 For more details on getting setup, see the [contributing page](https://github.com/twigjs/twig.js/wiki/Contributing) on the wiki.
+
+## Environment Requirements
+When developing on Windows, the repository must be checked out **without** automatic conversion of LF to CRLF. Failure to do so will cause tests that would otherwise pass on Linux or Mac to fail instead.
 
 ## Tests
 

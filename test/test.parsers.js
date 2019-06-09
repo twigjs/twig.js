@@ -1,11 +1,10 @@
-var Twig = (Twig || require("../twig")).factory(),
-    twig = twig || Twig.twig;
+const Twig = require('../twig').factory();
 
-describe("Twig.js Parsers ->", function() {
-    describe("custom parser ->", function() {
-        it("should define a custom parser", function() {
-            Twig.extend(function(Twig) {
-                var parser = function(params) {
+describe('Twig.js Parsers ->', function () {
+    describe('custom parser ->', function () {
+        it('should define a custom parser', function () {
+            Twig.extend(Twig => {
+                const parser = function (params) {
                     return '[CUSTOM PARSER] ' + params.data;
                 };
 
@@ -14,19 +13,19 @@ describe("Twig.js Parsers ->", function() {
             });
         });
 
-        it("should run the data through the custom parser", function() {
-            Twig.extend(function(Twig) {
-                var params = {
+        it('should run the data through the custom parser', function () {
+            Twig.extend(Twig => {
+                const params = {
                     data: 'This is a test template.'
                 };
-                var template = Twig.Templates.parsers.custom(params);
+                const template = Twig.Templates.parsers.custom(params);
 
                 template.should.equal('[CUSTOM PARSER] This is a test template.');
             });
         });
 
-        it("should remove a registered parser", function() {
-            Twig.extend(function(Twig) {
+        it('should remove a registered parser', function () {
+            Twig.extend(Twig => {
                 Twig.Templates.unRegisterParser('custom');
                 Twig.Templates.parsers.should.not.have.property('custom');
             });
