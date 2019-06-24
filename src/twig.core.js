@@ -692,22 +692,18 @@ module.exports = function (Twig) {
         }
 
         const strategy = (typeof autoescape === 'string') ? autoescape : 'html';
-        let i = 0;
-        const len = output.length;
-        let str = '';
 
-        // [].map would be better but it's not supported by IE8-
-        const escapedOutput = new Array(len);
-        for (i = 0; i < len; i++) {
-            str = output[i];
-
-            if (str && (str.twigMarkup !== true && str.twigMarkup !== strategy) &&
-                 !(strategy === 'html' && str.twigMarkup === 'html_attr')) {
+        const escapedOutput = output.map(str => {
+            if (
+                str &&
+                (str.twigMarkup !== true && str.twigMarkup !== strategy) &&
+                !(strategy === 'html' && str.twigMarkup === 'html_attr')
+            ) {
                 str = Twig.filters.escape(str, [strategy]);
             }
 
-            escapedOutput[i] = str;
-        }
+            return str;
+        });
 
         if (escapedOutput.length === 0) {
             return '';
