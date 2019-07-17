@@ -73,6 +73,15 @@ describe('Twig.js Expression Operators ->', function () {
             outputT.should.equal('two');
             outputF.should.equal('two');
         });
+
+        it('should support the null-coalescing operator for true conditions on objects or arrays', function () {
+            const testTemplate = twig({data: '{% set b = a ?? "nope" %}{% for item in b %}{{item}}{% endfor %}'});
+            const outputArr = testTemplate.render({a: [1,2]});
+            const outputObj = testTemplate.render({a: {b:3, c:4}});
+
+            outputArr.should.equal('12');
+            outputObj.should.equal('34');
+        });
     });
 
     describe('b-and ->', function () {
