@@ -24,6 +24,8 @@ module.exports = function (Twig) {
         endset: 'Twig.logic.type.endset',
         filter: 'Twig.logic.type.filter',
         endfilter: 'Twig.logic.type.endfilter',
+        apply: 'Twig.logic.type.apply',
+        endapply: 'Twig.logic.type.endapply',
         shortblock: 'Twig.logic.type.shortblock',
         block: 'Twig.logic.type.block',
         endblock: 'Twig.logic.type.endblock',
@@ -511,6 +513,59 @@ module.exports = function (Twig) {
              */
             type: Twig.logic.type.endfilter,
             regex: /^endfilter$/,
+            next: [],
+            open: false
+        },
+        {
+            /**
+             * Apply logic tokens.
+             *
+             *  Format: {% apply upper %} or {% apply lower|escape %}
+             */
+            type: Twig.logic.type.apply,
+            regex: /^apply\s+(.+)$/,
+            next: [
+                Twig.logic.type.endapply
+            ],
+            open: true,
+            compile(token) {
+                const expression = '|' + token.match[1].trim();
+                // Compile the expression.
+                token.stack = Twig.expression.compile.call(this, {
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }).stack;
+                delete token.match;
+                return token;
+            },
+            parse(token, context, chain) {
+                const state = this;
+
+                return state.parseAsync(token.output, context)
+                    .then(output => {
+                        const stack = [{
+                            type: Twig.expression.type.string,
+                            value: output
+                        }].concat(token.stack);
+
+                        return Twig.expression.parseAsync.call(state, stack, context);
+                    })
+                    .then(output => {
+                        return {
+                            chain,
+                            output
+                        };
+                    });
+            }
+        },
+        {
+            /**
+             * End apply logic tokens.
+             *
+             *  Format: {% endapply %}
+             */
+            type: Twig.logic.type.endapply,
+            regex: /^endapply$/,
             next: [],
             open: false
         },

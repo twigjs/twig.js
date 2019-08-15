@@ -37,4 +37,12 @@ describe('Twig.js Tags ->', function () {
             ' world'
         );
     });
+
+    it('should support apply upper', function () {
+        twig({
+            data: '{% apply upper %}twigjs{% endapply %}'
+        }).render().should.equal(
+            'TWIGJS'
+        );
+    });
 });
