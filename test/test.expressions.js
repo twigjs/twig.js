@@ -305,12 +305,14 @@ describe('Twig.js Expressions ->', function () {
             const testTemplate = twig({data: '{{ a starts with "f" }}'});
             testTemplate.render({a: 'foo'}).should.equal('true');
             testTemplate.render({a: 'bar'}).should.equal('false');
+            testTemplate.render({}).should.equal('false');
         });
 
         it('should support ends with', function () {
             const testTemplate = twig({data: '{{ a ends with "o" }}'});
             testTemplate.render({a: 'foo'}).should.equal('true');
             testTemplate.render({a: 'bar'}).should.equal('false');
+            testTemplate.render({}).should.equal('false');
         });
 
         it('should correctly cast arrays', function () {
