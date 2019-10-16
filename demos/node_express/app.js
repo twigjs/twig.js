@@ -1,8 +1,9 @@
-var twig = require("../../twig")
+var twig = require("twig")
     , _ = require("underscore")._
 	, markdown = require("markdown")
     , express = require('express')
-    , app = express.createServer();
+    , bodyParser = require('body-parser')
+    , app = express();
 
 // Generate some
 function error_json(id, message) {
@@ -58,17 +59,14 @@ var notes = {
     }
 };
 
-app.configure(function () {
-    app.use(express.static(__dirname + '/public'));
-		app.use(express.bodyParser());
-    app.set('views', __dirname + '/public/views');
-    app.set('view engine', 'twig');
-    // We don't need express to use a parent "page" layout
-    // Twig.js has support for this using the {% extends parent %} tag
-    app.set("view options", { layout: false });
-});
+app.use(express.static(__dirname + '/public'));
+app.use(bodyParser());
+app.set('views', __dirname + '/public/views');
+app.set('view engine', 'twig');
+// We don't need express to use a parent "page" layout
+// Twig.js has support for this using the {% extends parent %} tag
+app.set("view options", { layout: false });
 
-app.register('twig', twig);
 
 // Routing for the notebook
 
