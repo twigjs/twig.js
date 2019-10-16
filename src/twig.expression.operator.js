@@ -346,11 +346,11 @@ module.exports = function (Twig) {
                 break;
 
             case 'starts with':
-                stack.push(a.indexOf(b) === 0);
+                stack.push(typeof a === 'string' && a.indexOf(b) === 0);
                 break;
 
             case 'ends with':
-                stack.push(a.indexOf(b, a.length - b.length) !== -1);
+                stack.push(typeof a === 'string' && a.indexOf(b, a.length - b.length) !== -1);
                 break;
 
             case '..':
