@@ -45,4 +45,12 @@ describe('Twig.js Tags ->', function () {
             'TWIGJS'
         );
     });
+
+    it('should support apply lower|escape', function () {
+        twig({
+            data: '{% apply lower|escape %}<strong>Twig.js</strong>{% endapply %}'
+        }).render().should.equal(
+            '&lt;strong&gt;twig.js&lt;/strong&gt;'
+        );
+    });
 });
