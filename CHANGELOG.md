@@ -6,6 +6,7 @@ Major improvements:
 Minor improvements:
 * Add `apply` tag ([#656](https://github.com/twigjs/twig.js/pull/656) by [maxhelias](https://github.com/maxhelias))
 * Add `spaceless` filter ([#655](https://github.com/twigjs/twig.js/pull/655) by [maxhelias](https://github.com/maxhelias))
+* Fix `starts with` and `ends with` expressions ([#661](https://github.com/twigjs/twig.js/pull/661) by [ilkkave](https://github.com/ilkkave))
 
 Version 1.13.3, released 2019-05-03
 -----------------------------------
