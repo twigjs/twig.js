@@ -799,6 +799,9 @@ module.exports = function (Twig) {
             }
 
             return Math[method](value * (10 ** precision)) / (10 ** precision);
+        },
+        spaceless(value) {
+            return value.replace(/>\s+</g, '><').trim();
         }
     };
 

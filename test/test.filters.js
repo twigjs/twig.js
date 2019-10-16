@@ -769,6 +769,13 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('spaceless ->', function () {
+        it('should spaceless', function () {
+            const testTemplate = twig({data: '{{ \'<div>\n    <b>b</b>   <i>i</i>\n</div>\'|spaceless }}'});
+            testTemplate.render().should.equal('<div><b>b</b><i>i</i></div>');
+        });
+    });
+
     it('should chain', function () {
         const testTemplate = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}'});
         testTemplate.render().should.equal('2,1,0');
