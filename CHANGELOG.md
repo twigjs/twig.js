@@ -4,7 +4,7 @@ Major improvements:
 * Add [Babel](https://babeljs.io) to the webpack build
 
 Minor improvements:
-* Nothing yet
+* Add `apply` tag ([#656](https://github.com/twigjs/twig.js/pull/656) by [maxhelias](https://github.com/maxhelias))
 
 Version 1.13.3, released 2019-05-03
 -----------------------------------
