@@ -207,17 +207,14 @@ module.exports = function (Twig) {
 
             return output.join(joinStr);
         },
-        default(value, params) {
-            if (params !== undefined && params.length > 1) {
-                throw new Twig.Error('default filter expects one argument');
+        default(value, _default) {
+            // checking _default for empty because it's resolved as `false` in parseParams
+            if (_default === false) {
+                _default = '';
             }
 
-            if (value === undefined || value === null || value === '') {
-                if (params === undefined) {
-                    return '';
-                }
-
-                return params[0];
+            if (Twig.tests.empty(value)) {
+                return _default;
             }
 
             return value;
