@@ -224,6 +224,9 @@ module.exports = function (Twig) {
     // Resolves #307
     Twig.exports.filters = Twig.filters;
 
+    // Export our tests.
+    Twig.exports.tests = Twig.tests;
+
     Twig.exports.Promise = Twig.Promise;
 
     return Twig;
