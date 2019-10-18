@@ -25,9 +25,9 @@
     "preversion": "npm test && git diff --exit-code --quiet",
     "postversion": "git push origin master && git push origin master --tags",
     "pretest": "npm run build",
-    "test": "mocha -r should",
-    "build": "webpack",
-    "posttest": "xo src lib bin"
+    "test": "node ./node_modules/mocha/bin/mocha -r should",
+    "build": "node ./node_modules/webpack/bin/webpack",
+    "posttest": "node ./node_modules/xo/cli.js src lib bin"
   },
   "dependencies": {
     "@babel/runtime": "^7.4.5",
