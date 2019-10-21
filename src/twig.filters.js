@@ -207,14 +207,9 @@ module.exports = function (Twig) {
 
             return output.join(joinStr);
         },
-        default(value, _default) {
-            // checking _default for empty because it's resolved as `false` in parseParams
-            if (_default === false) {
-                _default = '';
-            }
-
+        default(value, params) {
             if (Twig.tests.empty(value)) {
-                return _default;
+                return params[0] || '';
             }
 
             return value;
