@@ -2313,7 +2313,7 @@ currently at the head of the stack before we push a new one on.</p>
        options:  {
            Compiler/parser options
 
-           strict_variables: <span class="hljs-literal">true</span>/<span class="hljs-literal">false</span>
+           strictVariables: <span class="hljs-literal">true</span>/<span class="hljs-literal">false</span>
                Should missing variable/keys emit an error message. If <span class="hljs-literal">false</span>, they <span class="hljs-keyword">default</span> to <span class="hljs-literal">null</span>.
        }
 }
@@ -7804,7 +7804,7 @@ exist in the context.</p>
                     value;
 
                 <span class="hljs-keyword">if</span> (object === <span class="hljs-literal">null</span> || object === <span class="hljs-literal">undefined</span>) {
-                    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.options.strict_variables) {
+                    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.options.strictVariables) {
                         <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Twig.Error(<span class="hljs-string">"Can't access a key "</span> + key + <span class="hljs-string">" on an null or undefined object."</span>);
                     } <span class="hljs-keyword">else</span> {
                         <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
@@ -7888,7 +7888,7 @@ exist in the context.</p>
                     value;
 
                 <span class="hljs-keyword">if</span> (object === <span class="hljs-literal">null</span> || object === <span class="hljs-literal">undefined</span>) {
-                    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.options.strict_variables) {
+                    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.options.strictVariables) {
                         <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Twig.Error(<span class="hljs-string">"Can't access a key "</span> + key + <span class="hljs-string">" on an null or undefined object."</span>);
                     } <span class="hljs-keyword">else</span> {
                         <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
@@ -10693,7 +10693,7 @@ https:<span class="hljs-comment">//github.com/justjohn/twig.js</span>
 <span class="hljs-meta">        'use strict'</span>;
         <span class="hljs-keyword">var</span> id = params.id,
             options = {
-                strict_variables: params.strict_variables || <span class="hljs-literal">false</span>,</pre></div></div>
+                strictVariables: params.strictVariables || <span class="hljs-literal">false</span>,</pre></div></div>
             
         </li>
         

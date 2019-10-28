@@ -914,7 +914,7 @@ var Twig = (function (Twig) {
      *        return template;
      *    });
      * });
-     * 
+     *
      * @param {String} method_name The method this loader is intended for (ajax, fs)
      * @param {Function} func The function to execute when loading the template
      * @param {Object|undefined} scope Optional scope parameter to bind func to
@@ -935,7 +935,7 @@ var Twig = (function (Twig) {
 
     /**
      * Remove a registered loader
-     * 
+     *
      * @param {String} method_name The method name for the loader you wish to remove
      *
      * @return {void}
@@ -948,7 +948,7 @@ var Twig = (function (Twig) {
 
     /**
      * See if a loader is registered by its method name
-     * 
+     *
      * @param {String} method_name The name of the loader you are looking for
      *
      * @return {boolean}
@@ -1136,7 +1136,7 @@ var Twig = (function (Twig) {
         //            options:  {
         //                Compiler/parser options
         //
-        //                strict_variables: true/false
+        //                strictVariables: true/false
         //                    Should missing variable/keys emit an error message. If false, they default to null.
         //            }
         //     }
@@ -1935,8 +1935,8 @@ var Twig = (function(Twig) {
     Twig.lib.parseISO8601Date = function (s){
         // Taken from http://n8v.enteuxis.org/2010/12/parsing-iso-8601-dates-in-javascript/
         // parenthese matches:
-        // year month day    hours minutes seconds  
-        // dotmilliseconds 
+        // year month day    hours minutes seconds
+        // dotmilliseconds
         // tzstring plusminus hours minutes
         var re = /(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(\.\d+)?(Z|([+-])(\d\d):(\d\d))/;
 
@@ -1947,7 +1947,7 @@ var Twig = (function(Twig) {
         //  ["2010-12-07T11:00:00.000-09:00", "2010", "12", "07", "11",
         //     "00", "00", ".000", "-09:00", "-", "09", "00"]
         // "2010-12-07T11:00:00.000Z" parses to:
-        //  ["2010-12-07T11:00:00.000Z",      "2010", "12", "07", "11", 
+        //  ["2010-12-07T11:00:00.000Z",      "2010", "12", "07", "11",
         //     "00", "00", ".000", "Z", undefined, undefined, undefined]
 
         if (! d) {
@@ -1967,7 +1967,7 @@ var Twig = (function(Twig) {
         var ms = Date.UTC(d[1], d[2] - 1, d[3], d[4], d[5], d[6]);
 
         // if there are milliseconds, add them
-        if (d[7] > 0) {  
+        if (d[7] > 0) {
             ms += Math.round(d[7] * 1000);
         }
 
@@ -4416,7 +4416,7 @@ var Twig = (function (Twig) {
                     value;
 
                 if (object === null || object === undefined) {
-                    if (this.options.strict_variables) {
+                    if (this.options.strictVariables) {
                         throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                     } else {
                         return null;
@@ -4463,7 +4463,7 @@ var Twig = (function (Twig) {
                     value;
 
                 if (object === null || object === undefined) {
-                    if (this.options.strict_variables) {
+                    if (this.options.strictVariables) {
                         throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
                     } else {
                         return null;
@@ -6330,7 +6330,7 @@ var Twig = (function (Twig) {
         'use strict';
         var id = params.id,
             options = {
-                strict_variables: params.strict_variables || false,
+                strictVariables: params.strictVariables || false,
                 // TODO: turn autoscape on in the next major version
                 autoescape: params.autoescape != null && params.autoescape || false,
                 allowInlineIncludes: params.allowInlineIncludes || false,
@@ -6363,7 +6363,7 @@ var Twig = (function (Twig) {
                 throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
             }
             return Twig.Templates.load(params.ref);
-        
+
         } else if (params.method !== undefined) {
             if (!Twig.Templates.isRegisteredLoader(params.method)) {
                 throw new Twig.Error('Loader for "' + params.method + '" is not defined.');
@@ -6467,7 +6467,7 @@ var Twig = (function (Twig) {
      * @param {string} path The location of the template file on disk.
      * @param {Object|Function} The options or callback.
      * @param {Function} fn callback.
-     * 
+     *
      * @throws Twig.Error
      */
     Twig.exports.renderFile = function(path, options, fn) {

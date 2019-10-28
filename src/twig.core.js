@@ -1239,7 +1239,7 @@ module.exports = function (Twig) {
         //            options:  {
         //                Compiler/parser options
         //
-        //                strict_variables: true/false
+        //                strictVariables: true/false
         //                    Should missing variable/keys emit an error message. If false, they default to null.
         //            }
         //     }
