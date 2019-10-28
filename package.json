@@ -30,25 +30,25 @@
     "posttest": "xo src lib bin"
   },
   "dependencies": {
-    "@babel/runtime": "^7.4.5",
+    "@babel/runtime": "^7.6.3",
     "locutus": "^2.0.5",
     "minimatch": "3.0.x",
     "walk": "2.3.x"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/plugin-transform-runtime": "^7.4.4",
-    "@babel/preset-env": "^7.4.5",
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.3",
     "babel-loader": "^8.0.6",
     "eslint-plugin-mocha": "^5.3.0",
     "mocha": "^4.1.0",
     "should": "^13.2.3",
     "should-sinon": "0.0.6",
-    "sinon": "^7.3.2",
-    "terser-webpack-plugin": "^1.2.3",
+    "sinon": "^7.5.0",
+    "terser-webpack-plugin": "^1.4.1",
     "tokenizer": "1.1.x",
-    "webpack": "^4.30.0",
-    "webpack-cli": "^3.0.3",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
     "xo": "^0.24.0"
   },
   "browser": {
