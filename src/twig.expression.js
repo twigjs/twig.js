@@ -846,6 +846,10 @@ module.exports = function (Twig) {
                 // Get the variable from the context
                 return Twig.expression.resolveAsync.call(state, context[token.value], context)
                     .then(value => {
+                        if (state.template.options.strictVariables && value === undefined) {
+                            throw new Twig.Error('Variable "' + token.value + '" does not exist.');
+                        }
+
                         stack.push(value);
                     });
             }
@@ -869,14 +873,19 @@ module.exports = function (Twig) {
                 const object = stack.pop();
                 let value;
 
+                if (object && !Object.prototype.hasOwnProperty.call(object, key) && state.template.options.strictVariables) {
+                    const keys = Object.keys(object);
+                    if (keys.length > 0) {
+                        throw new Twig.Error('Key "' + key + '" for object with keys "' + Object.keys(object).join(', ') + '" does not exist.');
+                    } else {
+                        throw new Twig.Error('Key "' + key + '" does not exist as the object is empty.');
+                    }
+                }
+
                 return parseParams(state, token.params, context)
                     .then(params => {
                         if (object === null || object === undefined) {
-                            if (state.template.options.strict_variables) {
-                                throw new Twig.Error('Can\'t access a key ' + key + ' on an null or undefined object.');
-                            } else {
-                                value = undefined;
-                            }
+                            value = undefined;
                         } else {
                             const capitalize = function (value) {
                                 return value.substr(0, 1).toUpperCase() + value.substr(1);
@@ -935,12 +944,15 @@ module.exports = function (Twig) {
                     .then(key => {
                         object = stack.pop();
 
-                        if (object === null || object === undefined) {
-                            if (state.template.options.strict_variables) {
-                                throw new Twig.Error('Can\'t access a key ' + key + ' on an null or undefined object.');
+                        if (object && !Object.prototype.hasOwnProperty.call(object, key) && state.template.options.strictVariables) {
+                            const keys = Object.keys(object);
+                            if (keys.length > 0) {
+                                throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
                             } else {
-                                return null;
+                                throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
                             }
+                        } else if (object === null || object === undefined) {
+                            return null;
                         }
 
                         // Get the variable from the context
