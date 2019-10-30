@@ -18,22 +18,22 @@ describe('Twig.js Optional Functionality ->', function () {
         output.should.equal('template with another template');
     });
 
-    describe('should throw an error when strictVariables set to `true`', function () {
+    describe('should throw an error when `strict_variables` set to `true`', function () {
         const variable = twig({
             rethrow: true,
-            strictVariables: true,
+            strict_variables: true,
             data: '{{ test }}'
         });
 
         const object = twig({
             rethrow: true,
-            strictVariables: true,
+            strict_variables: true,
             data: '{{ test.10 }}'
         });
 
         const array = twig({
             rethrow: true,
-            strictVariables: true,
+            strict_variables: true,
             data: '{{ test[10] }}'
         });
 

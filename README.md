@@ -94,7 +94,7 @@ var Twig = require("twig"),
 // This section is optional and used to configure twig.
 app.set("twig options", {
     allow_async: true, // Allow asynchronous compiling
-    strictVariables: false
+    strict_variables: false
 });
 
 app.get('/', function(req, res){
