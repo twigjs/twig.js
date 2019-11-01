@@ -41,7 +41,8 @@ module.exports = function (Twig) {
         embed: 'Twig.logic.type.embed',
         endembed: 'Twig.logic.type.endembed',
         with: 'Twig.logic.type.with',
-        endwith: 'Twig.logic.type.endwith'
+        endwith: 'Twig.logic.type.endwith',
+        deprecated: 'Twig.logic.type.deprecated'
     };
 
     // Regular expressions for handling logic tokens.
@@ -1272,6 +1273,25 @@ module.exports = function (Twig) {
             regex: /^endwith$/,
             next: [],
             open: false
+        },
+        {
+            /**
+             * Deprecated type logic tokens.
+             *
+             *  Format: {% deprecated 'Description' %}
+             */
+            type: Twig.logic.type.deprecated,
+            regex: /^deprecated\s+(.+)$/,
+            next: [],
+            open: true,
+            compile(token) {
+                console.warn('Deprecation notice: ' + token.match[1]);
+
+                return token;
+            },
+            parse() {
+                return {};
+            }
         }
 
     ];

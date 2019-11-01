@@ -1,4 +1,5 @@
 const Twig = require('../twig').factory();
+const sinon = require('sinon');
 
 const {twig} = Twig;
 
@@ -52,5 +53,15 @@ describe('Twig.js Tags ->', function () {
         }).render().should.equal(
             '&lt;strong&gt;twig.js&lt;/strong&gt;'
         );
+    });
+
+    it('should support deprecated tag and show a console warn message', function () {
+        let consoleSpy = sinon.spy(console, 'warn');
+
+        twig({
+            data: '{% deprecated \'`foo` is deprecated use `bar`\' %}'
+        }).render();
+
+        consoleSpy.should.be.calledWith('Deprecation notice: \'`foo` is deprecated use `bar`\'');
     });
 });
