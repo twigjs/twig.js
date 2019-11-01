@@ -19,7 +19,7 @@ module.exports = function (Twig) {
         'use strict';
         const {id} = params;
         const options = {
-            strictVariables: params.strictVariables || false,
+            strictVariables: params.strict_variables || false,
             // TODO: turn autoscape on in the next major version
             autoescape: (params.autoescape !== null && params.autoescape) || false,
             allowInlineIncludes: params.allowInlineIncludes || false,
