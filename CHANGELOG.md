@@ -9,6 +9,7 @@ Minor improvements:
 * Add `deprecated` tag ([#675](https://github.com/twigjs/twig.js/pull/675) by [@josephineb](https://github.com/josephineb))
 * Fix `starts with` and `ends with` expressions ([#661](https://github.com/twigjs/twig.js/pull/661) by [@ilkkave](https://github.com/ilkkave))
 * Add `package.json` license field to fix npm warning ([#672](https://github.com/twigjs/twig.js/pull/672) by [@WietseWind](https://github.com/WietseWind))
+* Update `strict_variables` option to match Twig's strict messages ([#674](https://github.com/twigjs/twig.js/pull/674) by [@toptalo](https://github.com/toptalo))
 
 Version 1.13.3, released 2019-05-03
 -----------------------------------
