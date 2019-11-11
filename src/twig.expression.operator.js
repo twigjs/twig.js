@@ -167,7 +167,7 @@ module.exports = function (Twig) {
             a = stack.pop();
         }
 
-        if (operator !== 'in' && operator !== 'not in') {
+        if (operator !== 'in' && operator !== 'not in' && operator !== '??') {
             if (a && Array.isArray(a)) {
                 a = a.length;
             }
