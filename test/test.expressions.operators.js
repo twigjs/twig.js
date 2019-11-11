@@ -75,12 +75,14 @@ describe('Twig.js Expression Operators ->', function () {
         });
 
         it('should support the null-coalescing operator for true conditions on objects or arrays', function () {
-            const testTemplate = twig({data: '{% set b = a ?? "nope" %}{% for item in b %}{{item}}{% endfor %}'});
+            const testTemplate = twig({data: '{% set b = a ?? "nope" %}{{ b | join("") }}'});
             const outputArr = testTemplate.render({a: [1,2]});
             const outputObj = testTemplate.render({a: {b:3, c:4}});
+            const outputNull = testTemplate.render();
 
             outputArr.should.equal('12');
             outputObj.should.equal('34');
+            outputNull.should.equal('nope');
         });
     });
 
