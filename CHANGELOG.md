@@ -1,4 +1,4 @@
-Version 1.14.0, unreleased
+Version 1.14.0, released 2019-11-13
 -----------------------------------
 Major improvements:
 * Add [Babel](https://babeljs.io) to the webpack build
