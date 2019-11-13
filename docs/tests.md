@@ -48,6 +48,7 @@
      - [raw ->](#twigjs-filters---raw--)
      - [round ->](#twigjs-filters---round--)
    - [Twig.js Loader ->](#twigjs-loader--)
+     - [source ->](#twigjs-loader---source--)
    - [Twig.js Include ->](#twigjs-include--)
    - [Twig.js Functions ->](#twigjs-functions--)
      - [Built-in Functions ->](#twigjs-functions---built-in-functions--)
@@ -63,7 +64,15 @@
    - [Twig.js Loaders ->](#twigjs-loaders--)
      - [custom loader ->](#twigjs-loaders---custom-loader--)
    - [Twig.js Macro ->](#twigjs-macro--)
+   - [Twig.js Namespaces ->](#twigjs-namespaces--)
    - [Twig.js Optional Functionality ->](#twigjs-optional-functionality--)
+   - [Twig.js Parsers ->](#twigjs-parsers--)
+     - [custom parser ->](#twigjs-parsers---custom-parser--)
+   - [Twig.js Path ->](#twigjs-path--)
+     - [relativePath ->](#twigjs-path---relativepath--)
+       - [url ->](#twigjs-path---relativepath---url--)
+       - [path ->](#twigjs-path---relativepath---path--)
+     - [parsePath ->](#twigjs-path---parsepath--)
    - [Twig.js Regression Tests ->](#twigjs-regression-tests--)
    - [Twig.js Tags ->](#twigjs-tags--)
    - [Twig.js Tests ->](#twigjs-tests--)
@@ -1368,6 +1377,13 @@ var test_template = twig({data: '{{ "d" not in {"key_a" : "no"} }}'});
 test_template.render().should.equal(true.toString());
 ```
 
+should support undefined and null for the in operator.
+
+```js
+var test_template = twig({data: '{{ 0 in undefined }} {{ 0 in null }}'});
+test_template.render().should.equal(' ');
+```
+
 should support expressions as object keys.
 
 ```js
@@ -2555,6 +2571,38 @@ template.render({
 }).should.equal("Test template = yes\n\nFlag set!");
 ```
 
+<a name="twigjs-loader---source--"></a>
+## source ->
+should load the non-compiled template source code.
+
+```js
+twig({data: '{{ source("test/templates/source.twig") }}'})
+    .render()
+    .should
+    .equal('{% if isUserNew == true %}\n    Hello {{ name }}\n{% else %}\n    Welcome back {{ name }}\n{% endif %}\n')
+;
+```
+
+should indicate if there was a problem loading the template if 'ignore_missing' is false.
+
+```js
+twig({data: '{{ source("test/templates/non-existing-source.twig", false) }}'})
+    .render()
+    .should
+    .equal('Template "test/templates/non-existing-source.twig" is not defined.')
+;
+```
+
+should NOT indicate if there was a problem loading the template if 'ignore_missing' is true.
+
+```js
+twig({data: '{{ source("test/templates/non-existing-source.twig", true) }}'})
+    .render()
+    .should
+    .equal('')
+;
+```
+
 <a name="twigjs-include--"></a>
 # Twig.js Include ->
 should load an included template with no context.
@@ -3170,6 +3218,44 @@ var template = twig({
 output.should.equal("template with Twig.js");
 ```
 
+<a name="twigjs-namespaces--"></a>
+# Twig.js Namespaces ->
+should support namespaces defined with ::.
+
+```js
+twig({
+			namespaces: { 'test': 'test/templates/namespaces/' },
+			path: 'test/templates/namespaces_::.twig',
+			load: function(template) {
+				// Render the template
+				template.render({
+				    test: "yes",
+				    flag: true
+				}).should.equal("namespaces");
+
+				done();
+        }
+	});
+```
+
+should support namespaces defined with @.
+
+```js
+twig({
+			namespaces: { 'test': 'test/templates/namespaces/' },
+			path: 'test/templates/namespaces_@.twig',
+			load: function(template) {
+				// Render the template
+				template.render({
+				    test: "yes",
+				    flag: true
+				}).should.equal("namespaces");
+
+				done();
+        }
+	});
+```
+
 <a name="twigjs-optional-functionality--"></a>
 # Twig.js Optional Functionality ->
 should support inline includes by ID.
@@ -3185,6 +3271,114 @@ var template = twig({
     }),
     output = template.render()
 output.should.equal("template with another template");
+```
+
+<a name="twigjs-parsers--"></a>
+# Twig.js Parsers ->
+<a name="twigjs-parsers---custom-parser--"></a>
+## custom parser ->
+should define a custom parser.
+
+```js
+Twig.extend(function(Twig) {
+    var parser = function(params) {
+        return '[CUSTOM PARSER] ' + params.data;
+    };
+    Twig.Templates.registerParser('custom', parser);
+    Twig.Templates.parsers.should.have.property('custom');
+});
+```
+
+should run the data through the custom parser.
+
+```js
+Twig.extend(function(Twig) {
+    var params = {
+        data: 'This is a test template.'
+    };
+    var template = Twig.Templates.parsers.custom(params);
+    template.should.equal('[CUSTOM PARSER] This is a test template.');
+});
+```
+
+should remove a registered parser.
+
+```js
+Twig.extend(function(Twig) {
+    Twig.Templates.unRegisterParser('custom');
+    Twig.Templates.parsers.should.not.have.property('custom');
+});
+```
+
+<a name="twigjs-path--"></a>
+# Twig.js Path ->
+<a name="twigjs-path---relativepath--"></a>
+## relativePath ->
+should throw an error if trying to get a relative path in an inline template.
+
+```js
+(function () {
+    relativePath({});
+}).should.throw("Cannot extend an inline template.");
+```
+
+should give the full path to a file when file is passed.
+
+```js
+relativePath({ url: "http://www.test.com/test.twig"}, "templates/myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
+relativePath({ path: "test/test.twig"}, "templates/myFile.twig").should.equal("test/templates/myFile.twig");
+```
+
+should ascend directories.
+
+```js
+relativePath({ url: "http://www.test.com/templates/../test.twig"}, "myFile.twig").should.equal("http://www.test.com/myFile.twig");
+relativePath({ path: "test/templates/../test.twig"}, "myFile.twig").should.equal("test/myFile.twig");
+```
+
+should respect relative directories.
+
+```js
+relativePath({ url: "http://www.test.com/templates/./test.twig"}, "myFile.twig").should.equal("http://www.test.com/templates/myFile.twig");
+relativePath({ path: "test/templates/./test.twig"}, "myFile.twig").should.equal("test/templates/myFile.twig");
+```
+
+<a name="twigjs-path---relativepath---url--"></a>
+### url ->
+should use the url if no base is specified.
+
+```js
+relativePath({ url: "http://www.test.com/test.twig"}).should.equal("http://www.test.com/");
+```
+
+should use the base if base is specified.
+
+```js
+relativePath({ url: "http://www.test.com/test.twig", base: "myTest" }).should.equal("myTest/");
+```
+
+<a name="twigjs-path---relativepath---path--"></a>
+### path ->
+should use the path if no base is specified.
+
+```js
+relativePath({ path: "test/test.twig"}).should.equal("test/");
+```
+
+should use the base if base is specified.
+
+```js
+relativePath({ path: "test/test.twig", base: "myTest" }).should.equal("myTest/");
+```
+
+<a name="twigjs-path---parsepath--"></a>
+## parsePath ->
+should fall back to relativePath if the template has no namespaces defined.
+
+```js
+var relativePathStub = sinon.stub(Twig.path, "relativePath");
+parsePath({ options: {} });
+relativePathStub.should.have.been.called;
 ```
 
 <a name="twigjs-regression-tests--"></a>
@@ -3308,6 +3502,19 @@ should identify a key as defined if it exists in the render context.
 ```js
 twig({data: '{{ key is defined }}'}).render().should.equal("false" );
 twig({data: '{{ key is defined }}'}).render({key: "test"}).should.equal( "true" );
+var context = {
+    key: {
+        foo: "bar",
+        nothing: null
+    },
+    nothing: null
+};
+twig({data: '{{ key.foo is defined }}'}).render(context).should.equal( "true" );
+twig({data: '{{ key.bar is defined }}'}).render(context).should.equal( "false" );
+twig({data: '{{ key.foo.bar is defined }}'}).render(context).should.equal( "false" );
+twig({data: '{{ foo.bar is defined }}'}).render(context).should.equal( "false" );
+twig({data: '{{ nothing is defined }}'}).render(context).should.equal( "true" );
+twig({data: '{{ key.nothing is defined }}'}).render(context).should.equal( "true" );
 ```
 
 <a name="twigjs-tests---none-test--"></a>

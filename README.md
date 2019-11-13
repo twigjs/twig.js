@@ -1,7 +1,14 @@
-[![Build Status](https://secure.travis-ci.org/justjohn/twig.js.svg)](http://travis-ci.org/#!/justjohn/twig.js)
+[![Stories in Ready](https://badge.waffle.io/twigjs/twig.js.png?label=ready&title=Ready)](https://waffle.io/twigjs/twig.js)
+[![Known Vulnerabilities](https://snyk.io/test/github/twigjs/twig.js/badge.svg)](https://snyk.io/test/github/twigjs/twig.js)
+[![Build Status](https://secure.travis-ci.org/twigjs/twig.js.svg)](http://travis-ci.org/twigjs/twig.js)
 [![NPM version](https://badge.fury.io/js/twig.svg)](http://badge.fury.io/js/twig)
+[![Gitter](https://badges.gitter.im/twigjs/twig.js.svg)](https://gitter.im/twigjs/twig.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 # About
+
+<img align="right" width="120" height="120"
+     title="Twig.js"
+     src="https://user-images.githubusercontent.com/3282350/29336704-ab1be05c-81dc-11e7-92e5-cf11cca7b344.png">
 
 Twig.js is a pure JavaScript implementation of the Twig PHP templating language
 (<http://twig.sensiolabs.org/>)
@@ -12,21 +19,25 @@ Twig.js is currently a work in progress and supports a limited subset of the Twi
 
 ### Docs
 
-Documentation is available in the [twig.js wiki](https://github.com/justjohn/twig.js/wiki) on Github.
+Documentation is available in the [twig.js wiki](https://github.com/twigjs/twig.js/wiki) on Github.
 
 ### Feature Support
 
-For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/justjohn/twig.js/wiki/Implementation-Notes) page on the wiki.
+For a list of supported tags/filters/functions/tests see the [Implementation Notes](https://github.com/twigjs/twig.js/wiki/Implementation-Notes) page on the wiki.
 
-# Releases
+# Install
 
-Download the latest twig.js release from github: https://github.com/justjohn/twig.js/releases
+Download the latest twig.js release from github: https://github.com/twigjs/twig.js/releases or via NPM:
 
-## Browser Usage (bower)
+```bash
+npm install twig --save
+```
 
-Twig.js can be installed as a bower package with:
+# Bower
 
-    bower install twig.js
+A bower package is available from [philsbury](https://github.com/philsbury/twigjs-bower). Please direct any Bower support issues to that repo.
+
+## Browser Usage
 
 Include twig.js or twig.min.js in your page, then:
 
@@ -41,20 +52,37 @@ console.log(
 // outputs: "The cupcake is a lie."
 ```
 
+## Webpack
+
+A loader is available from [zimmo.be](https://github.com/zimmo-be/twig-loader).
+
 ## Node Usage (npm)
 
-Twig.js can be installed with NPM
-
-    npm install twig
+Tested on node >=6.0.
 
 You can use twig in your app with
 
-    var Twig = require('twig'), // Twig module
-        twig = Twig.twig;       // Render function
+```js
+var Twig = require('twig'), // Twig module
+    twig = Twig.twig;       // Render function
+```
 
-Twig is compatable with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
+### Usage without Express
 
-## app.js
+If you don't want to use Express, you can render a template with the following method:
+
+```js
+import Twig from 'twig';
+Twig.renderFile('./path/to/someFile.twig', {foo:'bar'}, (err, html) => {
+  html; // compiled string
+});
+```
+
+### Usage with Express
+
+Twig is compatible with express 2 and 3. You can create an express app using the twig.js templating language by setting the view engine to twig.
+
+### app.js
 
 **Express 3**
 
@@ -65,6 +93,7 @@ var Twig = require("twig"),
 
 // This section is optional and used to configure twig.
 app.set("twig options", {
+    allow_async: true, // Allow asynchronous compiling
     strict_variables: false
 });
 
@@ -83,17 +112,26 @@ app.listen(9999);
 Message of the moment: <b>{{ message }}</b>
 ```
 
-An [Express 2 Example](https://github.com/justjohn/twig.js/wiki/Express-2) is available on the wiki.
+An [Express 2 Example](https://github.com/twigjs/twig.js/wiki/Express-2) is available on the wiki.
+
+# Alternatives
+
+- [Twing](https://github.com/ericmorand/twing)
 
 # Contributing
 
-If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in src/*.js. twig.js is built by running `make`
+If you have a change you want to make to twig.js, feel free to fork this repository and submit a pull request on Github. The source files are located in `src/*.js`.
 
-For more details on getting setup, see the [contributing page](https://github.com/justjohn/twig.js/wiki/Contributing) on the wiki.
+twig.js is built by running `npm run build`
+
+For more details on getting setup, see the [contributing page](https://github.com/twigjs/twig.js/wiki/Contributing) on the wiki.
+
+## Environment Requirements
+When developing on Windows, the repository must be checked out **without** automatic conversion of LF to CRLF. Failure to do so will cause tests that would otherwise pass on Linux or Mac to fail instead.
 
 ## Tests
 
-The twig.js tests are written in [Mocha][mocha] and can be invoked with `make test`.
+The twig.js tests are written in [Mocha][mocha] and can be invoked with `npm test`.
 
 ## License
 
@@ -120,5 +158,5 @@ See the LICENSES.md file for copies of the referenced licenses.
 [bsd-3]:        http://www.opensource.org/licenses/BSD-3-Clause
 [cc-by-sa-2.5]: http://creativecommons.org/licenses/by-sa/2.5/ "Creative Commons Attribution-ShareAlike 2.5 License"
 
-[mocha]:        http://visionmedia.github.com/mocha/
+[mocha]:        http://mochajs.org/
 [qunit]:        http://docs.jquery.com/QUnit

@@ -2,35 +2,72 @@
   "author": "John Roepke <john@justjohn.us> (http://john.sh/)",
   "name": "twig",
   "description": "JS port of the Twig templating language.",
-  "version": "0.8.8",
-  "homepage": "https://github.com/justjohn/twig.js",
+  "version": "1.14.0",
+  "homepage": "https://github.com/twigjs/twig.js",
+  "license": "BSD-2-Clause",
   "licenses": [
-    { "type": "BSD-2-Clause",
-      "url":  "https://raw.github.com/justjohn/twig.js/master/LICENSE" }
+    {
+      "type": "BSD-2-Clause",
+      "url": "https://raw.github.com/twigjs/twig.js/master/LICENSE"
+    }
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/justjohn/twig.js.git"
+    "url": "git://github.com/twigjs/twig.js.git"
   },
-  "main": "twig.min.js",
+  "main": "twig.js",
   "engines": {
-    "node": "*"
+    "node": ">=6.0"
   },
   "bin": {
     "twigjs": "./bin/twigjs"
   },
   "scripts": {
-    "test": "make test"
+    "preversion": "npm test && git diff --exit-code --quiet",
+    "postversion": "git push origin master && git push origin master --tags",
+    "pretest": "npm run build",
+    "test": "mocha -r should",
+    "build": "webpack",
+    "posttest": "xo src lib bin"
   },
   "dependencies": {
-    "walk": "2.3.x",
-    "minimatch": "0.2.x"
+    "@babel/runtime": "^7.6.3",
+    "locutus": "^2.0.5",
+    "minimatch": "3.0.x",
+    "walk": "2.3.x"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.3",
+    "babel-loader": "^8.0.6",
+    "eslint-plugin-mocha": "^5.3.0",
+    "mocha": "^4.1.0",
+    "should": "^13.2.3",
+    "should-sinon": "0.0.6",
+    "sinon": "^7.5.0",
+    "terser-webpack-plugin": "^1.4.1",
     "tokenizer": "1.1.x",
-    "should": "3.3.x",
-    "mocha": "1.18.x",
-    "docco": "0.6.x",
-    "uglify-js": "2.4.x"
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
+    "xo": "^0.24.0"
+  },
+  "browser": {
+    "fs": false
+  },
+  "xo": {
+    "space": 4,
+    "envs": [
+      "browser",
+      "node",
+      "mocha"
+    ],
+    "plugins": [
+      "mocha"
+    ],
+    "rules": {
+      "prefer-arrow-callback": 0,
+      "mocha/prefer-arrow-callback": 2
+    }
   }
 }

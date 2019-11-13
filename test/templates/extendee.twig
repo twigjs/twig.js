@@ -1,0 +1,6 @@
+{% macro macro() %}ok!{% endmacro %}
+{% import _self as my %}
+
+{% block content %}
+<p>Sub: content</p>
+{% endblock %}

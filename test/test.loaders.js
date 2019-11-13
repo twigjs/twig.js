@@ -1,25 +1,27 @@
-var Twig = Twig || require("../twig"),
-    twig = twig || Twig.twig;
+const Twig = require('../twig').factory();
 
-describe("Twig.js Loaders ->", function() {
+const {twig} = Twig;
+
+describe('Twig.js Loaders ->', function () {
     // Encodings
-    describe("custom loader ->", function() {
-        it("should define a custom loader", function() {
-            Twig.extend(function(Twig) {
-                var obj = {
+    describe('custom loader ->', function () {
+        it('should define a custom loader', function () {
+            Twig.extend(Twig => {
+                const obj = {
                     templates: {
-                        'custom_loader_block': '{% block main %}This lets you {% block data %}use blocks{% endblock data %}{% endblock main %}',
-                        'custom_loader_simple': 'the value is: {{ value }}',
-                        'custom_loader_include': 'include others from the same loader method - {% include "custom_loader_simple" %}',
-                        'custom_loader_complex': '{% extends "custom_loader_block" %} {% block data %}extend other templates and {% include "custom_loader_include" %}{% endblock data %}'
+                        customLoaderBlock: '{% block main %}This lets you {% block data %}use blocks{% endblock data %}{% endblock main %}',
+                        customLoaderSimple: 'the value is: {{ value }}',
+                        customLoaderInclude: 'include others from the same loader method - {% include "customLoaderSimple" %}',
+                        customLoaderComplex: '{% extends "customLoaderBlock" %} {% block data %}extend other templates and {% include "customLoaderInclude" %}{% endblock data %}'
                     },
-                    loader: function(location, params, callback, error_callback) {
+                    loader(location, params, callback, _) {
                         params.data = this.templates[location];
                         params.allowInlineIncludes = true;
-                        var template = new Twig.Template(params);
+                        const template = new Twig.Template(params);
                         if (typeof callback === 'function') {
                             callback(template);
                         }
+
                         return template;
                     }
                 };
@@ -27,26 +29,26 @@ describe("Twig.js Loaders ->", function() {
                 Twig.Templates.loaders.should.have.property('custom');
             });
         });
-        it("should load a simple template from a custom loader", function() {
+        it('should load a simple template from a custom loader', function () {
             twig({
-                method: 'custom', 
-                name: 'custom_loader_simple'
+                method: 'custom',
+                name: 'customLoaderSimple'
             }).render({value: 'test succeeded'}).should.equal('the value is: test succeeded');
         });
-        it("should load a template that includes another from a custom loader", function() {
+        it('should load a template that includes another from a custom loader', function () {
             twig({
-                method: 'custom', 
-                name: 'custom_loader_include'
+                method: 'custom',
+                name: 'customLoaderInclude'
             }).render({value: 'test succeeded'}).should.equal('include others from the same loader method - the value is: test succeeded');
         });
-        it("should load a template that extends another from a custom loader", function() {
+        it('should load a template that extends another from a custom loader', function () {
             twig({
-                method: 'custom', 
-                name: 'custom_loader_complex'
+                method: 'custom',
+                name: 'customLoaderComplex'
             }).render({value: 'test succeeded'}).should.equal('This lets you extend other templates and include others from the same loader method - the value is: test succeeded');
         });
-        it("should remove a registered loader", function() {
-            Twig.extend(function(Twig) {
+        it('should remove a registered loader', function () {
+            Twig.extend(Twig => {
                 Twig.Templates.unRegisterLoader('custom');
                 Twig.Templates.loaders.should.not.have.property('custom');
             });
