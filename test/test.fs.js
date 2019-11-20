@@ -78,6 +78,28 @@ describe('Twig.js Include ->', function () {
         twig({ref: 'include-relative'}).render().should.equal('Twig.js!');
     });
 
+    it('should load the first template when passed an array', function () {
+        twig({
+            id: 'include-array',
+            path: 'test/templates/include-array.twig',
+            async: false
+        });
+
+        // Load the template
+        twig({ref: 'include-array'}).render({test: 'tst'}).should.equal('BeforeTest template = tst\n\nAfter');
+    });
+
+    it('should load the second template when passed an array where the first value does not exist', function() {
+        twig({
+            id: 'include-array-second-exists',
+            path: 'test/templates/include-array-second-exists.twig',
+            async: false,
+        });
+
+        // Load the template
+        twig({ref: 'include-array'}).render({test: 'tst'}).should.equal('BeforeTest template = tst\n\nAfter');
+    });
+
     it('should load an included template with additional context', function () {
         twig({
             id: 'include-with',

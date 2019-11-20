@@ -791,29 +791,58 @@ module.exports = function (Twig) {
                         return Twig.expression.parseAsync.call(state, token.stack, context);
                     })
                     .then(file => {
-                        if (file instanceof Twig.Template) {
-                            return file.renderAsync(
-                                innerContext,
-                                {
-                                    isInclude: true
-                                }
-                            );
+                        let files;
+                        if (Array.isArray(file)) {
+                            files = file;
+                        }
+                        else {
+                            files = [file];
                         }
 
-                        try {
-                            return state.template.importFile(file).renderAsync(
-                                innerContext,
-                                {
-                                    isInclude: true
+                        const result = files.reduce((acc, file) => {
+                            if (acc.render === null) {
+                                if (file instanceof Twig.Template) {
+                                    return {
+                                        render: file.renderAsync(
+                                            innerContext,
+                                            {
+                                                isInclude: true
+                                            }
+                                        ),
+                                        lastError: null,
+                                    };
                                 }
-                            );
-                        } catch (error) {
-                            if (ignoreMissing) {
-                                return '';
+
+                                try {
+                                    return {
+                                        render: state.template.importFile(file).renderAsync(
+                                            innerContext,
+                                            {
+                                                isInclude: true
+                                            }
+                                        ),
+                                        lastError: null,
+                                    };
+                                } catch (error) {
+                                    return {
+                                        render: null,
+                                        lastError: error,
+                                    }
+                                }
                             }
+                            return acc;
+                        }, { render: null, lastError: null });
 
-                            throw error;
+                        if (result.render !== null) {
+                            return result.render;
                         }
+                        else if (result.render === null && ignoreMissing) {
+                            return '';
+                        }
+                        else {
+                            throw result.lastError
+                        }
+
                     })
                     .then(output => {
                         if (output !== '') {
