@@ -794,8 +794,7 @@ module.exports = function (Twig) {
                         let files;
                         if (Array.isArray(file)) {
                             files = file;
-                        }
-                        else {
+                        } else {
                             files = [file];
                         }
 
@@ -809,7 +808,7 @@ module.exports = function (Twig) {
                                                 isInclude: true
                                             }
                                         ),
-                                        lastError: null,
+                                        lastError: null
                                     };
                                 }
 
@@ -821,28 +820,28 @@ module.exports = function (Twig) {
                                                 isInclude: true
                                             }
                                         ),
-                                        lastError: null,
+                                        lastError: null
                                     };
                                 } catch (error) {
                                     return {
                                         render: null,
-                                        lastError: error,
-                                    }
+                                        lastError: error
+                                    };
                                 }
                             }
+
                             return acc;
-                        }, { render: null, lastError: null });
+                        }, {render: null, lastError: null});
 
                         if (result.render !== null) {
                             return result.render;
                         }
-                        else if (result.render === null && ignoreMissing) {
+
+                        if (result.render === null && ignoreMissing) {
                             return '';
                         }
-                        else {
-                            throw result.lastError
-                        }
 
+                        throw result.lastError;
                     })
                     .then(output => {
                         if (output !== '') {
