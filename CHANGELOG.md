@@ -1,3 +1,8 @@
+Version 1.15.0, unreleased
+--------------------------
+Minor improvements:
+* Add support for arrays with `include` ([#681](https://github.com/twigjs/twig.js/pull/681) by [@justafish](https://github.com/justafish))
+
 Version 1.14.0, released 2019-11-13
 -----------------------------------
 Major improvements:
