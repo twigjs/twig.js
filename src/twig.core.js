@@ -709,7 +709,7 @@ module.exports = function (Twig) {
             return '';
         }
 
-        const joinedOutput = escapedOutput.join('')
+        const joinedOutput = escapedOutput.join('');
         if (joinedOutput.length === 0) {
             return '';
         }
