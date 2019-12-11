@@ -13,6 +13,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|url_encode() }}'});
             testTemplate.render().should.equal('');
         });
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|url_encode() }}'});
+            testTemplate.render().should.equal('');
+        });
         it('should handle special characters', function () {
             const data = {foo: '<foo> \\&"\'.,-_?/Ķä€台北[]{}\t\r\n\b\u0080'};
             const testTemplate = twig({data: '{{ foo|url_encode() }}'});
@@ -183,6 +187,11 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|keys }}'});
             testTemplate.render().should.equal('');
         });
+
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|keys }}'});
+            testTemplate.render().should.equal('');
+        });
     });
     describe('merge ->', function () {
         it('should merge two objects into an object', function () {
@@ -216,9 +225,12 @@ describe('Twig.js Filters ->', function () {
             testTemplate = twig({data: '{{ [1+ 5,2,4,76]|join("-" ~ ".") }}'});
             testTemplate.render().should.equal('6-.2-.4-.76');
         });
-
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{{ undef|join }}'});
+            testTemplate.render().should.equal('');
+        });
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|join }}'});
             testTemplate.render().should.equal('');
         });
     });
@@ -334,6 +346,11 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|replace }}'});
             testTemplate.render().should.equal('');
         });
+
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|replace }}'});
+            testTemplate.render().should.equal('');
+        });
     });
 
     describe('format ->', function () {
@@ -344,6 +361,11 @@ describe('Twig.js Filters ->', function () {
 
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{{ undef|format }}'});
+            testTemplate.render().should.equal('');
+        });
+
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|format }}'});
             testTemplate.render().should.equal('');
         });
 
@@ -388,6 +410,11 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|striptags }}'});
             testTemplate.render().should.equal('');
         });
+
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|striptags }}'});
+            testTemplate.render().should.equal('');
+        });
     });
 
     describe('escape ->', function () {
@@ -398,6 +425,11 @@ describe('Twig.js Filters ->', function () {
 
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{{ undef|escape }}'});
+            testTemplate.render().should.equal('');
+        });
+
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|escape }}'});
             testTemplate.render().should.equal('');
         });
 
@@ -495,9 +527,9 @@ describe('Twig.js Filters ->', function () {
             testTemplate.render().should.equal('');
         });
 
-        it('should not fail when passed str', function () {
-            const testTemplate = twig({data: '{{ myemptystr|nl2br }}'});
-            testTemplate.render({myemptystr: ''}).should.equal('');
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|nl2br }}'});
+            testTemplate.render().should.equal('');
         });
 
         it('should not escape br tags if autoescape is on', function () {
@@ -540,6 +572,11 @@ describe('Twig.js Filters ->', function () {
 
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{{ undef|trim }}'});
+            testTemplate.render().should.equal('');
+        });
+
+        it('should handle empty strings', function () {
+            const testTemplate = twig({data: '{{ ""|trim }}'});
             testTemplate.render().should.equal('');
         });
 
