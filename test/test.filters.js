@@ -495,6 +495,11 @@ describe('Twig.js Filters ->', function () {
             testTemplate.render().should.equal('');
         });
 
+        it('should not fail when passed str', function () {
+            const testTemplate = twig({data: '{{ myemptystr|nl2br }}'});
+            testTemplate.render({myemptystr: ''}).should.equal('');
+        });
+
         it('should not escape br tags if autoescape is on', function () {
             twig({
                 autoescape: true,
