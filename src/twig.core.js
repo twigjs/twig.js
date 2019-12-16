@@ -1294,6 +1294,11 @@ module.exports = function (Twig) {
         if (block === undefined) {
             block = this.blocks.imported[name];
         }
+        
+        if (block === undefined && this.parentTemplate !== null) {
+            // Block defined in the parent template when extending
+            block =  this.parentTemplate.getBlock(name, checkOnlyInheritedBlocks);
+        }
 
         return block;
     };
