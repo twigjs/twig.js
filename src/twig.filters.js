@@ -405,7 +405,7 @@ module.exports = function (Twig) {
         },
 
         escape(value, params) {
-            if (value === undefined || value === null) {
+            if (value === undefined || value === null || value === '') {
                 return;
             }
 
@@ -504,7 +504,7 @@ module.exports = function (Twig) {
         },
 
         nl2br(value) {
-            if (value === undefined || value === null) {
+            if (value === undefined || value === null || value === '') {
                 return;
             }
 
