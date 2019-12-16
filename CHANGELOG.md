@@ -1,7 +1,11 @@
 Version 1.15.0, unreleased
 --------------------------
-Minor improvements:
+Major improvements:
 * Add support for arrays with `include` ([#681](https://github.com/twigjs/twig.js/pull/681) by [@justafish](https://github.com/justafish))
+
+Minor improvements:
+* Fix autoescape for empty includes ([#687](https://github.com/twigjs/twig.js/pull/687) by [@tgabi333](https://github.com/tgabi333))
+* Fix filters with empty string input ([#690](https://github.com/twigjs/twig.js/pull/690) by [@tbence94](https://github.com/tbence94))
 
 Version 1.14.0, released 2019-11-13
 -----------------------------------
