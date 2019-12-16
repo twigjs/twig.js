@@ -709,7 +709,12 @@ module.exports = function (Twig) {
             return '';
         }
 
-        return new Twig.Markup(escapedOutput.join(''), true);
+        const joinedOutput = escapedOutput.join('');
+        if (joinedOutput.length === 0) {
+            return '';
+        }
+
+        return new Twig.Markup(joinedOutput, true);
     };
 
     // Namespace for template storage and retrieval
