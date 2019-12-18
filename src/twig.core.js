@@ -1284,15 +1284,24 @@ module.exports = function (Twig) {
      *
      * @return {Twig.Block|undefined}
      */
-    Twig.Template.prototype.getBlock = function (name, checkOnlyInheritedBlocks) {
+    Twig.Template.prototype.getBlock = function (name, checkOnlyInheritedBlocks, checkImports = true) {
         let block;
 
         if (checkOnlyInheritedBlocks !== true) {
             block = this.blocks.defined[name];
         }
 
-        if (block === undefined) {
+        if (checkImports && block === undefined) {
             block = this.blocks.imported[name];
+        }
+
+        if (block === undefined && this.parentTemplate !== null) {
+            /**
+             * Block defined in the parent template when extending.
+             * This recursion is useful to inherit from ascendants.
+             * But take care of not considering ascendants' {% use %}
+             */
+            block = this.parentTemplate.getBlock(name, checkOnlyInheritedBlocks, checkImports = false);
         }
 
         return block;
