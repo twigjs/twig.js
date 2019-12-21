@@ -274,6 +274,11 @@ describe('Twig.js Functions ->', function () {
                 })
                     .should.equal('');
             });
+
+            it('should return undef for undefined object', function () {
+                twig({data: '{{ attribute(arr, "bar") }}'}).render({})
+                    .should.equal('');
+            });
         });
         describe('template_from_string ->', function () {
             it('should load a template from a string', function () {

@@ -188,7 +188,7 @@ module.exports = function (Twig) {
             }
 
             // Array will return element 0-index
-            return object[method] || undefined;
+            return object ? (object[method] || undefined) : undefined;
         },
         max(values, ...args) {
             if (Twig.lib.is('Object', values)) {
