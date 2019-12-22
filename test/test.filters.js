@@ -778,6 +778,13 @@ describe('Twig.js Filters ->', function () {
                 value: '<test>&</test>'
             }).should.equal('<test>&</test>');
         });
+
+        it('should output an empty string', function () {
+            const template = twig({data: '{{ value|raw }}'});
+            template.render({value: ''}).should.equal('');
+            template.render({}).should.equal('');
+        });
+
     });
 
     describe('round ->', function () {
