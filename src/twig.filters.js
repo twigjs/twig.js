@@ -745,7 +745,7 @@ module.exports = function (Twig) {
             return value[value.length - 1];
         },
         raw(value) {
-            return new Twig.Markup(value);
+            return new Twig.Markup(value || '');
         },
         batch(items, params) {
             let size = params.shift();

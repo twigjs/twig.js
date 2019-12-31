@@ -1443,7 +1443,7 @@ module.exports = function (Twig) {
      */
 
     Twig.Markup = function (content, strategy) {
-        if (typeof content !== 'string' || content.length === 0) {
+        if (typeof content !== 'string') {
             return content;
         }
 
