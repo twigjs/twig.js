@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Twig.js</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.min.css" />
+    <script src="../../twig.min.js"></script>
+  </head>
+  <body>
+
+    <style type="text/css">
+      textarea {
+        min-height: 20em;
+      }
+      h1 img {
+        vertical-align: middle;
+      }
+    </style>
+
+    <div class="container">
+      <div class="row">
+        <div class="column">
+          <h1>Twig.js</h1>
+          <p><strong><a href="https://github.com/twigjs/twig.js">Twig.js</a></strong> is a JavaScript implementation of the Twig Templating Language.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column">
+          <h2>Input</h2>
+          <textarea id="input">Hello, {{ name }}!</textarea>
+          <button id="execute" class="button">Execute</button>
+        </div>
+        <div class="column">
+          <h2>Output</h2>
+          <textarea id="output"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Act on the Execute button.
+      document.getElementById("execute").addEventListener("click", function() {
+        // Grab the input.
+        var input = document.getElementById('input')
+
+        // Build the Twig renderer.
+        var template = Twig.twig({
+          data: input.value
+        });
+
+        // Render the template with name, and put it in the output box.
+        var output = document.getElementById('output')
+        output.value = template.render({
+          name: "World"
+        });
+      });
+    </script>
+
+  </body>
+</html>
+
