@@ -2,6 +2,12 @@ Version 1.15.0, unreleased
 --------------------------
 Major improvements:
 * Add support for arrays with `include` ([#681](https://github.com/twigjs/twig.js/pull/681) by [@justafish](https://github.com/justafish))
+* Add babel preset on serverBuild ([#707](https://github.com/twigjs/twig.js/pull/707) by [@stephane-r](https://github.com/stephane-r))
+* Support for "do" tag ([#703](https://github.com/twigjs/twig.js/pull/703) by [@drzraf](https://github.com/drzraf))
+* Update [`xo`](https://www.npmjs.com/package/xo) and code syntax by [@RobLoach](https://github.com/robloach)
+* Deprecate Node.js 8 from testing by [@RobLoach](https://github.com/robloach)
+* Support for Source Maps ([#700](https://github.com/twigjs/twig.js/pull/700) by [@drzraf](https://github.com/drzraf))
+* Search for block within all ascendants instead of parent only ([#698](https://github.com/twigjs/twig.js/pull/698) by [@drzraf](https://github.com/drzraf))
 
 Minor improvements:
 * Fix autoescape for empty includes ([#687](https://github.com/twigjs/twig.js/pull/687) by [@tgabi333](https://github.com/tgabi333))
