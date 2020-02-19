@@ -1,5 +1,19 @@
 const TerserJsPlugin = require('terser-webpack-plugin');
 
+const commonModule = {
+    exclude: /(node_modules)/,
+    use: {
+        loader: "babel-loader",
+        options: {
+            presets: ["@babel/preset-env"],
+            plugins: [
+                "@babel/plugin-transform-modules-commonjs",
+                "@babel/plugin-transform-runtime"
+            ]
+        }
+    }
+};
+
 const serverBuild = {
     mode: 'production',
     entry: './src/twig.js',
@@ -10,6 +24,9 @@ const serverBuild = {
         filename: 'twig.js',
         library: 'Twig',
         libraryTarget: 'umd'
+    },
+    module: {
+        rules: [commonModule],
     },
     optimization: {
         minimize: false
@@ -25,21 +42,7 @@ const clientBuild = {
         __filename: false
     },
     module: {
-        rules: [
-            {
-                exclude: /(node_modules)/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env'],
-                        plugins: [
-                            '@babel/plugin-transform-modules-commonjs',
-                            '@babel/plugin-transform-runtime'
-                        ]
-                    }
-                }
-            }
-        ]
+        rules: [commonModule]
     },
     output: {
         path: __dirname,
