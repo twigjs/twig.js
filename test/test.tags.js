@@ -64,4 +64,11 @@ describe('Twig.js Tags ->', function () {
 
         consoleSpy.should.be.calledWith('Deprecation notice: \'`foo` is deprecated use `bar`\'');
     });
+
+    it('should support do', function () {
+        twig({data: '{% do 1 + 2 %}'}).render().should.equal('');
+        twig({data: '{% do arr %}'}).render({arr:[1]}).should.equal('');
+        twig({data: `{% do arr.foo("
+multiline", argument) %}`}).render().should.equal('');
+    });
 });

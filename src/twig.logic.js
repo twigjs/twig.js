@@ -26,6 +26,7 @@ module.exports = function (Twig) {
         endfilter: 'Twig.logic.type.endfilter',
         apply: 'Twig.logic.type.apply',
         endapply: 'Twig.logic.type.endapply',
+        do: 'Twig.logic.type.do',
         shortblock: 'Twig.logic.type.shortblock',
         block: 'Twig.logic.type.block',
         endblock: 'Twig.logic.type.endblock',
@@ -569,6 +570,41 @@ module.exports = function (Twig) {
             regex: /^endapply$/,
             next: [],
             open: false
+        },
+        {
+            /**
+             * Set type logic tokens.
+             *
+             *  Format: {% do expression %}
+             */
+            type: Twig.logic.type.do,
+            regex: /^do\s+([\S\s]+)$/,
+            next: [],
+            open: true,
+            compile(token) { //
+                const expression = token.match[1];
+                // Compile the expression.
+                const expressionStack = Twig.expression.compile.call(this, {
+                    type: Twig.expression.type.expression,
+                    value: expression
+                }).stack;
+
+                token.expression = expressionStack;
+
+                delete token.match;
+                return token;
+            },
+            parse(token, context, continueChain) {
+                const state = this;
+
+                return Twig.expression.parseAsync.call(state, token.expression, context)
+                    .then(() => {
+                        return {
+                            chain: continueChain,
+                            context
+                        };
+                    });
+            }
         },
         {
             /**
