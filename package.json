@@ -66,6 +66,7 @@
       "mocha"
     ],
     "rules": {
+      "promise/prefer-await-to-then": 0,
       "prefer-arrow-callback": 0,
       "mocha/prefer-arrow-callback": 2
     }
