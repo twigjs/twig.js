@@ -295,8 +295,8 @@ describe('Twig.js Filters ->', function () {
         });
 
         it('should recognize string date formats', function () {
-            const template = twig({data: '{{ "Tue Aug 14 08:52:15 +0000 2007"|date("d/m/Y @ H:i:s") }}'});
-            const date = new Date(1187081535000); // 14/08/2007 @ 04:52:15 EST
+            const template = twig({data: '{{ "December 17, 1995 08:24:00"|date("d/m/Y @ H:i:s") }}'});
+            const date = new Date("December 17, 1995 08:24:00");
 
             template.render().should.equal(stringDate(date));
         });

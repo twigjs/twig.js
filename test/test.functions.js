@@ -180,9 +180,8 @@ describe('Twig.js Functions ->', function () {
                 twig({data: '{{ date("now") }}'}).render().should.equal(new Date().toString());
             });
             it('should understand exact dates', function () {
-                const date = new Date('June 20, 2010 UTC');
-
-                twig({data: '{{ date("June 20, 2010 UTC")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
+                const date = new Date('December 17, 1995 08:24:00');
+                twig({data: '{{ date("December 17, 1995 08:24:00")|date("d/m/Y @ H:i:s") }}'}).render().should.equal(stringDate(date));
             });
         });
         describe('dump ->', function () {
