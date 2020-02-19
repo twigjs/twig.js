@@ -239,6 +239,7 @@ module.exports = function (Twig) {
             if (handlers[2] === -2) {
                 append(handlers[0], handlers[1]);
                 handlers = null;
+                return;
             }
 
             handlers.forEach(h => {
