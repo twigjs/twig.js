@@ -163,7 +163,7 @@ describe('Twig.js Expressions ->', function () {
             {a: true, b: 'true'},
             {a: 1, b: '1'},
             {a: 1, b: 1},
-            {a: 1, b: 1.0},
+            {a: 1, b: 1},
             {a: 'str', b: 'str'},
             {a: false, b: 'false'}
         ];
@@ -353,7 +353,7 @@ describe('Twig.js Expressions ->', function () {
 
             testTemplate.render({test: 'one'}).should.equal('true');
             testTemplate.render({test: 0}).should.equal('false');
-            testTemplate.render({test: 0.0}).should.equal('false');
+            testTemplate.render({test: 0}).should.equal('false');
             testTemplate.render({test: ''}).should.equal('false');
             testTemplate.render({test: '0'}).should.equal('false');
             testTemplate.render({test: []}).should.equal('false');

@@ -16,7 +16,7 @@ describe('Twig.js Extensions ->', function () {
                     const expression = token.match[1];
 
                     // Compile the expression.
-                    token.stack = Twig.expression.compile.apply(this, [{
+                    token.stack = Reflect.apply(Twig.expression.compile, this, [{
                         type: Twig.expression.type.expression,
                         value: expression
                     }]).stack;
@@ -25,7 +25,7 @@ describe('Twig.js Extensions ->', function () {
                     return token;
                 },
                 parse(token, context, _) {
-                    const name = Twig.expression.parse.apply(this, [token.stack, context]);
+                    const name = Reflect.apply(Twig.expression.parse, this, [token.stack, context]);
                     const output = '';
 
                     flags[name] = true;
@@ -64,7 +64,7 @@ describe('Twig.js Extensions ->', function () {
                     const expression = token.match[1];
 
                     // Turn the string expression into tokens.
-                    token.stack = Twig.expression.compile.apply(this, [{
+                    token.stack = Reflect.apply(Twig.expression.compile, this, [{
                         type: Twig.expression.type.expression,
                         value: expression
                     }]).stack;
@@ -73,7 +73,7 @@ describe('Twig.js Extensions ->', function () {
                     return token;
                 },
                 parse(token, context, chain) {
-                    const level = Twig.expression.parse.apply(this, [token.stack, context]);
+                    const level = Reflect.apply(Twig.expression.parse, this, [token.stack, context]);
                     let output = '';
 
                     if (App.users[App.currentUser].level === level) {

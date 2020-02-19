@@ -1,10 +1,10 @@
 module.declare(
     [
-        { backbone: 'vendor/backbone' }
+        {backbone: 'vendor/backbone'}
     ]
-    , function(require, exports, module) {
-        var Backbone = require('backbone')
-            , Account = Backbone.Model.extend({ });
+    , (require, exports, module) => {
+        const Backbone = require('backbone');
+        const Account = Backbone.Model.extend({ });
 
         return Account;
     }

@@ -196,7 +196,7 @@ module.exports = function (Twig) {
                 return Twig.lib.max(values);
             }
 
-            return Twig.lib.max.apply(null, [values, ...args]);
+            return Reflect.apply(Twig.lib.max, null, [values, ...args]);
         },
         min(values, ...args) {
             if (Twig.lib.is('Object', values)) {
@@ -204,7 +204,7 @@ module.exports = function (Twig) {
                 return Twig.lib.min(values);
             }
 
-            return Twig.lib.min.apply(null, [values, ...args]);
+            return Reflect.apply(Twig.lib.min, null, [values, ...args]);
         },
         /* eslint-disable-next-line camelcase */
         template_from_string(template) {

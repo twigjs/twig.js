@@ -56,7 +56,7 @@ describe('Twig.js Tags ->', function () {
     });
 
     it('should support deprecated tag and show a console warn message', function () {
-        let consoleSpy = sinon.spy(console, 'warn');
+        const consoleSpy = sinon.spy(console, 'warn');
 
         twig({
             data: '{% deprecated \'`foo` is deprecated use `bar`\' %}'

@@ -89,11 +89,11 @@ describe('Twig.js Include ->', function () {
         twig({ref: 'include-array'}).render({test: 'tst'}).should.equal('BeforeTest template = tst\n\nAfter');
     });
 
-    it('should load the second template when passed an array where the first value does not exist', function() {
+    it('should load the second template when passed an array where the first value does not exist', function () {
         twig({
             id: 'include-array-second-exists',
             path: 'test/templates/include-array-second-exists.twig',
-            async: false,
+            async: false
         });
 
         // Load the template

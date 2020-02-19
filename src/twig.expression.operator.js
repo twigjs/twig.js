@@ -19,7 +19,7 @@ module.exports = function (Twig) {
 
         if (b.indexOf !== undefined) {
             // String
-            return (a === b || a !== '') && b.indexOf(a) > -1;
+            return (a === b || a !== '') && b.includes(a);
         }
 
         let el;
@@ -350,7 +350,7 @@ module.exports = function (Twig) {
                 break;
 
             case 'ends with':
-                stack.push(typeof a === 'string' && a.indexOf(b, a.length - b.length) !== -1);
+                stack.push(typeof a === 'string' && a.includes(b, a.length - b.length));
                 break;
 
             case '..':

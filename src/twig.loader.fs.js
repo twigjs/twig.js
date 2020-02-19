@@ -10,6 +10,7 @@ module.exports = function (Twig) {
         path = require('path');
     } catch (error) {
         // NOTE: this is in a try/catch to avoid errors cross platform
+        console.warn('Missing fs and path modules. ' + error);
     }
 
     Twig.Templates.registerLoader('fs', function (location, params, callback, errorCallback) {
@@ -70,7 +71,7 @@ module.exports = function (Twig) {
                 throw new Twig.Error('Unable to find template file ' + params.path);
             }
         } catch (error) {
-            throw new Twig.Error('Unable to find template file ' + params.path);
+            throw new Twig.Error('Unable to find template file ' + params.path + '. ' + error);
         }
 
         data = fs.readFileSync(params.path, 'utf8');

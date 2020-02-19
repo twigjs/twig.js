@@ -448,7 +448,7 @@ describe('Twig.js Core ->', function () {
                 autoescape: true,
                 data: '{% include "included-return" %}'
             }).render().should.equal('');
-        })
+        });
 
         it('should use a correct context in the extended template', function () {
             twig({id: 'parent', data: '{% block body %}{{ value }}{% endblock body %}'});
