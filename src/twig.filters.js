@@ -29,7 +29,7 @@ module.exports = function (Twig) {
                 return value;
             }
 
-            return value.substr(0, 1).toUpperCase() + value.toLowerCase().substr(1);
+            return value.slice(0, 1).toUpperCase() + value.toLowerCase().slice(1);
         },
         title(value) {
             if (typeof value !== 'string') {
@@ -568,20 +568,20 @@ module.exports = function (Twig) {
             }
 
             for (let i = 0; i < str.length; i++) {
-                if (whitespace.indexOf(str.charAt(i)) === -1) {
-                    str = str.substring(i);
+                if (!whitespace.includes(str.charAt(i))) {
+                    str = str.slice(Math.max(0, i));
                     break;
                 }
             }
 
             for (let i = str.length - 1; i >= 0; i--) {
-                if (whitespace.indexOf(str.charAt(i)) === -1) {
-                    str = str.substring(0, i + 1);
+                if (!whitespace.includes(str.charAt(i))) {
+                    str = str.slice(0, Math.max(0, i + 1));
                     break;
                 }
             }
 
-            return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
+            return whitespace.includes(str.charAt(0)) ? '' : str;
         },
 
         truncate(value, params) {
@@ -612,7 +612,7 @@ module.exports = function (Twig) {
                     }
                 }
 
-                value = value.substr(0, length) + separator;
+                value = value.slice(0, length) + separator;
             }
 
             return value;
@@ -644,7 +644,7 @@ module.exports = function (Twig) {
             }
 
             if (Twig.lib.is('String', value)) {
-                return value.substr(startIndex, length);
+                return value.slice(startIndex, startIndex + length);
             }
 
             throw new Twig.Error('slice filter expects value to be an array or string');
@@ -668,7 +668,7 @@ module.exports = function (Twig) {
                     return value[value._keys[0]];
                 }
             } else if (typeof value === 'string') {
-                return value.substr(0, 1);
+                return value.slice(0, 1);
             }
         },
 

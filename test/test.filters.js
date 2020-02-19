@@ -784,7 +784,6 @@ describe('Twig.js Filters ->', function () {
             template.render({value: ''}).should.equal('');
             template.render({}).should.equal('');
         });
-
     });
 
     describe('round ->', function () {

@@ -26,7 +26,7 @@ module.exports = function (Twig) {
 
         if (hasNamespaces) {
             for (k in namespaces) {
-                if (file.indexOf(k) === -1) {
+                if (!file.includes(k)) {
                     continue;
                 }
 

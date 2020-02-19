@@ -307,7 +307,7 @@ module.exports = function (Twig) {
                     }
                     // Ignore escaped quotes
 
-                    if (template.substr(endStrPos - 1, 1) === '\\') {
+                    if (template.slice(endStrPos - 1, endStrPos) === '\\') {
                         endOffset = endStrPos + 1;
                     } else {
                         offset = endStrPos + 1;
@@ -351,11 +351,11 @@ module.exports = function (Twig) {
                 if (foundToken.position > 0) {
                     tokens.push({
                         type: Twig.token.type.raw,
-                        value: template.substring(0, foundToken.position)
+                        value: template.slice(0, Math.max(0, foundToken.position))
                     });
                 }
 
-                template = template.substr(foundToken.position + foundToken.def.open.length);
+                template = template.slice(foundToken.position + foundToken.def.open.length);
                 errorOffset += foundToken.position + foundToken.def.open.length;
 
                 // Find the end of the token
@@ -365,10 +365,10 @@ module.exports = function (Twig) {
 
                 tokens.push({
                     type: foundToken.def.type,
-                    value: template.substring(0, end).trim()
+                    value: template.slice(0, Math.max(0, end)).trim()
                 });
 
-                if (template.substr(end + foundToken.def.close.length, 1) === '\n') {
+                if (template.slice(end + foundToken.def.close.length, end + foundToken.def.close.length + 1) === '\n') {
                     switch (foundToken.def.type) {
                         case 'logic_whitespace_pre':
                         case 'logic_whitespace_post':
@@ -382,7 +382,7 @@ module.exports = function (Twig) {
                     }
                 }
 
-                template = template.substr(end + foundToken.def.close.length);
+                template = template.slice(end + foundToken.def.close.length);
 
                 // Increment the position in the template
                 errorOffset += end + foundToken.def.close.length;
@@ -447,7 +447,7 @@ module.exports = function (Twig) {
                     prevToken = stack.pop();
                     prevTemplate = Twig.logic.handler[prevToken.type];
 
-                    if (prevTemplate.next.indexOf(type) < 0) {
+                    if (!prevTemplate.next.includes(type)) {
                         throw new Error(type + ' not expected after a ' + prevToken.type);
                     }
 

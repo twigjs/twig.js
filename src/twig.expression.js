@@ -351,13 +351,13 @@ module.exports = function (Twig) {
                 delete token.match;
 
                 // Remove the quotes from the string
-                if (value.substring(0, 1) === '"') {
+                if (value.slice(0, 1) === '"') {
                     value = value.replace('\\"', '"');
                 } else {
                     value = value.replace('\\\'', '\'');
                 }
 
-                token.value = value.substring(1, value.length - 1).replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+                token.value = value.slice(1, -1).replace(/\\n/g, '\n').replace(/\\r/g, '\r');
                 Twig.log.trace('Twig.expression.compile: ', 'String value: ', token.value);
                 output.push(token);
             },
@@ -489,7 +489,7 @@ module.exports = function (Twig) {
             validate(match, tokens) {
                 const lastToken = tokens[tokens.length - 1];
                 // We can't use the regex to test if we follow a space because expression is trimmed
-                return lastToken && (Twig.expression.reservedWords.indexOf(lastToken.value.trim()) < 0);
+                return lastToken && (!Twig.expression.reservedWords.includes(lastToken.value.trim()));
             },
             compile: Twig.expression.fn.compile.pushBoth,
             parse: Twig.expression.fn.parse.push
@@ -782,7 +782,7 @@ module.exports = function (Twig) {
             next: Twig.expression.type.parameter.start,
             validate(match) {
                 // Make sure this function is not a reserved word
-                return match[1] && (Twig.expression.reservedWords.indexOf(match[1]) < 0);
+                return match[1] && (!Twig.expression.reservedWords.includes(match[1]));
             },
             transform() {
                 return '(';
@@ -838,7 +838,7 @@ module.exports = function (Twig) {
             ]),
             compile: Twig.expression.fn.compile.push,
             validate(match) {
-                return (Twig.expression.reservedWords.indexOf(match[0]) < 0);
+                return (!Twig.expression.reservedWords.includes(match[0]));
             },
             parse(token, stack, context) {
                 const state = this;
@@ -888,7 +888,7 @@ module.exports = function (Twig) {
                             value = undefined;
                         } else {
                             const capitalize = function (value) {
-                                return value.substr(0, 1).toUpperCase() + value.substr(1);
+                                return value.slice(0, 1).toUpperCase() + value.slice(1);
                             };
 
                             // Get the variable from the context
@@ -1150,10 +1150,10 @@ module.exports = function (Twig) {
             Twig.log.trace('Twig.expression.tokenize',
                 'Matched a ', type, ' regular expression of ', match);
 
-            if (next && next.indexOf(type) < 0) {
+            if (next && !next.includes(type)) {
                 invalidMatches.push(
                     type + ' cannot follow a ' + tokens[tokens.length - 1].type +
-                           ' at template:' + expOffset + ' near \'' + match[0].substring(0, 20) +
+                           ' at template:' + expOffset + ' near \'' + match[0].slice(0, 20) +
                            '...\''
                 );
 

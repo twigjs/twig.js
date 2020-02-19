@@ -221,7 +221,7 @@ module.exports = function (Twig) {
                 token.keyVar = null;
                 token.valueVar = null;
 
-                if (keyValue.indexOf(',') >= 0) {
+                if (keyValue.includes(',')) {
                     kvSplit = keyValue.split(',');
                     if (kvSplit.length === 2) {
                         token.keyVar = kvSplit[0].trim();
@@ -1061,9 +1061,7 @@ module.exports = function (Twig) {
                 const macroExpressions = token.match[2].trim().split(/\s*,\s*/);
                 const macroNames = {};
 
-                for (let i = 0; i < macroExpressions.length; i++) {
-                    const res = macroExpressions[i];
-
+                for (const res of macroExpressions) {
                     // Match function as variable
                     const macroMatch = res.match(/^(\w+)\s+as\s+(\w+)$/);
                     if (macroMatch) {
