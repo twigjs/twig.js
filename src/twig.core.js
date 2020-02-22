@@ -540,7 +540,7 @@ module.exports = function (Twig) {
 
                                     // If the previous output is not just whitespace, trim it
                                     if (prevOutput.value.match(/^\s*$/) === null) {
-                                        prevOutput.value = prevOutput.value.trim();
+                                        prevOutput.value = prevOutput.value.trimEnd();
                                         // Repush the previous output
                                         output.push(prevOutput);
                                     }
@@ -554,7 +554,7 @@ module.exports = function (Twig) {
 
                                     // If the previous output is not just whitespace, trim it
                                     if (prevIntermediateOutput.value.match(/^\s*$/) === null) {
-                                        prevIntermediateOutput.value = prevIntermediateOutput.value.trim();
+                                        prevIntermediateOutput.value = prevIntermediateOutput.value.trimEnd();
                                         // Repush the previous intermediate output
                                         intermediateOutput.push(prevIntermediateOutput);
                                     }
@@ -586,7 +586,7 @@ module.exports = function (Twig) {
 
                                     // If the next token is not just whitespace, trim it
                                     if (nextToken.value.match(/^\s*$/) === null) {
-                                        nextToken.value = nextToken.value.trim();
+                                        nextToken.value = nextToken.value.trimStart();
                                         // Unshift the next token
                                         tokens.unshift(nextToken);
                                     }
