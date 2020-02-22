@@ -538,12 +538,9 @@ module.exports = function (Twig) {
                                 if (prevOutput.type === Twig.token.type.raw) {
                                     output.pop();
 
-                                    // If the previous output is not just whitespace, trim it
-                                    if (prevOutput.value.match(/^\s*$/) === null) {
-                                        prevOutput.value = prevOutput.value.trim();
-                                        // Repush the previous output
-                                        output.push(prevOutput);
-                                    }
+                                    prevOutput.value = prevOutput.value.trim();
+                                    // Repush the previous output
+                                    output.push(prevOutput);
                                 }
                             }
 
@@ -552,12 +549,9 @@ module.exports = function (Twig) {
                                 if (prevIntermediateOutput.type === Twig.token.type.raw) {
                                     intermediateOutput.pop();
 
-                                    // If the previous output is not just whitespace, trim it
-                                    if (prevIntermediateOutput.value.match(/^\s*$/) === null) {
-                                        prevIntermediateOutput.value = prevIntermediateOutput.value.trim();
-                                        // Repush the previous intermediate output
-                                        intermediateOutput.push(prevIntermediateOutput);
-                                    }
+                                    prevIntermediateOutput.value = prevIntermediateOutput.value.trim();
+                                    // Repush the previous intermediate output
+                                    intermediateOutput.push(prevIntermediateOutput);
                                 }
                             }
                         }
@@ -584,12 +578,9 @@ module.exports = function (Twig) {
                                 if (nextToken.type === Twig.token.type.raw) {
                                     tokens.shift();
 
-                                    // If the next token is not just whitespace, trim it
-                                    if (nextToken.value.match(/^\s*$/) === null) {
-                                        nextToken.value = nextToken.value.trim();
-                                        // Unshift the next token
-                                        tokens.unshift(nextToken);
-                                    }
+                                    nextToken.value = nextToken.value.trim();
+                                    // Unshift the next token
+                                    tokens.unshift(nextToken);
                                 }
                             }
                         }
