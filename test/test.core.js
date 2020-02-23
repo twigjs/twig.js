@@ -106,6 +106,8 @@ describe('Twig.js Core ->', function () {
         twig({data: '123\n\t{%- if true -%}\n\n\t{{ "test" }}{% endif %}456'}).render().should.equal('123test456');
         twig({data: '\n\t{%- if true -%}\n\n\t{{ [1,2 ,1+2 ] }}{% endif %}'}).render().should.equal('1,2,3');
         twig({data: '<>{%- if true -%}test{% endif %}<>'}).render().should.equal('<>test<>');
+        twig({data: '{% if true -%}no_right_trim {{ "test" }}{% endif %}'}).render().should.equal('no_right_trim test');
+        twig({data: '{% if true %}{{ "test" }} no_left_trim{%- endif %}'}).render().should.equal('test no_left_trim');
     });
 
     it('should be able to parse mismatched opening whitespace control logic tags', function () {

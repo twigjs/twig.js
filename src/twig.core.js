@@ -538,7 +538,7 @@ module.exports = function (Twig) {
                                 if (prevOutput.type === Twig.token.type.raw) {
                                     output.pop();
 
-                                    prevOutput.value = prevOutput.value.trim();
+                                    prevOutput.value = prevOutput.value.trimEnd();
                                     // Repush the previous output
                                     output.push(prevOutput);
                                 }
@@ -549,7 +549,7 @@ module.exports = function (Twig) {
                                 if (prevIntermediateOutput.type === Twig.token.type.raw) {
                                     intermediateOutput.pop();
 
-                                    prevIntermediateOutput.value = prevIntermediateOutput.value.trim();
+                                    prevIntermediateOutput.value = prevIntermediateOutput.value.trimEnd();
                                     // Repush the previous intermediate output
                                     intermediateOutput.push(prevIntermediateOutput);
                                 }
@@ -578,7 +578,7 @@ module.exports = function (Twig) {
                                 if (nextToken.type === Twig.token.type.raw) {
                                     tokens.shift();
 
-                                    nextToken.value = nextToken.value.trim();
+                                    nextToken.value = nextToken.value.trimStart();
                                     // Unshift the next token
                                     tokens.unshift(nextToken);
                                 }
