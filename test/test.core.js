@@ -408,7 +408,7 @@ describe('Twig.js Core ->', function () {
                 data: '{{ value }}'
             }).render({
                 value: '<test>&</test>'
-            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+            }).should.equal('\\u003Ctest\\u003E\\u0026\\u003C\\/test\\u003E');
         });
 
         it('should not auto escape html_attr within the html strategy', function () {
@@ -509,4 +509,3 @@ describe('Twig.js Core ->', function () {
         });
     });
 });
-

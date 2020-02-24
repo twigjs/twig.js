@@ -453,7 +453,7 @@ describe('Twig.js Filters ->', function () {
             testTemplate.render(data).should.equal('html: &lt;foo&gt; \\&amp;&quot;&#039;.,-_?/Ķä€台北[]{}\t\r\n\b\u0080');
 
             testTemplate = twig({data: 'js: {{ foo|escape("js") }}'});
-            testTemplate.render(data).should.equal('js: \\x3Cfoo\\x3E\\x20\\x5C\\x26\\x22\\x27.,\\x2D_\\x3F\\x2F\\u0136\\u00E4\\u20AC\\u53F0\\u5317\\x5B\\x5D\\x7B\\x7D\\x9\\xD\\xA\\x8\\u0080');
+            testTemplate.render(data).should.equal('js: \\u003Cfoo\\u003E\\u0020\\\\\\u0026\\u0022\\u0027.,\\u002D_\\u003F\\/\\u0136\\u00E4\\u20AC\\u53F0\\u5317\\u005B\\u005D\\u007B\\u007D\\t\\r\\n\\b\\u0080');
 
             testTemplate = twig({data: 'css: {{ foo|escape("css") }}'});
             testTemplate.render(data).should.equal('css: \\3C foo\\3E \\20 \\5C \\26 \\22 \\27 \\2E \\2C \\2D \\5F \\3F \\2F \\136 \\E4 \\20AC \\53F0 \\5317 \\5B \\5D \\7B \\7D \\9 \\D \\A \\8 \\80 ');
@@ -471,7 +471,7 @@ describe('Twig.js Filters ->', function () {
                 data: '{{ value|escape("js") }}'
             }).render({
                 value: '<test>&</test>'
-            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+            }).should.equal('\\u003Ctest\\u003E\\u0026\\u003C\\/test\\u003E');
         });
 
         it('should not escape twice if autoescape is not html', function () {
@@ -480,7 +480,7 @@ describe('Twig.js Filters ->', function () {
                 data: '{{ value|escape("js") }}'
             }).render({
                 value: '<test>&</test>'
-            }).should.equal('\\x3Ctest\\x3E\\x26\\x3C\\x2Ftest\\x3E');
+            }).should.equal('\\u003Ctest\\u003E\\u0026\\u003C\\/test\\u003E');
         });
 
         it('should escape twice if escape strategy is different from autoescape option', function () {
@@ -489,7 +489,7 @@ describe('Twig.js Filters ->', function () {
                 data: '{{ value|escape("js") }}\n{{ value|escape }}'
             }).render({
                 value: '<test>&</test>'
-            }).should.equal('\\5C x3Ctest\\5C x3E\\5C x26\\5C x3C\\5C x2Ftest\\5C x3E\n\\26 lt\\3B test\\26 gt\\3B \\26 amp\\3B \\26 lt\\3B \\2F test\\26 gt\\3B ');
+            }).should.equal('\\5C u003Ctest\\5C u003E\\5C u0026\\5C u003C\\5C \\2F test\\5C u003E\n\\26 lt\\3B test\\26 gt\\3B \\26 amp\\3B \\26 lt\\3B \\2F test\\26 gt\\3B ');
         });
     });
 

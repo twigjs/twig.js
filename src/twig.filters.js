@@ -431,10 +431,24 @@ module.exports = function (Twig) {
                     if (rawValue[i].match(/^[a-zA-Z0-9,._]$/)) {
                         result += rawValue[i];
                     } else {
+                        const char = rawValue.charAt(i);
                         const charCode = rawValue.charCodeAt(i);
 
-                        if (charCode < 0x80) {
-                            result += '\\x' + charCode.toString(16).toUpperCase();
+                        // A few characters have short escape sequences in JSON and JavaScript.
+                        // Escape sequences supported only by JavaScript, not JSON, are ommitted.
+                        // \" is also supported but omitted, because the resulting string is not HTML safe.
+                        const shortMap = {
+                            '\\': '\\\\',
+                            '/': '\\/',
+                            '\u0008': '\\b',
+                            '\u000C': '\\f',
+                            '\u000A': '\\n',
+                            '\u000D': '\\r',
+                            '\u0009': '\\t'
+                        };
+
+                        if (shortMap[char]) {
+                            result += shortMap[char];
                         } else {
                             result += Twig.lib.sprintf('\\u%04s', charCode.toString(16).toUpperCase());
                         }
