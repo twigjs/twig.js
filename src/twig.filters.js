@@ -741,6 +741,10 @@ module.exports = function (Twig) {
                 return value[keys[keys.length - 1]];
             }
 
+            if (Twig.lib.is('Number', value)) {
+                return value.toString().slice(-1);
+            }
+
             // String|array
             return value[value.length - 1];
         },
