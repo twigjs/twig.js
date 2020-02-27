@@ -756,6 +756,16 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ {\'m\':1, \'z\':5, \'a\':3}|sort|last }}'});
             testTemplate.render().should.equal('5');
         });
+        it('should return the last digit of numbers', function () {
+            const singleDigitTemplate = twig({data: '{{ 1|last }}'});
+            singleDigitTemplate.render().should.equal('1');
+
+            const multiDigitTemplate = twig({data: '{{ 130|last }}'});
+            multiDigitTemplate.render().should.equal('0');
+
+            const floatTemplate = twig({data: '{{ 142.7|last }}'});
+            floatTemplate.render().should.equal('7');
+        });
     });
 
     describe('raw ->', function () {
