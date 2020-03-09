@@ -304,14 +304,36 @@ describe('Twig.js Expressions ->', function () {
         it('should support starts with', function () {
             const testTemplate = twig({data: '{{ a starts with "f" }}'});
             testTemplate.render({a: 'foo'}).should.equal('true');
+            testTemplate.render({a: 'f'}).should.equal('true');
             testTemplate.render({a: 'bar'}).should.equal('false');
+            testTemplate.render({a: 'oof'}).should.equal('false');
+            testTemplate.render({}).should.equal('false');
+        });
+
+        it('should support "starts with" for numbers', function () {
+            const testTemplate = twig({data: '{{ n starts with "12" }}'});
+            testTemplate.render({n: 12}).should.equal('true');
+            testTemplate.render({n: 121}).should.equal('true');
+            testTemplate.render({n: 12.42}).should.equal('true');
+            testTemplate.render({n: 412}).should.equal('false');
             testTemplate.render({}).should.equal('false');
         });
 
         it('should support ends with', function () {
             const testTemplate = twig({data: '{{ a ends with "o" }}'});
             testTemplate.render({a: 'foo'}).should.equal('true');
+            testTemplate.render({a: 'o'}).should.equal('true');
             testTemplate.render({a: 'bar'}).should.equal('false');
+            testTemplate.render({a: 'oof'}).should.equal('false');
+            testTemplate.render({}).should.equal('false');
+        });
+
+        it('should support "ends with" for numbers', function () {
+            const testTemplate = twig({data: '{{ n ends with "12" }}'});
+            testTemplate.render({n: 12}).should.equal('true');
+            testTemplate.render({n: 112}).should.equal('true');
+            testTemplate.render({n: 24.12}).should.equal('true');
+            testTemplate.render({n: 124}).should.equal('false');
             testTemplate.render({}).should.equal('false');
         });
 
