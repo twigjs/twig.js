@@ -1,5 +1,10 @@
-Version 1.15.0, unreleased
---------------------------
+Version x.x.x, unreleased
+-------------------------
+Major improvements:
+* Make "js" escaped strings embeddable in JSON ([#724](https://github.com/twigjs/twig.js/pull/724) by [@dorian-marchal]
+
+Version 1.15.0, released 2020-02-20
+-----------------------------------
 Major improvements:
 * Add support for arrays with `include` ([#681](https://github.com/twigjs/twig.js/pull/681) by [@justafish](https://github.com/justafish))
 * Add babel preset on serverBuild ([#707](https://github.com/twigjs/twig.js/pull/707) by [@stephane-r](https://github.com/stephane-r))
