@@ -1,7 +1,10 @@
-Version x.x.x, unreleased
--------------------------
+Version 1.15.1, released 2020-04-16
+-----------------------------------
 Major improvements:
-* Make "js" escaped strings embeddable in JSON ([#724](https://github.com/twigjs/twig.js/pull/724) by [@dorian-marchal]
+* Make "js" escaped strings embeddable in JSON ([#724](https://github.com/twigjs/twig.js/pull/724) by [@dorian-marchal])
+
+Minor improvements:
+* Fix parsing expression when value is `null` ([#735](https://github.com/twigjs/twig.js/pull/735) by [@RobLoach])
 
 Version 1.15.0, released 2020-02-20
 -----------------------------------
