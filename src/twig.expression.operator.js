@@ -172,7 +172,7 @@ module.exports = function (Twig) {
                 a = a.length;
             }
 
-            if (b && Array.isArray(b)) {
+            if (operator !== '?' && (b && Array.isArray(b))) {
                 b = b.length;
             }
         }

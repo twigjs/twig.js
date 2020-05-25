@@ -29,4 +29,11 @@ describe('Twig.js Regression Tests ->', function () {
         twig({data: '{% raw %}\n"\n{% endraw %}'}).render().should.equal('"');
         twig({data: '{% raw %}\n\'\n{% endraw %}'}).render().should.equal('\'');
     });
+
+    it('#737 ternary expression should not override context', function () {
+        const str = `{% set classes = ['a', 'b'] %}{% set classes = classes ? classes|merge(['c']) : '' %}{{ dump(classes) }}`;
+        const expected = Twig.functions.dump(['a', 'b', 'c']);
+        const testTemplate = twig({data: str});
+        testTemplate.render().should.equal(expected);
+    });
 });

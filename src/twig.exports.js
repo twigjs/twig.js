@@ -227,6 +227,9 @@ module.exports = function (Twig) {
     // Export our tests.
     Twig.exports.tests = Twig.tests;
 
+    // Export our functions.
+    Twig.exports.functions = Twig.functions;
+
     Twig.exports.Promise = Twig.Promise;
 
     return Twig;
