@@ -40,6 +40,7 @@ module.exports = function (Twig) {
         };
 
         xmlhttp.open('GET', location, Boolean(params.async));
+        xmlhttp.overrideMimeType('text/plain');
         xmlhttp.send();
 
         if (params.async) {
