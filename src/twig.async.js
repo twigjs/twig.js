@@ -348,7 +348,7 @@ module.exports = function (Twig) {
     * Each item in the array will be called sequentially.
     */
     Twig.async.forEach = function (arr, callback) {
-        const len = arr.length;
+        const len = arr ? arr.length : 0;
         let index = 0;
 
         function next() {
