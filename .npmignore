@@ -4,7 +4,6 @@ test
 test-ext
 docs
 qtest
-src
 .hg
 .git
 .gitignore
