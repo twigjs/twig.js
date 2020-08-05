@@ -189,6 +189,9 @@ module.exports = function (Twig) {
 
                 template.renderAsync(options)
                     .then(out => fn(null, out), fn);
+            },
+            error(err) {
+                fn(err);
             }
         };
 
