@@ -1,3 +1,13 @@
+Version 1.15.2, released 2020-08-19
+-----------------------------------
+Minor improvements:
+* Specify MimeType to always use for AJAX templates ([#742](https://github.com/twigjs/twig.js/pull/742)) by [MasterOdin](https://github.com/MasterOdin)
+* Added token count validation ([#745](https://github.com/twigjs/twig.js/pull/742)) by [HakS](https://github.com/haks)
+* Async renderFile error callback ([#748](https://github.com/twigjs/twig.js/pull/748)) by [ArnauMrJeff](https://github.com/ArnauMrJeff)
+* Ternary operator overrides context fix ([#737](https://github.com/twigjs/twig.js/issues/737)) by [oleg-andreyev](https://github.com/oleg-andreyev)
+* Update lodash to `4.17.19`
+* Update elliptic to `6.5.3`
+
 Version 1.15.1, released 2020-04-16
 -----------------------------------
 Major improvements:
