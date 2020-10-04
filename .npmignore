@@ -1,8 +1,10 @@
 demos
 tools
+docs
+lib
+src
 test
 test-ext
-docs
 qtest
 .hg
 .git
@@ -10,5 +12,8 @@ qtest
 .gitmodules
 .travis.yml
 .idea
+ASYNC.md
+CHANGELOG.md
+LICENSE
+README.md
 webpack.config.js
-bower.json
