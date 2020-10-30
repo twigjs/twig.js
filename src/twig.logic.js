@@ -710,26 +710,21 @@ module.exports = function (Twig) {
                 return Twig.expression.parseAsync.call(state, token.stack, context)
                     .then(fileName => {
                         if (Array.isArray(fileName)) {
-                            const result = fileName.reduce((acc, file) => {
+                            const result = fileName.reverse().reduce((acc, file) => {
                                 try {
                                     return {
                                         render: state.template.importFile(file),
-                                        fileName: file,
-                                        lastError: null
+                                        fileName: file
                                     };
+                                    /* eslint-disable-next-line no-unused-vars */
                                 } catch (error) {
-                                    return {
-                                        render: null,
-                                        fileName: null,
-                                        lastError: error
-                                    };
+                                    return acc;
                                 }
                             }, {
                                 render: null,
-                                fileName: null,
-                                lastError: null
+                                fileName: null
                             });
-                            if (result.lastError === null && result.fileName) {
+                            if (result.fileName !== null) {
                                 state.template.parentTemplate = result.fileName;
                             }
                         } else {
