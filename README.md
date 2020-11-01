@@ -41,7 +41,7 @@ A bower package is available from [philsbury](https://github.com/philsbury/twigj
 Include twig.js or twig.min.js in your page, then:
 
 ```js
-var template = twig({
+var template = Twig.twig({
     data: 'The {{ baked_good }} is a lie.'
 });
 
