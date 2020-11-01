@@ -709,7 +709,27 @@ module.exports = function (Twig) {
 
                 return Twig.expression.parseAsync.call(state, token.stack, context)
                     .then(fileName => {
-                        state.template.parentTemplate = fileName;
+                        if (Array.isArray(fileName)) {
+                            const result = fileName.reverse().reduce((acc, file) => {
+                                try {
+                                    return {
+                                        render: state.template.importFile(file),
+                                        fileName: file
+                                    };
+                                    /* eslint-disable-next-line no-unused-vars */
+                                } catch (error) {
+                                    return acc;
+                                }
+                            }, {
+                                render: null,
+                                fileName: null
+                            });
+                            if (result.fileName !== null) {
+                                state.template.parentTemplate = result.fileName;
+                            }
+                        } else {
+                            state.template.parentTemplate = fileName;
+                        }
 
                         return {
                             chain,

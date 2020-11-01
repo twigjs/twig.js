@@ -163,3 +163,34 @@ describe('Twig.js Include ->', function () {
     });
 });
 
+describe('Twig.js Extends ->', function () {
+    it('should load the first template when passed an array', function () {
+        const template = twig({
+            path: 'test/templates/extender-array.twig',
+            async: false
+        });
+
+        const output = template.render();
+        output.trim().should.equal('Hello, world!');
+    });
+
+    it('should load the second template when passed an array where the first value does not exist', function () {
+        const template = twig({
+            path: 'test/templates/extender-array-second-exists.twig',
+            async: false
+        });
+
+        const output = template.render();
+        output.trim().should.equal('Hello, world!');
+    });
+
+    it('should silently fail when passed an array with no templates that exist', function () {
+        const template = twig({
+            path: 'test/templates/extender-array-none-exist.twig',
+            async: false
+        });
+
+        const output = template.render();
+        output.trim().should.equal('Nothing to see here');
+    });
+});
