@@ -1,3 +1,9 @@
+Version 1.15.3, released 2020-11-05
+-----------------------------------
+Minor improvements:
+* Fix documentation of browser usage ([#755](https://github.com/twigjs/twig.js/pull/755)) by [odebparla](https://github.com/obedparla)
+* Add support for template arrays when using extends ([#754](https://github.com/twigjs/twig.js/pull/754)) by [justafish](https://github.com/justafish)
+
 Version 1.15.2, released 2020-08-19
 -----------------------------------
 Minor improvements:
