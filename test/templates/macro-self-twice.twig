@@ -1,0 +1,2 @@
+{% macro input(name, value, type, size) %}<input type="{{ type|default('text') }}" name="{{ name }}" value="{{ value|e }}" size="{{ size|default(20) }}" />{% endmacro %}
+{% import _self as forms %}<p>{{ forms.input('username') }}</p><p>{{ forms.input('password') }}</p>
