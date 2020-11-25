@@ -34,6 +34,16 @@ describe('Twig.js Macro ->', function () {
         twig({ref: 'import-macro-self'}).render({ }).trim().should.equal('<p><input type="text" name="username" value="" size="20" /></p>');
     });
 
+    it('it should run macro with self reference twice', function () {
+        twig({
+            id: 'import-macro-self-twice',
+            path: 'test/templates/macro-self-twice.twig',
+            async: false
+        });
+        // Load the template
+        twig({ref: 'import-macro-self-twice'}).render({ }).trim().should.equal('<p><input type="text" name="username" value="" size="20" /></p><p><input type="text" name="password" value="" size="20" /></p>');
+    });
+
     it('it should run wrapped macro with self reference', function () {
         twig({
             id: 'import-wrapped-macro-self',
