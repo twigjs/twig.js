@@ -1,3 +1,8 @@
+Version 1.15.4, released 2020-11-27
+-----------------------------------
+Minor improvements:
+* Fix lost context when calling a macro multiple times ([#727](https://github.com/twigjs/twig.js/pull/727)) by [mihkeleidast ](https://github.com/mihkeleidast)
+
 Version 1.15.3, released 2020-11-05
 -----------------------------------
 Minor improvements:
