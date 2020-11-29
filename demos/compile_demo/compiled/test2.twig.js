@@ -1,0 +1,1 @@
+twig({id:"compiled/test2.twig", data:[{"type":"raw","value":"<h1>Hey there again, "},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"name","match":["name"]}]},{"type":"raw","value":"! Number two inbound!</h1>"}], precompiled: true});
