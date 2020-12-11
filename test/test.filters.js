@@ -301,6 +301,27 @@ describe('Twig.js Filters ->', function () {
             template.render().should.equal(stringDate(date));
         });
 
+        it('should recognize ISO 8601 date formats', function () {
+            const template = twig({data: '{{ "1995-12-17T08:24:00"|date("d/m/Y @ H:i:s") }}'});
+            const date = new Date("December 17, 1995 08:24:00");
+
+            template.render().should.equal(stringDate(date));
+        });
+
+        it('should recognize ISO 8601 date formats in UTC', function () {
+            const template = twig({data: '{{ "1995-12-17T08:24:00Z"|date("d/m/Y @ H:i:s") }}'});
+            const date = new Date("1995-12-17T08:24:00Z");
+
+            template.render().should.equal(stringDate(date));
+        });
+
+        it('should recognize ISO 8601 date formats with timezone offset', function () {
+            const template = twig({data: '{{ "1995-12-17T08:24:00+02:00"|date("d/m/Y @ H:i:s") }}'});
+            const date = new Date("1995-12-17T08:24:00+02:00");
+
+            template.render().should.equal(stringDate(date));
+        });
+
         it('should escape words and characters in the date format (twig:data)]', function () {
             const template = twig({data: '{{ "1970-01-01 00:00:00"|date("F jS \\a\\t g:ia") }}'});
 
