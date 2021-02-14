@@ -1,0 +1,6 @@
+{% macro make_me_smile(name, slang) %}{{ slang }} {{ name }}{% endmacro %}
+{% import _self as greet %}
+{% for greeting in greetings %}
+{{ greet.make_me_smile('Twigjs', greeting) }}
+{{ greeting }}
+{% endfor %}
