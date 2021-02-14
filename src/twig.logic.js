@@ -1006,7 +1006,8 @@ module.exports = function (Twig) {
                 state.macros[token.macroName] = function (...args) {
                     // Pass global context and other macros
                     const macroContext = {
-                        ...context,
+                        // use current state context because state context includes current loop variables as well
+                        ...state.context,
                         _self: state.macros
                     };
                     // Save arguments

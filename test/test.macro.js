@@ -64,6 +64,16 @@ describe('Twig.js Macro ->', function () {
         twig({ref: 'import-macro-context-self'}).render({greetings: 'Howdy'}).trim().should.equal('Howdy Twigjs');
     });
 
+    it('it should run wrapped macro in loop without mutating state context', function () {
+        twig({
+            id: 'import-macro-context-loop',
+            path: 'test/templates/macro-context-loop.twig',
+            async: false
+        });
+        // Load the template
+        twig({ref: 'import-macro-context-loop'}).render({greetings: ['Howdy', 'Hey']}).trim().should.equal('Howdy Twigjs\nHowdy\nHey Twigjs\nHey');
+    });
+
     it('it should run wrapped macro with default value for a parameter and self reference', function () {
         twig({
             id: 'import-macro-defaults-self',
