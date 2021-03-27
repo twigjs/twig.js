@@ -16,29 +16,29 @@ import tests from "./twig.tests";
 import logic from "./twig.logic";
 import async from "./twig.async";
 import exports from "./twig.exports";
-
-export default function factory() {
-    const Twig = {
-        VERSION: '1.14.0'
-    };
-
-    core(Twig);
-    compiler(Twig);
-    expression(Twig);
-    filters(Twig);
-    functions(Twig);
-    lib(Twig);
-    logic(Twig);
-    parsersource(Twig);
-    parsertwig(Twig);
-    path(Twig);
-    tests(Twig);
-    async(Twig);
-    loaderajax(Twig);
-    loaderfs(Twig);
-    exports(Twig);
-
-    Twig.factory = factory;
-
-    return Twig;
-};
+//
+// export default function factory() {
+//     const Twig = {
+//         VERSION: '1.14.0'
+//     };
+//
+//     core(Twig);
+//     compiler(Twig);
+//     expression(Twig);
+//     filters(Twig);
+//     functions(Twig);
+//     lib(Twig);
+//     logic(Twig);
+//     parsersource(Twig);
+//     parsertwig(Twig);
+//     path(Twig);
+//     tests(Twig);
+//     async(Twig);
+//     loaderajax(Twig);
+//     loaderfs(Twig);
+//     exports(Twig);
+//
+//     Twig.factory = factory;
+//
+//     return Twig;
+// };
