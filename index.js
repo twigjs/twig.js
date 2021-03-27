@@ -1,6 +1,6 @@
-import Twig from "./twig.js/twig.js";
+import Twig from "./twig.js";
 Twig.debug=true;
-Twig.renderFile('./pass-keeper/views/index.twig', {foo:'bar', settings:{async:false}}, (err, html) => {
+Twig.renderFile('../pass-keeper/views/index.twig', {foo:'bar', settings:{async:false}}, (err, html) => {
       console.log(err, html)
 }
 );

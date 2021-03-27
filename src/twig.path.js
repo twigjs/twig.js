@@ -1,7 +1,7 @@
 // ## twig.path.js
 //
 // This file handles path parsing
-import requireNode from "./twig.deno.js";
+import requireNode from "./twig.deps.js";
 export default function (Twig) {
     'use strict';
 
@@ -77,11 +77,8 @@ export default function (Twig) {
             }
         } else if (template.path) {
             // Get the system-specific path separator
-            if (!Deno) {
-                var path = require('path');
-            }else {
-                var path = requireNode('path');;
-            }
+
+                var path = requireNode('path');
 
             const sep = path.sep || sepChr;
             const relative = new RegExp('^\\.{1,2}' + sep.replace('\\', '\\\\'));

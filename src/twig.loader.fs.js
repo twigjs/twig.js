@@ -1,4 +1,4 @@
-import requireNode from "./twig.deno.js";
+import requireNode from "./twig.deps.js";
 export default function  (Twig) {
     'use strict';
 
@@ -7,14 +7,15 @@ export default function  (Twig) {
 
     try {
         // Require lib dependencies at runtime
+        var Deno;
         if (Deno) {
             console.log('req');
 
             fs = requireNode('fs');
             path = requireNode('path');
         } else {
-            fs = require('fs');
-            path = require('path');
+            fs = requireNode('fs');
+            path = requireNode('path');
         }
     } catch (error) {
         // NOTE: this is in a try/catch to avoid errors cross platform
