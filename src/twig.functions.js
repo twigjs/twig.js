@@ -1,7 +1,7 @@
 // ## twig.functions.js
 //
 // This file handles parsing filters.
-module.exports = function (Twig) {
+export default function (Twig) {
     /**
      * @constant
      * @type {string}

@@ -1,4 +1,4 @@
-module.exports = function (Twig) {
+export default function  (Twig) {
     'use strict';
 
     let fs;
@@ -6,8 +6,14 @@ module.exports = function (Twig) {
 
     try {
         // Require lib dependencies at runtime
-        fs = require('fs');
-        path = require('path');
+        if (Deno in global) {
+            var requireNode = require('./twig.deno');
+            fs = requireNode('fs');
+            path = requireNode('path');
+        } else {
+            fs = require('fs');
+            path = require('path');
+        }
     } catch (error) {
         // NOTE: this is in a try/catch to avoid errors cross platform
         console.warn('Missing fs and path modules. ' + error);

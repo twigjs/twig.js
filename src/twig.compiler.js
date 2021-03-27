@@ -1,7 +1,7 @@
 // ## twig.compiler.js
 //
 // This file handles compiling templates into JS
-module.exports = function (Twig) {
+export default function (Twig) {
     /**
      * Namespace for compilation.
      */

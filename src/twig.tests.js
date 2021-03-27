@@ -1,7 +1,7 @@
 // ## twig.tests.js
 //
 // This file handles expression tests. (is empty, is not defined, etc...)
-module.exports = function (Twig) {
+export default function  (Twig) {
     'use strict';
     Twig.tests = {
         empty(value) {

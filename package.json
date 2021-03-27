@@ -3,6 +3,7 @@
   "name": "twig",
   "description": "JS port of the Twig templating language.",
   "version": "1.15.4",
+  "type": "module",
   "homepage": "https://github.com/twigjs/twig.js",
   "license": "BSD-2-Clause",
   "licenses": [
@@ -48,8 +49,8 @@
     "sinon": "^9.0.0",
     "terser-webpack-plugin": "^2.3.5",
     "tokenizer": "1.1.x",
-    "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11",
+    "webpack": "^5.27.2",
+    "webpack-cli": "^4.5.0",
     "xo": "^0.26.1"
   },
   "browser": {

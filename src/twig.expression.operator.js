@@ -1,7 +1,7 @@
 // ## twig.expression.operator.js
 //
 // This file handles operator lookups and parsing.
-module.exports = function (Twig) {
+export default function (Twig) {
     'use strict';
 
     /**

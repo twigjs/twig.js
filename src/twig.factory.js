@@ -1,28 +1,44 @@
 // ## twig.factory.js
 //
 // This file handles creating the Twig library
-module.exports = function factory() {
+import core from "./twig.core";
+import compiler from "./twig.compiler";
+import expression from "./twig.expression";
+import functions from "./twig.functions";
+import filters from "./twig.filters";
+import lib from "./twig.lib";
+import loaderajax from "./twig.loader.ajax";
+import loaderfs from "./twig.loader.fs";
+import parsersource from "./twig.parser.source";
+import parsertwig from "./twig.parser.twig";
+import path from "./twig.path";
+import tests from "./twig.tests";
+import logic from "./twig.logic";
+import async from "./twig.async";
+import exports from "./twig.exports";
+
+export default function factory() {
     const Twig = {
         VERSION: '1.14.0'
     };
 
-    require('./twig.core')(Twig);
-    require('./twig.compiler')(Twig);
-    require('./twig.expression')(Twig);
-    require('./twig.filters')(Twig);
-    require('./twig.functions')(Twig);
-    require('./twig.lib')(Twig);
-    require('./twig.loader.ajax')(Twig);
-    require('./twig.loader.fs')(Twig);
-    require('./twig.logic')(Twig);
-    require('./twig.parser.source')(Twig);
-    require('./twig.parser.twig')(Twig);
-    require('./twig.path')(Twig);
-    require('./twig.tests')(Twig);
-    require('./twig.async')(Twig);
-    require('./twig.exports')(Twig);
+    core(Twig);
+    compiler(Twig);
+    expression(Twig);
+    filters(Twig);
+    functions(Twig);
+    lib(Twig);
+    loaderajax(Twig);
+    loaderfs(Twig);
+    logic(Twig);
+    parsersource(Twig);
+    parsertwig(Twig);
+    path(Twig);
+    tests(Twig);
+    async(Twig);
+    exports(Twig);
 
-    Twig.exports.factory = factory;
+    Twig.factory = factory;
 
-    return Twig.exports;
+    return Twig;
 };

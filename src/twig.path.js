@@ -1,7 +1,7 @@
 // ## twig.path.js
 //
 // This file handles path parsing
-module.exports = function (Twig) {
+export default function (Twig) {
     'use strict';
 
     /**
