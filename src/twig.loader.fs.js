@@ -1,3 +1,4 @@
+import requireNode from "./twig.deno.js";
 export default function  (Twig) {
     'use strict';
 
@@ -6,8 +7,9 @@ export default function  (Twig) {
 
     try {
         // Require lib dependencies at runtime
-        if (Deno in global) {
-            var requireNode = require('./twig.deno');
+        if (Deno) {
+            console.log('req');
+
             fs = requireNode('fs');
             path = requireNode('path');
         } else {

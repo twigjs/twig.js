@@ -1,7 +1,7 @@
 // ## twig.expression.js
 //
 // This file handles tokenizing, compiling and parsing expressions.
-import ExpressionOperator from  './twig.expression.operator';
+import ExpressionOperator from  './twig.expression.operator.js';
 export default function (Twig) {
     'use strict';
 

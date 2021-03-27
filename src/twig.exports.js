@@ -134,22 +134,22 @@ export default function (Twig) {
      *
      * @return {string} The rendered template.
      */
-    Twig.compile = function (markup, options) {
-        const id = options.filename;
-        const path = options.filename;
-
-        // Try to load the template from the cache
-        const template = new Twig.Template({
-            data: markup,
-            path,
-            id,
-            options: options.settings['twig options']
-        }); // Twig.Templates.load(id) ||
-
-        return function (context) {
-            return template.render(context);
-        };
-    };
+    // Twig.compile = function (markup, options) {
+    //     const id = options.filename;
+    //     const path = options.filename;
+    //
+    //     // Try to load the template from the cache
+    //     const template = new Twig.Template({
+    //         data: markup,
+    //         path,
+    //         id,
+    //         options: options.settings['twig options']
+    //     }); // Twig.Templates.load(id) ||
+    //
+    //     return function (context) {
+    //         return template.render(context);
+    //     };
+    // };
 
     /**
      * Provide an extension for use with express 3.

@@ -5,10 +5,10 @@
 // Copies of the licenses for the code included here can be found in the
 // LICENSES.md file.
 //
-import {sprintf, vsprintf, strip_tags}  from 'locutus/php/strings';
-import {round, max, min} from 'locutus/php/math';
-import {strtotime, date} from 'locutus/php/datetime';
-import boolval from 'locutus/php/var/boolval';
+import {strings, math, datetime, boolval}  from './twig.deps.js';
+const {strtotime, date} = datetime;
+const {round, max, min} = math;
+const {sprintf, vsprintf, strip_tags} = strings;
 export default function  (Twig) {
     // Namespace for libraries
     Twig.lib = { };
