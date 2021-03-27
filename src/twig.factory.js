@@ -28,14 +28,14 @@ export default function factory() {
     filters(Twig);
     functions(Twig);
     lib(Twig);
-    loaderajax(Twig);
-    loaderfs(Twig);
     logic(Twig);
     parsersource(Twig);
     parsertwig(Twig);
     path(Twig);
     tests(Twig);
     async(Twig);
+    loaderajax(Twig);
+    loaderfs(Twig);
     exports(Twig);
 
     Twig.factory = factory;
