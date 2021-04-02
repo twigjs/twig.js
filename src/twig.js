@@ -6,4 +6,5 @@
  * @link      https://github.com/twigjs/twig.js
  */
 
-module.exports = require('./twig.factory')();
+import { factory } from "./twig.factory.js";
+export default factory();
