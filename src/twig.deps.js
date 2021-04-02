@@ -5,6 +5,6 @@ import datetime from 'locutus/php/datetime/index.js';
 import boolval from 'locutus/php/var/boolval.js';
 console.log(import.meta.url);
 console.log(Deno.realPathSync("."));
-const require = createRequire(import.meta.url);
+const require = createRequire(Deno.realPathSync("."));
 export {strings, math, datetime, boolval}
 export default require;
