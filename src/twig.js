@@ -6,5 +6,5 @@
  * @link      https://github.com/twigjs/twig.js
  */
 
-import { factory } from "./twig.factory.js";
+import  factory  from "./twig.factory.js";
 export default factory();
