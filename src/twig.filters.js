@@ -823,14 +823,14 @@ module.exports = function (Twig) {
         }
     };
 
-    Twig.filter = function (filter, value, params) {
+    Twig.filter = function (filter, value, params, context) {
         const state = this;
 
         if (!Twig.filters[filter]) {
             throw new Twig.Error('Unable to find filter ' + filter);
         }
 
-        return Twig.filters[filter].call(state, value, params);
+        return Twig.filters[filter].call(state, value, params, context);
     };
 
     Twig.filter.extend = function (filter, definition) {

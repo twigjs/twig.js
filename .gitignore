@@ -1,5 +1,6 @@
 .idea/
 node_modules/
+.vscode/
 twig.js
 twig.min.js
 twig.min.js.map
