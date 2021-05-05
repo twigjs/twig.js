@@ -768,7 +768,7 @@ module.exports = function (Twig) {
 
                 return parseParams(state, token.params, context)
                     .then(params => {
-                        return Twig.filter.call(state, token.value, input, params);
+                        return Twig.filter.call(state, token.value, input, params, context);
                     })
                     .then(value => {
                         stack.push(value);
