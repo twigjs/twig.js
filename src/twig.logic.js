@@ -1238,7 +1238,7 @@ module.exports = function (Twig) {
                     .then(fileName => {
                         const embedOverrideTemplate = new Twig.Template({
                             data: token.output,
-                            id: state.template.id,
+                            id: `${state.template.id}-override`,
                             base: state.template.base,
                             path: state.template.path,
                             url: state.template.url,
