@@ -2,11 +2,8 @@
 //
 // This file provides extension points and other hooks into the twig functionality.
 
-module.exports = function (Twig) {
+export default function (Twig) {
     'use strict';
-    Twig.exports = {
-        VERSION: Twig.VERSION
-    };
 
     /**
      * Create and compile a twig.js template.
@@ -15,7 +12,7 @@ module.exports = function (Twig) {
      *
      * @return {Twig.Template} A Twig template ready for rendering.
      */
-    Twig.exports.twig = function (params) {
+    Twig.twig = function (params) {
         'use strict';
         const {id} = params;
         const options = {
@@ -104,28 +101,28 @@ module.exports = function (Twig) {
     };
 
     // Extend Twig with a new filter.
-    Twig.exports.extendFilter = function (filter, definition) {
+    Twig.extendFilter = function (filter, definition) {
         Twig.filter.extend(filter, definition);
     };
 
     // Extend Twig with a new function.
-    Twig.exports.extendFunction = function (fn, definition) {
+    Twig.extendFunction = function (fn, definition) {
         Twig._function.extend(fn, definition);
     };
 
     // Extend Twig with a new test.
-    Twig.exports.extendTest = function (test, definition) {
+    Twig.extendTest = function (test, definition) {
         Twig.test.extend(test, definition);
     };
 
     // Extend Twig with a new definition.
-    Twig.exports.extendTag = function (definition) {
+    Twig.extendTag = function (definition) {
         Twig.logic.extend(definition);
     };
 
     // Provide an environment for extending Twig core.
     // Calls fn with the internal Twig object.
-    Twig.exports.extend = function (fn) {
+    Twig.extend = function (fn) {
         fn(Twig);
     };
 
@@ -137,22 +134,22 @@ module.exports = function (Twig) {
      *
      * @return {string} The rendered template.
      */
-    Twig.exports.compile = function (markup, options) {
-        const id = options.filename;
-        const path = options.filename;
-
-        // Try to load the template from the cache
-        const template = new Twig.Template({
-            data: markup,
-            path,
-            id,
-            options: options.settings['twig options']
-        }); // Twig.Templates.load(id) ||
-
-        return function (context) {
-            return template.render(context);
-        };
-    };
+    // Twig.compile = function (markup, options) {
+    //     const id = options.filename;
+    //     const path = options.filename;
+    //
+    //     // Try to load the template from the cache
+    //     const template = new Twig.Template({
+    //         data: markup,
+    //         path,
+    //         id,
+    //         options: options.settings['twig options']
+    //     }); // Twig.Templates.load(id) ||
+    //
+    //     return function (context) {
+    //         return template.render(context);
+    //     };
+    // };
 
     /**
      * Provide an extension for use with express 3.
@@ -163,7 +160,7 @@ module.exports = function (Twig) {
      *
      * @throws Twig.Error
      */
-    Twig.exports.renderFile = function (path, options, fn) {
+    Twig.renderFile = function (path, options, fn) {
         // Handle callback in options
         if (typeof options === 'function') {
             fn = options;
@@ -203,11 +200,11 @@ module.exports = function (Twig) {
             }
         }
 
-        Twig.exports.twig(params);
+        Twig.twig(params);
     };
 
     // Express 3 handler
-    Twig.exports.__express = Twig.exports.renderFile;
+    Twig.__express = Twig.renderFile;
 
     /**
      * Shoud Twig.js cache templates.
@@ -216,24 +213,9 @@ module.exports = function (Twig) {
      *
      * @param {boolean} cache
      */
-    Twig.exports.cache = function (cache) {
+    Twig.cache = function (cache) {
         Twig.cache = cache;
     };
-
-    // We need to export the path module so we can effectively test it
-    Twig.exports.path = Twig.path;
-
-    // Export our filters.
-    // Resolves #307
-    Twig.exports.filters = Twig.filters;
-
-    // Export our tests.
-    Twig.exports.tests = Twig.tests;
-
-    // Export our functions.
-    Twig.exports.functions = Twig.functions;
-
-    Twig.exports.Promise = Twig.Promise;
 
     return Twig;
 };

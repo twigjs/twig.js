@@ -1,7 +1,7 @@
 // ## twig.filters.js
 //
 // This file handles parsing filters.
-module.exports = function (Twig) {
+export default function (Twig) {
     // Determine object type
     function is(type, obj) {
         const clas = Object.prototype.toString.call(obj).slice(8, -1);

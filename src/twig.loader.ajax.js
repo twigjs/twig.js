@@ -1,4 +1,4 @@
-module.exports = function (Twig) {
+export default function (Twig) {
     'use strict';
 
     Twig.Templates.registerLoader('ajax', function (location, params, callback, errorCallback) {

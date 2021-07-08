@@ -1,7 +1,7 @@
 // ## twig.logic.js
 //
 // This file handles tokenizing, compiling and parsing logic tokens. {% ... %}
-module.exports = function (Twig) {
+export default function (Twig) {
     'use strict';
 
     /**

@@ -10,5 +10,5 @@ qtest
 .gitmodules
 .travis.yml
 .idea
-webpack.config.js
+webpack.config.cjs
 bower.json

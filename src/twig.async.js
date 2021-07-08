@@ -1,7 +1,7 @@
 // ## twig.async.js
 //
 // This file handles asynchronous tasks within twig.
-module.exports = function (Twig) {
+export default function (Twig) {
     'use strict';
 
     const STATE_UNKNOWN = 0;

@@ -1,7 +1,8 @@
 // ## twig.path.js
 //
 // This file handles path parsing
-module.exports = function (Twig) {
+import requireNode from "./twig.deps.js";
+export default function (Twig) {
     'use strict';
 
     /**
@@ -76,7 +77,9 @@ module.exports = function (Twig) {
             }
         } else if (template.path) {
             // Get the system-specific path separator
-            const path = require('path');
+
+                var path = requireNode('path');
+
             const sep = path.sep || sepChr;
             const relative = new RegExp('^\\.{1,2}' + sep.replace('\\', '\\\\'));
             file = file.replace(/\//g, sep);

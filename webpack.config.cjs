@@ -23,7 +23,7 @@ const serverBuild = {
         path: __dirname,
         filename: 'twig.js',
         library: 'Twig',
-        libraryTarget: 'umd'
+        libraryTarget: 'amd'
     },
     module: {
         rules: [commonModule],
@@ -37,7 +37,7 @@ const clientBuild = {
     mode: 'production',
     entry: './src/twig.js',
     target: 'web',
-    devtool: '#source-map',
+    devtool: 'cheap-module-source-map',
     node: {
         __dirname: false,
         __filename: false

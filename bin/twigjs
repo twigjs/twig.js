@@ -10,7 +10,6 @@ var PATHS = require("../lib/paths")
     , thisFile = thisPath[thisPath.length-1]
     , files = []
     , arg;
-    
 if (args.length == 0) {
     process.stderr.write("ERR: No input files provided\n\n");
     printUsage(process.stderr);

@@ -1,7 +1,7 @@
 // ## twig.core.js
 //
 // This file handles template level tokenizing, compiling and parsing.
-module.exports = function (Twig) {
+export default  function (Twig) {
     'use strict';
 
     Twig.trace = false;
