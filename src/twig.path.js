@@ -2,13 +2,11 @@
 //
 // This file handles path parsing
 import requireNode from "./twig.deps.js";
-export default function (Twig) {
-    'use strict';
-
-    /**
-     * Namespace for path handling.
-     */
-    Twig.path = {};
+class TwigPath {
+    Twig;
+    constructor(Twig) {
+        this.Twig = Twig;
+    }
 
     /**
      * Generate the canonical version of a url based on the given base path and file path and in
@@ -19,7 +17,7 @@ export default function (Twig) {
      *
      * @return {string}          The canonical version of the path
      */
-    Twig.path.parsePath = function (template, _file) {
+    parsePath (template, _file) {
         let k = null;
         const {namespaces} = template.options;
         let file = _file || '';
@@ -49,7 +47,7 @@ export default function (Twig) {
             }
         }
 
-        return Twig.path.relativePath(template, file);
+        return this.relativePath(template, file);
     };
 
     /**
@@ -60,7 +58,7 @@ export default function (Twig) {
      *
      * @return {string} The canonical version of the path.
      */
-    Twig.path.relativePath = function (template, _file) {
+    relativePath (template, _file) {
         let base;
         let basePath;
         let sepChr = '/';
@@ -78,7 +76,7 @@ export default function (Twig) {
         } else if (template.path) {
             // Get the system-specific path separator
 
-                var path = requireNode('path');
+            var path = requireNode('path');
 
             const sep = path.sep || sepChr;
             const relative = new RegExp('^\\.{1,2}' + sep.replace('\\', '\\\\'));
@@ -120,5 +118,13 @@ export default function (Twig) {
         return newPath.join(sepChr);
     };
 
+}
+export default function (Twig) {
+    'use strict';
+
+    /**
+     * Namespace for path handling.
+     */
+    Twig.path = new TwigPath(Twig);
     return Twig;
 };
