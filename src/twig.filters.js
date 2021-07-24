@@ -38,11 +38,11 @@ class TwigFilters {
         });
     }
     length(value) {
-        if (Twig.lib.is('Array', value) || typeof value === 'string') {
+        if (this.Twig.lib.is('Array', value) || typeof value === 'string') {
             return value.length;
         }
 
-        if (Twig.lib.is('Object', value)) {
+        if (this.Twig.lib.is('Object', value)) {
             if (value._keys === undefined) {
                 return Object.keys(value).length;
             }
@@ -144,7 +144,7 @@ class TwigFilters {
             return;
         }
 
-        if (Twig.lib.is('Object', value)) {
+        if (this.Twig.lib.is('Object', value)) {
             const serialize = function (obj, prefix) {
                 const result = [];
                 const keyset = obj._keys || Object.keys(obj);
@@ -158,7 +158,7 @@ class TwigFilters {
                     const resultValue = obj[key];
 
                     result.push(
-                        (Twig.lib.is('Object', resultValue) || Array.isArray(resultValue)) ?
+                        (this.Twig.lib.is('Object', resultValue) || Array.isArray(resultValue)) ?
                             serialize(resultValue, resultKey) :
                             encodeURIComponent(resultKey) + '=' + encodeURIComponent(resultValue)
                     );
@@ -206,7 +206,7 @@ class TwigFilters {
     }
     default(value, params) {
         if (params !== undefined && params.length > 1) {
-            throw new Twig.Error('default filter expects one argument');
+            throw new this.Twig.Error('default filter expects one argument');
         }
 
         if (value === undefined || value === null || value === '') {
@@ -229,7 +229,7 @@ class TwigFilters {
             const output = [];
 
             value.forEach(v => {
-                output.push(Twig.filters.json_encode(v));
+                output.push(this.Twig.filters.json_encode(v));
             });
 
             return '[' + output.join(',') + ']';
@@ -244,7 +244,7 @@ class TwigFilters {
             const output = [];
 
             keyset.forEach(key => {
-                output.push(JSON.stringify(key) + ':' + Twig.filters.json_encode(value[key]));
+                output.push(JSON.stringify(key) + ':' + this.Twig.filters.json_encode(value[key]));
             });
 
             return '{' + output.join(',') + '}';
@@ -330,16 +330,16 @@ class TwigFilters {
             }
         });
         if (params.length === 0) {
-            throw new Twig.Error('Filter merge expects at least one parameter');
+            throw new this.Twig.Error('Filter merge expects at least one parameter');
         }
 
         return obj;
     }
 
     date(value, params) {
-        const date = Twig.functions.date(value);
+        const date = this.Twig.functions.date(value);
         const format = params && Boolean(params.length) ? params[0] : 'F j, Y H:i';
-        return Twig.lib.date(format.replace(/\\\\/g, '\\'), date);
+        return this.Twig.lib.date(format.replace(/\\\\/g, '\\'), date);
     }
     /* eslint-disable-next-line camelcase */
     date_modify(value, params) {
@@ -348,22 +348,22 @@ class TwigFilters {
         }
 
         if (params === undefined || params.length !== 1) {
-            throw new Twig.Error('date_modify filter expects 1 argument');
+            throw new this.Twig.Error('date_modify filter expects 1 argument');
         }
 
         const modifyText = params[0];
         let time;
 
-        if (Twig.lib.is('Date', value)) {
-            time = Twig.lib.strtotime(modifyText, value.getTime() / 1000);
+        if (this.Twig.lib.is('Date', value)) {
+            time = this.Twig.lib.strtotime(modifyText, value.getTime() / 1000);
         }
 
-        if (Twig.lib.is('String', value)) {
-            time = Twig.lib.strtotime(modifyText, Twig.lib.strtotime(value));
+        if (this.Twig.lib.is('String', value)) {
+            time = this.Twig.lib.strtotime(modifyText, this.Twig.lib.strtotime(value));
         }
 
-        if (Twig.lib.is('Number', value)) {
-            time = Twig.lib.strtotime(modifyText, value);
+        if (this.Twig.lib.is('Number', value)) {
+            time = this.Twig.lib.strtotime(modifyText, value);
         }
 
         return new Date(time * 1000);
@@ -378,7 +378,7 @@ class TwigFilters {
         let tag;
         for (tag in pairs) {
             if (Object.hasOwnProperty.call(pairs, tag) && tag !== '_keys') {
-                value = Twig.lib.replaceAll(value, tag, pairs[tag]);
+                value = this.Twig.lib.replaceAll(value, tag, pairs[tag]);
             }
         }
 
@@ -390,7 +390,7 @@ class TwigFilters {
             return;
         }
 
-        return Twig.lib.vsprintf(value, params);
+        return this.Twig.lib.vsprintf(value, params);
     }
 
     striptags(value, allowed) {
@@ -398,7 +398,7 @@ class TwigFilters {
             return;
         }
 
-        return Twig.lib.stripTags(value, allowed);
+        return this.Twig.lib.stripTags(value, allowed);
     }
 
     escape(value, params) {
@@ -417,7 +417,7 @@ class TwigFilters {
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
-            return new Twig.Markup(rawValue, 'html');
+            return new this.Twig.Markup(rawValue, 'html');
         }
 
         if (strategy === 'js') {
@@ -447,12 +447,12 @@ class TwigFilters {
                     if (shortMap[char]) {
                         result += shortMap[char];
                     } else {
-                        result += Twig.lib.sprintf('\\u%04s', charCode.toString(16).toUpperCase());
+                        result += this.Twig.lib.sprintf('\\u%04s', charCode.toString(16).toUpperCase());
                     }
                 }
             }
 
-            return new Twig.Markup(result, 'js');
+            return new this.Twig.Markup(result, 'js');
         }
 
         if (strategy === 'css') {
@@ -468,12 +468,12 @@ class TwigFilters {
                 }
             }
 
-            return new Twig.Markup(result, 'css');
+            return new this.Twig.Markup(result, 'css');
         }
 
         if (strategy === 'url') {
-            const result = Twig.filters.url_encode(value);
-            return new Twig.Markup(result, 'url');
+            const result = this.Twig.filters.url_encode(value);
+            return new this.Twig.Markup(result, 'url');
         }
 
         if (strategy === 'html_attr') {
@@ -496,22 +496,22 @@ class TwigFilters {
                     if (charCode <= 0x1F && charCode !== 0x09 && charCode !== 0x0A && charCode !== 0x0D) {
                         result += '&#xFFFD;';
                     } else if (charCode < 0x80) {
-                        result += Twig.lib.sprintf('&#x%02s;', charCode.toString(16).toUpperCase());
+                        result += this.Twig.lib.sprintf('&#x%02s;', charCode.toString(16).toUpperCase());
                     } else {
-                        result += Twig.lib.sprintf('&#x%04s;', charCode.toString(16).toUpperCase());
+                        result += this.Twig.lib.sprintf('&#x%04s;', charCode.toString(16).toUpperCase());
                     }
                 }
             }
 
-            return new Twig.Markup(result, 'html_attr');
+            return new this.Twig.Markup(result, 'html_attr');
         }
 
-        throw new Twig.Error('escape strategy unsupported');
+        throw new this.Twig.Error('escape strategy unsupported');
     }
 
     /* Alias of escape */
     e(value, params) {
-        return Twig.filters.escape(value, params);
+        return this.Twig.filters.escape(value, params);
     }
 
     nl2br(value) {
@@ -522,14 +522,14 @@ class TwigFilters {
         const linebreakTag = 'BACKSLASH_n_replace';
         const br = '<br />' + linebreakTag;
 
-        value = Twig.filters.escape(value)
+        value = this.Twig.filters.escape(value)
             .replace(/\r\n/g, br)
             .replace(/\r/g, br)
             .replace(/\n/g, br);
 
-        value = Twig.lib.replaceAll(value, linebreakTag, '\n');
+        value = this.Twig.lib.replaceAll(value, linebreakTag, '\n');
 
-        return new Twig.Markup(value);
+        return new this.Twig.Markup(value);
     }
 
     /**
@@ -635,7 +635,7 @@ class TwigFilters {
         }
 
         if (params === undefined || params.length === 0) {
-            throw new Twig.Error('slice filter expects at least 1 argument');
+            throw new this.Twig.Error('slice filter expects at least 1 argument');
         }
 
         // Default to start of string
@@ -645,7 +645,7 @@ class TwigFilters {
         // Handle negative start values
         const startIndex = start >= 0 ? start : Math.max(value.length + start, 0);
 
-        if (Twig.lib.is('Array', value)) {
+        if (this.Twig.lib.is('Array', value)) {
             const output = [];
             for (let i = startIndex; i < startIndex + length && i < value.length; i++) {
                 output.push(value[i]);
@@ -654,11 +654,11 @@ class TwigFilters {
             return output;
         }
 
-        if (Twig.lib.is('String', value)) {
+        if (this.Twig.lib.is('String', value)) {
             return value.slice(startIndex, startIndex + length);
         }
 
-        throw new Twig.Error('slice filter expects value to be an array or string');
+        throw new this.Twig.Error('slice filter expects value to be an array or string');
     }
 
     abs(value) {
@@ -689,10 +689,10 @@ class TwigFilters {
         }
 
         if (params === undefined || params.length === 0 || params.length > 2) {
-            throw new Twig.Error('split filter expects 1 or 2 argument');
+            throw new this.Twig.Error('split filter expects 1 or 2 argument');
         }
 
-        if (Twig.lib.is('String', value)) {
+        if (this.Twig.lib.is('String', value)) {
             const delimiter = params[0];
             const limit = params[1];
             const split = value.split(delimiter);
@@ -737,10 +737,10 @@ class TwigFilters {
             return limitedSplit;
         }
 
-        throw new Twig.Error('split filter expects value to be a string');
+        throw new this.Twig.Error('split filter expects value to be a string');
     }
     last(value) {
-        if (Twig.lib.is('Object', value)) {
+        if (this.Twig.lib.is('Object', value)) {
             let keys;
 
             if (value._keys === undefined) {
@@ -752,7 +752,7 @@ class TwigFilters {
             return value[keys[keys.length - 1]];
         }
 
-        if (Twig.lib.is('Number', value)) {
+        if (this.Twig.lib.is('Number', value)) {
             return value.toString().slice(-1);
         }
 
@@ -760,7 +760,7 @@ class TwigFilters {
         return value[value.length - 1];
     }
     raw(value) {
-        return new Twig.Markup(value || '');
+        return new this.Twig.Markup(value || '');
     }
     batch(items, params) {
         let size = params.shift();
@@ -768,17 +768,17 @@ class TwigFilters {
         let last;
         let missing;
 
-        if (!Twig.lib.is('Array', items)) {
-            throw new Twig.Error('batch filter expects items to be an array');
+        if (!this.Twig.lib.is('Array', items)) {
+            throw new this.Twig.Error('batch filter expects items to be an array');
         }
 
-        if (!Twig.lib.is('Number', size)) {
-            throw new Twig.Error('batch filter expects size to be a number');
+        if (!this.Twig.lib.is('Number', size)) {
+            throw new this.Twig.Error('batch filter expects size to be a number');
         }
 
         size = Math.ceil(size);
 
-        const result = Twig.lib.chunkArray(items, size);
+        const result = this.Twig.lib.chunkArray(items, size);
 
         if (fill && items.length % size !== 0) {
             last = result.pop();
@@ -801,16 +801,16 @@ class TwigFilters {
 
         value = parseFloat(value);
 
-        if (precision && !Twig.lib.is('Number', precision)) {
-            throw new Twig.Error('round filter expects precision to be a number');
+        if (precision && !this.Twig.lib.is('Number', precision)) {
+            throw new this.Twig.Error('round filter expects precision to be a number');
         }
 
         if (method === 'common') {
-            return Twig.lib.round(value, precision);
+            return this.Twig.lib.round(value, precision);
         }
 
-        if (!Twig.lib.is('Function', Math[method])) {
-            throw new Twig.Error('round filter expects method to be \'floor\', \'ceil\', or \'common\'');
+        if (!this.Twig.lib.is('Function', Math[method])) {
+            throw new this.Twig.Error('round filter expects method to be \'floor\', \'ceil\', or \'common\'');
         }
 
         return Math[method](value * (10 ** precision)) / (10 ** precision);
