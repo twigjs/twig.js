@@ -1260,7 +1260,7 @@ module.exports = function (Twig) {
             this.tokens = data;
         }
 
-        if (id !== undefined) {
+        if (id !== undefined && Twig.cache) {
             Twig.Templates.save(this);
         }
     };
