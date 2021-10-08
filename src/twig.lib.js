@@ -44,12 +44,12 @@ module.exports = function (Twig) {
     };
 
     Twig.lib.replaceAll = function (string, search, replace) {
+        // Convert type to string if needed
+        const stringToChange = typeof string === 'string' ? string : string.toString();
         // Escape possible regular expression syntax
         const searchEscaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-        return string.replace(new RegExp(searchEscaped, 'g'), replace);
+        return stringToChange.replace(new RegExp(searchEscaped, 'g'), replace);
     };
-
     // Chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
     Twig.lib.chunkArray = function (arr, size) {
         const returnVal = [];
