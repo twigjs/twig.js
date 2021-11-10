@@ -1,10 +1,10 @@
 // ## twig.compiler.js
 //
 // This file handles compiling templates into JS
-export default class TwigCompiler {
+class TwigCompiler {
 
-    constructor() {
-        module: {}
+    constructor(Twig) {
+        this.Twig = Twig
     }
 
     compile(template, options) {
@@ -14,7 +14,7 @@ export default class TwigCompiler {
         let output = null;
 
         if (options.module) {
-            if (this.Twig.compiler.module[options.module] === undefined) {
+            if (this.module[options.module] === undefined) {
                 throw new this.Twig.Error('Unable to find module type ' + options.module);
             }
 
@@ -25,8 +25,8 @@ export default class TwigCompiler {
         return output;
     }
 
-    module: {
-        amd: (id, tokens, pathToTwig) => 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig, templates;\ntwig = Twig.twig;\ntemplates = ' + this.Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
+    module = {
+        amd: (id, tokens, pathToTwig) => 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig, templates;\ntwig = Twig.twig;\ntemplates = ' + this.wrap(id, tokens) + '\n\treturn templates;\n});';
 
         node: (id, tokens) => 'var twig = require("twig").twig;\nexports.template = ' + this.Twig.compiler.wrap(id, tokens);
 
@@ -36,4 +36,8 @@ export default class TwigCompiler {
     wrap(id, tokens) {
         return 'twig({id:"' + id.replace('"', '\\"') + '", data:' + tokens + ', precompiled: true});\n';
     }
+}
+
+export default function (Twig) {
+    Twig.compiler = new TwigCompiler(Twig)
 }
