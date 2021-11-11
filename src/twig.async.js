@@ -108,22 +108,13 @@ class TwigAsync {
      *
      */
 
-    // Клас по суті буде ?
+}
+class TwigThenable {
 
-    Twig.Thenable = function (then, value, state) {
+    constructor(then, value, state) {
         this.then = then;
         this._value = state ? value : null;
         this._state = state || STATE_UNKNOWN;
-    };
-
-    // Реалізація класу 
-
-    class Thenable {
-        constructor(then, value, state) {
-            this.then = then;
-            this._value = state ? value : null;
-            this._state = state || STATE_UNKNOWN;
-        }
     }
 
     catch(onRejected) {
@@ -138,6 +129,7 @@ class TwigAsync {
      * The `then` method attached to a Thenable when it has resolved.
      *
      */
+
     resolvedThen(onResolved) {
         try {
             return this.Promise.resolve(onResolved(this._value));
@@ -150,6 +142,7 @@ class TwigAsync {
      * The `then` method attached to a Thenable when it has rejected.
      *
      */
+
     rejectedThen(onResolved, onRejected) {
         // Shortcut for rejected twig promises
         if (!onRejected || typeof onRejected !== 'function') {
@@ -176,6 +169,7 @@ class TwigAsync {
      * These promises can be mixed with regular promises at which point
      * the synchronous behaviour is lost.
      */
+
     promise = new Promise(executor) {
         let state = STATE_UNKNOWN;
         let value = null;
@@ -218,6 +212,7 @@ class TwigAsync {
      * Promise implementation that can handle being resolved at any later time.
      *
      */
+
     FullPromise() {
         let handlers = null;
 
@@ -319,6 +314,7 @@ class TwigAsync {
         // Twig often resolves with an empty string, we optimize for this
         // scenario by returning a fixed promise. This reduces the load on
         // garbage collection.
+
         if (value === '') {
             return this.Promise.emptyStringResolved;
         }
@@ -360,6 +356,7 @@ class TwigAsync {
     *
     * Each item in the array will be called sequentially.
     */
+
     this.async.forEach = function (arr, callback) {
         const len = arr ? arr.length : 0;
         let index = 0;
@@ -389,4 +386,5 @@ class TwigAsync {
 
 export default function (Twig) {
     Twig.async = new TwigAsync(Twig)
+    Twig.Thenable = new TwigThenable(then, value, state)
 }
