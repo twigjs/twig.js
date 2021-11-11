@@ -1,39 +1,40 @@
 // ## twig.async.js
 //
 // This file handles asynchronous tasks within twig.
-export default function (Twig) {
-    'use strict';
+class TwigAsync {
+    Twig
+    constructor(Twig) {
+        this.Twig = Twig
+    }
 
-    const STATE_UNKNOWN = 0;
-    const STATE_RESOLVED = 1;
-    const STATE_REJECTED = 2;
+    STATE_UNKNOWN = 0;
+    STATE_RESOLVED = 1;
+    STATE_REJECTED = 2;
 
-    Twig.ParseState.prototype.parseAsync = function (tokens, context) {
+    ParseStateParseAsync(tokens, context) {
         return this.parse(tokens, context, true);
     };
 
-    Twig.expression.parseAsync = function (tokens, context, tokensAreParameters) {
+    ExpressionParseAsync(tokens, context, tokensAreParameters) {
         const state = this;
 
-        return Twig.expression.parse.call(state, tokens, context, tokensAreParameters, true);
+        return this.expression.parse.call(state, tokens, context, tokensAreParameters, true);
     };
 
-    Twig.logic.parseAsync = function (token, context, chain) {
+    LogicParseAsync (token, context, chain) {
         const state = this;
 
-        return Twig.logic.parse.call(state, token, context, chain, true);
+        return this.logic.parse.call(state, token, context, chain, true);
     };
 
-    Twig.Template.prototype.renderAsync = function (context, params) {
+    TemplatePrototypeRenderAsync (context, params) {
         return this.render(context, params, true);
     };
-
-    Twig.async = {};
 
     /**
      * Checks for `thenable` objects
      */
-    Twig.isPromise = function (obj) {
+    isPromise(obj) {
         return obj && obj.then && (typeof obj.then === 'function');
     };
 
@@ -43,12 +44,12 @@ export default function (Twig) {
      *
      * @see https://github.com/twigjs/twig.js/blob/master/ASYNC.md#detecting-asynchronous-behaviour
      */
-    function potentiallyAsyncSlow(that, allowAsync, action) {
+    potentiallyAsyncSlow(that, allowAsync, action) {
         let result = action.call(that);
         let err = null;
         let isAsync = true;
 
-        if (!Twig.isPromise(result)) {
+        if (!isPromise(result)) {
             return result;
         }
 
@@ -64,21 +65,21 @@ export default function (Twig) {
         }
 
         if (isAsync) {
-            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
+            throw new this.Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
         }
 
         return result;
     }
 
-    Twig.async.potentiallyAsync = function (that, allowAsync, action) {
+    AsyncPotentiallyAsync = function (that, allowAsync, action) {
         if (allowAsync) {
-            return Twig.Promise.resolve(action.call(that));
+            return this.Promise.resolve(action.call(that));
         }
 
         return potentiallyAsyncSlow(that, allowAsync, action);
     };
 
-    function run(fn, resolve, reject) {
+    run(fn, resolve, reject) {
         try {
             fn(resolve, reject);
         } catch (error) {
@@ -86,7 +87,7 @@ export default function (Twig) {
         }
     }
 
-    function pending(handlers, onResolved, onRejected) {
+    pending(handlers, onResolved, onRejected) {
         const h = [onResolved, onRejected, -2];
 
         // The promise has yet to be rejected or resolved.
@@ -106,30 +107,42 @@ export default function (Twig) {
      * Really small thenable to represent promises that resolve immediately.
      *
      */
+
+    // Клас по суті буде ?
+
     Twig.Thenable = function (then, value, state) {
         this.then = then;
         this._value = state ? value : null;
         this._state = state || STATE_UNKNOWN;
     };
 
-    Twig.Thenable.prototype.catch = function (onRejected) {
-        // THe promise will not throw, it has already resolved.
+    // Реалізація класу 
+
+    class Thenable {
+        constructor(then, value, state) {
+            this.then = then;
+            this._value = state ? value : null;
+            this._state = state || STATE_UNKNOWN;
+        }
+    }
+
+    catch(onRejected) {
         if (this._state === STATE_RESOLVED) {
             return this;
         }
 
         return this.then(null, onRejected);
-    };
+    } 
 
     /**
      * The `then` method attached to a Thenable when it has resolved.
      *
      */
-    Twig.Thenable.resolvedThen = function (onResolved) {
+    resolvedThen(onResolved) {
         try {
-            return Twig.Promise.resolve(onResolved(this._value));
+            return this.Promise.resolve(onResolved(this._value));
         } catch (error) {
-            return Twig.Promise.reject(error);
+            return this.Promise.reject(error);
         }
     };
 
@@ -137,7 +150,7 @@ export default function (Twig) {
      * The `then` method attached to a Thenable when it has rejected.
      *
      */
-    Twig.Thenable.rejectedThen = function (onResolved, onRejected) {
+    rejectedThen(onResolved, onRejected) {
         // Shortcut for rejected twig promises
         if (!onRejected || typeof onRejected !== 'function') {
             return this;
@@ -149,10 +162,10 @@ export default function (Twig) {
         try {
             result = onRejected(value);
         } catch (error) {
-            result = Twig.Promise.reject(error);
+            result = this.Promise.reject(error);
         }
 
-        return Twig.Promise.resolve(result);
+        return this.Promise.resolve(result);
     };
 
     /**
@@ -163,7 +176,7 @@ export default function (Twig) {
      * These promises can be mixed with regular promises at which point
      * the synchronous behaviour is lost.
      */
-    Twig.Promise = function (executor) {
+    promise = new Promise(executor) {
         let state = STATE_UNKNOWN;
         let value = null;
 
@@ -188,15 +201,15 @@ export default function (Twig) {
         // Twig.Promise.resolve and Twig.Promise.reject both use the more
         // efficient `Twig.Thenable` for this purpose.
         if (state === STATE_RESOLVED) {
-            return Twig.Promise.resolve(value);
+            return this.Promise.resolve(value);
         }
 
         if (state === STATE_REJECTED) {
-            return Twig.Promise.reject(value);
+            return this.Promise.reject(value);
         }
         // If we managed to get here our promise is going to resolve asynchronous.
 
-        changeState = new Twig.FullPromise();
+        changeState = new this.FullPromise();
 
         return changeState.promise;
     };
@@ -205,7 +218,7 @@ export default function (Twig) {
      * Promise implementation that can handle being resolved at any later time.
      *
      */
-    Twig.FullPromise = function () {
+    FullPromise() {
         let handlers = null;
 
         // The state has been changed to either resolve, or reject
@@ -248,25 +261,25 @@ export default function (Twig) {
             handlers = null;
         }
 
-        const p = new Twig.Thenable((onResolved, onRejected) => {
+        const p = new this.Thenable((onResolved, onRejected) => {
             const hasResolved = typeof onResolved === 'function';
 
             // Shortcut for resolved twig promises
             if (p._state === STATE_RESOLVED && !hasResolved) {
-                return Twig.Promise.resolve(p._value);
+                return this.Promise.resolve(p._value);
             }
 
             if (p._state === STATE_RESOLVED) {
                 try {
-                    return Twig.Promise.resolve(onResolved(p._value));
+                    return this.Promise.resolve(onResolved(p._value));
                 } catch (error) {
-                    return Twig.Promise.reject(error);
+                    return this.Promise.reject(error);
                 }
             }
 
             const hasRejected = typeof onRejected === 'function';
 
-            return new Twig.Promise((resolve, reject) => {
+            return new this.Promise((resolve, reject) => {
                 append(
                     hasResolved ? result => {
                         try {
@@ -291,15 +304,15 @@ export default function (Twig) {
         return changeState;
     };
 
-    Twig.Promise.defaultResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, undefined, STATE_RESOLVED);
-    Twig.Promise.emptyStringResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, '', STATE_RESOLVED);
+    this.Promise.defaultResolved = new this.Thenable(this.Thenable.resolvedThen, undefined, STATE_RESOLVED);
+    this.Promise.emptyStringResolved = new this.Thenable(this.Thenable.resolvedThen, '', STATE_RESOLVED);
 
-    Twig.Promise.resolve = function (value) {
+    this.Promise.resolve = function (value) {
         if (arguments.length === 0 || typeof value === 'undefined') {
-            return Twig.Promise.defaultResolved;
+            return this.Promise.defaultResolved;
         }
 
-        if (Twig.isPromise(value)) {
+        if (isPromise(value)) {
             return value;
         }
 
@@ -307,22 +320,22 @@ export default function (Twig) {
         // scenario by returning a fixed promise. This reduces the load on
         // garbage collection.
         if (value === '') {
-            return Twig.Promise.emptyStringResolved;
+            return this.Promise.emptyStringResolved;
         }
 
-        return new Twig.Thenable(Twig.Thenable.resolvedThen, value, STATE_RESOLVED);
+        return new this.Thenable(Twig.Thenable.resolvedThen, value, STATE_RESOLVED);
     };
 
-    Twig.Promise.reject = function (e) {
+    this.Promise.reject = function (e) {
         // `e` should never be a promise.
-        return new Twig.Thenable(Twig.Thenable.rejectedThen, e, STATE_REJECTED);
+        return new this.Thenable(this.Thenable.rejectedThen, e, STATE_REJECTED);
     };
 
-    Twig.Promise.all = function (promises) {
+    this.Promise.all = function (promises) {
         const results = new Array(promises.length);
 
-        return Twig.async.forEach(promises, (p, index) => {
-            if (!Twig.isPromise(p)) {
+        return this.async.forEach(promises, (p, index) => {
+            if (!isPromise(p)) {
                 results[index] = p;
                 return;
             }
@@ -347,7 +360,7 @@ export default function (Twig) {
     *
     * Each item in the array will be called sequentially.
     */
-    Twig.async.forEach = function (arr, callback) {
+    this.async.forEach = function (arr, callback) {
         const len = arr ? arr.length : 0;
         let index = 0;
 
@@ -356,7 +369,7 @@ export default function (Twig) {
 
             do {
                 if (index === len) {
-                    return Twig.Promise.resolve();
+                    return this.Promise.resolve();
                 }
 
                 resp = callback(arr[index], index);
@@ -365,13 +378,15 @@ export default function (Twig) {
             // While the result of the callback is not a promise or it is
             // a promise that has settled we can use a regular loop which
             // is much faster.
-            } while (!resp || !Twig.isPromise(resp) || resp._state === STATE_RESOLVED);
+            } while (!resp || !isPromise(resp) || resp._state === STATE_RESOLVED);
 
             return resp.then(next);
         }
 
         return next();
     };
-
-    return Twig;
 };
+
+export default function (Twig) {
+    Twig.async = new TwigAsync(Twig)
+}
