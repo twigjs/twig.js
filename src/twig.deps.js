@@ -3,8 +3,6 @@ import strings  from 'locutus/php/strings/index.js';
 import math from 'locutus/php/math/index.js';
 import datetime from 'locutus/php/datetime/index.js';
 import boolval from 'locutus/php/var/boolval.js';
-console.log(import.meta.url);
-console.log(Deno.realPathSync("."));
 const require = createRequire(Deno.realPathSync("."));
 export {strings, math, datetime, boolval}
 export default require;
