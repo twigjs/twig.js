@@ -4,25 +4,8 @@
 export default  function (Twig) {
     'use strict';
 
-    Twig.trace = false;
-    Twig.debug = false;
-
-    // Default caching to true for the improved performance it offers
-    Twig.cache = true;
 
     Twig.noop = function () {};
-
-    Twig.merge = function (target, source, onlyChanged) {
-        Object.keys(source).forEach(key => {
-            if (onlyChanged && !(key in target)) {
-                return;
-            }
-
-            target[key] = source[key];
-        });
-
-        return target;
-    };
 
     /**
      * Exception thrown by twig.js.

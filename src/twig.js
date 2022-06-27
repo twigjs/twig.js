@@ -53,5 +53,21 @@ function factory() {
 
     return twig;
 }
+
 const twig = factory();
+
+export const renderToString = function (path, options) {
+    return new Promise(
+        (resolve, reject) => {
+            // @ts-ignore
+            twig.renderFile(path, options, (err, html) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(html);
+                }
+            });
+        });
+};
+
 export {twig};
