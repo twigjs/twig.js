@@ -5,10 +5,8 @@
 // Copies of the licenses for the code included here can be found in the
 // LICENSES.md file.
 //
-import {strings, math, datetime, boolval}  from './twig.deps.js';
-const {strtotime, date} = datetime;
-const {round, max, min} = math;
-const {sprintf, vsprintf, strip_tags} = strings;
+import {sprintf, vsprintf, strip_tags, round, max, min, strtotime, date, boolval} from './twig.deps.js';
+
 
 class TwigLib {
     constructor() {
@@ -22,6 +20,7 @@ class TwigLib {
         this.date = date;
         this.boolval = boolval;
     }
+
     is(type, obj) {
         if (typeof obj === 'undefined' || obj === null) {
             return false;
@@ -45,7 +44,7 @@ class TwigLib {
         }
     };
 
-    replaceAll (string, search, replace) {
+    replaceAll(string, search, replace) {
         // Escape possible regular expression syntax
         const searchEscaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -53,7 +52,7 @@ class TwigLib {
     };
 
     // Chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
-   chunkArray (arr, size) {
+    chunkArray(arr, size) {
         const returnVal = [];
         let x = 0;
         const len = arr.length;
