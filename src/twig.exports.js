@@ -2,8 +2,54 @@
 //
 // This file provides extension points and other hooks into the twig functionality.
 
-export default function (Twig) {
-    'use strict';
+import {TwigFilters} from "./twig.filters.js";
+
+export class Twig {
+    VERSION;
+    compiler;
+    filters;
+    _function;
+    tests;
+    logic;
+    lib;
+    path;
+    Templates
+
+    constructor(version) {
+        this.VERSION = version;
+        // Express 3 handler
+        this.__express = this.renderFile;
+    }
+
+    setCompile(compilerSetter) {
+        this.compiler = compilerSetter(this);
+        return this;
+    }
+
+    setFilterClass(filterSetter) {
+        this.filters = filterSetter(this);
+        return this;
+    }
+
+    setLibClass(libSetter) {
+        this.lib = libSetter(this);
+        return this;
+    }
+
+    setPathClass(pathSetter) {
+        this.path = pathSetter(this);
+        return this;
+    }
+
+    setTemplateStoreClass(tsSetter) {
+        this.Templates = tsSetter(this);
+        return this;
+    }
+
+    setTestsClass(testssSetter) {
+        this.tests = testssSetter(this);
+        return this;
+    }
 
     /**
      * Create and compile a twig.js template.
@@ -12,7 +58,7 @@ export default function (Twig) {
      *
      * @return {Twig.Template} A Twig template ready for rendering.
      */
-    Twig.twig = function (params) {
+    twig(params) {
         'use strict';
         const {id} = params;
         const options = {
@@ -73,7 +119,7 @@ export default function (Twig) {
         }
 
         if (params.href !== undefined) {
-            return Twig.Templates.loadRemote(params.href, {
+            return this.Templates.loadRemote(params.href, {
                 id,
                 method: 'ajax',
                 parser: params.parser || 'twig',
@@ -87,7 +133,7 @@ export default function (Twig) {
         }
 
         if (params.path !== undefined) {
-            return Twig.Templates.loadRemote(params.path, {
+            return this.Templates.loadRemote(params.path, {
                 id,
                 method: 'fs',
                 parser: params.parser || 'twig',
@@ -98,59 +144,45 @@ export default function (Twig) {
                 options
             }, params.load, params.error);
         }
-    };
+    }
+
+    filter(filter, value, params) {
+        const state = this;
+
+        if (!this.filters[filter]) {
+            throw new this.Error('Unable to find filter ' + filter);
+        }
+
+        return this.filters[filter].call(state, value, params);
+    }
 
     // Extend Twig with a new filter.
-    Twig.extendFilter = function (filter, definition) {
-        Twig.filter.extend(filter, definition);
-    };
+    extendFilter(filter, definition) {
+        TwigFilters.addFilter(this.filters, filter, definition)
+    }
 
     // Extend Twig with a new function.
-    Twig.extendFunction = function (fn, definition) {
-        Twig._function.extend(fn, definition);
-    };
+    extendFunction(fn, definition) {
+        this._function.extend(fn, definition);
+    }
 
     // Extend Twig with a new test.
-    Twig.extendTest = function (test, definition) {
-        Twig.test.extend(test, definition);
+    extendTest(test, definition) {
+        this.tests[test] = definition;
+    }
+
+    test(test, value, params) {
+        if (!this.tests[test]) {
+            throw this.Error('Test ' + test + ' is not defined.');
+        }
+
+        return this.tests[test](value, params);
     };
 
     // Extend Twig with a new definition.
-    Twig.extendTag = function (definition) {
-        Twig.logic.extend(definition);
+    extendTag(definition) {
+        this.logic.extend(definition);
     };
-
-    // Provide an environment for extending Twig core.
-    // Calls fn with the internal Twig object.
-    Twig.extend = function (fn) {
-        fn(Twig);
-    };
-
-    /**
-     * Provide an extension for use with express 2.
-     *
-     * @param {string} markup The template markup.
-     * @param {array} options The express options.
-     *
-     * @return {string} The rendered template.
-     */
-    // Twig.compile = function (markup, options) {
-    //     const id = options.filename;
-    //     const path = options.filename;
-    //
-    //     // Try to load the template from the cache
-    //     const template = new Twig.Template({
-    //         data: markup,
-    //         path,
-    //         id,
-    //         options: options.settings['twig options']
-    //     }); // Twig.Templates.load(id) ||
-    //
-    //     return function (context) {
-    //         return template.render(context);
-    //     };
-    // };
-
     /**
      * Provide an extension for use with express 3.
      *
@@ -158,9 +190,9 @@ export default function (Twig) {
      * @param {Object|Function} The options or callback.
      * @param {Function} fn callback.
      *
-     * @throws Twig.Error
+     * @throws this.Error
      */
-    Twig.renderFile = function (path, options, fn) {
+    renderFile (path, options, fn) {
         // Handle callback in options
         if (typeof options === 'function') {
             fn = options;
@@ -200,22 +232,51 @@ export default function (Twig) {
             }
         }
 
-        Twig.twig(params);
+        this.twig(params);
     };
 
-    // Express 3 handler
-    Twig.__express = Twig.renderFile;
+
 
     /**
-     * Shoud Twig.js cache templates.
+     * Should Twig.js cache templates.
      * Disable during development to see changes to templates without
      * reloading, and disable in production to improve performance.
      *
      * @param {boolean} cache
      */
-    Twig.cache = function (cache) {
-        Twig.cache = cache;
+    setCache(cache) {
+        this.cache = cache;
     };
 
-    return Twig;
-};
+
+    // Provide an environment for extending Twig core.
+    // Calls fn with the internal Twig object.
+    extend(fn) {
+        fn(this);
+    };
+    /**
+     * Provide an extension for use with express 2.
+     *
+     * @param {string} markup The template markup.
+     * @param {array} options The express options.
+     *
+     * @return {string} The rendered template.
+     */
+    // Twig.compile = function (markup, options) {
+    //     const id = options.filename;
+    //     const path = options.filename;
+    //
+    //     // Try to load the template from the cache
+    //     const template = new Twig.Template({
+    //         data: markup,
+    //         path,
+    //         id,
+    //         options: options.settings['twig options']
+    //     }); // Twig.Templates.load(id) ||
+    //
+    //     return function (context) {
+    //         return template.render(context);
+    //     };
+    // };
+}
+
