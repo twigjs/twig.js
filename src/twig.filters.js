@@ -1,10 +1,19 @@
 // ## twig.filters.js
 //
 // This file handles parsing filters.
-class TwigFilters {
+// Determine object type
+function is(type, obj) {
+    const clas = Object.prototype.toString.call(obj).slice(8, -1);
+    return obj !== undefined && obj !== null && clas === type;
+}
+
+export class TwigFilters {
     Twig;
     constructor(Twig) {
         this.Twig = Twig;
+    }
+    static addFilter(filters, filterName, definition){
+       filters[filterName] = definition;
     }
     // String Filters
     upper(value) {
@@ -818,29 +827,4 @@ class TwigFilters {
     spaceless(value) {
         return value.replace(/>\s+</g, '><').trim();
     }
-};
-export default function (Twig) {
-    // Determine object type
-    function is(type, obj) {
-        const clas = Object.prototype.toString.call(obj).slice(8, -1);
-        return obj !== undefined && obj !== null && clas === type;
-    }
-
-    Twig.filters =  new TwigFilters(Twig);
-
-    Twig.filter = function (filter, value, params) {
-        const state = this;
-
-        if (!Twig.filters[filter]) {
-            throw new Twig.Error('Unable to find filter ' + filter);
-        }
-
-        return Twig.filters[filter].call(state, value, params);
-    };
-
-    Twig.filter.extend = function (filter, definition) {
-        Twig.filters[filter] = definition;
-    };
-
-    return Twig;
-};
+}

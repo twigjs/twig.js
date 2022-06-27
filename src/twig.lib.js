@@ -9,20 +9,20 @@ import {strings, math, datetime, boolval}  from './twig.deps.js';
 const {strtotime, date} = datetime;
 const {round, max, min} = math;
 const {sprintf, vsprintf, strip_tags} = strings;
-export default function  (Twig) {
-    // Namespace for libraries
-    Twig.lib = { };
-    Twig.lib.sprintf = sprintf;
-    Twig.lib.vsprintf = vsprintf;
-    Twig.lib.round = round;
-    Twig.lib.max = max;
-    Twig.lib.min = min;
-    Twig.lib.stripTags = strip_tags;
-    Twig.lib.strtotime = strtotime;
-    Twig.lib.date = date;
-    Twig.lib.boolval = boolval;
 
-    Twig.lib.is = function (type, obj) {
+class TwigLib {
+    constructor() {
+        this.sprintf = sprintf;
+        this.vsprintf = vsprintf;
+        this.round = round;
+        this.max = max;
+        this.min = min;
+        this.stripTags = strip_tags;
+        this.strtotime = strtotime;
+        this.date = date;
+        this.boolval = boolval;
+    }
+    is(type, obj) {
         if (typeof obj === 'undefined' || obj === null) {
             return false;
         }
@@ -45,7 +45,7 @@ export default function  (Twig) {
         }
     };
 
-    Twig.lib.replaceAll = function (string, search, replace) {
+    replaceAll (string, search, replace) {
         // Escape possible regular expression syntax
         const searchEscaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -53,7 +53,7 @@ export default function  (Twig) {
     };
 
     // Chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
-    Twig.lib.chunkArray = function (arr, size) {
+   chunkArray (arr, size) {
         const returnVal = [];
         let x = 0;
         const len = arr.length;
@@ -69,5 +69,6 @@ export default function  (Twig) {
         return returnVal;
     };
 
-    return Twig;
-};
+}
+
+export {TwigLib};

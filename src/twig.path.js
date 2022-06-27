@@ -2,7 +2,7 @@
 //
 // This file handles path parsing
 import requireNode from "./twig.deps.js";
-class TwigPath {
+export class TwigPath {
     Twig;
     constructor(Twig) {
         this.Twig = Twig;
@@ -119,12 +119,4 @@ class TwigPath {
     };
 
 }
-export default function (Twig) {
-    'use strict';
 
-    /**
-     * Namespace for path handling.
-     */
-    Twig.path = new TwigPath(Twig);
-    return Twig;
-};
