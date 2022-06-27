@@ -1,0 +1,36 @@
+name: "tests"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: "Node v${{ matrix.node_js }}"
+
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      fail-fast: true
+      matrix:
+        node_js:
+          - 10
+          - 11
+          - 12
+          - 13
+
+    steps:
+      - name: "Checkout code"
+        uses: "actions/checkout@v2"
+
+      - name: "Setup Node and npm"
+        uses: "actions/setup-node@v3"
+        with:
+          cache: "npm"
+          node-version: "${{ matrix.node_js }}"
+
+      - name: "Install Node dependencies"
+        run: "npm ci"
+
+      - name: "Run tests"
+        run: "npm run test"
