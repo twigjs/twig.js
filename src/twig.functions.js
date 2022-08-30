@@ -256,11 +256,17 @@ module.exports = function (Twig) {
          * @returns {string}
          */
         source(name, ignoreMissing) {
+            const state = this;
+            const {namespaces} = state.template.options;
             let templateSource;
             let templateFound = false;
             const isNodeEnvironment = typeof module !== 'undefined' && typeof module.exports !== 'undefined' && typeof window === 'undefined';
             let loader;
-            const path = name;
+            let path = name;
+
+            if (namespaces && typeof namespaces === 'object') {
+                path = Twig.path.expandNamespace(namespaces, path);
+            }
 
             // If we are running in a node.js environment, set the loader to 'fs'.
             if (isNodeEnvironment) {
