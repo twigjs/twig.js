@@ -10,6 +10,21 @@ module.exports = function (Twig) {
     Twig.path = {};
 
     /**
+     * @param {Twig.Template} template
+     * @param {string} path
+     */
+    Twig.path.expandNamespace = function (namespaces, path) {
+        const namespaceIdentifiers = Object.keys(namespaces);
+        const pattern = new RegExp(`^(?:@(${namespaceIdentifiers.join('|')})/|(${namespaceIdentifiers.join('|')})::)`);
+
+        return path.replace(pattern, (wholeMatch, atNamespace, colonNamespace) => {
+            const namespaceIdentifier = (atNamespace === undefined ? colonNamespace : atNamespace);
+
+            return `${namespaces[namespaceIdentifier]}/`;
+        });
+    };
+
+    /**
      * Generate the canonical version of a url based on the given base path and file path and in
      * the previously registered namespaces.
      *
