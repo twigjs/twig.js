@@ -10,7 +10,7 @@
      src="https://user-images.githubusercontent.com/3282350/29336704-ab1be05c-81dc-11e7-92e5-cf11cca7b344.png">
 
 Twig.js is a pure JavaScript implementation of the Twig PHP templating language
-(<http://twig.sensiolabs.org/>)
+(<https://twig.symfony.com/>)
 
 The goal is to provide a library that is compatible with both browsers and server side JavaScript environments such as node.js.
 
