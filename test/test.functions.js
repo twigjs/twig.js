@@ -349,6 +349,15 @@ describe('Twig.js Functions ->', function () {
             it('should allow loading relative paths', function () {
                 twig({data: '{{ source("test/templates/simple.twig") }}'}).render().should.equal('Twig.js!');
             });
+
+            it('should allow loading paths with namespaces', function () {
+                twig({
+                    'data': "{{ source('test::namespaces.twig') }}",
+                    'namespaces': {
+                        'test': 'test/templates/functions/source',
+                    },
+                }).render().trim().should.equal('{{ test }}');
+            });
         });
     });
 });

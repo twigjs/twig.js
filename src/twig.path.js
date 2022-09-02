@@ -10,6 +10,21 @@ module.exports = function (Twig) {
     Twig.path = {};
 
     /**
+     * @param {Twig.Template} template
+     * @param {string} path
+     */
+    Twig.path.expandNamespace = function (namespaces, path) {
+        const namespaceIdentifiers = Object.keys(namespaces);
+        const pattern = new RegExp(`^(?:@(${namespaceIdentifiers.join('|')})/|(${namespaceIdentifiers.join('|')})::)`);
+
+        return path.replace(pattern, (wholeMatch, atNamespace, colonNamespace) => {
+            const namespaceIdentifier = (atNamespace === undefined ? colonNamespace : atNamespace);
+
+            return `${namespaces[namespaceIdentifier]}/`;
+        });
+    };
+
+    /**
      * Generate the canonical version of a url based on the given base path and file path and in
      * the previously registered namespaces.
      *
@@ -19,36 +34,17 @@ module.exports = function (Twig) {
      * @return {string}          The canonical version of the path
      */
     Twig.path.parsePath = function (template, _file) {
-        let k = null;
         const {namespaces} = template.options;
-        let file = _file || '';
+        const file = _file || '';
         const hasNamespaces = namespaces && typeof namespaces === 'object';
 
-        if (hasNamespaces) {
-            for (k in namespaces) {
-                if (!file.includes(k)) {
-                    continue;
-                }
+        let path = (hasNamespaces ? Twig.path.expandNamespace(namespaces, file) : file);
 
-                // Check if keyed namespace exists at path's start
-                const colon = new RegExp('^' + k + '::');
-                const atSign = new RegExp('^@' + k + '/');
-                // Add slash to the end of path
-                const namespacePath = namespaces[k].replace(/([^/])$/, '$1/');
-
-                if (colon.test(file)) {
-                    file = file.replace(colon, namespacePath);
-                    return file;
-                }
-
-                if (atSign.test(file)) {
-                    file = file.replace(atSign, namespacePath);
-                    return file;
-                }
-            }
+        if (path === file) {
+            path = Twig.path.relativePath(template, file);
         }
 
-        return Twig.path.relativePath(template, file);
+        return path;
     };
 
     /**
