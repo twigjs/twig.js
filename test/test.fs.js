@@ -161,6 +161,49 @@ describe('Twig.js Include ->', function () {
             rethrow: true
         });
     });
+
+    it('should include paths with trailing or leading whitespace', function () {
+        twig({
+            'data': 'path has leading whitespace',
+            'id': ' path/with/leading/whitespace.twig',
+        });
+        twig({
+            'data': 'path has trailing whitespace',
+            'id': 'path/with/trailing/whitespace.twig ',
+        });
+
+        twig({
+            'allowInlineIncludes': true,
+            'data': "{% include ' path/with/leading/whitespace.twig' %} - {% include 'path/with/trailing/whitespace.twig ' %}",
+        }).render().trim().should.equal('path has leading whitespace - path has trailing whitespace');
+    });
+
+    it('should not include paths without trailing or leading whitespace', function () {
+        twig({
+            'data': 'path has no leading whitespace',
+            'id': 'path/without/leading/whitespace.twig',
+        });
+        twig({
+            'data': 'path has no trailing whitespace',
+            'id': 'path/without/trailing/whitespace.twig',
+        });
+
+        (function () {
+            twig({
+                'allowInlineIncludes': true,
+                'data': "{% include ' path/without/leading/whitespace.twig' %}",
+                'rethrow': true,
+            }).render();
+        }).should.throw(/Unable to find template file/);
+
+        (function () {
+            twig({
+                'allowInlineIncludes': true,
+                'data': "{% include 'path/without/trailing/whitespace.twig ' %}",
+                'rethrow': true,
+            }).render();
+        }).should.throw(/Unable to find template file/);
+    });
 });
 
 describe('Twig.js Extends ->', function () {
