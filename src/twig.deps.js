@@ -9,7 +9,8 @@ import strtotime  from 'locutus/php/datetime/strtotime.js';
 import date from 'locutus/php/datetime/date.js';
 import boolval from 'locutus/php/var/boolval.js';
 import clm from 'countryLocaleMap';
+import {Currencies} from 'currenciesMap';
 
 const require = createRequire(Deno.realPathSync("."));
-export {sprintf, vsprintf, strip_tags, round, min, max, date, strtotime, boolval,clm}
+export {sprintf, vsprintf, strip_tags, round, min, max, date, strtotime, boolval, clm, Currencies}
 export default require;

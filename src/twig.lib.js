@@ -5,7 +5,7 @@
 // Copies of the licenses for the code included here can be found in the
 // LICENSES.md file.
 //
-import {sprintf, vsprintf, strip_tags, round, max, min, strtotime, date, boolval, clm} from './twig.deps.js';
+import {sprintf, vsprintf, strip_tags, round, max, min, strtotime, date, boolval, clm, Currencies } from './twig.deps.js';
 
 
 class TwigLib {
@@ -20,6 +20,7 @@ class TwigLib {
         this.date = date;
         this.boolval = boolval;
         this.clm = clm;
+        this.currenciesMap = Currencies;
     }
 
     is(type, obj) {

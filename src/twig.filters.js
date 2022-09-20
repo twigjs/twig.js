@@ -23,6 +23,14 @@ export class TwigFilters {
         const country = this.Twig.lib.clm.getCountryByAlpha2(value);
         return country.name;
     }
+
+    currency_name(value){
+        if(typeof value !== 'string'){
+            return value;
+        }
+        const currency = this.Twig.lib.currenciesMap.names.get(value);
+        return currency
+    }
     upper(value) {
         if (typeof value !== 'string') {
             return value;
