@@ -61,6 +61,14 @@ export class TwigFilters {
 
         return 0;
     }
+    convert_encoding(value,params){
+        if(params.length != 2){
+            throw new this.Twig.Error("Two parameters expected");
+        }
+        const encode = this.Twig.lib.encode(value,params[1]);
+        console.log("Encode",encode);
+        return encode.toString();
+    }
 
     // Array/Object Filters
     reverse(value) {
