@@ -15,7 +15,7 @@
     "type": "git",
     "url": "git://github.com/twigjs/twig.js.git"
   },
-  "main": "twig.js",
+  "main": "src/twig.js",
   "engines": {
     "node": ">=8.16"
   },
