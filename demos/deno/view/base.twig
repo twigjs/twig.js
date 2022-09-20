@@ -16,9 +16,10 @@
     {# {{ constant("RSS","NEW CONSTANT")}} #}
    {# <p class="{{ html_classes('a-class', 'another-class') }}">How are you doing?</p>
    {# {{ constant("RSS") }} #}
-   {{ [1,2,3,"anton","nastya"]|join }}
-   {{ "StringTest"|convert_encoding('UTF-8', 'buf')}}
+   {# {{ [1,2,3,"anton","nastya"]|join }}
+   {{ "StringTest"|convert_encoding('UTF-8', 'buf')}} #}
    {# {{ "path-seg*ment"|url_encode }} #}
+   {{ 'FR'|country_name }}
 
 </main>
 

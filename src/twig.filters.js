@@ -16,6 +16,13 @@ export class TwigFilters {
        filters[filterName] = definition;
     }
     // String Filters
+    country_name(value){
+        if(typeof value !== 'string'){
+            return value;
+        }
+        const country = this.Twig.lib.clm.getCountryByAlpha2(value);
+        return country.name;
+    }
     upper(value) {
         if (typeof value !== 'string') {
             return value;

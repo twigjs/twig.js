@@ -8,7 +8,8 @@ import min from 'locutus/php/math/min.js';
 import strtotime  from 'locutus/php/datetime/strtotime.js';
 import date from 'locutus/php/datetime/date.js';
 import boolval from 'locutus/php/var/boolval.js';
+import clm from 'countryLocaleMap';
 
 const require = createRequire(Deno.realPathSync("."));
-export {sprintf, vsprintf, strip_tags, round, min, max, date, strtotime, boolval}
+export {sprintf, vsprintf, strip_tags, round, min, max, date, strtotime, boolval,clm}
 export default require;
