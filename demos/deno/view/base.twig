@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+    <link rel='stylesheet' href='/stylesheets/style.css'/>
+    {% block localstyles %}{% endblock %}
+    {% block javascript %}
+
+    {% endblock %}
+
+</head>
+<body>
+<main>
+    <p>New temlate !</p>
+    {# {{ constant("RSS","NEW CONSTANT")}} #}
+   {# <p class="{{ html_classes('a-class', 'another-class') }}">How are you doing?</p>
+   {# {{ constant("RSS") }} #}
+   {{ [1,2,3,"anton","nastya"]|join }}
+   {{ "StringTest"|convert_encoding('UTF-8', 'buf')}}
+   {# {{ "path-seg*ment"|url_encode }} #}
+
+</main>
+
+</body>
+</html>

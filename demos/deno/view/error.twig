@@ -1,0 +1,23 @@
+{% extends 'base.twig' %}
+
+{% block scripts %}
+    <script>
+      function historyBack() {
+        window.history.back();
+      }
+    </script>
+{% endblock %}
+
+{% use 'header.twig'%}
+
+{% block body %}
+  <div class="error-wrapper">
+    <h1>{{error.status}}</h1>
+    <h2>{{message}}</h2>
+    <button onclick="historyBack()">Back</button>
+    <div class="error-details">
+      <span>Details</span>
+      <pre>{{error.stack}}</pre>
+    </div>
+  </div>  
+{% endblock %}
