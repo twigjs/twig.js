@@ -163,12 +163,12 @@ export class Twig {
 
     filter(filter, value, params) {
         const state = this;
-
+        // console.log("filter",filter,"value",value,"params",params);
         if (!this.filters[filter]) {
             throw new this.Error('Unable to find filter ' + filter);
         }
 
-        return this.filters[filter].call(state, value, params);
+        return this.filters[filter](value, params);
     }
 
     // Extend Twig with a new filter.
