@@ -29,7 +29,15 @@ export class TwigFilters {
             return value;
         }
         const currency = this.Twig.lib.currenciesMap.names.get(value);
-        return currency
+        return currency;
+    }
+
+    currency_symbol(value){
+        if(typeof value !== 'string'){
+            return value;
+        }
+        const symbol = this.Twig.lib.currenciesMap.symbols.get(value);
+        return symbol;
     }
     upper(value) {
         if (typeof value !== 'string') {
