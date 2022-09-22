@@ -144,4 +144,22 @@ describe('Twig.js Embed ->', function () {
             data: '{% extends "layout.twig" %}{% block body_header %}override-body-header{% endblock %}{% block body_content %}{% embed "section.twig" %}{% block section_content %}override-section-content{% endblock %}{% endembed %}{% endblock %}'
         }).render().should.equal('<layout-header><override-body-header><section-title><override-section-content><layout-body-footer><base-footer>');
     });
+
+    it('should work when within include rendered multiple times', function () {
+        twig({
+          'data': 'embed',
+          'id': 'embed.twig',
+        });
+
+        twig({
+          'allowInlineIncludes': true,
+          'data': '{% embed "embed.twig" %}{% endembed %}',
+          'id': 'include.twig',
+        });
+
+        twig({
+          'allowInlineIncludes': true,
+          'data': '{% include "include.twig" %} {% include "include.twig" %}',
+        }).render().should.equal('embed embed');
+    });
 });
