@@ -1,4 +1,4 @@
-const Twig = require('../twig');
+const Twig = require('..');
 
 const FreshTwig = Twig.factory();
 

@@ -9,7 +9,7 @@
     const runTest = function () {
         describe('Twig original test ->', function () {
             var
-                Twig = Twig || require('../twig');
+                Twig = Twig || require('..');
             var twig = twig || Twig.twig;
             var walk = function (dir, done) {
                 let results = [];

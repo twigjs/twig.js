@@ -1,4 +1,4 @@
-const Twig = require('../twig').factory();
+const Twig = require('..').factory();
 
 describe('Twig.js Performance Regressions ->', function () {
     const template = '{{ echoTest }}\n' +

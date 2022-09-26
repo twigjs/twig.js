@@ -1,4 +1,4 @@
-const {factory} = require('../twig');
+const {factory} = require('..');
 
 let twig;
 

@@ -1,4 +1,4 @@
-const Twig = require('../twig').factory();
+const Twig = require('..').factory();
 
 describe('Twig.js Exports __express ->', function () {
     /* Otherwise express will return it as JSON, see: https://github.com/twigjs/twig.js/pull/348 for more information */
