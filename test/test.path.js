@@ -1,6 +1,6 @@
 const path = require('path');
 
-const Twig = require('../twig').factory();
+const Twig = require('..').factory();
 
 describe('Twig.js Path ->', function () {
     const sinon = require('sinon');
