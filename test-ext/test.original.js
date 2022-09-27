@@ -69,7 +69,7 @@
                 });
 
                 testFiles.forEach((data, idx) => {
-                    const Tokenizer = require('tokenizer');
+                    const Tokenizer = require('tokenizer2');
                     const t = new Tokenizer();
                     let res;
                     const str = data.DATA;
