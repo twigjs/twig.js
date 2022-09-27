@@ -50,7 +50,7 @@
     "tokenizer2": "^2.0.1",
     "webpack": "^4.41.6",
     "webpack-cli": "^3.3.11",
-    "xo": "^0.26.1"
+    "xo": "^0.52.3"
   },
   "browser": {
     "fs": false
