@@ -162,4 +162,21 @@ describe('Twig.js Embed ->', function () {
           'data': '{% include "include.twig" %} {% include "include.twig" %}',
         }).render().should.equal('embed embed');
     });
+
+    it('should work when rendering the same include multiple times with embedded block', function () {
+        twig({
+          'data': '<div><h1>component a</h2>{% block content %}{% endblock %}</div>',
+          'id': 'component-a.html.twig',
+        });
+
+        twig({
+          'data': '{% embed "component-a.html.twig" %}{% block content %}<p>component b</p>{% endblock %}{% endembed %}',
+          'id': 'component-b.html.twig',
+        });
+
+        twig({
+          'allowInlineIncludes': true,
+          'data': '{% include "component-b.html.twig" %}{% include "component-b.html.twig" %}',
+        }).render().trim().should.equal('<div><h1>component a</h2><p>component b</p></div><div><h1>component a</h2><p>component b</p></div>');
+    });
 });
