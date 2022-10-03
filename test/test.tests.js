@@ -44,13 +44,13 @@ describe('Twig.js Tests ->', function () {
         });
     });
 
-    describe('divisibleby test ->', function () {
+    describe('divisible by test ->', function () {
         it('should determine if a number is divisible by the given number', function () {
             twig({data: '{{ 5 is divisible by(3) }}'}).render().should.equal('false');
             twig({data: '{{ 6 is divisible by(3) }}'}).render().should.equal('true');
         });
 
-        it('should determine if a number is divisible by the given number', function () {
+        it('should support the old version without space for backwards compatibility', function () {
             twig({data: '{{ 5 is divisibleby(3) }}'}).render().should.equal('false');
             twig({data: '{{ 6 is divisibleby(3) }}'}).render().should.equal('true');
         });
