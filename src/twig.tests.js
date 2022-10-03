@@ -34,6 +34,9 @@ module.exports = function (Twig) {
         even(value) {
             return value % 2 === 0;
         },
+        'divisible by'(value, params) {
+            return value % params[0] === 0;
+        },
         divisibleby(value, params) {
             return value % params[0] === 0;
         },
