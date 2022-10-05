@@ -41,6 +41,12 @@ describe('Twig.js Tags ->', function () {
                     ' world'
                 );
             });
+
+            it('should support not providing context', function () {
+                twig({
+                    'data': '{% with %}{% set foo = 42 %}{{ foo }}{% endwith %}',
+                }).render().should.equal('42');
+            });
         }
     );
 
