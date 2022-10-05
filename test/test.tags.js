@@ -55,6 +55,20 @@ describe('Twig.js Tags ->', function () {
                     'data': '{% set bar = "baz" %}{% with %}{% set foo = 42 %}{{ foo }} - {{ bar | default("bar is not defined here") }}{% endwith %}',
                 }).render().should.equal('42 - baz');
             });
+
+            it('should scope any context changes within the tags', function () {
+                twig({
+                    'data': '{% set foo = "bar" %}{% with { name: "world" } %}{{ name }} - {{ foo | default("foo is not defined here") }}{% endwith %} - {{ name | default("name is not defined here") }}'
+                }).render().should.equal('world - bar - name is not defined here');
+
+                twig({
+                    'data': '{% set foo = "bar" %}{% with { name: "world" } only %}{{ name }} - {{ foo | default("foo is not defined here") }}{% endwith %} - {{ name | default("name is not defined here") }}'
+                }).render().should.equal('world - foo is not defined here - name is not defined here');
+
+                twig({
+                    'data': '{% set bar = "baz" %}{% with %}{% set foo = 42 %}{{ foo }} - {{ bar | default("bar is not defined here") }}{% endwith %} - {{ foo | default("foo is not defined here") }}',
+                }).render().should.equal('42 - baz - foo is not defined here');
+            });
         }
     );
 
