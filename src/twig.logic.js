@@ -1294,7 +1294,7 @@ module.exports = function (Twig) {
              *  Format: {% with {some: 'values'} [only] %}
              */
             type: Twig.logic.type.with,
-            regex: /^(?:with\s+([\S\s]+?))(?:\s|$)(only)?$/,
+            regex: /^(?:with(?:\s+([\S\s]+?))?)(?:\s|$)(only)?$/,
             next: [
                 Twig.logic.type.endwith
             ],
