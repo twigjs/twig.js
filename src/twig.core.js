@@ -1325,9 +1325,9 @@ module.exports = function (Twig) {
         params = params || {};
 
         return Twig.async.potentiallyAsync(template, allowAsync, () => {
-            const state = new Twig.ParseState(template, params.blocks);
+            const state = new Twig.ParseState(template, params.blocks, context);
 
-            return state.parseAsync(template.tokens, context)
+            return state.parseAsync(template.tokens)
                 .then(output => {
                     let parentTemplate;
                     let url;
