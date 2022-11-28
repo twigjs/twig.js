@@ -21,23 +21,34 @@ describe('Twig.js Tags ->', function () {
         );
     });
 
-    it('should support with', function () {
-        twig({
-            autoescape: true,
-            data: '{% set prefix = "Hello" %}{% with { name: "world" } %}{{prefix}} {{name}}{% endwith %}'
-        }).render().should.equal(
-            'Hello world'
-        );
-    });
+    describe(
+        'with ->',
+        function () {
+            it('should support providing context', function () {
+                twig({
+                    autoescape: true,
+                    data: '{% set prefix = "Hello" %}{% with { name: "world" } %}{{prefix}} {{name}}{% endwith %}'
+                }).render().should.equal(
+                    'Hello world'
+                );
+            });
 
-    it('should limit scope of with only', function () {
-        twig({
-            autoescape: true,
-            data: '{% set prefix = "Hello" %}{% with { name: "world" } only %}{{prefix}} {{name}}{% endwith %}'
-        }).render().should.equal(
-            ' world'
-        );
-    });
+            it('should support exclusive context', function () {
+                twig({
+                    autoescape: true,
+                    data: '{% set prefix = "Hello" %}{% with { name: "world" } only %}{{prefix}} {{name}}{% endwith %}'
+                }).render().should.equal(
+                    ' world'
+                );
+            });
+
+            it('should support not providing context', function () {
+                twig({
+                    'data': '{% with %}{% set foo = 42 %}{{ foo }}{% endwith %}',
+                }).render().should.equal('42');
+            });
+        }
+    );
 
     it('should support apply upper', function () {
         twig({
