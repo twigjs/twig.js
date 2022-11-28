@@ -79,7 +79,7 @@
      - [empty test ->](#twigjs-tests---empty-test--)
      - [odd test ->](#twigjs-tests---odd-test--)
      - [even test ->](#twigjs-tests---even-test--)
-     - [divisibleby test ->](#twigjs-tests---divisibleby-test--)
+     - [divisible by test ->](#twigjs-tests---divisible-by-test--)
      - [defined test ->](#twigjs-tests---defined-test--)
      - [none test ->](#twigjs-tests---none-test--)
      - [sameas test ->](#twigjs-tests---sameas-test--)
@@ -3486,13 +3486,13 @@ twig({data: '{{ (1 + 4) is even }}'}).render().should.equal("false" );
 twig({data: '{{ 6 is even }}'}).render().should.equal("true" );
 ```
 
-<a name="twigjs-tests---divisibleby-test--"></a>
-## divisibleby test ->
+<a name="twigjs-tests---divisible-by-test--"></a>
+## divisible by test ->
 should determine if a number is divisible by the given number.
 
 ```js
-twig({data: '{{ 5 is divisibleby(3) }}'}).render().should.equal("false" );
-twig({data: '{{ 6 is divisibleby(3) }}'}).render().should.equal("true" );
+twig({data: '{{ 5 is divisible by(3) }}'}).render().should.equal("false" );
+twig({data: '{{ 6 is divisible by(3) }}'}).render().should.equal("true" );
 ```
 
 <a name="twigjs-tests---defined-test--"></a>

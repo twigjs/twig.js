@@ -143,7 +143,7 @@ module.exports = function (Twig) {
     Twig.expression.definitions = [
         {
             type: Twig.expression.type.test,
-            regex: /^is\s+(not)?\s*([a-zA-Z_]\w*(\s?as)?)/,
+            regex: /^is\s+(not)?\s*([a-zA-Z_]\w*(\s?(?:as|by))?)/,
             next: Twig.expression.set.operations.concat([Twig.expression.type.parameter.start]),
             compile(token, stack, output) {
                 token.filter = token.match[2];

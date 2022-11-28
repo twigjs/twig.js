@@ -34,8 +34,12 @@ module.exports = function (Twig) {
         even(value) {
             return value % 2 === 0;
         },
-        divisibleby(value, params) {
+        'divisible by'(value, params) {
             return value % params[0] === 0;
+        },
+        divisibleby(value, params) {
+            console.warn('`divisibleby` is deprecated use `divisible by`');
+            return Twig.tests['divisible by'](value, params);
         },
         defined(value) {
             return value !== undefined;
