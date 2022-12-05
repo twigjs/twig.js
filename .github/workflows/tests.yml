@@ -22,6 +22,7 @@ jobs:
           - 15
           - 16
           - 17
+          - 18
 
     steps:
       - name: "Checkout code"
