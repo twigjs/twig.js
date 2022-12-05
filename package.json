@@ -17,7 +17,7 @@
   },
   "main": "src/twig.js",
   "engines": {
-    "node": ">=8.16"
+    "node": ">=10"
   },
   "bin": {
     "twigjs": "./bin/twigjs"
