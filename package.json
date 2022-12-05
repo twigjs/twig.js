@@ -27,7 +27,7 @@
     "postversion": "git push origin master && git push origin master --tags",
     "pretest": "npm run build",
     "test": "mocha -r should",
-    "build": "webpack",
+    "build": "node node/build.js",
     "posttest": "xo src lib bin"
   },
   "dependencies": {
