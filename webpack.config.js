@@ -2,6 +2,11 @@ const TerserJsPlugin = require('terser-webpack-plugin');
 
 const commonModule = {
     exclude: /(node_modules)/,
+    resolve: {
+        fallback: {
+            path: require.resolve('path-browserify')
+        }
+    },
     use: {
         loader: "babel-loader",
         options: {
@@ -37,7 +42,7 @@ const clientBuild = {
     mode: 'production',
     entry: './src/twig.js',
     target: 'web',
-    devtool: '#source-map',
+    devtool: 'source-map',
     node: {
         __dirname: false,
         __filename: false
@@ -54,7 +59,6 @@ const clientBuild = {
     optimization: {
         minimize: true,
         minimizer: [new TerserJsPlugin({
-            sourceMap: true,
             include: /\.min\.js$/
         })]
     }
