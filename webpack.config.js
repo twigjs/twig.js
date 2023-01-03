@@ -59,7 +59,6 @@ const clientBuild = {
     optimization: {
         minimize: true,
         minimizer: [new TerserJsPlugin({
-            sourceMap: true,
             include: /\.min\.js$/
         })]
     }
