@@ -37,7 +37,7 @@ const clientBuild = {
     mode: 'production',
     entry: './src/twig.js',
     target: 'web',
-    devtool: '#source-map',
+    devtool: 'source-map',
     node: {
         __dirname: false,
         __filename: false
