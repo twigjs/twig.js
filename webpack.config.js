@@ -2,6 +2,11 @@ const TerserJsPlugin = require('terser-webpack-plugin');
 
 const commonModule = {
     exclude: /(node_modules)/,
+    resolve: {
+        fallback: {
+            path: require.resolve('path-browserify')
+        }
+    },
     use: {
         loader: "babel-loader",
         options: {
