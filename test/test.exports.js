@@ -45,3 +45,11 @@ describe('Twig.js Exports __express ->', function () {
         });
     });
 });
+
+describe('renderFile', function () {
+    it('should allow error handling on missing paths', function () {
+        Twig.renderFile('this/path/does/not/exist.twig', undefined, function (err, html) {
+            console.log(err, html);
+        });
+    });
+});
