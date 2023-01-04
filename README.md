@@ -92,7 +92,7 @@ var Twig = require("twig"),
 
 // This section is optional and used to configure twig.
 app.set("twig options", {
-    allow_async: true, // Allow asynchronous compiling
+    allowAsync: true, // Allow asynchronous compiling
     strict_variables: false
 });
 
