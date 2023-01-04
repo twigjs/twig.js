@@ -116,7 +116,7 @@ Twig.async.forEach(arr, function(value, index) {
 
 ## Switching render mode
 
-The rendering mode of Twig.js internally is determined by the `allow_async` argument that can be passed into `Twig.expression.parse`, `Twig.logic.parse`, `Twig.parse` and `Twig.Template.render`. Detecting if at any point code runs asynchronously is explained in [detecting asynchronous behaviour](#detecting-asynchronous-behaviour).
+The rendering mode of Twig.js internally is determined by the `allowAsync` argument that can be passed into `Twig.expression.parse`, `Twig.logic.parse`, `Twig.parse` and `Twig.Template.render`. Detecting if at any point code runs asynchronously is explained in [detecting asynchronous behaviour](#detecting-asynchronous-behaviour).
 
 For the end user switching between synchronous and asynchronous is as simple as using a different method on the template instance.
 
@@ -157,10 +157,10 @@ var template = twig({
 
 The pattern used to detect asynchronous behaviour is the same everywhere it is used and follows a simple pattern.
 
-1. Set a variable `is_async = true`
+1. Set a variable `isAsync = true`
 2. Run the promise chain that might contain some asynchronous behaviour.
-3. As the last method in the promise chain set `is_async = false`
-4. Underneath the promise chain test whether `is_async` is `true`
+3. As the last method in the promise chain set `isAsync = false`
+4. Underneath the promise chain test whether `isAsync` is `true`
 
 This pattern works because the last method in the chain will be executed in the next run of the eventloop (`setTimeout`/`setImmediate`).
 
@@ -169,7 +169,7 @@ This pattern works because the last method in the chain will be executed in the 
 **Synchronous promises only**
 
 ```javascript
-var is_async = true;
+var isAsync = true;
 
 Twig.Promise.resolve()
 .then(function() {
@@ -178,10 +178,10 @@ Twig.Promise.resolve()
     return 'hello world';
 })
 .then(function() {
-    is_async = false;
+    isAsync = false;
 });
 
-if (is_async)
+if (isAsync)
     console.log('method ran asynchronous');
 
 console.log('method ran synchronous');
@@ -195,7 +195,7 @@ console.log('method ran synchronous');
 **Mixed promises**
 
 ```javascript
-var is_async = true;
+var isAsync = true;
 
 Twig.Promise.resolve()
 .then(function() {
@@ -203,10 +203,10 @@ Twig.Promise.resolve()
     return Promise.resolve('hello world');
 })
 .then(function() {
-    is_async = false;
+    isAsync = false;
 });
 
-if (is_async)
+if (isAsync)
     console.log('method ran asynchronous');
 
 console.log('method ran synchronous');
