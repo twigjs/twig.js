@@ -1007,10 +1007,10 @@ module.exports = function (Twig) {
      * @param {Twig.Template} template The template that the tokens being parsed are associated with.
      * @param {Object} blockOverrides Any blocks that should override those defined in the associated template.
      */
-    Twig.ParseState = function (template, blockOverrides) {
+    Twig.ParseState = function (template, blockOverrides, context) {
         this.renderedBlocks = {};
         this.overrideBlocks = blockOverrides === undefined ? {} : blockOverrides;
-        this.context = {};
+        this.context = context === undefined ? {} : context;
         this.macros = {};
         this.nestingStack = [];
         this.template = template;
@@ -1325,9 +1325,9 @@ module.exports = function (Twig) {
         params = params || {};
 
         return Twig.async.potentiallyAsync(template, allowAsync, () => {
-            const state = new Twig.ParseState(template, params.blocks);
+            const state = new Twig.ParseState(template, params.blocks, context);
 
-            return state.parseAsync(template.tokens, context)
+            return state.parseAsync(template.tokens)
                 .then(output => {
                     let parentTemplate;
                     let url;

@@ -26,26 +26,48 @@ describe('Twig.js Tags ->', function () {
         function () {
             it('should support providing context', function () {
                 twig({
-                    autoescape: true,
-                    data: '{% set prefix = "Hello" %}{% with { name: "world" } %}{{prefix}} {{name}}{% endwith %}'
-                }).render().should.equal(
-                    'Hello world'
-                );
+                    'data': '{% with { name: "world" } %}{{ name }}{% endwith %}'
+                }).render().should.equal('world');
             });
 
             it('should support exclusive context', function () {
                 twig({
-                    autoescape: true,
-                    data: '{% set prefix = "Hello" %}{% with { name: "world" } only %}{{prefix}} {{name}}{% endwith %}'
-                }).render().should.equal(
-                    ' world'
-                );
+                    'data': '{% with { name: "world" } only %}{{ name }}{% endwith %}'
+                }).render().should.equal('world');
             });
 
             it('should support not providing context', function () {
                 twig({
                     'data': '{% with %}{% set foo = 42 %}{{ foo }}{% endwith %}',
                 }).render().should.equal('42');
+            });
+
+            it('should handle outer context properly', function () {
+                twig({
+                    'data': '{% set foo = "bar" %}{% with { name: "world" } %}{{ name }} - {{ foo | default("foo is not defined here") }}{% endwith %}'
+                }).render().should.equal('world - bar');
+
+                twig({
+                    'data': '{% set foo = "bar" %}{% with { name: "world" } only %}{{ name }} - {{ foo | default("foo is not defined here") }}{% endwith %}'
+                }).render().should.equal('world - foo is not defined here');
+
+                twig({
+                    'data': '{% set bar = "baz" %}{% with %}{% set foo = 42 %}{{ foo }} - {{ bar | default("bar is not defined here") }}{% endwith %}',
+                }).render().should.equal('42 - baz');
+            });
+
+            it('should scope any context changes within the tags', function () {
+                twig({
+                    'data': '{% set foo = "bar" %}{% with { name: "world" } %}{{ name }} - {{ foo | default("foo is not defined here") }}{% endwith %} - {{ name | default("name is not defined here") }}'
+                }).render().should.equal('world - bar - name is not defined here');
+
+                twig({
+                    'data': '{% set foo = "bar" %}{% with { name: "world" } only %}{{ name }} - {{ foo | default("foo is not defined here") }}{% endwith %} - {{ name | default("name is not defined here") }}'
+                }).render().should.equal('world - foo is not defined here - name is not defined here');
+
+                twig({
+                    'data': '{% set bar = "baz" %}{% with %}{% set foo = 42 %}{{ foo }} - {{ bar | default("bar is not defined here") }}{% endwith %} - {{ foo | default("foo is not defined here") }}',
+                }).render().should.equal('42 - baz - foo is not defined here');
             });
         }
     );

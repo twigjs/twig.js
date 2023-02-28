@@ -1339,9 +1339,11 @@ module.exports = function (Twig) {
                         });
                 }
 
+                const isolatedState = new Twig.ParseState(state.template, undefined, innerContext);
+
                 return promise
                     .then(() => {
-                        return state.parseAsync(token.output, innerContext);
+                        return isolatedState.parseAsync(token.output);
                     })
                     .then(output => {
                         return {
