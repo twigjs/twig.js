@@ -1,3 +1,30 @@
+Version 1.16.0, release 2023-02-27
+----------------------------------
+Major improvements:
+* Fix passing context around by @willrowe in https://github.com/twigjs/twig.js/pull/850
+* Add namespace support to `source` function by @willrowe in https://github.com/twigjs/twig.js/pull/823
+* Use src/twig.js as package's main script instead of the compiled twig.js by @RobLoach in https://github.com/twigjs/twig.js/pull/829
+
+Minor improvements:
+* Fix macro changing context in loop by @mihkeleidast in https://github.com/twigjs/twig.js/pull/773
+* Imported function PATHS.strip_slash() missing by @murageyun in https://github.com/twigjs/twig.js/pull/770
+* Convert non-string values to string before replacing by @kmonahan in https://github.com/twigjs/twig.js/pull/797
+* Add GitHub actions test workflow by @willrowe in https://github.com/twigjs/twig.js/pull/817
+* Fix date parsing with timezones by @plepe in https://github.com/twigjs/twig.js/pull/765
+* Fixed Twig official's URL on README.md by @Geolim4 in https://github.com/twigjs/twig.js/pull/822
+* Add tests for whitespace in paths by @willrowe in https://github.com/twigjs/twig.js/pull/824
+* Fix multiple includes with embeds by @willrowe in https://github.com/twigjs/twig.js/pull/828
+* Update to Mocha 9.x by @RobLoach in https://github.com/twigjs/twig.js/pull/831
+* Add test for issue #767 by @willrowe in https://github.com/twigjs/twig.js/pull/837
+* Add support for `divisible by` test by @willrowe in https://github.com/twigjs/twig.js/pull/838
+* Add support for `with` tag without context or `only` keyword by @willrowe in https://github.com/twigjs/twig.js/pull/839
+* Use v3 of `actions/checkout` by @willrowe in https://github.com/twigjs/twig.js/pull/846
+* Test on more node versions by @willrowe in https://github.com/twigjs/twig.js/pull/847
+* Fix webpack 5 compatibility by @willrowe in https://github.com/twigjs/twig.js/pull/849
+* Add test to confirm `renderFile` error handling by @willrowe in https://github.com/twigjs/twig.js/pull/851
+* Fix casing of variables in docs by @willrowe in https://github.com/twigjs/twig.js/pull/852
+* Bumped dependencies by @dependabot
+
 Version 1.15.4, released 2020-11-27
 -----------------------------------
 Minor improvements:

@@ -11,6 +11,15 @@ describe('Twig.js Factory ->', function () {
         return 'bar';
     });
 
+    it('should have the correct VERSION in twig.factory.js', function () {
+        // Twig.js embeds the version number in twig.factory.js to
+        // allow checking against Twig.VERSION. We should check to
+        // make sure the package.json version is the same.
+        const pkg = require('../package.json');
+        Twig.VERSION.should.not.be.null();
+        Twig.VERSION.should.equal(pkg.version);
+    });
+
     it('should not have access to extensions on the main Twig object', function () {
         const fixtOptions = {
             rethrow: true,
