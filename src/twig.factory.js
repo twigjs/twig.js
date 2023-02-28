@@ -3,7 +3,7 @@
 // This file handles creating the Twig library
 module.exports = function factory() {
     const Twig = {
-        VERSION: '1.14.0'
+        VERSION: '1.16.0'
     };
 
     require('./twig.core')(Twig);
