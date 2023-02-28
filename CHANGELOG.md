@@ -25,13 +25,6 @@ Minor improvements:
 * Fix casing of variables in docs by @willrowe in https://github.com/twigjs/twig.js/pull/852
 * Bumped dependencies by @dependabot
 
-### New Contributors
-* @murageyun made their first contribution in https://github.com/twigjs/twig.js/pull/770
-* @kmonahan made their first contribution in https://github.com/twigjs/twig.js/pull/797
-* @Geolim4 made their first contribution in https://github.com/twigjs/twig.js/pull/822
-
-**Full Changelog**: https://github.com/twigjs/twig.js/compare/v1.15.4...v1.16.0
-
 Version 1.15.4, released 2020-11-27
 -----------------------------------
 Minor improvements:
