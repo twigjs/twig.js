@@ -1118,11 +1118,12 @@ module.exports = function (Twig) {
     /**
      * Break an expression into tokens defined in Twig.expression.definitions.
      *
-     * @param {string} expression The string to tokenize.
+     * @param {Object} rawToken The string to tokenize.
      *
      * @return {Array} An array of tokens.
      */
-    Twig.expression.tokenize = function (expression) {
+    Twig.expression.tokenize = function (rawToken) {
+        let expression = rawToken.value;
         const tokens = [];
         // Keep an offset of the location in the expression for error messages.
         let expOffset = 0;
@@ -1170,11 +1171,17 @@ module.exports = function (Twig) {
 
             invalidMatches = [];
 
-            tokens.push({
+            const token = {
                 type,
                 value: match[0],
                 match
-            });
+            };
+
+            if (rawToken.position) {
+                token.position = rawToken.position;
+            }
+
+            tokens.push(token);
 
             matchFound = true;
             next = tokenNext;
@@ -1240,15 +1247,14 @@ module.exports = function (Twig) {
      * @return {Object} The compiled token.
      */
     Twig.expression.compile = function (rawToken) {
-        const expression = rawToken.value;
         // Tokenize expression
-        const tokens = Twig.expression.tokenize(expression);
+        const tokens = Twig.expression.tokenize(rawToken);
         let token = null;
         const output = [];
         const stack = [];
         let tokenTemplate = null;
 
-        Twig.log.trace('Twig.expression.compile: ', 'Compiling ', expression);
+        Twig.log.trace('Twig.expression.compile: ', 'Compiling ', rawToken.value);
 
         // Push tokens into RPN stack using the Shunting-yard algorithm
         // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
