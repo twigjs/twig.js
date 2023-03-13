@@ -508,4 +508,22 @@ describe('Twig.js Core ->', function () {
             }).should.throw(/Unable to find template file/);
         });
     });
+
+    describe('tokens should have the correct positions in template', () => {
+        it('should show the correct token positions in a simple template', () => {
+            const tokens = twig({data: '{{ unit }}'}).tokens;
+            tokens[0].position.should.eql({start: 0, end: 10});
+        });
+
+        it('should show the correct token positions in a advanced template', () => {
+            const tokens = twig({data:'I want to {{ try }} a more {% if advanced | length > 3 %}{{ variable }}{% endif %} template {% set unit = 2 %}{# This is a comment #}{{ variable_after_comment }}'}).tokens;
+            tokens[0].position.should.eql({start: 0, end: 10});
+            tokens[1].position.should.eql({start: 10, end: 19});
+            tokens[2].position.should.eql({start: 19, end: 27});
+            tokens[3].position.should.eql({open: {start: 27, end: 57}, close: {start: 71, end: 82}});
+            tokens[3].token.output[0].position.should.eql({start: 57, end: 71});
+            tokens[5].position.should.eql({start: 92, end: 110});
+            tokens[6].position.should.eql({start: 133, end: 161});
+        });
+    });
 });

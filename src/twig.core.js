@@ -325,9 +325,8 @@ module.exports = function (Twig) {
      */
     Twig.tokenize = function (template) {
         const tokens = [];
-        // An offset for reporting errors locations in the template.
-        let errorOffset = 0;
-
+        // An offset for reporting errors locations and the position of the nodes in the template.
+        let currentPosition = 0;
         // The start and type of the first token found in the template.
         let foundToken = null;
         // The end position of the matched token.
@@ -343,7 +342,11 @@ module.exports = function (Twig) {
                 // No more tokens -> add the rest of the template as a raw-type token
                 tokens.push({
                     type: Twig.token.type.raw,
-                    value: template
+                    value: template,
+                    position: {
+                        start: currentPosition,
+                        end: currentPosition + foundToken.position
+                    }
                 });
                 template = '';
             } else {
@@ -351,21 +354,29 @@ module.exports = function (Twig) {
                 if (foundToken.position > 0) {
                     tokens.push({
                         type: Twig.token.type.raw,
-                        value: template.slice(0, Math.max(0, foundToken.position))
+                        value: template.slice(0, Math.max(0, foundToken.position)),
+                        position: {
+                            start: currentPosition,
+                            end: currentPosition + Math.max(0, foundToken.position)
+                        }
                     });
                 }
 
                 template = template.slice(foundToken.position + foundToken.def.open.length);
-                errorOffset += foundToken.position + foundToken.def.open.length;
+                currentPosition += foundToken.position + foundToken.def.open.length;
 
                 // Find the end of the token
-                end = Twig.token.findEnd(template, foundToken.def, errorOffset);
+                end = Twig.token.findEnd(template, foundToken.def, currentPosition);
 
                 Twig.log.trace('Twig.tokenize: ', 'Token ends at ', end);
 
                 tokens.push({
                     type: foundToken.def.type,
-                    value: template.slice(0, Math.max(0, end)).trim()
+                    value: template.slice(0, Math.max(0, end)).trim(),
+                    position: {
+                        start: currentPosition - foundToken.def.open.length,
+                        end: currentPosition + end + foundToken.def.close.length
+                    }
                 });
 
                 if (template.slice(end + foundToken.def.close.length, end + foundToken.def.close.length + 1) === '\n') {
@@ -385,7 +396,7 @@ module.exports = function (Twig) {
                 template = template.slice(end + foundToken.def.close.length);
 
                 // Increment the position in the template
-                errorOffset += end + foundToken.def.close.length;
+                currentPosition += end + foundToken.def.close.length;
             }
         }
 
@@ -434,6 +445,7 @@ module.exports = function (Twig) {
             const compileLogic = function (token) {
                 // Compile the logic token
                 logicToken = Twig.logic.compile.call(self, token);
+                logicToken.position = token.position;
 
                 type = logicToken.type;
                 open = Twig.logic.handler[type].open;
@@ -458,8 +470,13 @@ module.exports = function (Twig) {
 
                     tokOutput = {
                         type: Twig.token.type.logic,
-                        token: prevToken
+                        token: prevToken,
+                        position: {
+                            open: prevToken.position,
+                            close: token.position
+                        }
                     };
+
                     if (stack.length > 0) {
                         intermediateOutput.push(tokOutput);
                     } else {
@@ -486,7 +503,8 @@ module.exports = function (Twig) {
                 } else if (open !== undefined && open) {
                     tokOutput = {
                         type: Twig.token.type.logic,
-                        token: logicToken
+                        token: logicToken,
+                        position: logicToken.position
                     };
                     // Standalone token (like {% set ... %}
                     if (stack.length > 0) {
