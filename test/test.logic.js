@@ -20,6 +20,7 @@ describe('Twig.js Logic ->', function () {
 
     describe('elseif ->', function () {
         it('should ignore spaces', function () {
+            twig({data: '{% if (1 == 2) %}false{% elseif  (1 == 1) %}true{% endif %}'}).render().should.equal('true');
             twig({data: '{% if (1 == 2) %}false{% elseif (1 == 1) %}true{% endif %}'}).render().should.equal('true');
             twig({data: '{% if (1 == 2) %}false{% elseif(1 == 1) %}true{% endif %}'}).render().should.equal('true');
         });
