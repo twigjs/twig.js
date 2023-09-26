@@ -72,9 +72,24 @@ module.exports = function (Twig) {
                 return value;
             }
         },
-        sort(value) {
+        sort(value, params) {
             if (is('Array', value)) {
-                return value.sort();
+                let ret;
+                if (params) {
+                    const callBackParams = params.params.split(',');
+                    ret = value.sort((_a, _b) => {
+                        const data = {};
+                        data[callBackParams[0]] = _a;
+                        data[callBackParams[1]] = _b;
+
+                        const template = Twig.exports.twig({data: params.body});
+                        return template.render(data);
+                    });
+                } else {
+                    ret = value.sort();
+                }
+
+                return ret;
             }
 
             if (is('Object', value)) {

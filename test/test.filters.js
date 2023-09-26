@@ -151,6 +151,10 @@ describe('Twig.js Filters ->', function () {
             testTemplate = twig({data: '{% set obj = {\'z\':\'abc\',\'a\':2,\'y\':7,\'m\':\'test\'} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}'});
             testTemplate.render().should.equal('a:2 y:7 z:abc m:test ');
         });
+        it('should sort an array of objects with an arrow function', function () {
+            let testTemplate = twig({data: '{% for item in items|sort((left,right) => left.num - right.num) %}{{ item|json_encode }}{% endfor %}'});
+            testTemplate.render({items:[{id: 1,num: 6},{id: 2, num: 3},{id: 3, num: 4}]}).should.equal('{"id":2,"num":3}{"id":3,"num":4}{"id":1,"num":6}');
+        });
 
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{% set obj = undef|sort %}{% for key, value in obj|sort %}{{key}}:{{value}}{%endfor%}'});
