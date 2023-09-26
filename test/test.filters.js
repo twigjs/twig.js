@@ -863,6 +863,18 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('filter ->', function () {
+        it('should filter an array (with perenthesis)', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|filter((f) => f % 2 == 0) }}'});
+            testTemplate.render().should.equal('2,8');
+        });
+
+        it('should filter an array (without perenthesis)', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|filter(f => f % 2 == 0) }}'});
+            testTemplate.render().should.equal('2,8');
+        });
+    });
+
     it('should chain', function () {
         const testTemplate = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}'});
         testTemplate.render().should.equal('2,1,0');
