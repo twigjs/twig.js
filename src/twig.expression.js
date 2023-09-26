@@ -35,6 +35,7 @@ module.exports = function (Twig) {
             unary: 'Twig.expression.type.operator.unary',
             binary: 'Twig.expression.type.operator.binary'
         },
+        filterCallbackFunction: 'Twig.expression.type.filterCallbackFunction',
         string: 'Twig.expression.type.string',
         bool: 'Twig.expression.type.bool',
         slice: 'Twig.expression.type.slice',
@@ -71,6 +72,7 @@ module.exports = function (Twig) {
         // What can follow an expression (in general)
         operations: [
             Twig.expression.type.filter,
+            Twig.expression.type.filterCallbackFunction,
             Twig.expression.type.operator.unary,
             Twig.expression.type.operator.binary,
             Twig.expression.type.array.end,
@@ -481,6 +483,29 @@ module.exports = function (Twig) {
         },
         {
             /**
+             * Match a filter callback function (after a filter).
+             * ((params) => body)
+             */
+            type: Twig.expression.type.filterCallbackFunction,
+            regex: /^\(\(([\w\s]+(?:,\s?[\w\s]+)*)\)\s*=>\s*[{}]*(.*)[}]*\)/,
+            next: Twig.expression.set.expressions.concat([Twig.expression.type.subexpression.end]),
+            compile(token, stack, output) {
+                const filter = output.pop();
+                if (filter.type !== Twig.expression.type.filter) {
+                    throw new Twig.Error('Expected filter before filterCallbackFunction.');
+                }
+
+                filter.params = token;
+                token.params = token.match[1];
+                token.body = '{{ ' + token.match[2] + ' }}';
+                output.push(filter);
+            },
+            parse(token, stack) {
+                stack.push(token);
+            }
+        },
+        {
+            /**
              * Match a parameter set start.
              */
             type: Twig.expression.type.parameter.start,
@@ -756,6 +781,7 @@ module.exports = function (Twig) {
             // Match a | then a letter or _, then any number of letters, numbers, _ or -
             regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_-]*)/,
             next: Twig.expression.set.operationsExtended.concat([
+                Twig.expression.type.filterCallbackFunction,
                 Twig.expression.type.parameter.start
             ]),
             compile(token, stack, output) {
