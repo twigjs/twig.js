@@ -835,6 +835,17 @@ module.exports = function (Twig) {
         },
         spaceless(value) {
             return value.replace(/>\s+</g, '><').trim();
+        },
+        filter(value, params) {
+            if (is('Array', value)) {
+                return value.filter(_a => {
+                    const data = {};
+                    data[params.params] = _a;
+
+                    const template = Twig.exports.twig({data: params.body});
+                    return template.render(data) === 'true';
+                });
+            }
         }
     };
 
