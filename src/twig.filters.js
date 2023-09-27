@@ -855,9 +855,9 @@ module.exports = function (Twig) {
                 const newValue = [];
                 value.forEach((_b, _a) => {
                     const data = {};
-                    data[callBackParams[0]] = _b;
+                    data[callBackParams[0].trim()] = _b;
                     if (callBackParams[1]) {
-                        data[callBackParams[1]] = _a;
+                        data[callBackParams[1].trim()] = _a;
                     }
 
                     const template = Twig.exports.twig({data: params.body});
