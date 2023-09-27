@@ -487,7 +487,7 @@ module.exports = function (Twig) {
              * ((params) => body)
              */
             type: Twig.expression.type.filterCallbackFunction,
-            regex: /^\(\(*([\w\s]+(?:,\s?[\w\s]+)*)\)*\s*=>\s*[{}]*(.*)[}]*\)/,
+            regex: /^\(\(*\s*([a-zA-Z_]\w*\s*(?:\s?,\s?[a-zA-Z_]\w*\s*)*)\)*\s*=>\s*([^,]*),*\s*(\w*(?:,\s?\w*)*)\s*\)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.subexpression.end]),
             compile(token, stack, output) {
                 const filter = output.pop();
@@ -495,9 +495,11 @@ module.exports = function (Twig) {
                     throw new Twig.Error('Expected filter before filterCallbackFunction.');
                 }
 
-                filter.params = token;
                 token.params = token.match[1].trim();
                 token.body = '{{ ' + token.match[2] + ' }}';
+                token.args = token.match[3].trim();
+                filter.params = token;
+
                 output.push(filter);
             },
             parse(token, stack) {
