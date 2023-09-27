@@ -865,6 +865,20 @@ module.exports = function (Twig) {
                 });
                 return newValue;
             }
+        },
+        reduce(value, params) {
+            if (is('Array', value)) {
+                const callBackParams = params.params.split(',');
+                return value.reduce((_carry, _v, _k) => {
+                    const data = {};
+                    data[callBackParams[0]] = _carry;
+                    data[callBackParams[1].trim()] = _v;
+                    data[callBackParams[2].trim()] = _k;
+
+                    const template = Twig.exports.twig({data: params.body});
+                    return template.render(data);
+                }, params.args || 0);
+            }
         }
     };
 
