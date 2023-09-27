@@ -873,6 +873,11 @@ describe('Twig.js Filters ->', function () {
 
     describe('map ->', function () {
         it('should map an array (with keys)', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|map((v, k) => v*v+k) }}'});
+            testTemplate.render().should.equal('1,26,6,52,68');
+        });
+        
+        it('should map an array', function () {
             let testTemplate = twig({data: '{{ [1,5,2,7,8]|map((v) => v*v) }}'});
             testTemplate.render().should.equal('1,25,4,49,64');
         });
