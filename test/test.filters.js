@@ -887,6 +887,18 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('reduce ->', function () {
+        it('should reduce an array (with inital value)', function () {
+            let testTemplate = twig({data: '{{ [1,2,3]|reduce((carry, v, k) => carry + v * k) }}'});
+            testTemplate.render().should.equal('8');
+        });
+        
+        it('should reduce an array)', function () {
+            let testTemplate = twig({data: '{{ [1,2,3]|reduce((carry, v, k) => carry + v * k, 10) }}'});
+            testTemplate.render().should.equal('18');
+        });
+    });
+
     it('should chain', function () {
         const testTemplate = twig({data: '{{ ["a", "b", "c"]|keys|reverse }}'});
         testTemplate.render().should.equal('2,1,0');
