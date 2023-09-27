@@ -850,6 +850,25 @@ module.exports = function (Twig) {
                     return template.render(data) === 'true';
                 });
             }
+        },
+        map(value, params) {
+            if (is('Array', value)) {
+                const callBackParams = params.params.split(',');
+                // Since Javascript does not support a callBack function to map() with both keys and values; we use forEach here
+                // Note: Twig and PHP use ((value[, key])) for map(); whereas Javascript uses (([key, ]value)) for forEach()
+                const newValue = [];
+                value.forEach((_b, _a) => {
+                    const data = {};
+                    data[callBackParams[0].trim()] = _b;
+                    if (callBackParams[1]) {
+                        data[callBackParams[1].trim()] = _a;
+                    }
+
+                    const template = Twig.exports.twig({data: params.body});
+                    newValue[_a] = template.render(data);
+                });
+                return newValue;
+            }
         }
     };
 
