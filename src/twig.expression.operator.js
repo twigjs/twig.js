@@ -93,6 +93,11 @@ module.exports = function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
+            case '<=>':
+                token.precidence = 9;
+                token.associativity = Twig.expression.operator.leftToRight;
+                break;
+
             case '<':
             case '<=':
             case '>':
@@ -273,6 +278,10 @@ module.exports = function (Twig) {
             case 'not':
             case '!':
                 stack.push(!Twig.lib.boolval(b));
+                break;
+
+            case '<=>':
+                stack.push(a === b ? 0 : (a < b ? -1 : 1));
                 break;
 
             case '<':
