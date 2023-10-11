@@ -492,7 +492,7 @@ module.exports = function (Twig) {
             compile(token, stack, output) {
                 const filter = output.pop();
                 if (filter.type !== Twig.expression.type.filter) {
-                    throw new Twig.Error('Expected filter before filterCallbackFunction.');
+                    throw new Twig.Error('Expected filter before arrow function.');
                 }
 
                 token.params = token.match[1].trim();
