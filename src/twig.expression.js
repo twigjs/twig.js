@@ -483,7 +483,7 @@ module.exports = function (Twig) {
         },
         {
             /**
-             * Match a filter callback function (after a filter).
+             * Match an arrow function after a filter.
              * ((params) => body)
              */
             type: Twig.expression.type.arrowFunction,
