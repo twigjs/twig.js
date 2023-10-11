@@ -486,7 +486,7 @@ module.exports = function (Twig) {
              * Match a filter callback function (after a filter).
              * ((params) => body)
              */
-            type: Twig.expression.type.filterCallbackFunction,
+            type: Twig.expression.type.arrowFunction,
             regex: /^\(\(*\s*([a-zA-Z_]\w*\s*(?:\s?,\s?[a-zA-Z_]\w*\s*)*)\)*\s*=>\s*([^,]*),*\s*(\w*(?:,\s?\w*)*)\s*\)/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.subexpression.end]),
             compile(token, stack, output) {
