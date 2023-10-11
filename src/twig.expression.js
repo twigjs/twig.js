@@ -35,7 +35,7 @@ module.exports = function (Twig) {
             unary: 'Twig.expression.type.operator.unary',
             binary: 'Twig.expression.type.operator.binary'
         },
-        filterCallbackFunction: 'Twig.expression.type.filterCallbackFunction',
+        arrowFunction: 'Twig.expression.type.arrowFunction',
         string: 'Twig.expression.type.string',
         bool: 'Twig.expression.type.bool',
         slice: 'Twig.expression.type.slice',
