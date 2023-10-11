@@ -72,7 +72,7 @@ module.exports = function (Twig) {
         // What can follow an expression (in general)
         operations: [
             Twig.expression.type.filter,
-            Twig.expression.type.filterCallbackFunction,
+            Twig.expression.type.arrowFunction,
             Twig.expression.type.operator.unary,
             Twig.expression.type.operator.binary,
             Twig.expression.type.array.end,
