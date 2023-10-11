@@ -22,6 +22,18 @@ describe('Twig.js Tests ->', function () {
             twig({data: '{{ ["1"] is empty }}'}).render().should.equal('false');
         });
 
+        it('should identify booleans', function () {
+            // Array
+            twig({data: '{{ foo is empty }}'}).render( { foo: true } ).should.equal('false');
+            twig({data: '{{ foo is empty }}'}).render( { foo: false }).should.equal('true');
+        });
+
+        it('should identify null or undefined', function () {
+            // Array
+            twig({data: '{{ foo is empty }}'}).render( {foo: null} ).should.equal('true');
+            twig({data: '{{ foo is empty }}'}).render( {foo: undefined} ).should.equal('true');
+        });
+
         it('should identify empty objects', function () {
             // Object
             twig({data: '{{ {} is empty }}'}).render().should.equal('true');

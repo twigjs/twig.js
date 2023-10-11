@@ -5,6 +5,12 @@ module.exports = function (Twig) {
     'use strict';
     Twig.tests = {
         empty(value) {
+            // Handle boolean true
+            if (value === true) {
+                return false;
+            }
+
+            // Handle null or undefined
             if (value === null || value === undefined) {
                 return true;
             }
