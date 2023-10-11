@@ -783,7 +783,7 @@ module.exports = function (Twig) {
             // Match a | then a letter or _, then any number of letters, numbers, _ or -
             regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_-]*)/,
             next: Twig.expression.set.operationsExtended.concat([
-                Twig.expression.type.filterCallbackFunction,
+                Twig.expression.type.arrowFunction,
                 Twig.expression.type.parameter.start
             ]),
             compile(token, stack, output) {
