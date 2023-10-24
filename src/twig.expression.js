@@ -576,14 +576,14 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.slice,
-            regex: /^\[(\d*:\d*)\]/,
+            regex: /^\[(-?\w*:-?\w*)\]/,
             next: Twig.expression.set.operationsExtended,
             compile(token, stack, output) {
                 const sliceRange = token.match[1].split(':');
 
                 // SliceStart can be undefined when we pass parameters to the slice filter later
-                const sliceStart = (sliceRange[0]) ? parseInt(sliceRange[0], 10) : undefined;
-                const sliceEnd = (sliceRange[1]) ? parseInt(sliceRange[1], 10) : undefined;
+                const sliceStart = sliceRange[0];
+                const sliceEnd = sliceRange[1];
 
                 token.value = 'slice';
                 token.params = [sliceStart, sliceEnd];
@@ -596,10 +596,38 @@ module.exports = function (Twig) {
 
                 output.push(token);
             },
-            parse(token, stack) {
+            parse(token, stack, context) {
                 const input = stack.pop();
-                const {params} = token;
+                let {params} = token;
                 const state = this;
+
+                if (parseInt(params[0], 10).toString() === params[0]) {
+                    params[0] = parseInt(params[0], 10);
+                } else {
+                    const value = context[params[0]];
+                    if (state.template.options.strictVariables && value === undefined) {
+                        throw new Twig.Error('Variable "' + params[0] + '" does not exist.');
+                    }
+
+                    params[0] = value;
+                }
+
+                if (params[1]) {
+                    if (parseInt(params[1], 10).toString() === params[1]) {
+                        params[1] = parseInt(params[1], 10);
+                    } else {
+                        const value = context[params[1]];
+                        if (state.template.options.strictVariables && value === undefined) {
+                            throw new Twig.Error('Variable "' + params[1] + '" does not exist.');
+                        }
+
+                        if (value === undefined) {
+                            params = [params[0]];
+                        } else {
+                            params[1] = value;
+                        }
+                    }
+                }
 
                 stack.push(Twig.filter.call(state, token.value, input, params));
             }
