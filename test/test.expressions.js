@@ -173,6 +173,13 @@ describe('Twig.js Expressions ->', function () {
             {a: false, b: true},
             {a: false, b: false}
         ];
+        it('should support spaceship operator', function () {
+            const testTemplate = twig({data: '{{ a <=> b }}'});
+            numericTestData.forEach(pair => {
+                const output = testTemplate.render(pair);
+                output.should.equal((pair.a === pair.b ? 0 : (pair.a < pair.b ? -1 : 1)).toString());
+            });
+        });
         it('should support less then', function () {
             const testTemplate = twig({data: '{{ a < b }}'});
             numericTestData.forEach(pair => {
