@@ -913,7 +913,7 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.key.brackets,
-            regex: /^\[([^\]:]*)\]/,
+            regex: /^\[([^\]]*)\]/,
             next: Twig.expression.set.operationsExtended.concat([
                 Twig.expression.type.parameter.start
             ]),

@@ -332,6 +332,11 @@ describe('Twig.js Expressions ->', function () {
             const testTemplate = twig({data: '{% if a is defined and a %}true{% else %}false{% endif %}'});
             testTemplate.render({a: ['value']}).should.equal('true');
         });
+
+        it('should be able to access array elements with colons', function () {
+            const testTemplate = twig({data: '{% for d in data["test:element"] %}{{ d.id }}{% endfor %}'});
+            testTemplate.render({data: {'test:element':[{'id': 100}]}}).should.equal('100');
+        });
     });
 
     describe('Other Operators ->', function () {
