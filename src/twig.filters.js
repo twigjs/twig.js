@@ -644,9 +644,13 @@ module.exports = function (Twig) {
             // Default to start of string
             const start = params[0] || 0;
             // Default to length of string
-            const length = params.length > 1 ? params[1] : value.length;
+            let length = params.length > 1 ? params[1] : value.length;
             // Handle negative start values
             const startIndex = start >= 0 ? start : Math.max(value.length + start, 0);
+            // Handle negative length values
+            if (length < 0) {
+                length = value.length - startIndex + length;
+            }
 
             if (Twig.lib.is('Array', value)) {
                 const output = [];
