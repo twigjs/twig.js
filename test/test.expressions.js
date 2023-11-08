@@ -467,6 +467,36 @@ describe('Twig.js Expressions ->', function () {
             output.should.equal('23');
         });
 
+        it('should support slice shorthand (full form) with negative start', function () {
+            const testTemplate = twig({data: '{{ "12345"[-2:1] }}'});
+            const output = testTemplate.render();
+            output.should.equal('4');
+        });
+
+        it('should support slice shorthand (full form) with negative lenght', function () {
+            const testTemplate = twig({data: '{{ "12345"[2:-1] }}'});
+            const output = testTemplate.render();
+            output.should.equal('34');
+        });
+
+        it('should support slice shorthand (full form) with variables as arguments', function () {
+            const testTemplate = twig({data: '{{ "12345"[start:length] }}'});
+            const output = testTemplate.render({start: 2, length: 3});
+            output.should.equal('345');
+        });
+
+        it('should support slice shorthand (full form) with variable as argument (omit first)', function () {
+            const testTemplate = twig({data: '{{ "12345"[:length] }}'});
+            const output = testTemplate.render({length: 3});
+            output.should.equal('123');
+        });
+
+        it('should support slice shorthand (full form) variable as argument (omit last)', function () {
+            const testTemplate = twig({data: '{{ "12345"[start:] }}'});
+            const output = testTemplate.render({start: 2});
+            output.should.equal('345');
+        });
+
         it('should support slice shorthand (omit first)', function () {
             const testTemplate = twig({data: '{{ "12345"[:2] }}'});
             const output = testTemplate.render();

@@ -640,6 +640,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ \'12345\'|slice(1, 2) }}'});
             testTemplate.render().should.equal('23');
         });
+        it('should slice a string with variables as arguments', function () {
+            const testTemplate = twig({data: '{{ \'12345\'|slice(start, length) }}'});
+            testTemplate.render({start: 2, length: 3}).should.equal('345');
+        });
         it('should slice a string to the end', function () {
             const testTemplate = twig({data: '{{ \'12345\'|slice(2) }}'});
             testTemplate.render().should.equal('345');
