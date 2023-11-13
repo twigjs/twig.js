@@ -17,6 +17,11 @@ module.exports = function (Twig) {
             return null;
         }
 
+        if (b && Array.isArray(b)) {
+            // Array
+            return JSON.stringify(b).includes(JSON.stringify(a));
+        }
+
         if (b.indexOf !== undefined) {
             // String
             return (a === b || a !== '') && b.includes(a);
