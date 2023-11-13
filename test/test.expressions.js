@@ -385,6 +385,12 @@ describe('Twig.js Expressions ->', function () {
 
             testTemplate = twig({data: '{{ "d" in ["a", "b", "c"] }}'});
             testTemplate.render().should.equal(false.toString());
+
+            testTemplate = twig({data: '{{ ["a", "b"] in [["a", "b"], ["c", "d"]] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({data: '{{ ["a", "c"] in [["a", "b"], ["c", "d"]] }}'});
+            testTemplate.render().should.equal(false.toString());
         });
 
         it('should support not in/containment functionality for arrays', function () {
@@ -394,6 +400,12 @@ describe('Twig.js Expressions ->', function () {
             testTemplate.render().should.equal(false.toString());
 
             testTemplate = twig({data: '{{ "d" not in ["a", "b", "c"] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({data: '{{ ["a", "b"] not in [["a", "b"], ["c", "d"]] }}'});
+            testTemplate.render().should.equal(false.toString());
+
+            testTemplate = twig({data: '{{ ["a", "c"] not in [["a", "b"], ["c", "d"]] }}'});
             testTemplate.render().should.equal(true.toString());
         });
 
