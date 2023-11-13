@@ -325,7 +325,13 @@ describe('Twig.js Expressions ->', function () {
         it('should correctly cast arrays', function () {
             const testTemplate = twig({data: '{{ a == true }}'});
             testTemplate.render({a: ['value']}).should.equal('true');
+            testTemplate.render({a: ['value', 'another']}).should.equal('true');
             testTemplate.render({a: []}).should.equal('false');
+
+            const testTemplate2 = twig({data: '{{ true == a }}'});
+            testTemplate2.render({a: ['value']}).should.equal('true');
+            testTemplate2.render({a: ['value', 'another']}).should.equal('true');
+            testTemplate2.render({a: []}).should.equal('false');
         });
 
         it('should correctly cast arrays in control structures', function () {
