@@ -43,7 +43,8 @@ module.exports = function (Twig) {
         endembed: 'Twig.logic.type.endembed',
         with: 'Twig.logic.type.with',
         endwith: 'Twig.logic.type.endwith',
-        deprecated: 'Twig.logic.type.deprecated'
+        deprecated: 'Twig.logic.type.deprecated',
+        trans: 'Twig.logic.type.trans'
     };
 
     // Regular expressions for handling logic tokens.
@@ -1376,6 +1377,40 @@ module.exports = function (Twig) {
             },
             parse() {
                 return {};
+            }
+        },
+        {
+            /**
+             * Trans type logic tokens.
+             *
+             * Could be refactored, see Twig.logic.type.with
+             * Support to be added for endtrans.
+             *
+             *  Format: {% trans 'May' with {'context': 'Long month name'} %}
+             */
+            type: Twig.logic.type.trans,
+            regex: /^trans\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,
+            next: [],
+            open: true,
+            compile(token) {
+                const {match} = token;
+                const expression = match[1].trim();
+                delete token.match;
+                token.stack = Twig.expression.compile.call(this, {
+                    type: Twig.expression.type.expression,
+                    value: expression
+               }).stack;
+
+               return token;
+            },
+            parse(token, context, chain) {
+                return Twig.expression.parseAsync.call(this, token.stack, context)
+                    .then(function(output) {
+                        return {
+                           chain: chain,
+                           output: output
+                       };
+               });
             }
         }
 
