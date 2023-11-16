@@ -1,3 +1,16 @@
+Version 1.17.0, release 2023-11-16
+----------------------------------
+Major improvements:
+* Add string position of tokens in token trees by @synga-nl in https://github.com/twigjs/twig.js/pull/859
+* Allow multiple spaces after elseif statement. by @antoineveldhoven in https://github.com/twigjs/twig.js/pull/870
+* Make is empty return false for boolean true. by @antoineveldhoven in https://github.com/twigjs/twig.js/pull/869
+* Add support for spaceship operator by @antoineveldhoven in https://github.com/twigjs/twig.js/pull/873
+* Allow colon inside Twig.expression.type.key.brackets. by @antoineveldhoven in https://github.com/twigjs/twig.js/pull/879
+* Support variables in slice filter shorthand by @antoineveldhoven in https://github.com/twigjs/twig.js/pull/881
+
+Minor improvements:
+* Bump @babel/traverse from 7.12.5 to 7.23.2 by @dependabot in https://github.com/twigjs/twig.js/pull/877
+
 Version 1.16.0, release 2023-02-27
 ----------------------------------
 Major improvements:
