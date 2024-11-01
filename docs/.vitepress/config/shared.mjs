@@ -1,5 +1,4 @@
 import { defineConfig } from "vitepress";
-import { tabsMarkdownPlugin } from "vitepress-plugin-tabs";
 
 import { search as zhSearch } from "./zh.mjs";
 
@@ -21,9 +20,6 @@ export const shared = defineConfig({
       lazyLoading: true,
     },
     lineNumbers: true,
-    config(md) {
-      md.use(tabsMarkdownPlugin);
-    },
     container: {
       tipLabel: "提示",
       warningLabel: "警告",
