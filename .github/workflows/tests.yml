@@ -14,8 +14,6 @@ jobs:
       fail-fast: true
       matrix:
         node_js:
-          - 10
-          - 11
           - 12
           - 13
           - 14
