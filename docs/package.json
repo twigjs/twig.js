@@ -1,0 +1,12 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "scripts": {
+    "docs:dev": "vitepress dev . --open",
+    "docs:build": "vitepress build .",
+    "docs:preview": "vitepress preview ."
+  },
+  "dependencies": {
+    "vitepress": "^1.4.3"
+  }
+}
