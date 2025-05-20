@@ -19,15 +19,14 @@ The files `twig.js` and `twig.min.js` may not be up-to-date (they will be rebuil
 ### NPM:
 
 ```bash
-npm install twig --save-dev
+npm install --save-dev twig
 ```
 
 ### Yarn:
 
 ```bash
-yarn add twig --dev
+yarn add --dev twig
 ```
-
 
 
 
