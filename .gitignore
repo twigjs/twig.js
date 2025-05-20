@@ -4,3 +4,7 @@ twig.js
 twig.min.js
 twig.min.js.map
 twig.min.js.LICENSE.txt
+
+# docs
+docs/.vitepress/cache/
+docs/.vitepress/dist/

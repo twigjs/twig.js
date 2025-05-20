@@ -1,0 +1,110 @@
+:root {
+  --color-1: #adc433;
+  --color-2: #60932a;
+
+  --vp-code-bg: #f9f2f4;
+  --vp-code-color: #c7254e;
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(
+    120deg,
+    var(--color-1) 30%,
+    var(--color-2)
+  );
+
+  --vp-home-hero-image-background-image: linear-gradient(
+    135deg,
+    var(--color-1) 10%,
+    var(--color-2) 100%
+  );
+  --vp-home-hero-image-filter: blur(150px);
+
+  --vp-c-brand-1: var(--color-1);
+  --vp-button-brand-bg: var(--color-1);
+  --vp-button-brand-hover-bg: var(--color-2);
+  --vp-c-brand-2: var(--color-2);
+
+  --vp-sidebar-bg-color: #fff;
+}
+
+.dark {
+  --vp-sidebar-bg-color: #1e1e20;
+}
+
+.VPLink.link.VPNavBarMenuLink {
+  background: linear-gradient(
+      to right,
+      var(--vp-c-brand-1),
+      var(--vp-c-brand-1)
+    )
+    no-repeat right bottom;
+  background-size: 0 2px;
+  transition: background-size 0.3s;
+
+  &:hover {
+    background-position-x: left;
+    background-size: 100% 2px;
+  }
+
+  &.active {
+    background: linear-gradient(to right, var(--vp-c-brand), var(--vp-c-brand))
+      no-repeat right bottom;
+    background-size: 100% 2px;
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 1px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 3px;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background-color: #6a708028;
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #6a708028;
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 5px;
+  background: transparent;
+}
+
+*::-webkit-scrollbar-track:hover {
+  background-color: transparent;
+}
+
+html[lang="zh-Hans"] {
+  --vp-code-copy-copied-text-content: "已复制";
+}
+
+html[lang="en-US"] {
+  --vp-code-copy-copied-text-content: "Copied!";
+}
+
+.vp-doc {
+  .demo-preview [class*="language-"] code {
+    color: unset;
+    padding: 0;
+  }
+
+  a {
+    display: inline-block;
+  }
+}
+
+.medium-zoom-overlay {
+  z-index: 30;
+}
+
+.medium-zoom-image--opened {
+  z-index: 31;
+}
