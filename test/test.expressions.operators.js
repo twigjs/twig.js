@@ -53,6 +53,15 @@ describe('Twig.js Expression Operators ->', function () {
             outputT.should.equal('one');
             outputF.should.equal('two');
         });
+
+        it('should support the extended ternary operator for false conditions (with whitespace in between operators)', function () {
+            const testTemplate = twig({data: '{{ a ?   : b }}'});
+            const outputT = testTemplate.render({a: 'one', b: 'two'});
+            const outputF = testTemplate.render({a: false, b: 'two'});
+
+            outputT.should.equal('one');
+            outputF.should.equal('two');
+        });
     });
 
     describe('?? ->', function () {
