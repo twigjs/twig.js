@@ -875,7 +875,25 @@ module.exports = function (Twig) {
                 return Twig.expression.resolveAsync.call(state, context[token.value], context)
                     .then(value => {
                         if (state.template.options.strictVariables && value === undefined) {
-                            throw new Twig.Error('Variable "' + token.value + '" does not exist.');
+                            let skipException = false;
+                            if (token.peek) {
+                                const {peek} = token;
+                                if (peek.type === Twig.expression.type.filter && peek.value === 'default') {
+                                    skipException = true;
+                                }
+
+                                if (peek.type === Twig.expression.type.operator.binary && peek.value === '??') {
+                                    skipException = true;
+                                }
+
+                                if (peek.type === Twig.expression.type.test && peek.filter === 'defined') {
+                                    skipException = true;
+                                }
+                            }
+
+                            if (!skipException) {
+                                throw new Twig.Error('Variable "' + token.value + '" does not exist.');
+                            }
                         }
 
                         stack.push(value);
@@ -1289,6 +1307,7 @@ module.exports = function (Twig) {
 
         while (tokens.length > 0) {
             token = tokens.shift();
+            token.peek = tokens[0];
             tokenTemplate = Twig.expression.handler[token.type];
 
             Twig.log.trace('Twig.expression.compile: ', 'Compiling ', token);
