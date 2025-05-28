@@ -23,6 +23,7 @@ module.exports = function (Twig) {
             // TODO: turn autoscape on in the next major version
             autoescape: (params.autoescape !== null && params.autoescape) || false,
             allowInlineIncludes: params.allowInlineIncludes || false,
+            phpStyleBooleans: params.phpStyleBooleans || false,
             rethrow: params.rethrow || false,
             namespaces: params.namespaces
         };
