@@ -17,6 +17,11 @@ module.exports = function (Twig) {
             return null;
         }
 
+        if (b && Array.isArray(b)) {
+            // Array
+            return JSON.stringify(b).includes(JSON.stringify(a));
+        }
+
         if (b.indexOf !== undefined) {
             // String
             return (a === b || a !== '') && b.includes(a);
@@ -173,12 +178,13 @@ module.exports = function (Twig) {
         }
 
         if (operator !== 'in' && operator !== 'not in' && operator !== '??') {
-            if (a && Array.isArray(a)) {
-                a = a.length;
-            }
-
-            if (operator !== '?' && (b && Array.isArray(b))) {
-                b = b.length;
+            if (operator !== '?' && a && Array.isArray(a) && typeof b === 'boolean') {
+                a = Twig.lib.boolval(a);
+            } else if (operator !== '?' && b && Array.isArray(b) && typeof a === 'boolean') {
+                b = Twig.lib.boolval(b);
+            } else if (operator === '==' && ((a && Array.isArray(a)) || (b && Array.isArray(b)))) {
+                a = JSON.stringify(a);
+                b = JSON.stringify(b);
             }
         }
 
