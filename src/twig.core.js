@@ -698,15 +698,17 @@ module.exports = function (Twig) {
         const {phpStyleBooleans} = this.options;
 
         // Conform Javascript boolean to PHP boolean
-        if (phpStyleBooleans) {
-            output = output.map(str => {
-                if (typeof str === 'boolean') {
+        output = output.map(str => {
+            if (typeof str === 'boolean') {
+                if (phpStyleBooleans === undefined) {
+                    console.warn('Deprecation notice: `phpStyleBooleans` is not defined, output differs from PHP behavior, in future versions this behavior will be changed to PHP style booleans.');
+                } else if (phpStyleBooleans) {
                     str = str ? '1' : '';
                 }
+            }
 
-                return str;
-            });
-        }
+            return str;
+        });
 
         if (!autoescape) {
             return output.join('');
