@@ -82,4 +82,36 @@ describe('Twig.js Optional Functionality ->', function () {
             }
         });
     });
+
+    describe('should not throw an error when `strict_variables` set to `true`', function () {
+        const filter = twig({
+            rethrow: true,
+            strict_variables: true,
+            data: '{{ test|default }}'
+        });
+
+        const nullcoalescing = twig({
+            rethrow: true,
+            strict_variables: true,
+            data: '{{ test ?? \'test\' }}'
+        });
+
+        const test = twig({
+            rethrow: true,
+            strict_variables: true,
+            data: '{% if test is defined %}{% endif %}'
+        });
+
+        it('For undefined variables with default filter', function () {
+            filter.render();
+        });
+
+        it('For undefined variables with ?? operator', function () {
+            nullcoalescing.render();
+        });
+
+        it('For undefined variables with defined test', function () {
+            test.render();
+        });
+    });
 });
