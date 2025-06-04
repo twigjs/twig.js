@@ -219,7 +219,7 @@ module.exports = function (Twig) {
 
                 break;
             case '?':
-                if (a === undefined) {
+                if (a === undefined && b !== undefined) {
                     // An extended ternary.
                     a = b;
                     b = c;

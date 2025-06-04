@@ -62,6 +62,19 @@ describe('Twig.js Expression Operators ->', function () {
             outputT.should.equal('one');
             outputF.should.equal('two');
         });
+
+        it('should support the extended ternary operator for undefined arguments', function () {
+            const testTemplate = twig({data: '{{ test1 ? test1 : test2 }}'});
+            const outputA = testTemplate.render({test2: 'text 2'});
+            const outputB = testTemplate.render({test1: false});
+            const outputC = testTemplate.render({});
+            const outputD = testTemplate.render({test1: 'text 1'});
+
+            outputA.should.equal('text 2');
+            outputB.should.equal('');
+            outputC.should.equal('');
+            outputD.should.equal('text 1');
+        });
     });
 
     describe('?? ->', function () {
