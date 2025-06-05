@@ -72,9 +72,24 @@ module.exports = function (Twig) {
                 return value;
             }
         },
-        sort(value) {
+        sort(value, params) {
             if (is('Array', value)) {
-                return value.sort();
+                let ret;
+                if (params) {
+                    const callBackParams = params.params.split(',');
+                    ret = value.sort((_a, _b) => {
+                        const data = {};
+                        data[callBackParams[0]] = _a;
+                        data[callBackParams[1]] = _b;
+
+                        const template = Twig.exports.twig({data: params.body});
+                        return template.render(data);
+                    });
+                } else {
+                    ret = value.sort();
+                }
+
+                return ret;
             }
 
             if (is('Object', value)) {
@@ -824,6 +839,50 @@ module.exports = function (Twig) {
         },
         spaceless(value) {
             return value.replace(/>\s+</g, '><').trim();
+        },
+        filter(value, params) {
+            if (is('Array', value)) {
+                return value.filter(_a => {
+                    const data = {};
+                    data[params.params] = _a;
+
+                    const template = Twig.exports.twig({data: params.body});
+                    return template.render(data) === 'true';
+                });
+            }
+        },
+        map(value, params) {
+            if (is('Array', value)) {
+                const callBackParams = params.params.split(',');
+                // Since Javascript does not support a callBack function to map() with both keys and values; we use forEach here
+                // Note: Twig and PHP use ((value[, key])) for map(); whereas Javascript uses (([key, ]value)) for forEach()
+                const newValue = [];
+                value.forEach((_b, _a) => {
+                    const data = {};
+                    data[callBackParams[0].trim()] = _b;
+                    if (callBackParams[1]) {
+                        data[callBackParams[1].trim()] = _a;
+                    }
+
+                    const template = Twig.exports.twig({data: params.body});
+                    newValue[_a] = template.render(data);
+                });
+                return newValue;
+            }
+        },
+        reduce(value, params) {
+            if (is('Array', value)) {
+                const callBackParams = params.params.split(',');
+                return value.reduce((_carry, _v, _k) => {
+                    const data = {};
+                    data[callBackParams[0]] = _carry;
+                    data[callBackParams[1].trim()] = _v;
+                    data[callBackParams[2].trim()] = _k;
+
+                    const template = Twig.exports.twig({data: params.body});
+                    return template.render(data);
+                }, params.args || 0);
+            }
         }
     };
 

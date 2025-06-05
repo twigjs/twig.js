@@ -151,6 +151,10 @@ describe('Twig.js Filters ->', function () {
             testTemplate = twig({data: '{% set obj = {\'z\':\'abc\',\'a\':2,\'y\':7,\'m\':\'test\'} %}{% for key,value in obj|sort %}{{key}}:{{value}} {%endfor %}'});
             testTemplate.render().should.equal('a:2 y:7 z:abc m:test ');
         });
+        it('should sort an array of objects with an arrow function', function () {
+            let testTemplate = twig({data: '{% for item in items|sort((left,right) => left.num - right.num) %}{{ item|json_encode }}{% endfor %}'});
+            testTemplate.render({items:[{id: 1,num: 6},{id: 2, num: 3},{id: 3, num: 4}]}).should.equal('{"id":2,"num":3}{"id":3,"num":4}{"id":1,"num":6}');
+        });
 
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{% set obj = undef|sort %}{% for key, value in obj|sort %}{{key}}:{{value}}{%endfor%}'});
@@ -856,6 +860,42 @@ describe('Twig.js Filters ->', function () {
         it('should spaceless', function () {
             const testTemplate = twig({data: '{{ \'<div>\n    <b>b</b>   <i>i</i>\n</div>\'|spaceless }}'});
             testTemplate.render().should.equal('<div><b>b</b><i>i</i></div>');
+        });
+    });
+
+    describe('filter ->', function () {
+        it('should filter an array (with perenthesis)', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|filter((f) => f % 2 == 0) }}'});
+            testTemplate.render().should.equal('2,8');
+        });
+
+        it('should filter an array (without perenthesis)', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|filter(f => f % 2 == 0) }}'});
+            testTemplate.render().should.equal('2,8');
+        });
+    });
+
+    describe('map ->', function () {
+        it('should map an array (with keys)', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|map((v, k) => v*v+k) }}'});
+            testTemplate.render().should.equal('1,26,6,52,68');
+        });
+        
+        it('should map an array', function () {
+            let testTemplate = twig({data: '{{ [1,5,2,7,8]|map((v) => v*v) }}'});
+            testTemplate.render().should.equal('1,25,4,49,64');
+        });
+    });
+
+    describe('reduce ->', function () {
+        it('should reduce an array (with inital value)', function () {
+            let testTemplate = twig({data: '{{ [1,2,3]|reduce((carry, v, k) => carry + v * k) }}'});
+            testTemplate.render().should.equal('8');
+        });
+        
+        it('should reduce an array)', function () {
+            let testTemplate = twig({data: '{{ [1,2,3]|reduce((carry, v, k) => carry + v * k, 10) }}'});
+            testTemplate.render().should.equal('18');
         });
     });
 
