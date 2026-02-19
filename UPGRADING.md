@@ -4,4 +4,4 @@ This covers how to upgrade between versions when there are breaking changes. Gen
 
 ## 1.18.0
 
-- Moved the minimal supported version of Node.js to >=20
+- Ensure you are using Node.js >= 20
