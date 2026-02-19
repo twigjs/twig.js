@@ -41,7 +41,7 @@
     "@babel/plugin-transform-runtime": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
     "babel-loader": "^10.0.0",
-    "eslint-plugin-mocha": "^6.3.0",
+    "eslint-plugin-mocha": "^11",
     "mocha": "^11.7.5",
     "path-browserify": "^1.0.1",
     "should": "^13.2.3",
@@ -51,7 +51,7 @@
     "tokenizer2": "^2.0.1",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1",
-    "xo": "^0.26.1"
+    "xo": "^0.9"
   },
   "browser": {
     "fs": false
