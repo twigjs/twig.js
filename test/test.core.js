@@ -485,7 +485,6 @@ describe('Twig.js Core ->', function () {
 
     describe('Imports ->', function () {
         it('should load an inline include when the file exists', function () {
-            /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
             return (function () {
                 twig({
                     allowInlineIncludes: true,
@@ -497,7 +496,6 @@ describe('Twig.js Core ->', function () {
         });
 
         it('should throw when trying to load an inline include and the file does not exist', function () {
-            /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
             return (function () {
                 twig({
                     allowInlineIncludes: true,

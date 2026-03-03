@@ -217,7 +217,6 @@ describe('Twig.js Expressions ->', function () {
 
             equalityData.forEach(pair => {
                 const output = testTemplate.render(pair);
-                /* eslint-disable-next-line eqeqeq */
                 output.should.equal((pair.a == pair.b).toString());
             });
         });
@@ -229,7 +228,6 @@ describe('Twig.js Expressions ->', function () {
             });
             equalityData.forEach(pair => {
                 const output = testTemplate.render(pair);
-                /* eslint-disable-next-line eqeqeq */
                 output.should.equal((pair.a != pair.b).toString());
             });
         });
