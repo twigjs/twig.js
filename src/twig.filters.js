@@ -389,7 +389,7 @@ module.exports = function (Twig) {
         },
 
         format(value, params) {
-            if (value === undefined || value === null || value === '') {
+            if (value === undefined || value === null) {
                 return;
             }
 

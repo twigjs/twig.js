@@ -4,7 +4,7 @@ const commonModule = {
     exclude: /(node_modules)/,
     resolve: {
         fallback: {
-            path: require.resolve('path-browserify'),
+            path: require.resolve('path-browserify')
         }
     },
     use: {
@@ -33,9 +33,6 @@ const serverBuild = {
     module: {
         rules: [commonModule],
     },
-    resolve: {
-                fallback: { "crypto": false }
-            },
     optimization: {
         minimize: false
     }
@@ -46,12 +43,13 @@ const clientBuild = {
     entry: './src/twig.js',
     target: 'web',
     devtool: 'source-map',
+    node: {
+        __dirname: false,
+        __filename: false
+    },
     module: {
         rules: [commonModule]
     },
-    resolve: {
-            fallback: { "crypto": false }
-        },
     output: {
         path: __dirname,
         filename: 'twig.min.js',
