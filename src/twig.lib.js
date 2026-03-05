@@ -10,15 +10,20 @@ module.exports = function (Twig) {
     // Namespace for libraries
     Twig.lib = { };
 
-    Twig.lib.sprintf = require('locutus/php/strings/sprintf');
-    Twig.lib.vsprintf = require('locutus/php/strings/vsprintf');
-    Twig.lib.round = require('locutus/php/math/round');
-    Twig.lib.max = require('locutus/php/math/max');
-    Twig.lib.min = require('locutus/php/math/min');
-    Twig.lib.stripTags = require('locutus/php/strings/strip_tags');
-    Twig.lib.strtotime = require('locutus/php/datetime/strtotime');
-    Twig.lib.date = require('locutus/php/datetime/date');
-    Twig.lib.boolval = require('locutus/php/var/boolval');
+    const { sprintf, vsprintf, strip_tags } = require('locutus/php/strings/index');
+    const { round, min, max } = require('locutus/php/math/index');
+    const { strtotime, date } = require('locutus/php/datetime/index');
+    const { boolval } = require('locutus/php/var/index');
+
+    Twig.lib.sprintf = sprintf;
+    Twig.lib.vsprintf = vsprintf;
+    Twig.lib.round = round;
+    Twig.lib.max = max;
+    Twig.lib.min = min;
+    Twig.lib.stripTags = strip_tags;
+    Twig.lib.strtotime = strtotime;
+    Twig.lib.date = date;
+    Twig.lib.boolval = boolval;
 
     Twig.lib.is = function (type, obj) {
         if (typeof obj === 'undefined' || obj === null) {
