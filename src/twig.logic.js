@@ -716,7 +716,6 @@ module.exports = function (Twig) {
                                         render: state.template.importFile(file),
                                         fileName: file
                                     };
-                                    /* eslint-disable-next-line no-unused-vars */
                                 } catch (error) {
                                     return acc;
                                 }

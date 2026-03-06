@@ -4,7 +4,6 @@ const Twig = require('..').factory();
 
 describe('Twig.js Path ->', function () {
     const sinon = require('sinon');
-    /* eslint-disable-next-line import/no-unassigned-import */
     require('should-sinon');
 
     describe('relativePath ->', function () {
@@ -15,7 +14,6 @@ describe('Twig.js Path ->', function () {
         });
 
         it('should throw an error if trying to get a relative path in an inline template', function () {
-            /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
             (function () {
                 relativePath({});
             }).should.throw('Cannot extend an inline template.');

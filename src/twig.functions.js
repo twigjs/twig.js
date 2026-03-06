@@ -206,7 +206,6 @@ module.exports = function (Twig) {
 
             return Reflect.apply(Twig.lib.min, null, [values, ...args]);
         },
-        /* eslint-disable-next-line camelcase */
         template_from_string(template) {
             const state = this;
 

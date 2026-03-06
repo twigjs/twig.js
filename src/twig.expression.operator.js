@@ -305,7 +305,6 @@ module.exports = function (Twig) {
                 break;
 
             case '==':
-                /* eslint-disable-next-line eqeqeq */
                 stack.push(a == b);
                 break;
 
@@ -314,7 +313,6 @@ module.exports = function (Twig) {
                 break;
 
             case '!=':
-                /* eslint-disable-next-line eqeqeq */
                 stack.push(a != b);
                 break;
 

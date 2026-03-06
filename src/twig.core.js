@@ -1465,9 +1465,7 @@ module.exports = function (Twig) {
             return content;
         }
 
-        /* eslint-disable no-new-wrappers, unicorn/new-for-builtins */
         const output = new String(content);
-        /* eslint-enable */
         output.twigMarkup = (typeof strategy === 'undefined') ? true : strategy;
 
         return output;
