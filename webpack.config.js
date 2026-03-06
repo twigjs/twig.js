@@ -33,6 +33,7 @@ const serverBuild = {
     module: {
         rules: [commonModule],
     },
+    resolve: { fallback: { "crypto": false } },
     optimization: {
         minimize: false
     }
@@ -50,6 +51,7 @@ const clientBuild = {
     module: {
         rules: [commonModule]
     },
+    resolve: { fallback: { "crypto": false } },
     output: {
         path: __dirname,
         filename: 'twig.min.js',

@@ -386,7 +386,7 @@ module.exports = function (Twig) {
         },
 
         format(value, params) {
-            if (value === undefined || value === null) {
+            if (value === undefined || value === null || value === '') {
                 return;
             }
 
