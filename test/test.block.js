@@ -276,7 +276,6 @@ describe('Twig.js Blocks ->', function () {
             twig({
                 data: '{% set prefix = "shorthand" %}{% block title (prefix ~ " - " ~ block_value)|title %}'
             }).render(
-                /* eslint-disable-next-line camelcase */
                 {block_value: 'test succeeded'}
             ).should.equal('Shorthand - Test Succeeded');
         });

@@ -141,7 +141,6 @@ module.exports = function (Twig) {
             });
             return output;
         },
-        /* eslint-disable-next-line camelcase */
         url_encode(value) {
             if (value === undefined || value === null) {
                 return;
@@ -222,7 +221,6 @@ module.exports = function (Twig) {
 
             return value;
         },
-        /* eslint-disable-next-line camelcase */
         json_encode(value) {
             if (value === undefined || value === null) {
                 return 'null';
@@ -344,7 +342,6 @@ module.exports = function (Twig) {
             const format = params && Boolean(params.length) ? params[0] : 'F j, Y H:i';
             return Twig.lib.date(format.replace(/\\\\/g, '\\'), date);
         },
-        /* eslint-disable-next-line camelcase */
         date_modify(value, params) {
             if (value === undefined || value === null) {
                 return;
@@ -538,7 +535,6 @@ module.exports = function (Twig) {
         /**
          * Adapted from: http://phpjs.org/functions/number_format:481
          */
-        /* eslint-disable-next-line camelcase */
         number_format(value, params) {
             let number = value;
             const decimals = (params && params[0]) ? params[0] : undefined;
