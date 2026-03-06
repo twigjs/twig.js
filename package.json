@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.8.4",
-    "locutus": "^3",
+    "locutus": "^3.0.9",
     "minimatch": "^10",
     "walk": "2.3.x"
   },
