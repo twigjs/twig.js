@@ -25,7 +25,6 @@ describe('Twig.js Exports __express ->', function () {
                     allowAsync: true
                 }
             },
-            /* eslint-disable-next-line camelcase */
             hello_world() {
                 return Promise.resolve('hello world');
             }

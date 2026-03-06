@@ -5,7 +5,6 @@ const {twig} = Twig;
 
 describe('Twig.js Rethrow ->', function () {
     it('should throw a "Unable to parse \'missing\'" exception', function () {
-        /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
         (function () {
             twig({
                 rethrow: true,
@@ -15,7 +14,6 @@ describe('Twig.js Rethrow ->', function () {
     });
 
     it('should throw a "Unable to find closing bracket \'%}" exception', function () {
-        /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
         (function () {
             twig({
                 rethrow: true,
