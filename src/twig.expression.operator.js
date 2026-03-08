@@ -157,19 +157,34 @@ module.exports = function (Twig) {
      *
      * Returns the updated stack.
      */
-    Twig.expression.operator.parse = function (operator, stack) {
+    Twig.expression.operator.parse = function (operator, stack, token) {
         Twig.log.trace('Twig.expression.operator.parse: ', 'Handling ', operator);
         let a;
         let b;
         let c;
 
-        if (operator === '?') {
-            c = stack.pop();
-        }
+        // For shorthand ternary (a ? b), we only need 2 operands
+        // Check if this is a shorthand ternary by seeing if the token has a hasColon flag
+        const isShorthandTernary = (operator === '?' && token && !token.hasColon);
 
-        b = stack.pop();
-        if (operator !== 'not') {
-            a = stack.pop();
+        if (operator === '?') {
+            if (isShorthandTernary) {
+                // Shorthand ternary: only pop 2 operands
+                b = stack.pop();
+                a = stack.pop();
+                c = '';
+            } else {
+                // Full ternary: pop 3 operands
+                c = stack.pop();
+                b = stack.pop();
+                a = stack.pop();
+            }
+        } else {
+            // Other operators
+            b = stack.pop();
+            if (operator !== 'not') {
+                a = stack.pop();
+            }
         }
 
         if (operator !== 'in' && operator !== 'not in' && operator !== '??') {
@@ -219,13 +234,7 @@ module.exports = function (Twig) {
 
                 break;
             case '?':
-                if (a === undefined) {
-                    // An extended ternary.
-                    a = b;
-                    b = c;
-                    c = undefined;
-                }
-
+                // a, b, c are already set correctly based on isShorthandTernary
                 if (Twig.lib.boolval(a)) {
                     stack.push(b);
                 } else {

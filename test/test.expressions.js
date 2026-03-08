@@ -370,6 +370,19 @@ describe('Twig.js Expressions ->', function () {
             testTemplate.render({test: null}).should.equal('false');
             testTemplate.render({test: undefined}).should.equal('false');
         });
+        it('should support the ternary operator inside objects', function () {
+            const testTemplate = twig({data: '{% set classes = { "a-button": true, "modifier": modifier ? modifier, "false":false}|json_encode %}{{ classes }}'});
+            const output = testTemplate.render({});
+
+            output.should.equal('{"a-button":true,"modifier":"","false":false}');
+        });
+
+        it('should support the ternary operator inside arrays', function () {
+            const testTemplate = twig({data: '{% set classes = [ "a-button", modifier ? modifier, false]|json_encode %}{{ classes }}'});
+            const output = testTemplate.render({});
+
+            output.should.equal('["a-button","",false]');
+        });
 
         it('should support in/containment functionality for arrays', function () {
             let testTemplate;
