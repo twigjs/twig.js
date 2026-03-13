@@ -323,7 +323,13 @@ describe('Twig.js Expressions ->', function () {
         it('should correctly cast arrays', function () {
             const testTemplate = twig({data: '{{ a == true }}'});
             testTemplate.render({a: ['value']}).should.equal('true');
+            testTemplate.render({a: ['value', 'another']}).should.equal('true');
             testTemplate.render({a: []}).should.equal('false');
+
+            const testTemplate2 = twig({data: '{{ true == a }}'});
+            testTemplate2.render({a: ['value']}).should.equal('true');
+            testTemplate2.render({a: ['value', 'another']}).should.equal('true');
+            testTemplate2.render({a: []}).should.equal('false');
         });
 
         it('should correctly cast arrays in control structures', function () {
@@ -379,6 +385,12 @@ describe('Twig.js Expressions ->', function () {
 
             testTemplate = twig({data: '{{ "d" in ["a", "b", "c"] }}'});
             testTemplate.render().should.equal(false.toString());
+
+            testTemplate = twig({data: '{{ ["a", "b"] in [["a", "b"], ["c", "d"]] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({data: '{{ ["a", "c"] in [["a", "b"], ["c", "d"]] }}'});
+            testTemplate.render().should.equal(false.toString());
         });
 
         it('should support not in/containment functionality for arrays', function () {
@@ -388,6 +400,12 @@ describe('Twig.js Expressions ->', function () {
             testTemplate.render().should.equal(false.toString());
 
             testTemplate = twig({data: '{{ "d" not in ["a", "b", "c"] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({data: '{{ ["a", "b"] not in [["a", "b"], ["c", "d"]] }}'});
+            testTemplate.render().should.equal(false.toString());
+
+            testTemplate = twig({data: '{{ ["a", "c"] not in [["a", "b"], ["c", "d"]] }}'});
             testTemplate.render().should.equal(true.toString());
         });
 
