@@ -7,10 +7,15 @@
 //
 
 module.exports = function (Twig) {
-    const { sprintf, vsprintf, strip_tags } = require('locutus/php/strings/index');
-    const { round, min, max } = require('locutus/php/math/index');
-    const { strtotime, date } = require('locutus/php/datetime/index');
-    const { boolval } = require('locutus/php/var/index');
+    const { sprintf } = require('locutus/php/strings/sprintf');
+    const { vsprintf } = require('locutus/php/strings/vsprintf');
+    const { strip_tags } = require('locutus/php/strings/strip_tags');
+    const { round } = require('locutus/php/math/round');
+    const { min } = require('locutus/php/math/min');
+    const { max } = require('locutus/php/math/max');
+    const { strtotime } = require('locutus/php/datetime/strtotime');
+    const { date } = require('locutus/php/datetime/date');
+    const { boolval } = require('locutus/php/var/boolval');
 
     // Namespace for libraries
     Twig.lib = { };
