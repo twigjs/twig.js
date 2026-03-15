@@ -4,6 +4,26 @@
 module.exports = function (Twig) {
     'use strict';
 
+    /**
+     * Normalize an object.
+     *
+     * @param {*} object The value to normalize.
+     *
+     * @return {*} Returns null if the value is null or undefined, otherwise returns an Object.
+     */
+    function normalizeObject(object) {
+        return object === null || object === undefined ? null : Object(object);
+    }
+
+    /**
+     * Parse parameters.
+     *
+     * @param {Object} state The expression state.
+     * @param {Array|Object} params The parameters to parse.
+     * @param {Object} context The render context.
+     *
+     * @return {Promise} A promise that resolves to the parsed parameters or false.
+     */
     function parseParams(state, params, context) {
         if (params) {
             return Twig.expression.parseAsync.call(state, params, context);
@@ -214,7 +234,7 @@ module.exports = function (Twig) {
             type: Twig.expression.type.operator.binary,
             // Match any of ??, ?:, +, *, /, -, %, ~, <=>, <, <=, >, >=, !=, ==, **, ?, :, and, b-and, or, b-or, b-xor, in, not in
             // and, or, in, not in, matches, starts with, ends with can be followed by a space or parenthesis
-            regex: /(^\?\?|^\?\s*:|^(b-and)|^(b-or)|^(b-xor)|^[+\-~%?]|^(<=>)|^[:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[(|\s+]|^(or)[(|\s+]|^(in)[(|\s+]|^(not in)[(|\s+]|^(matches)|^(starts with)|^(ends with)|^\.\.)/,
+            regex: /(^\?\?|^\?\s*:|^(b-and)|^(b-or)|^(b-xor)|^[+\-~%]|^\?(?![.\[])|^(<=>)|^:(?!\d])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[(|\s+]|^(or)[(|\s+]|^(in)[(|\s+]|^(not in)[(|\s+]|^(matches)|^(starts with)|^(ends with)|^\.\.)/,
             next: Twig.expression.set.expressions,
             transform(match, tokens) {
                 switch (match[0]) {
@@ -222,7 +242,7 @@ module.exports = function (Twig) {
                     case 'or(':
                     case 'in(':
                     case 'not in(':
-                        // Strip off the ( if it exists
+                        // Strip off the (if it exists)
                         tokens[tokens.length - 1].value = match[2];
                         return match[0];
                     default:
@@ -348,7 +368,7 @@ module.exports = function (Twig) {
              */
             type: Twig.expression.type.string,
             // See: http://blog.stevenlevithan.com/archives/match-quoted-string
-            regex: /^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,
+            regex: /^(["'])(?:\\[\s\S]|(?!\1)[^\\])*\1/,
             next: Twig.expression.set.operationsExtended,
             compile(token, stack, output) {
                 let {value} = token;
@@ -488,14 +508,20 @@ module.exports = function (Twig) {
              * Match a parameter set start.
              */
             type: Twig.expression.type.parameter.start,
-            regex: /^\(/,
+            regex: /^(\?\.)?\(/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.parameter.end]),
             validate(match, tokens) {
                 const lastToken = tokens[tokens.length - 1];
                 // We can't use the regex to test if we follow a space because expression is trimmed
                 return lastToken && (!Twig.expression.reservedWords.includes(lastToken.value.trim()));
             },
-            compile: Twig.expression.fn.compile.pushBoth,
+            compile(token, stack, output) {
+                token.optionalCall = token.match[1] === '?.';
+                token.value = '(';
+                delete token.match;
+                output.push(token);
+                stack.push(token);
+            },
             parse: Twig.expression.fn.parse.push
         },
         {
@@ -523,6 +549,7 @@ module.exports = function (Twig) {
                     token = output.pop();
                 }
 
+                endToken.optionalCall = token.optionalCall;
                 paramStack.unshift(token);
 
                 // Get the token preceding the parameters
@@ -580,7 +607,7 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.slice,
-            regex: /^\[(-?\w*:-?\w*)\]/,
+            regex: /^\[(-?\w*:-?\w*)]/,
             next: Twig.expression.set.operationsExtended,
             compile(token, stack, output) {
                 const sliceRange = token.match[1].split(':');
@@ -651,7 +678,7 @@ module.exports = function (Twig) {
              * Match an array end.
              */
             type: Twig.expression.type.array.end,
-            regex: /^\]/,
+            regex: /^]/,
             next: Twig.expression.set.operationsExtended,
             compile(token, stack, output) {
                 let i = stack.length - 1;
@@ -711,7 +738,7 @@ module.exports = function (Twig) {
         // representation of a hash map is defined.
         {
             type: Twig.expression.type.object.end,
-            regex: /^\}/,
+            regex: /^}/,
             next: Twig.expression.set.operationsExtended,
             compile(token, stack, output) {
                 let i = stack.length - 1;
@@ -820,8 +847,7 @@ module.exports = function (Twig) {
                 return '(';
             },
             compile(token, stack, output) {
-                const fn = token.match[1];
-                token.fn = fn;
+                token.fn = token.match[1];
                 // Cleanup token
                 delete token.match;
                 delete token.value;
@@ -872,13 +898,18 @@ module.exports = function (Twig) {
             validate(match) {
                 return (!Twig.expression.reservedWords.includes(match[0]));
             },
-            parse(token, stack, context) {
+            parse(token, stack, context, nextToken) {
                 const state = this;
 
                 // Get the variable from the context
                 return Twig.expression.resolveAsync.call(state, context[token.value], context)
                     .then(value => {
-                        if (state.template.options.strictVariables && value === undefined) {
+                        const isOptionalChain = nextToken &&
+                            (nextToken.type === Twig.expression.type.key.period ||
+                             nextToken.type === Twig.expression.type.key.brackets) &&
+                            nextToken.optional;
+
+                        if (state.template.options.strictVariables && value === undefined && !isOptionalChain) {
                             throw new Twig.Error('Variable "' + token.value + '" does not exist.');
                         }
 
@@ -888,12 +919,13 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.key.period,
-            regex: /^\.(\w+)/,
+            regex: /^(\?\.|\.)(\w+)/,
             next: Twig.expression.set.operationsExtended.concat([
                 Twig.expression.type.parameter.start
             ]),
             compile(token, stack, output) {
-                token.key = token.match[1];
+                token.optional = token.match[1] === '?.';
+                token.key = token.match[2];
                 delete token.match;
                 delete token.value;
 
@@ -903,12 +935,16 @@ module.exports = function (Twig) {
                 const state = this;
                 const {key} = token;
                 const object = stack.pop();
+                const normalizedObject = normalizeObject(object);
                 let value;
 
-                if (object && !Object.prototype.hasOwnProperty.call(object, key) && state.template.options.strictVariables) {
-                    const keys = Object.keys(object);
+                if (normalizedObject && !(key in normalizedObject) &&
+                    !normalizedObject['get' + key.slice(0, 1).toUpperCase() + key.slice(1)] &&
+                    !normalizedObject['is' + key.slice(0, 1).toUpperCase() + key.slice(1)] &&
+                    state.template.options.strictVariables) {
+                    const keys = Object.keys(normalizedObject);
                     if (keys.length > 0) {
-                        throw new Twig.Error('Key "' + key + '" for object with keys "' + Object.keys(object).join(', ') + '" does not exist.');
+                        throw new Twig.Error('Key "' + key + '" for object with keys "' + keys.join(', ') + '" does not exist.');
                     } else {
                         throw new Twig.Error('Key "' + key + '" does not exist as the object is empty.');
                     }
@@ -924,12 +960,12 @@ module.exports = function (Twig) {
                             };
 
                             // Get the variable from the context
-                            if (typeof object === 'object' && key in object) {
-                                value = object[key];
-                            } else if (object['get' + capitalize(key)]) {
-                                value = object['get' + capitalize(key)];
-                            } else if (object['is' + capitalize(key)]) {
-                                value = object['is' + capitalize(key)];
+                            if (key in normalizedObject) {
+                                value = normalizedObject[key];
+                            } else if (normalizedObject['get' + capitalize(key)]) {
+                                value = normalizedObject['get' + capitalize(key)];
+                            } else if (normalizedObject['is' + capitalize(key)]) {
+                                value = normalizedObject['is' + capitalize(key)];
                             } else {
                                 value = undefined;
                             }
@@ -945,12 +981,13 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.key.brackets,
-            regex: /^\[([^\]]*)\]/,
+            regex: /^(\?\.)?\[([^\]]*)]/,
             next: Twig.expression.set.operationsExtended.concat([
                 Twig.expression.type.parameter.start
             ]),
             compile(token, stack, output) {
-                const match = token.match[1];
+                const match = token.match[2];
+                token.optional = token.match[1] === '?.';
                 delete token.value;
                 delete token.match;
 
@@ -975,9 +1012,10 @@ module.exports = function (Twig) {
                     })
                     .then(key => {
                         object = stack.pop();
+                        const normalizedObject = normalizeObject(object);
 
-                        if (object && !Object.prototype.hasOwnProperty.call(object, key) && state.template.options.strictVariables) {
-                            const keys = Object.keys(object);
+                        if (normalizedObject && !(key in normalizedObject) && state.template.options.strictVariables) {
+                            const keys = Object.keys(normalizedObject);
                             if (keys.length > 0) {
                                 throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
                             } else {
@@ -988,13 +1026,13 @@ module.exports = function (Twig) {
                         }
 
                         // Get the variable from the context
-                        if (typeof object === 'object' && key in object) {
-                            value = object[key];
+                        if (key in normalizedObject) {
+                            value = normalizedObject[key];
                         } else {
                             value = null;
                         }
 
-                        // When resolving an expression we need to pass nextToken in case the expression is a function
+                        // When resolving an expression, we need to pass nextToken in case the expression is a function
                         return Twig.expression.resolveAsync.call(state, value, object, params, nextToken);
                     })
                     .then(result => {
@@ -1052,13 +1090,25 @@ module.exports = function (Twig) {
      *
      * If the value is a function, it is executed with a context parameter.
      *
-     * @param {string} key The context object key.
+     * @param {*} value The value to resolve.
      * @param {Object} context The render context.
+     * @param {Array} params The parameters to pass to the function.
+     * @param {Object} nextToken The next token in the expression.
+     * @param {Object} object The object context.
+     *
+     * @return {Promise} A promise that resolves to the resolved value.
      */
     Twig.expression.resolveAsync = function (value, context, params, nextToken, object) {
         const state = this;
 
         if (typeof value !== 'function') {
+            if (nextToken &&
+                nextToken.type === Twig.expression.type.parameter.end &&
+                nextToken.optionalCall) {
+                nextToken.cleanup = true;
+                return Twig.Promise.resolve(undefined);
+            }
+
             return Twig.Promise.resolve(value);
         }
 
@@ -1093,6 +1143,17 @@ module.exports = function (Twig) {
         });
     };
 
+    /**
+     * Resolve a context value synchronously.
+     *
+     * @param {*} value The value to resolve.
+     * @param {Object} context The render context.
+     * @param {Array} params The parameters to pass to the function.
+     * @param {Object} nextToken The next token in the expression.
+     * @param {Object} object The object context.
+     *
+     * @return {Promise} A promise that resolves to the resolved value.
+     */
     Twig.expression.resolve = function (value, context, params, nextToken, object) {
         return Twig.async.potentiallyAsync(this, false, function () {
             return Twig.expression.resolveAsync.call(this, value, context, params, nextToken, object);
@@ -1151,6 +1212,8 @@ module.exports = function (Twig) {
      * Break an expression into tokens defined in Twig.expression.definitions.
      *
      * @param {Object} rawToken The string to tokenize.
+     * @param {string} rawToken.value The expression string to tokenize.
+     * @param {Object} rawToken.position Optional position information for error messages.
      *
      * @return {Array} An array of tokens.
      */
@@ -1275,8 +1338,9 @@ module.exports = function (Twig) {
      * Compile an expression token.
      *
      * @param {Object} rawToken The uncompiled token.
+     * @param {string} rawToken.value The expression string to compile.
      *
-     * @return {Object} The compiled token.
+     * @return {Object} The compiled token with a `stack` property.
      */
     Twig.expression.compile = function (rawToken) {
         // Tokenize expression
@@ -1321,10 +1385,10 @@ module.exports = function (Twig) {
      *
      * @param {Array} tokens An array of compiled expression tokens.
      * @param {Object} context The render context to parse the tokens with.
+     * @param {boolean} tokensAreParameters Indicates if the tokens are parameters.
+     * @param {boolean} allowAsync Indicates if async operations are allowed.
      *
-     * @return {Object} The result of parsing all the tokens. The result
-     *                  can be anything, String, Array, Object, etc... based on
-     *                  the given expression.
+     * @return {Promise} A promise that resolves to the parsed result.
      */
     Twig.expression.parse = function (tokens, context, tokensAreParameters, allowAsync) {
         const state = this;
