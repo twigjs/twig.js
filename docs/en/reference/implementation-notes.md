@@ -140,4 +140,5 @@ Example syntax: <span v-pre>`{{ expression operator expression }}`</span>
 - Bitwise (`b-and`, `b-or`, `b-xor`): Supported
 - Comparisons (`==`, `!=`, `<`, `>`, `>=`, `<=`, `===`): Supported
 - Others (`..`, `|`, `~`, `.`, `[]`, `?:`): Supported
+- Optional chaining (`?.`): Supported
 - Null-coalescing (`??`): Supported
