@@ -4,26 +4,10 @@
 module.exports = function (Twig) {
     'use strict';
 
-    /**
-     * Normalize an object.
-     *
-     * @param {*} object The value to normalize.
-     *
-     * @return {(Object|null)} Returns null if the value is null or undefined, otherwise returns an Object.
-     */
     function normalizeObject(object) {
         return object === null || object === undefined ? null : Object(object);
     }
 
-    /**
-     * Parse parameters.
-     *
-     * @param {Object} state The expression state.
-     * @param {(Array|Object|null|undefined)} params The parameters to parse.
-     * @param {Object} context The render context.
-     *
-     * @return {Promise<*>} A promise that resolves to the parsed parameters or false.
-     */
     function parseParams(state, params, context) {
         if (params) {
             return Twig.expression.parseAsync.call(state, params, context);
@@ -1115,15 +1099,10 @@ module.exports = function (Twig) {
     /**
      * Resolve a context value.
      *
-     * If the value is a function, it is called with `object || context` as `this` and `params` as arguments.
+     * If the value is a function, it is executed with a context parameter.
      *
-     * @param {*} value The value to resolve.
+     * @param {string} key The context object key.
      * @param {Object} context The render context.
-     * @param {(Array<*>|null|undefined)} params The parameters to pass to the function.
-     * @param {(Object|null|undefined)} nextToken The next token in the expression.
-     * @param {(Object|null|undefined)} object The object context.
-     *
-     * @return {Promise<*>} A promise that resolves to the resolved value.
      */
     Twig.expression.resolveAsync = function (value, context, params, nextToken, object) {
         const state = this;
@@ -1170,17 +1149,6 @@ module.exports = function (Twig) {
         });
     };
 
-    /**
-     * Resolve a context value synchronously.
-     *
-     * @param {*} value The value to resolve.
-     * @param {Object} context The render context.
-     * @param {(Array<*>|null|undefined)} params The parameters to pass to the function.
-     * @param {(Object|null|undefined)} nextToken The next token in the expression.
-     * @param {(Object|null|undefined)} object The object context.
-     *
-     * @return {*} The resolved value.
-     */
     Twig.expression.resolve = function (value, context, params, nextToken, object) {
         return Twig.async.potentiallyAsync(this, false, function () {
             return Twig.expression.resolveAsync.call(this, value, context, params, nextToken, object);
@@ -1193,7 +1161,7 @@ module.exports = function (Twig) {
     Twig.expression.handler = {};
 
     /**
-     * Define a new expression type, available at Twig.expression.type.{type}
+     * Define a new expression type, available at Twig.logic.type.{type}
      *
      * @param {string} type The name of the new type.
      */
@@ -1239,10 +1207,8 @@ module.exports = function (Twig) {
      * Break an expression into tokens defined in Twig.expression.definitions.
      *
      * @param {Object} rawToken The string to tokenize.
-     * @param {string} rawToken.value The expression string to tokenize.
-     * @param {Object} rawToken.position Optional position information for error messages.
      *
-     * @return {Object[]} An array of tokens.
+     * @return {Array} An array of tokens.
      */
     Twig.expression.tokenize = function (rawToken) {
         let expression = rawToken.value;
@@ -1365,9 +1331,8 @@ module.exports = function (Twig) {
      * Compile an expression token.
      *
      * @param {Object} rawToken The uncompiled token.
-     * @param {string} rawToken.value The expression string to compile.
      *
-     * @return {Object} The compiled token with a `stack` property of compiled tokens.
+     * @return {Object} The compiled token.
      */
     Twig.expression.compile = function (rawToken) {
         // Tokenize expression
@@ -1420,14 +1385,12 @@ module.exports = function (Twig) {
     /**
      * Parse an RPN expression stack within a context.
      *
-     * @param {(Object|Object[])} tokens A compiled expression token or array of compiled expression tokens.
+     * @param {Array} tokens An array of compiled expression tokens.
      * @param {Object} context The render context to parse the tokens with.
-     * @param {boolean} tokensAreParameters Indicates if the tokens are parameters.
-     * @param {boolean} allowAsync Indicates if async operations are allowed.
      *
-     * @return {*|Promise<*>} The result of parsing all the tokens. The result
-     *                        can be anything, String, Array, Object, etc... based on
-     *                        the given expression.
+     * @return {Object} The result of parsing all the tokens. The result
+     *                  can be anything, String, Array, Object, etc... based on
+     *                  the given expression.
      */
     Twig.expression.parse = function (tokens, context, tokensAreParameters, allowAsync) {
         const state = this;
