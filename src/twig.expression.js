@@ -928,7 +928,11 @@ module.exports = function (Twig) {
                             }
                         }
 
-                        stack.push(value);
+                        if (isOptionalChain && !isSafeAccess(value)) {
+                            stack.push(undefined);
+                        } else {
+                            stack.push(value);
+                        }
                     });
             }
         },
