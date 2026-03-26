@@ -1420,6 +1420,19 @@ module.exports = function (Twig) {
     };
 
     /**
+     * Evaluate a compiled arrow token: bind params in a scoped context and parse the body RPN (async).
+     * Body tokens are cloned each call because parse mutates them.
+     */
+    Twig.expression.evaluateArrow = function (arrowToken, args, state) {
+        const scopedContext = Object.assign({}, arrowToken.capturedContext);
+        arrowToken.params.forEach((name, i) => {
+            scopedContext[name] = args[i];
+        });
+        const bodyClone = arrowToken.body.map(t => Object.assign({}, t));
+        return Twig.expression.parseAsync.call(state, bodyClone, scopedContext);
+    };
+
+    /**
      * Compile an expression token.
      *
      * @param {Object} rawToken The uncompiled token.
