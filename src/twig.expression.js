@@ -64,7 +64,9 @@ module.exports = function (Twig) {
         number: 'Twig.expression.type.number',
         _null: 'Twig.expression.type.null',
         context: 'Twig.expression.type.context',
-        test: 'Twig.expression.type.test'
+        test: 'Twig.expression.type.test',
+        arrowOperator: 'Twig.expression.type.arrowOperator',
+        arrowFunction: 'Twig.expression.type.arrowFunction'
     };
 
     Twig.expression.set = {
@@ -387,7 +389,7 @@ module.exports = function (Twig) {
              */
             type: Twig.expression.type.subexpression.end,
             regex: /^\)/,
-            next: Twig.expression.set.operationsExtended,
+            next: Twig.expression.set.operationsExtended.concat([Twig.expression.type.arrowOperator]),
             validate(match, tokens) {
                 // Iterate back through previous tokens to ensure we follow a subexpression start
                 let i = tokens.length - 1;
@@ -489,7 +491,10 @@ module.exports = function (Twig) {
              */
             type: Twig.expression.type.parameter.start,
             regex: /^\(/,
-            next: Twig.expression.set.expressions.concat([Twig.expression.type.parameter.end]),
+            next: Twig.expression.set.expressions.concat([
+                Twig.expression.type.parameter.end,
+                Twig.expression.type.arrowFunction
+            ]),
             validate(match, tokens) {
                 const lastToken = tokens[tokens.length - 1];
                 // We can't use the regex to test if we follow a space because expression is trimmed
@@ -504,7 +509,7 @@ module.exports = function (Twig) {
              */
             type: Twig.expression.type.parameter.end,
             regex: /^\)/,
-            next: Twig.expression.set.operationsExtended,
+            next: Twig.expression.set.operationsExtended.concat([Twig.expression.type.arrowOperator]),
             compile(token, stack, output) {
                 let stackToken;
                 const endToken = token;
@@ -866,7 +871,8 @@ module.exports = function (Twig) {
             // Match any letter or _, then any number of letters, numbers, _ or -
             regex: /^[a-zA-Z_]\w*/,
             next: Twig.expression.set.operationsExtended.concat([
-                Twig.expression.type.parameter.start
+                Twig.expression.type.parameter.start,
+                Twig.expression.type.arrowOperator
             ]),
             compile: Twig.expression.fn.compile.push,
             validate(match) {
@@ -884,6 +890,39 @@ module.exports = function (Twig) {
 
                         stack.push(value);
                     });
+            }
+        },
+        {
+            type: Twig.expression.type.arrowOperator,
+            regex: /^=>/,
+            next: Twig.expression.set.expressions,
+            validate(match, tokens) {
+                const last = tokens[tokens.length - 1];
+                if (!last) return false;
+                return (
+                    last.type === Twig.expression.type.variable ||
+                    last.type === Twig.expression.type.parameter.end ||
+                    last.type === Twig.expression.type.subexpression.end
+                );
+            },
+            compile(token, stack, output) {
+                throw new Twig.Error('Unexpected arrow operator. Arrow was not pre-processed.');
+            },
+            parse() {
+                throw new Twig.Error('Unexpected arrow operator during parse.');
+            }
+        },
+        {
+            type: Twig.expression.type.arrowFunction,
+            regex: /^$/,
+            next: Twig.expression.set.operations.concat([
+                Twig.expression.type.parameter.end,
+                Twig.expression.type.comma
+            ]),
+            compile: Twig.expression.fn.compile.push,
+            parse(token, stack, context) {
+                token.capturedContext = context;
+                stack.push(token);
             }
         },
         {
