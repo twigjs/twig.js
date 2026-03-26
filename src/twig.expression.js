@@ -1311,6 +1311,115 @@ module.exports = function (Twig) {
     };
 
     /**
+     * Collapse arrow syntax into atomic arrowFunction tokens (params + body RPN) before shunting-yard compile.
+     *
+     * @param {Array} tokens Flat tokens from tokenize.
+     * @return {Array} Tokens with arrow spans replaced by arrowFunction entries.
+     */
+    Twig.expression.preprocessArrows = function (tokens) {
+        const result = [];
+        let i = 0;
+
+        while (i < tokens.length) {
+            if (tokens[i].type !== Twig.expression.type.arrowOperator) {
+                result.push(tokens[i]);
+                i++;
+                continue;
+            }
+
+            // Found => at index i
+
+            // --- Extract parameter names (backward from result) ---
+            const paramNames = [];
+            const preceding = result[result.length - 1];
+
+            if (preceding.type === Twig.expression.type.variable) {
+                // Single param: v =>
+                result.pop();
+                paramNames.push(preceding.value);
+            } else if (
+                preceding.type === Twig.expression.type.parameter.end ||
+                preceding.type === Twig.expression.type.subexpression.end
+            ) {
+                // Multi param: (v, k) => or (v) =>
+                result.pop(); // remove )
+                const innerTokens = [];
+                while (result.length > 0) {
+                    const t = result.pop();
+                    if (t.type === Twig.expression.type.parameter.start ||
+                            t.type === Twig.expression.type.subexpression.start) {
+                        break;
+                    }
+                    innerTokens.unshift(t);
+                }
+                for (const t of innerTokens) {
+                    if (t.type === Twig.expression.type.variable) {
+                        paramNames.push(t.value);
+                    }
+                }
+            } else {
+                throw new Twig.Error('Invalid arrow function: unexpected token before =>');
+            }
+
+            // --- Collect body tokens (forward with depth tracking) ---
+            i++; // skip =>
+            const bodyTokens = [];
+            let depth = 0;
+
+            while (i < tokens.length) {
+                const next = tokens[i];
+
+                if (next.type === Twig.expression.type.parameter.start ||
+                        next.type === Twig.expression.type.subexpression.start ||
+                        next.type === Twig.expression.type.array.start ||
+                        next.type === Twig.expression.type.object.start) {
+                    depth++;
+                } else if (
+                    next.type === Twig.expression.type.parameter.end ||
+                        next.type === Twig.expression.type.subexpression.end ||
+                        next.type === Twig.expression.type.array.end ||
+                        next.type === Twig.expression.type.object.end
+                ) {
+                    depth--;
+                }
+
+                if (depth < 0) break;
+                if (depth === 0 && next.type === Twig.expression.type.comma) break;
+
+                bodyTokens.push(tokens[i]);
+                i++;
+            }
+
+            if (bodyTokens.length === 0) {
+                throw new Twig.Error('Arrow function has empty body');
+            }
+
+            // --- Recursively pre-process (handles nested arrows) ---
+            const processedBody = Twig.expression.preprocessArrows(bodyTokens);
+
+            // --- Sub-compile body into RPN stack ---
+            const bodyOutput = [];
+            const bodyStack = [];
+            for (const bodyToken of processedBody) {
+                const handler = Twig.expression.handler[bodyToken.type];
+                handler.compile(bodyToken, bodyStack, bodyOutput);
+            }
+            while (bodyStack.length > 0) {
+                bodyOutput.push(bodyStack.pop());
+            }
+
+            // --- Emit arrowFunction token ---
+            result.push({
+                type: Twig.expression.type.arrowFunction,
+                params: paramNames,
+                body: bodyOutput
+            });
+        }
+
+        return result;
+    };
+
+    /**
      * Compile an expression token.
      *
      * @param {Object} rawToken The uncompiled token.
@@ -1319,7 +1428,8 @@ module.exports = function (Twig) {
      */
     Twig.expression.compile = function (rawToken) {
         // Tokenize expression
-        const tokens = Twig.expression.tokenize(rawToken);
+        let tokens = Twig.expression.tokenize(rawToken);
+        tokens = Twig.expression.preprocessArrows(tokens);
         let token = null;
         const output = [];
         const stack = [];
