@@ -235,6 +235,41 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('filter (arrow) ->', function () {
+        it('should filter an array by predicate', function () {
+            return twig({
+                data: '{{ [1, 2, 3, 4, 5]|filter(v => v > 3)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('4,5');
+                });
+        });
+        it('should pass key as second argument for arrays', function () {
+            return twig({
+                data: '{{ ["a", "b", "c"]|filter((v, k) => k > 0)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('bc');
+                });
+        });
+        it('should filter an object by value', function () {
+            return twig({
+                data: '{{ {"a": 1, "b": 2}|filter((v, k) => v > 1)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2');
+                });
+        });
+        it('should use outer context inside the arrow body', function () {
+            return twig({
+                data: '{{ sizes|filter(v => v > min)|join(",") }}'
+            }).renderAsync({sizes: [38, 40, 42], min: 39})
+                .then(output => {
+                    output.should.equal('40,42');
+                });
+        });
+    });
+
     // Other
     describe('default ->', function () {
         it('should not provide the default value if a key is defined and not empty', function () {

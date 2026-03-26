@@ -122,6 +122,36 @@ module.exports = function (Twig) {
                 return value;
             }
         },
+        filter(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+
+            if (is('Array', value)) {
+                return Twig.Promise.all(
+                    value.map((v, k) => Twig.expression.evaluateArrow(arrowFn, [v, k], state))
+                ).then(results => value.filter((_, i) => Twig.lib.boolval(results[i])));
+            }
+
+            if (is('Object', value)) {
+                const keys = (value._keys || Object.keys(value)).filter(k => k !== '_keys');
+                return Twig.Promise.all(
+                    keys.map(k => Twig.expression.evaluateArrow(arrowFn, [value[k], k], state))
+                ).then(results => {
+                    const filtered = {};
+                    const filteredKeys = [];
+                    keys.forEach((k, i) => {
+                        if (Twig.lib.boolval(results[i])) {
+                            filtered[k] = value[k];
+                            filteredKeys.push(k);
+                        }
+                    });
+                    filtered._keys = filteredKeys;
+                    return filtered;
+                });
+            }
+
+            return value;
+        },
         keys(value) {
             if (value === undefined || value === null) {
                 return;
