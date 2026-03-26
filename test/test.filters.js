@@ -270,6 +270,41 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('map (arrow) ->', function () {
+        it('should map array values', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|map(v => v * 2)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4,6');
+                });
+        });
+        it('should pass key as second argument for arrays', function () {
+            return twig({
+                data: '{{ ["a", "b"]|map((v, k) => v ~ k)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('a0b1');
+                });
+        });
+        it('should map object values preserving keys', function () {
+            return twig({
+                data: '{{ {"x": 1, "y": 2}|map((v, k) => v ~ k)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1x2y');
+                });
+        });
+        it('should use outer context inside the arrow body', function () {
+            return twig({
+                data: '{{ nums|map(v => v + offset)|join(",") }}'
+            }).renderAsync({nums: [10, 20], offset: 5})
+                .then(output => {
+                    output.should.equal('15,25');
+                });
+        });
+    });
+
     // Other
     describe('default ->', function () {
         it('should not provide the default value if a key is defined and not empty', function () {

@@ -152,6 +152,32 @@ module.exports = function (Twig) {
 
             return value;
         },
+        map(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+
+            if (is('Array', value)) {
+                return Twig.Promise.all(
+                    value.map((v, k) => Twig.expression.evaluateArrow(arrowFn, [v, k], state))
+                );
+            }
+
+            if (is('Object', value)) {
+                const keys = (value._keys || Object.keys(value)).filter(k => k !== '_keys');
+                return Twig.Promise.all(
+                    keys.map(k => Twig.expression.evaluateArrow(arrowFn, [value[k], k], state))
+                ).then(results => {
+                    const mapped = {};
+                    keys.forEach((k, i) => {
+                        mapped[k] = results[i];
+                    });
+                    mapped._keys = [...keys];
+                    return mapped;
+                });
+            }
+
+            return value;
+        },
         keys(value) {
             if (value === undefined || value === null) {
                 return;
