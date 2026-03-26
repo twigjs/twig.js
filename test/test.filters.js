@@ -305,6 +305,41 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('reduce (arrow) ->', function () {
+        it('should reduce an array with an initial value', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|reduce((c, v) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('6');
+                });
+        });
+        it('should pass key as third argument for arrays', function () {
+            return twig({
+                data: '{{ [10, 100]|reduce((c, v, k) => c + v * k, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('100');
+                });
+        });
+        it('should reduce an object', function () {
+            return twig({
+                data: '{{ {"a": 1, "b": 2}|reduce((c, v, k) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('3');
+                });
+        });
+        it('should default carry to null when no initial is passed', function () {
+            return twig({
+                data: '{{ [1, 2]|reduce((c, v) => (c ?? 0) + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('3');
+                });
+        });
+    });
+
     // Other
     describe('default ->', function () {
         it('should not provide the default value if a key is defined and not empty', function () {

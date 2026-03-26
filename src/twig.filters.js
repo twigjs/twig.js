@@ -178,6 +178,22 @@ module.exports = function (Twig) {
 
             return value;
         },
+        reduce(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+            let carry = params.length > 1 ? params[1] : null;
+
+            const entries = is('Array', value)
+                ? value.map((v, k) => [k, v])
+                : (value._keys || Object.keys(value)).filter(k => k !== '_keys').map(k => [k, value[k]]);
+
+            return Twig.async.forEach(entries, ([k, v]) => {
+                return Twig.expression.evaluateArrow(arrowFn, [carry, v, k], state)
+                    .then(result => {
+                        carry = result;
+                    });
+            }).then(() => carry);
+        },
         keys(value) {
             if (value === undefined || value === null) {
                 return;
