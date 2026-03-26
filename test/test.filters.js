@@ -340,6 +340,34 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('sort (arrow) ->', function () {
+        it('should sort an array with a sync arrow comparator', function () {
+            return twig({
+                data: '{{ [3, 1, 2]|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should not mutate the original array', function () {
+            return twig({
+                data: '{% set arr = [2, 1] %}{{ arr|sort((a, b) => a - b)|join }}{{ arr|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1221');
+                });
+        });
+        it('should sort with an arrow that uses async function in renderAsync', function () {
+            Twig.extendFunction('asyncDoubleSort', x => Twig.Promise.resolve(x * 2));
+            return twig({
+                data: '{{ [2, 1, 3]|sort((a, b) => asyncDoubleSort(a) - asyncDoubleSort(b))|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+    });
+
     // Other
     describe('default ->', function () {
         it('should not provide the default value if a key is defined and not empty', function () {

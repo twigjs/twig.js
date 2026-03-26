@@ -8,6 +8,46 @@ module.exports = function (Twig) {
         return obj !== undefined && obj !== null && clas === type;
     }
 
+    function asyncMerge(left, right, compareFn) {
+        const result = [];
+        let li = 0;
+        let ri = 0;
+
+        function step() {
+            if (li >= left.length) {
+                return Twig.Promise.resolve(result.concat(right.slice(ri)));
+            }
+            if (ri >= right.length) {
+                return Twig.Promise.resolve(result.concat(left.slice(li)));
+            }
+
+            return compareFn(left[li], right[ri]).then(cmp => {
+                if (cmp <= 0) {
+                    result.push(left[li++]);
+                } else {
+                    result.push(right[ri++]);
+                }
+                return step();
+            });
+        }
+
+        return step();
+    }
+
+    function asyncMergeSort(arr, compareFn) {
+        if (arr.length <= 1) {
+            return Twig.Promise.resolve(arr);
+        }
+
+        const mid = Math.floor(arr.length / 2);
+
+        return asyncMergeSort(arr.slice(0, mid), compareFn).then(left => {
+            return asyncMergeSort(arr.slice(mid), compareFn).then(right => {
+                return asyncMerge(left, right, compareFn);
+            });
+        });
+    }
+
     Twig.filters = {
         // String Filters
         upper(value) {
@@ -72,8 +112,29 @@ module.exports = function (Twig) {
                 return value;
             }
         },
-        sort(value) {
+        sort(value, params) {
             if (is('Array', value)) {
+                if (params && params[0] && params[0].type === Twig.expression.type.arrowFunction) {
+                    const state = this;
+                    const arrowFn = params[0];
+                    const copy = [...value];
+
+                    try {
+                        copy.sort((a, b) => {
+                            return Twig.async.potentiallyAsync(state, false, () => {
+                                return Twig.expression.evaluateArrow(arrowFn, [a, b], state);
+                            });
+                        });
+                        return copy;
+                    } catch (e) {
+                        if (e.message && e.message.includes('async')) {
+                            return asyncMergeSort([...value], (a, b) => {
+                                return Twig.expression.evaluateArrow(arrowFn, [a, b], state);
+                            });
+                        }
+                        throw e;
+                    }
+                }
                 return value.sort();
             }
 
