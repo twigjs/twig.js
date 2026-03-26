@@ -255,6 +255,33 @@ module.exports = function (Twig) {
                     });
             }).then(() => carry);
         },
+        find(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+            let found = null;
+            let didFind = false;
+
+            if (!is('Array', value) && !is('Object', value)) {
+                return value;
+            }
+
+            const entries = is('Array', value)
+                ? value.map((v, k) => [k, v])
+                : (value._keys || Object.keys(value)).filter(k => k !== '_keys').map(k => [k, value[k]]);
+
+            return Twig.async.forEach(entries, ([k, v]) => {
+                if (didFind) {
+                    return;
+                }
+                return Twig.expression.evaluateArrow(arrowFn, [v, k], state)
+                    .then(result => {
+                        if (Twig.lib.boolval(result)) {
+                            found = v;
+                            didFind = true;
+                        }
+                    });
+            }).then(() => found);
+        },
         keys(value) {
             if (value === undefined || value === null) {
                 return;

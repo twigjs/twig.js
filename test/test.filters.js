@@ -368,6 +368,41 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('find (arrow) ->', function () {
+        it('should return the first matching value in an array', function () {
+            return twig({
+                data: '{{ [1, 5, 2, 7]|find(v => v > 3) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5');
+                });
+        });
+        it('should return the first match by key for arrays', function () {
+            return twig({
+                data: '{{ ["x", "y", "z"]|find((v, k) => k >= 2) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('z');
+                });
+        });
+        it('should return the first matching value in an object', function () {
+            return twig({
+                data: '{{ {"a": 1, "b": 5, "c": 2}|find((v, k) => v > 3) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5');
+                });
+        });
+        it('should return nothing when no element matches', function () {
+            return twig({
+                data: '{{ [1, 2]|find(v => v > 9) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+    });
+
     // Other
     describe('default ->', function () {
         it('should not provide the default value if a key is defined and not empty', function () {
