@@ -1,28 +1,12 @@
 {
-  "author": "John Roepke <john@justjohn.us> (http://johnroepke.com/)",
   "name": "twig-demo-node",
   "private": true,
   "description": "Demo using node and twig.",
-  "version": "0.3.0",
-  "homepage": "https://github.com/twigjs/twig.js",
-  "licenses": [
-    {
-      "type": "BSD-2-Clause",
-      "url": "https://raw.github.com/twigjs/twig.js/master/LICENSE"
-    }
-  ],
   "scripts": {
     "install": "cd ../.. && npm it",
     "start": "node app.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/twigjs/twig.js.git"
-  },
   "main": "app.js",
-  "engines": {
-    "node": "*"
-  },
   "dependencies": {
     "body-parser": "^1.19.0",
     "express": "4.17.x",
