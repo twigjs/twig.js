@@ -268,6 +268,71 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('40,42');
                 });
         });
+        it('should support nested parentheses in arrow bodies', function () {
+            return twig({
+                data: '{{ [1, 5, 2, 7, 8]|filter(v => (v > 3) and (v < 10))|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5,7,8');
+                });
+        });
+        it('should support slice/first-char checks in arrow bodies', function () {
+            return twig({
+                data: '{{ ["abc", "bcd", "acd"]|filter(v => v|slice(0, 1) == "a")|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('abc,acd');
+                });
+        });
+        it('should yield empty output when no elements pass the predicate', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|filter(v => v > 10)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should handle empty input array', function () {
+            return twig({
+                data: '{{ []|filter(v => v)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should support single-param parentheses form', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|filter((v) => v > 1)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,3');
+                });
+        });
+        it('should support the is test inside arrows', function () {
+            return twig({
+                data: '{% for v in [1, 2, 3, 4, 5]|filter(v => v is odd) %}{{ v }}{% endfor %}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('135');
+                });
+        });
+        it('should support iterating filtered objects in for loops', function () {
+            return twig({
+                data: '{% for k, v in {"a": 1, "b": 40}|filter(v => v > 38) %}{{ k }}={{ v }} {% endfor %}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('b=40 ');
+                });
+        });
+        it('should run async filter inside arrow bodies (renderAsync)', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [1, 2, 3]|filter(v => v|asyncDouble > 3)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,3');
+                });
+        });
     });
 
     describe('map (arrow) ->', function () {
@@ -301,6 +366,55 @@ describe('Twig.js Filters ->', function () {
             }).renderAsync({nums: [10, 20], offset: 5})
                 .then(output => {
                     output.should.equal('15,25');
+                });
+        });
+        it('should support ternary in arrow bodies', function () {
+            return twig({
+                data: '{{ [-1, 2, 0]|map(v => v > 0 ? "yes" : "no")|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('no,yes,no');
+                });
+        });
+        it('should support nested filters in arrow bodies', function () {
+            return twig({
+                data: '{{ ["a", "b"]|map(v => v|upper)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('A,B');
+                });
+        });
+        it('should support nested arrows (inner filter uses outer param)', function () {
+            return twig({
+                data: '{{ [2, 3]|map(v => [1, 2, 3]|filter(x => x > v)|join(","))|join("|") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('3|');
+                });
+        });
+        it('should let arrow parameters shadow outer context names', function () {
+            return twig({
+                data: '{% set v = "outer" %}{{ [1]|map(v => v * 2) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2');
+                });
+        });
+        it('should format keys in join output (0:a style)', function () {
+            return twig({
+                data: '{{ ["a", "b"]|map((v, k) => k ~ ":" ~ v)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('0:a,1:b');
+                });
+        });
+        it('should map with async filter in arrow body', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [1, 2, 3]|map(v => v|asyncDouble)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4,6');
                 });
         });
     });
@@ -338,6 +452,22 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('3');
                 });
         });
+        it('should support string concatenation with initial empty string', function () {
+            return twig({
+                data: '{{ ["a", "b", "c"]|reduce((carry, v) => carry ~ v, "") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('abc');
+                });
+        });
+        it('should reduce to sum without explicit initial (coalesce null carry in body)', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|reduce((carry, v) => (carry ?? 0) + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('6');
+                });
+        });
     });
 
     describe('sort (arrow) ->', function () {
@@ -361,6 +491,23 @@ describe('Twig.js Filters ->', function () {
             Twig.extendFunction('asyncDoubleSort', x => Twig.Promise.resolve(x * 2));
             return twig({
                 data: '{{ [2, 1, 3]|sort((a, b) => asyncDoubleSort(a) - asyncDoubleSort(b))|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should keep default sort without arrow (regression)', function () {
+            return twig({
+                data: '{{ [3, 1, 2]|sort|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should sort with async filter in comparator (merge-sort path)', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [3, 1, 2]|sort((a, b) => a|asyncDouble - b|asyncDouble)|join(",") }}'
             }).renderAsync()
                 .then(output => {
                     output.should.equal('1,2,3');
@@ -399,6 +546,25 @@ describe('Twig.js Filters ->', function () {
             }).renderAsync()
                 .then(output => {
                     output.should.equal('');
+                });
+        });
+    });
+
+    describe('arrow filters — integration ->', function () {
+        it('should support parenthesized filter arguments beside arrows', function () {
+            return twig({
+                data: '{{ items|slice(0, (n - 1))|join(",") }}'
+            }).renderAsync({items: [1, 2, 3, 4, 5], n: 4})
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should chain filter, map, sort, and join', function () {
+            return twig({
+                data: '{{ [5, 1, 4, 2, 3]|filter(v => v > 0)|map(v => v * 2)|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4,6,8,10');
                 });
         });
     });

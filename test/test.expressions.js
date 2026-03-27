@@ -543,4 +543,11 @@ describe('Twig.js Expressions ->', function () {
             output.should.equal('ok!');
         });
     });
+
+    describe('Arrow / grouping edge cases ->', function () {
+        it('should evaluate parenthesized arithmetic (not confused with arrow =>)', function () {
+            const testTemplate = twig({data: '{{ (a + b) * c }}'});
+            testTemplate.render({a: 1, b: 2, c: 3}).should.equal('9');
+        });
+    });
 });
