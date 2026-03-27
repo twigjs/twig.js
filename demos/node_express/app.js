@@ -1,6 +1,6 @@
 const twig = require('twig');
 const {_} = require('underscore');
-	 const markdown = require('markdown');
+const markdown = require('markdown-it')();
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -100,7 +100,7 @@ app.all('/notes/:id', (req, res) => {
     const note = notes[id];
 
     if (note) {
-        note.markdown = markdown.markdown.toHTML(note.text);
+        note.markdown = markdown.render(note.text);
 	    res.render('pages/note', note);
     } else {
         res.render('pages/note_404');
@@ -121,7 +121,7 @@ app.get('/api/notes/:id', (req, res) => {
     const note = notes[id];
 
     if (note) {
-        note.markdown = markdown.markdown.toHTML(note.text);
+        note.markdown = markdown.render(note.text);
   	    res.json(_.extend({
   	        json: true
   	    }, note));
