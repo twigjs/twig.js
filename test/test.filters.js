@@ -702,6 +702,12 @@ describe('Twig.js Filters ->', function () {
                 error.message.should.equal('You are using Twig.js in sync mode in combination with async extensions.');
             }
         });
+        it('should render synchronously when a filter returns Twig.Promise inside an arrow body, unlike native Promise', function () {
+            Twig.extendFilter('asyncTwigPromise', v => Twig.Promise.resolve(v * 2));
+            twig({
+                data: '{{ [1]|filter(v => v|asyncTwigPromise > 0) }}'
+            }).render().should.equal('1');
+        });
         it('should chain two async filters used inside arrow bodies (renderAsync)', function () {
             Twig.extendFilter('asyncAdd10', v => Twig.Promise.resolve(v + 10));
             Twig.extendFilter('asyncMul3', v => Twig.Promise.resolve(v * 3));
