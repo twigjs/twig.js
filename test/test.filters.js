@@ -333,6 +333,14 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('2,3');
                 });
         });
+        it('should pass through a scalar string when the value is not an array or plain object', function () {
+            return twig({
+                data: '{{ "ab"|filter(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('ab');
+                });
+        });
     });
 
     describe('map (arrow) ->', function () {
@@ -417,6 +425,14 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('2,4,6');
                 });
         });
+        it('should pass through a number when the value is not an array or plain object', function () {
+            return twig({
+                data: '{{ 5|map(v => v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5');
+                });
+        });
     });
 
     describe('reduce (arrow) ->', function () {
@@ -466,6 +482,22 @@ describe('Twig.js Filters ->', function () {
             }).renderAsync()
                 .then(output => {
                     output.should.equal('6');
+                });
+        });
+        it('should leave the initial carry unchanged for a number primitive (no enumerable keys, unlike filter/map)', function () {
+            return twig({
+                data: '{{ 5|reduce((c, v) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('0');
+                });
+        });
+        it('should iterate string primitives by index because Object.keys exposes string characters', function () {
+            return twig({
+                data: '{{ "ab"|reduce((carry, v) => carry ~ v, "") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('ab');
                 });
         });
     });
@@ -546,6 +578,14 @@ describe('Twig.js Filters ->', function () {
             }).renderAsync()
                 .then(output => {
                     output.should.equal('');
+                });
+        });
+        it('should pass through a scalar string when the value is not an array or plain object', function () {
+            return twig({
+                data: '{{ "x"|find(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('x');
                 });
         });
     });
