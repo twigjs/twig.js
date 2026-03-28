@@ -589,6 +589,14 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('1,2,3');
                 });
         });
+        it('should sort arrays with duplicate values using a numeric comparator', function () {
+            return twig({
+                data: '{{ [2, 1, 1, 3]|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,1,2,3');
+                });
+        });
     });
 
     describe('find (arrow) ->', function () {
@@ -661,6 +669,15 @@ describe('Twig.js Filters ->', function () {
             } catch (error) {
                 error.message.should.equal('You are using Twig.js in sync mode in combination with async extensions.');
             }
+        });
+        it('should chain two async filters used inside arrow bodies (renderAsync)', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [1, 2]|map(v => v|asyncDouble)|filter(v => v|asyncDouble > 2)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4');
+                });
         });
     });
 
