@@ -632,6 +632,22 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('');
                 });
         });
+        it('should render an empty string when the array is empty', function () {
+            return twig({
+                data: '{{ []|find(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should render an empty string when the object is empty', function () {
+            return twig({
+                data: '{{ {}|find(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
         it('should pass through a scalar string when the value is not an array or plain object', function () {
             return twig({
                 data: '{{ "x"|find(v => true) }}'
