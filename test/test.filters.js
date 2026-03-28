@@ -341,6 +341,18 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('ab');
                 });
         });
+        it('should reject when an arrow body references a missing variable and strict_variables is true', function () {
+            return twig({
+                data: '{{ [1]|filter(v => v > missingVar) }}',
+                rethrow: true,
+                strict_variables: true
+            }).renderAsync()
+                .then(() => {
+                    throw new Error('should have rejected');
+                }, err => {
+                    err.message.should.equal('Variable "missingVar" does not exist.');
+                });
+        });
     });
 
     describe('map (arrow) ->', function () {
@@ -638,6 +650,17 @@ describe('Twig.js Filters ->', function () {
                 .then(output => {
                     output.should.equal('2,4,6,8,10');
                 });
+        });
+        it('should throw when sync render uses an async filter inside an arrow body', function () {
+            Twig.extendFilter('asyncDoubleNative', v => Promise.resolve(v * 2));
+            try {
+                twig({
+                    data: '{{ [1]|filter(v => v|asyncDoubleNative > 0) }}'
+                }).render();
+                throw new Error('should have thrown an error.');
+            } catch (error) {
+                error.message.should.equal('You are using Twig.js in sync mode in combination with async extensions.');
+            }
         });
     });
 
