@@ -671,12 +671,13 @@ describe('Twig.js Filters ->', function () {
             }
         });
         it('should chain two async filters used inside arrow bodies (renderAsync)', function () {
-            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            Twig.extendFilter('asyncAdd10', v => Twig.Promise.resolve(v + 10));
+            Twig.extendFilter('asyncMul3', v => Twig.Promise.resolve(v * 3));
             return twig({
-                data: '{{ [1, 2]|map(v => v|asyncDouble)|filter(v => v|asyncDouble > 2)|join(",") }}'
+                data: '{{ [1, 2]|map(v => v|asyncAdd10)|filter(v => v|asyncMul3 > 35)|join(",") }}'
             }).renderAsync()
                 .then(output => {
-                    output.should.equal('2,4');
+                    output.should.equal('12');
                 });
         });
     });
