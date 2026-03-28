@@ -480,6 +480,14 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('3');
                 });
         });
+        it('should render NaN when naive addition is used without an initial value because null plus a number yields NaN', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|reduce((c, v) => c + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('NaN');
+                });
+        });
         it('should support string concatenation with initial empty string', function () {
             return twig({
                 data: '{{ ["a", "b", "c"]|reduce((carry, v) => carry ~ v, "") }}'
