@@ -893,12 +893,16 @@ module.exports = function (Twig) {
             }
         },
         {
+            /**
+             * Match the arrow function operator (=>).
+             */
             type: Twig.expression.type.arrowOperator,
             regex: /^=>/,
             next: Twig.expression.set.expressions,
             validate(match, tokens) {
                 const last = tokens[tokens.length - 1];
                 if (!last) return false;
+                // Only valid after an identifier or a closing paren that ends the parameter list.
                 return (
                     last.type === Twig.expression.type.variable ||
                     last.type === Twig.expression.type.parameter.end ||
@@ -913,6 +917,9 @@ module.exports = function (Twig) {
             }
         },
         {
+            /**
+             * Placeholder for a compiled arrow function (emitted by preprocessArrows, not matched when tokenizing).
+             */
             type: Twig.expression.type.arrowFunction,
             regex: /^$/,
             next: Twig.expression.set.operations.concat([
@@ -1311,9 +1318,11 @@ module.exports = function (Twig) {
     };
 
     /**
-     * Collapse arrow syntax into atomic arrowFunction tokens (params + body RPN) before shunting-yard compile.
+     * Collapse arrow syntax into atomic arrowFunction tokens (parameter names and body in RPN) before
+     * shunting-yard compilation.
      *
      * @param {Array} tokens Flat tokens from tokenize.
+     *
      * @return {Array} Tokens with arrow spans replaced by arrowFunction entries.
      */
     Twig.expression.preprocessArrows = function (tokens) {
@@ -1327,22 +1336,20 @@ module.exports = function (Twig) {
                 continue;
             }
 
-            // Found => at index i
-
-            // --- Extract parameter names (backward from result) ---
+            // Extract parameter names from tokens already emitted to the result queue.
             const paramNames = [];
             const preceding = result[result.length - 1];
 
             if (preceding.type === Twig.expression.type.variable) {
-                // Single param: v =>
+                // Single identifier before => (e.g. v => expr).
                 result.pop();
                 paramNames.push(preceding.value);
             } else if (
                 preceding.type === Twig.expression.type.parameter.end ||
                 preceding.type === Twig.expression.type.subexpression.end
             ) {
-                // Multi param: (v, k) => or (v) =>
-                result.pop(); // remove )
+                // Parenthesized parameter list before => (e.g. (v, k) => expr).
+                result.pop(); // Remove the closing parenthesis.
                 const innerTokens = [];
                 while (result.length > 0) {
                     const t = result.pop();
@@ -1358,11 +1365,12 @@ module.exports = function (Twig) {
                     }
                 }
             } else {
+                // Defensive: normal tokenization enforces the same predecessors as arrowOperator.validate.
                 throw new Twig.Error('Invalid arrow function: unexpected token before =>');
             }
 
-            // --- Collect body tokens (forward with depth tracking) ---
-            i++; // skip =>
+            // Collect body tokens; depth tracks nesting so commas inside nested structures do not end the body.
+            i++; // Advance past the arrow operator.
             const bodyTokens = [];
             let depth = 0;
 
@@ -1394,10 +1402,10 @@ module.exports = function (Twig) {
                 throw new Twig.Error('Arrow function has empty body');
             }
 
-            // --- Recursively pre-process (handles nested arrows) ---
+            // Recursively preprocess nested arrow functions in the body.
             const processedBody = Twig.expression.preprocessArrows(bodyTokens);
 
-            // --- Sub-compile body into RPN stack ---
+            // Compile the body to RPN for the arrowFunction token.
             const bodyOutput = [];
             const bodyStack = [];
             for (const bodyToken of processedBody) {
@@ -1408,7 +1416,6 @@ module.exports = function (Twig) {
                 bodyOutput.push(bodyStack.pop());
             }
 
-            // --- Emit arrowFunction token ---
             result.push({
                 type: Twig.expression.type.arrowFunction,
                 params: paramNames,
@@ -1420,8 +1427,14 @@ module.exports = function (Twig) {
     };
 
     /**
-     * Evaluate a compiled arrow token: bind params in a scoped context and parse the body RPN (async).
-     * Body tokens are cloned each call because parse mutates them.
+     * Evaluate a compiled arrow token by binding parameters in a scoped context and parsing the body RPN.
+     * Each call clones body tokens because parse mutates them.
+     *
+     * @param {Object} arrowToken Compiled arrow function token from preprocessArrows.
+     * @param {Array} args Argument values passed into the arrow (from the filter).
+     * @param {Object} state Parser/render state.
+     *
+     * @return {Twig.Promise} Promise for the body expression value.
      */
     Twig.expression.evaluateArrow = function (arrowToken, args, state) {
         const scopedContext = Object.assign({}, arrowToken.capturedContext);
