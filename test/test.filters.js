@@ -484,6 +484,30 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('6');
                 });
         });
+        it('should return the initial value when reducing an empty array', function () {
+            return twig({
+                data: '{{ []|reduce((c, v) => c + v, 10) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('10');
+                });
+        });
+        it('should leave carry as null when reducing an empty array with no initial value', function () {
+            return twig({
+                data: '{{ []|reduce((c, v) => c + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should reduce a single-element array with an initial value', function () {
+            return twig({
+                data: '{{ [42]|reduce((c, v) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('42');
+                });
+        });
         it('should leave the initial carry unchanged for a number primitive (no enumerable keys, unlike filter/map)', function () {
             return twig({
                 data: '{{ 5|reduce((c, v) => c + v, 0) }}'
@@ -509,6 +533,14 @@ describe('Twig.js Filters ->', function () {
             }).renderAsync()
                 .then(output => {
                     output.should.equal('1,2,3');
+                });
+        });
+        it('should join to an empty string when sorting an empty array with an arrow comparator', function () {
+            return twig({
+                data: '{{ []|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
                 });
         });
         it('should not mutate the original array', function () {
