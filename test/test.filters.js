@@ -420,6 +420,14 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('2');
                 });
         });
+        it('should compile arrow map in {% set %} expressions and join the bound variable', function () {
+            return twig({
+                data: '{% set mapped = [1, 2]|map(v => v * 2) %}{{ mapped|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4');
+                });
+        });
         it('should format keys in join output (0:a style)', function () {
             return twig({
                 data: '{{ ["a", "b"]|map((v, k) => k ~ ":" ~ v)|join(",") }}'
