@@ -488,12 +488,12 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('abc');
                 });
         });
-        it('should reduce to sum without explicit initial (coalesce null carry in body)', function () {
+        it('should pass null as carry on the first iteration when no initial value is given', function () {
             return twig({
-                data: '{{ [1, 2, 3]|reduce((carry, v) => (carry ?? 0) + v) }}'
+                data: '{{ [1]|reduce((carry, v) => carry is null) }}'
             }).renderAsync()
                 .then(output => {
-                    output.should.equal('6');
+                    output.should.equal('true');
                 });
         });
         it('should return the initial value when reducing an empty array', function () {
