@@ -597,6 +597,14 @@ describe('Twig.js Filters ->', function () {
                     output.should.equal('1,1,2,3');
                 });
         });
+        it('should sort an array of objects by a numeric field using an arrow comparator', function () {
+            return twig({
+                data: '{{ [{"score": 3}, {"score": 1}, {"score": 2}]|sort((a, b) => a.score - b.score)|map(o => o.score)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
     });
 
     describe('find (arrow) ->', function () {
