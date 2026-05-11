@@ -23,6 +23,8 @@ module.exports = function (Twig) {
             // TODO: turn autoscape on in the next major version
             autoescape: (params.autoescape !== null && params.autoescape) || false,
             allowInlineIncludes: params.allowInlineIncludes || false,
+            // TODO: turn phpStyleBooleans on in the next major version
+            phpStyleBooleans: undefined,
             rethrow: params.rethrow || false,
             namespaces: params.namespaces
         };
@@ -37,6 +39,10 @@ module.exports = function (Twig) {
 
         if (params.trace !== undefined) {
             Twig.trace = params.trace;
+        }
+
+        if (params.phpStyleBooleans !== undefined) {
+            options.phpStyleBooleans = params.phpStyleBooleans;
         }
 
         if (params.data !== undefined) {

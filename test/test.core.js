@@ -147,6 +147,11 @@ describe('Twig.js Core ->', function () {
         twig({data: '{{ false }}'}).render().should.equal('false');
     });
 
+    it('should be able to output booleans (PHP style)', function () {
+        twig({phpStyleBooleans: true, data: '{{ false }}'}).render().should.equal('');
+        twig({phpStyleBooleans: true, data: '{{ true }}'}).render().should.equal('1');
+    });
+
     it('should be able to output strings', function () {
         twig({data: '{{ "double" }}'}).render().should.equal('double');
         twig({data: '{{ \'single\' }}'}).render().should.equal('single');
