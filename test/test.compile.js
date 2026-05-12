@@ -52,9 +52,17 @@ describe('lib/compile ->', function () {
             });
         });
 
-        describe('fs.stat handling ->', function () {
-            it('should call fs.stat for each file', function () {
-                const statStub = sinon.stub(fs, 'stat');
+        describe('fs.statSync handling ->', function () {
+            it('should call fs.statSync for each file', function () {
+                sinon.stub(console, 'log');
+                const statStub = sinon.stub(fs, 'statSync').returns({
+                    isDirectory() {
+                        return false;
+                    },
+                    isFile() {
+                        return false;
+                    }
+                });
                 compileModule.compile({}, ['file1.twig', 'file2.twig', 'file3.twig']);
 
                 statStub.should.be.calledThrice();
@@ -63,30 +71,23 @@ describe('lib/compile ->', function () {
                 statStub.thirdCall.args[0].should.equal('file3.twig');
             });
 
-            it('should log error when fs.stat returns an error', function () {
-                const consoleStub = sinon.stub(console, 'error');
-                sinon.stub(fs, 'stat').callsFake((file, cb) => {
-                    cb(new Error('ENOENT'));
-                });
+            it('should throw when fs.statSync fails', function () {
+                sinon.stub(fs, 'statSync').throws(new Error('ENOENT'));
 
-                compileModule.compile({}, ['missing.twig']);
-
-                consoleStub.should.be.calledOnce();
-                consoleStub.firstCall.args[0].should.containEql('missing.twig');
-                consoleStub.firstCall.args[0].should.containEql('Unable to stat file');
+                (function () {
+                    compileModule.compile({}, ['missing.twig']);
+                }).should.throw('ENOENT');
             });
 
             it('should log error for unknown file types', function () {
                 const consoleStub = sinon.stub(console, 'log');
-                sinon.stub(fs, 'stat').callsFake((file, cb) => {
-                    cb(null, {
-                        isDirectory() {
-                            return false;
-                        },
-                        isFile() {
-                            return false;
-                        }
-                    });
+                sinon.stub(fs, 'statSync').returns({
+                    isDirectory() {
+                        return false;
+                    },
+                    isFile() {
+                        return false;
+                    }
                 });
 
                 compileModule.compile({}, ['unknown_type']);
@@ -222,7 +223,6 @@ describe('lib/compile ->', function () {
 
         describe('directory compilation ->', function () {
             it('should walk a directory and compile all matching .twig files', async function () {
-                this.timeout(5000);
                 const srcDir = path.join(__dirname, 'compiler', 'src');
                 const compiledFiles = [];
 
@@ -234,7 +234,6 @@ describe('lib/compile ->', function () {
                 });
 
                 compileModule.compile({pattern: '*.twig'}, [srcDir]);
-                await delay(2000);
 
                 // src/ contains dir_test.twig and sub/sub.twig
                 compiledFiles.length.should.equal(2);
@@ -248,7 +247,6 @@ describe('lib/compile ->', function () {
             });
 
             it('should only compile files matching the given pattern', async function () {
-                this.timeout(5000);
                 const srcDir = path.join(__dirname, 'compiler');
                 const compiledFiles = [];
 
@@ -258,7 +256,6 @@ describe('lib/compile ->', function () {
                 });
 
                 compileModule.compile({pattern: '*.twig'}, [srcDir]);
-                await delay(2000);
 
                 // Only .twig files should match, not test.html
                 compiledFiles.length.should.be.aboveOrEqual(1);
