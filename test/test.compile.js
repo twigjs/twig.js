@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const sinon = require('sinon');
-const {setTimeout: delay} = require('node:timers/promises');
 require('should-sinon');
 
 const Twig = require('..');
@@ -266,7 +265,6 @@ describe('lib/compile ->', function () {
             });
 
             it('should compile directory files into output directory', async function () {
-                this.timeout(5000);
                 const srcDir = path.join(__dirname, 'compiler', 'src');
                 const outputDir = path.join(__dirname, 'compiler', 'build_output');
                 const compiledFiles = [];
@@ -279,7 +277,6 @@ describe('lib/compile ->', function () {
                 });
 
                 compileModule.compile({output: outputDir, pattern: '*.twig'}, [srcDir]);
-                await delay(2000);
 
                 compiledFiles.length.should.equal(2);
                 // mkdir is called once for the output dir and once for each
@@ -289,7 +286,6 @@ describe('lib/compile ->', function () {
             });
 
             it('should strip trailing slash from directory path', async function () {
-                this.timeout(5000);
                 const srcDir = path.join(__dirname, 'compiler', 'src') + '/';
                 const compiledFiles = [];
 
@@ -300,7 +296,6 @@ describe('lib/compile ->', function () {
                 });
 
                 compileModule.compile({pattern: '*.twig'}, [srcDir]);
-                await delay(2000);
 
                 compiledFiles.length.should.be.aboveOrEqual(1);
             });
@@ -308,7 +303,6 @@ describe('lib/compile ->', function () {
 
         describe('using defaults ->', function () {
             it('should use the default pattern to match only .twig files when compiling a directory', async function () {
-                this.timeout(5000);
                 // The compiler directory contains test.twig, test.html, and
                 // subdirectories with more .twig files — the default pattern
                 // *.twig should match .twig files and skip test.html.
@@ -322,7 +316,6 @@ describe('lib/compile ->', function () {
 
                 // Pass defaults directly, as the CLI does
                 compileModule.compile(compileModule.defaults, [srcDir]);
-                await delay(2000);
 
                 compiledFiles.length.should.be.aboveOrEqual(1);
                 compiledFiles.forEach(file => {
@@ -334,7 +327,6 @@ describe('lib/compile ->', function () {
 
         describe('mixed files and directories ->', function () {
             it('should handle a mix of file and directory inputs', async function () {
-                this.timeout(5000);
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
                 const srcDir = path.join(__dirname, 'compiler', 'src');
                 const compiledFiles = [];
@@ -345,7 +337,6 @@ describe('lib/compile ->', function () {
                 });
 
                 compileModule.compile({pattern: '*.twig'}, [testFile, srcDir]);
-                await delay(2000);
 
                 // test.twig (single file) + dir_test.twig + sub/sub.twig (from directory walk)
                 compiledFiles.length.should.equal(3);
