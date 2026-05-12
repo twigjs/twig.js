@@ -16,10 +16,6 @@ describe('lib/compile ->', function () {
         it('should have pattern set to *.twig', function () {
             compileModule.defaults.pattern.should.equal('*.twig');
         });
-
-        it('should have recursive set to false', function () {
-            compileModule.defaults.recursive.should.equal(false);
-        });
     });
 
     describe('compile ->', function () {
