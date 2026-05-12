@@ -99,129 +99,94 @@ describe('lib/compile ->', function () {
         });
 
         describe('single file compilation ->', function () {
-            it('should compile a template file and write output with .js extension', async function () {
+            it('should compile a template file and write output with .js extension', function () {
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(null);
-                        resolve({outputFile, output, encoding});
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(null);
+                    outputFile.should.equal(testFile + '.js');
+                    encoding.should.equal('utf8');
+                    output.should.be.a.String();
+                    output.should.containEql('precompiled: true');
                 });
 
                 compileModule.compile({}, [testFile]);
-                const {outputFile, output, encoding} = await written;
-
-                outputFile.should.equal(testFile + '.js');
-                encoding.should.equal('utf8');
-                output.should.be.a.String();
-                output.should.containEql('precompiled: true');
             });
 
-            it('should use the file path as the template id when no output directory is specified', async function () {
+            it('should use the file path as the template id when no output directory is specified', function () {
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(null);
-                        resolve(output);
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(null);
+                    output.should.containEql('id:"' + testFile + '"');
                 });
 
                 compileModule.compile({}, [testFile]);
-                const output = await written;
-
-                output.should.containEql('id:"' + testFile + '"');
             });
 
-            it('should write compiled output to the output directory when specified', async function () {
+            it('should write compiled output to the output directory when specified', function () {
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
                 const outputDir = path.join(__dirname, 'compiler', 'output');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(null);
-                        resolve({outputFile, output});
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(null);
+                    outputFile.should.equal(outputDir + '/test.twig.js');
+                    output.should.be.a.String();
+                    output.should.containEql('precompiled: true');
                 });
 
                 compileModule.compile({output: outputDir}, [testFile]);
-                const {outputFile, output} = await written;
-
-                outputFile.should.equal(outputDir + '/test.twig.js');
-                output.should.be.a.String();
-                output.should.containEql('precompiled: true');
             });
 
-            it('should use the output directory in the template id when output is specified', async function () {
+            it('should use the output directory in the template id when output is specified', function () {
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
                 const outputDir = path.join(__dirname, 'compiler', 'output');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(null);
-                        resolve(output);
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(null);
+                    output.should.containEql('id:"' + outputDir + '/test.twig"');
                 });
 
                 compileModule.compile({output: outputDir}, [testFile]);
-                const output = await written;
-
-                output.should.containEql('id:"' + outputDir + '/test.twig"');
             });
 
-            it('should log success message when compilation succeeds', async function () {
+            it('should log success message when compilation succeeds', function () {
                 const consoleStub = sinon.stub(console, 'log');
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(null);
-                        resolve();
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(null);
+                    consoleStub.should.be.calledOnce();
+                    consoleStub.firstCall.args[0].should.containEql('Compiled');
+                    consoleStub.firstCall.args[0].should.containEql(testFile);
+                    consoleStub.firstCall.args[0].should.containEql(testFile + '.js');
                 });
 
                 compileModule.compile({}, [testFile]);
-                await written;
-
-                consoleStub.should.be.calledOnce();
-                consoleStub.firstCall.args[0].should.containEql('Compiled');
-                consoleStub.firstCall.args[0].should.containEql(testFile);
-                consoleStub.firstCall.args[0].should.containEql(testFile + '.js');
             });
 
-            it('should log error when writeFile fails', async function () {
+            it('should log error when writeFile fails', function () {
                 const consoleStub = sinon.stub(console, 'log');
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(new Error('disk full'));
-                        resolve();
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(new Error('disk full'));
+                    consoleStub.should.be.calledOnce();
+                    consoleStub.firstCall.args[0].should.containEql('Unable to compile');
+                    consoleStub.firstCall.args[0].should.containEql(testFile);
                 });
 
                 compileModule.compile({}, [testFile]);
-                await written;
-
-                consoleStub.should.be.calledOnce();
-                consoleStub.firstCall.args[0].should.containEql('Unable to compile');
-                consoleStub.firstCall.args[0].should.containEql(testFile);
             });
 
-            it('should pass options through to template.compile using default wrap format', async function () {
+            it('should pass options through to template.compile using default wrap format', function () {
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
-                const written = new Promise(resolve => {
-                    writeFileStub.callsFake((outputFile, output, encoding, cb) => {
-                        cb(null);
-                        resolve(output);
-                    });
+                writeFileStub.callsFake((outputFile, output, encoding, cb) => {
+                    cb(null);
+                    output.should.startWith('twig({');
+                    output.should.containEql('precompiled: true');
                 });
 
                 compileModule.compile({}, [testFile]);
-                const output = await written;
-
-                output.should.startWith('twig({');
-                output.should.containEql('precompiled: true');
             });
         });
 
         describe('directory compilation ->', function () {
-            it('should walk a directory and compile all matching .twig files', async function () {
+            it('should walk a directory and compile all matching .twig files', function () {
                 const srcDir = path.join(__dirname, 'compiler', 'src');
                 const compiledFiles = [];
 
@@ -245,7 +210,7 @@ describe('lib/compile ->', function () {
                 compiledFiles.should.containEql(subFile);
             });
 
-            it('should only compile files matching the given pattern', async function () {
+            it('should only compile files matching the given pattern', function () {
                 const srcDir = path.join(__dirname, 'compiler');
                 const compiledFiles = [];
 
@@ -264,7 +229,7 @@ describe('lib/compile ->', function () {
                 compiledFiles.should.not.containEql('test.html.js');
             });
 
-            it('should compile directory files into output directory', async function () {
+            it('should compile directory files into output directory', function () {
                 const srcDir = path.join(__dirname, 'compiler', 'src');
                 const outputDir = path.join(__dirname, 'compiler', 'build_output');
                 const compiledFiles = [];
@@ -285,7 +250,7 @@ describe('lib/compile ->', function () {
                 mkdirStub.firstCall.args[0].should.equal(outputDir);
             });
 
-            it('should strip trailing slash from directory path', async function () {
+            it('should strip trailing slash from directory path', function () {
                 const srcDir = path.join(__dirname, 'compiler', 'src') + '/';
                 const compiledFiles = [];
 
@@ -302,7 +267,7 @@ describe('lib/compile ->', function () {
         });
 
         describe('using defaults ->', function () {
-            it('should use the default pattern to match only .twig files when compiling a directory', async function () {
+            it('should use the default pattern to match only .twig files when compiling a directory', function () {
                 // The compiler directory contains test.twig, test.html, and
                 // subdirectories with more .twig files — the default pattern
                 // *.twig should match .twig files and skip test.html.
@@ -326,7 +291,7 @@ describe('lib/compile ->', function () {
         });
 
         describe('mixed files and directories ->', function () {
-            it('should handle a mix of file and directory inputs', async function () {
+            it('should handle a mix of file and directory inputs', function () {
                 const testFile = path.join(__dirname, 'compiler', 'test.twig');
                 const srcDir = path.join(__dirname, 'compiler', 'src');
                 const compiledFiles = [];
