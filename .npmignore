@@ -4,11 +4,16 @@ test
 test-ext
 docs
 qtest
+.github
 .hg
 .git
 .gitignore
 .gitmodules
 .travis.yml
 .idea
+.editorconfig
+.nojekyll
+eslint.config.mjs
+node
 webpack.config.js
 bower.json
