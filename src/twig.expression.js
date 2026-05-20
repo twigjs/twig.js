@@ -260,6 +260,8 @@ module.exports = function (Twig) {
                     // Check if this is a ternary or object key being set
                     if (stack[stack.length - 1] && stack[stack.length - 1].value === '?') {
                         // Continue as normal for a ternary
+                        // Mark the ? operator as having a colon (full ternary, not shorthand)
+                        stack[stack.length - 1].hasColon = true;
                     } else {
                         // This is not a ternary so we push the token to the output where it can be handled
                         //   when the assocated object is closed.
@@ -304,7 +306,7 @@ module.exports = function (Twig) {
                             }
                         });
                 } else {
-                    Twig.expression.operator.parse(token.value, stack);
+                    Twig.expression.operator.parse(token.value, stack, token);
                 }
             }
         },
@@ -339,7 +341,7 @@ module.exports = function (Twig) {
                 stack.push(operator);
             },
             parse(token, stack) {
-                Twig.expression.operator.parse(token.value, stack);
+                Twig.expression.operator.parse(token.value, stack, token);
             }
         },
         {
