@@ -683,6 +683,8 @@ module.exports = function (Twig) {
                 }
             } else if (typeof value === 'string') {
                 return value.slice(0, 1);
+            } else if (is('Number', value)) {
+                return value.toString().slice(0, 1);
             }
         },
 
