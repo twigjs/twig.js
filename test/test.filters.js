@@ -720,6 +720,16 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ \'abcde\'|first }}'});
             testTemplate.render().should.equal('a');
         });
+        it('should return the first digit of numbers', function () {
+            const singleDigitTemplate = twig({data: '{{ 1|first }}'});
+            singleDigitTemplate.render().should.equal('1');
+
+            const multiDigitTemplate = twig({data: '{{ 234|first }}'});
+            multiDigitTemplate.render().should.equal('2');
+
+            const floatTemplate = twig({data: '{{ 5.67|first }}'});
+            floatTemplate.render().should.equal('5');
+        });
     });
 
     describe('split ->', function () {
