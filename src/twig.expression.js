@@ -9,7 +9,7 @@ module.exports = function (Twig) {
     }
 
     function isSafeAccess(value) {
-        return (value ?? null) !== null;
+        return value !== null && value !== undefined;
     }
 
     function parseParams(state, params, context) {
@@ -961,8 +961,8 @@ module.exports = function (Twig) {
                     return;
                 }
 
-                if (object !== null && object !== undefined) {
-                    if (Object(object) === object && !(key in object) && state.template.options.strictVariables) {
+                if (Object(object) === object) {
+                    if (!(key in object) && state.template.options.strictVariables) {
                         const keys = Object.keys(object);
                         if (keys.length > 0) {
                             throw new Twig.Error('Key "' + key + '" for object with keys "' + keys.join(', ') + '" does not exist.');
@@ -1039,21 +1039,19 @@ module.exports = function (Twig) {
                             return;
                         }
 
-                        if (object !== null && object !== undefined) {
-                            if (Object(object) === object) {
-                                if (!(key in object) && state.template.options.strictVariables) {
-                                    const keys = Object.keys(object);
-                                    if (keys.length > 0) {
-                                        throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
-                                    } else {
-                                        throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
-                                    }
+                        if (Object(object) === object) {
+                            if (!(key in object) && state.template.options.strictVariables) {
+                                const keys = Object.keys(object);
+                                if (keys.length > 0) {
+                                    throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
+                                } else {
+                                    throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
                                 }
+                            }
 
-                                // Get the variable from the context
-                                if (key in object) {
-                                    value = object[key];
-                                }
+                            // Get the variable from the context
+                            if (key in object) {
+                                value = object[key];
                             }
                         }
 
