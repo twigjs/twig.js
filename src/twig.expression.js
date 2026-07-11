@@ -4,7 +4,7 @@
 module.exports = function (Twig) {
     'use strict';
 
-    function capitalize (value) {
+    function capitalize(value) {
         return value.slice(0, 1).toUpperCase() + value.slice(1);
     }
 
