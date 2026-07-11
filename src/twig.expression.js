@@ -962,13 +962,8 @@ module.exports = function (Twig) {
                 }
 
                 if (object !== null && object !== undefined) {
-                    const capitalizedKey = capitalize(key);
-                    const normalizedObject = Object(object);
-                    if (!(key in normalizedObject) &&
-                        !normalizedObject['get' + capitalizedKey] &&
-                        !normalizedObject['is' + capitalizedKey] &&
-                        state.template.options.strictVariables) {
-                        const keys = Object.keys(normalizedObject);
+                    if (Object(object) === object && !(key in object) && state.template.options.strictVariables) {
+                        const keys = Object.keys(object);
                         if (keys.length > 0) {
                             throw new Twig.Error('Key "' + key + '" for object with keys "' + keys.join(', ') + '" does not exist.');
                         } else {
@@ -1028,7 +1023,7 @@ module.exports = function (Twig) {
                 const state = this;
                 let params = null;
                 let object;
-                let value;
+                let value = null;
 
                 return parseParams(state, token.params, context)
                     .then(parameters => {
@@ -1045,24 +1040,21 @@ module.exports = function (Twig) {
                         }
 
                         if (object !== null && object !== undefined) {
-                            const normalizedObject = Object(object);
-                            if (!(key in normalizedObject) && state.template.options.strictVariables) {
-                                const keys = Object.keys(normalizedObject);
-                                if (keys.length > 0) {
-                                    throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
-                                } else {
-                                    throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
+                            if (Object(object) === object) {
+                                if (!(key in object) && state.template.options.strictVariables) {
+                                    const keys = Object.keys(object);
+                                    if (keys.length > 0) {
+                                        throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
+                                    } else {
+                                        throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
+                                    }
+                                }
+
+                                // Get the variable from the context
+                                if (key in object) {
+                                    value = object[key];
                                 }
                             }
-
-                            // Get the variable from the context
-                            if (key in normalizedObject) {
-                                value = normalizedObject[key];
-                            } else {
-                                value = null;
-                            }
-                        } else {
-                            value = null;
                         }
 
                         // When resolving an expression, we need to pass nextToken in case the expression is a function
