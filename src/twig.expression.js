@@ -962,7 +962,7 @@ module.exports = function (Twig) {
                 }
 
                 if (Object(object) === object) {
-                    if (!(key in object) && state.template.options.strictVariables) {
+                    if (!Object.hasOwn(object, key) && state.template.options.strictVariables) {
                         const keys = Object.keys(object);
                         if (keys.length > 0) {
                             throw new Twig.Error('Key "' + key + '" for object with keys "' + keys.join(', ') + '" does not exist.');
@@ -1023,7 +1023,7 @@ module.exports = function (Twig) {
                 const state = this;
                 let params = null;
                 let object;
-                let value = null;
+                let value;
 
                 return parseParams(state, token.params, context)
                     .then(parameters => {
@@ -1040,7 +1040,7 @@ module.exports = function (Twig) {
                         }
 
                         if (Object(object) === object) {
-                            if (!(key in object) && state.template.options.strictVariables) {
+                            if (!Object.hasOwn(object, key) && state.template.options.strictVariables) {
                                 const keys = Object.keys(object);
                                 if (keys.length > 0) {
                                     throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
