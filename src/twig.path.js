@@ -62,6 +62,9 @@ module.exports = function (Twig) {
         const newPath = [];
         let file = _file || '';
         let val;
+        // Only filesystem templates are clamped: for URLs and custom loaders a
+        // leading '..' is not a filesystem escape and existing behaviour is kept.
+        let isFsTemplate = false;
 
         if (template.url) {
             if (typeof template.base === 'undefined') {
@@ -71,6 +74,7 @@ module.exports = function (Twig) {
                 base = template.base.replace(/([^/])$/, '$1/');
             }
         } else if (template.path) {
+            isFsTemplate = true;
             // Get the system-specific path separator
             const path = require('path');
             const sep = path.sep || sepChr;
@@ -110,7 +114,26 @@ module.exports = function (Twig) {
             }
         }
 
-        return newPath.join(sepChr);
+        const resolved = newPath.join(sepChr);
+
+        // When a template directory has been configured (`base`), refuse a
+        // target that resolves outside it. Relative includes *within* that
+        // directory (e.g. `{% include "../simple.twig" %}` from a subfolder)
+        // keep working; only paths that climb out of the configured root are
+        // rejected, matching the reference PHP implementation ("Looking
+        // outside the configured directories is forbidden"). Without this,
+        // enough `../` segments read arbitrary files off disk.
+        if (isFsTemplate && template.base !== undefined) {
+            const nodePath = require('path');
+            const rootDir = nodePath.resolve(template.base);
+            const target = nodePath.resolve(resolved);
+            const rel = nodePath.relative(rootDir, target);
+            if (rel.split(nodePath.sep)[0] === '..' || nodePath.isAbsolute(rel)) {
+                throw new Twig.Error('Template "' + (_file || '') + '" is outside the configured template directory.');
+            }
+        }
+
+        return resolved;
     };
 
     return Twig;
