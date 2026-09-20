@@ -139,5 +139,5 @@ Example syntax: <span v-pre>`{{ expression operator expression }}`</span>
 - Logic (`and`, `or`, `not`, `()`): Supported
 - Bitwise (`b-and`, `b-or`, `b-xor`): Supported
 - Comparisons (`==`, `!=`, `<`, `>`, `>=`, `<=`, `===`): Supported
-- Others (`..`, `|`, `~`, `.`, `[]`, `?:`): Supported
+- Others (`..`, `|`, `~`, `.`, `?.`, `[]`, `?:`): Supported
 - Null-coalescing (`??`): Supported
