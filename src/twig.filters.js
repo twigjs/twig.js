@@ -8,6 +8,46 @@ module.exports = function (Twig) {
         return obj !== undefined && obj !== null && clas === type;
     }
 
+    function asyncMerge(left, right, compareFn) {
+        const result = [];
+        let li = 0;
+        let ri = 0;
+
+        function step() {
+            if (li >= left.length) {
+                return Twig.Promise.resolve(result.concat(right.slice(ri)));
+            }
+            if (ri >= right.length) {
+                return Twig.Promise.resolve(result.concat(left.slice(li)));
+            }
+
+            return compareFn(left[li], right[ri]).then(cmp => {
+                if (cmp <= 0) {
+                    result.push(left[li++]);
+                } else {
+                    result.push(right[ri++]);
+                }
+                return step();
+            });
+        }
+
+        return step();
+    }
+
+    function asyncMergeSort(arr, compareFn) {
+        if (arr.length <= 1) {
+            return Twig.Promise.resolve(arr);
+        }
+
+        const mid = Math.floor(arr.length / 2);
+
+        return asyncMergeSort(arr.slice(0, mid), compareFn).then(left => {
+            return asyncMergeSort(arr.slice(mid), compareFn).then(right => {
+                return asyncMerge(left, right, compareFn);
+            });
+        });
+    }
+
     Twig.filters = {
         // String Filters
         upper(value) {
@@ -72,8 +112,29 @@ module.exports = function (Twig) {
                 return value;
             }
         },
-        sort(value) {
+        sort(value, params) {
             if (is('Array', value)) {
+                if (params && params[0] && params[0].type === Twig.expression.type.arrowFunction) {
+                    const state = this;
+                    const arrowFn = params[0];
+                    const copy = [...value];
+
+                    try {
+                        copy.sort((a, b) => {
+                            return Twig.async.potentiallyAsync(state, false, () => {
+                                return Twig.expression.evaluateArrow(arrowFn, [a, b], state);
+                            });
+                        });
+                        return copy;
+                    } catch (e) {
+                        if (e.message && e.message.includes('async')) {
+                            return asyncMergeSort([...value], (a, b) => {
+                                return Twig.expression.evaluateArrow(arrowFn, [a, b], state);
+                            });
+                        }
+                        throw e;
+                    }
+                }
                 return value.sort();
             }
 
@@ -121,6 +182,105 @@ module.exports = function (Twig) {
                 value._keys = sortedKeys;
                 return value;
             }
+        },
+        filter(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+
+            if (is('Array', value)) {
+                return Twig.Promise.all(
+                    value.map((v, k) => Twig.expression.evaluateArrow(arrowFn, [v, k], state))
+                ).then(results => value.filter((_, i) => Twig.lib.boolval(results[i])));
+            }
+
+            if (is('Object', value)) {
+                const keys = (value._keys || Object.keys(value)).filter(k => k !== '_keys');
+                return Twig.Promise.all(
+                    keys.map(k => Twig.expression.evaluateArrow(arrowFn, [value[k], k], state))
+                ).then(results => {
+                    const filtered = {};
+                    const filteredKeys = [];
+                    keys.forEach((k, i) => {
+                        if (Twig.lib.boolval(results[i])) {
+                            filtered[k] = value[k];
+                            filteredKeys.push(k);
+                        }
+                    });
+                    filtered._keys = filteredKeys;
+                    return filtered;
+                });
+            }
+
+            return value;
+        },
+        map(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+
+            if (is('Array', value)) {
+                return Twig.Promise.all(
+                    value.map((v, k) => Twig.expression.evaluateArrow(arrowFn, [v, k], state))
+                );
+            }
+
+            if (is('Object', value)) {
+                const keys = (value._keys || Object.keys(value)).filter(k => k !== '_keys');
+                return Twig.Promise.all(
+                    keys.map(k => Twig.expression.evaluateArrow(arrowFn, [value[k], k], state))
+                ).then(results => {
+                    const mapped = {};
+                    keys.forEach((k, i) => {
+                        mapped[k] = results[i];
+                    });
+                    mapped._keys = [...keys];
+                    return mapped;
+                });
+            }
+
+            return value;
+        },
+        reduce(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+            let carry = params.length > 1 ? params[1] : null;
+
+            const entries = is('Array', value)
+                ? value.map((v, k) => [k, v])
+                : (value._keys || Object.keys(value)).filter(k => k !== '_keys').map(k => [k, value[k]]);
+
+            return Twig.async.forEach(entries, ([k, v]) => {
+                return Twig.expression.evaluateArrow(arrowFn, [carry, v, k], state)
+                    .then(result => {
+                        carry = result;
+                    });
+            }).then(() => carry);
+        },
+        find(value, params) {
+            const state = this;
+            const arrowFn = params[0];
+            let found = null;
+            let didFind = false;
+
+            if (!is('Array', value) && !is('Object', value)) {
+                return value;
+            }
+
+            const entries = is('Array', value)
+                ? value.map((v, k) => [k, v])
+                : (value._keys || Object.keys(value)).filter(k => k !== '_keys').map(k => [k, value[k]]);
+
+            return Twig.async.forEach(entries, ([k, v]) => {
+                if (didFind) {
+                    return;
+                }
+                return Twig.expression.evaluateArrow(arrowFn, [v, k], state)
+                    .then(result => {
+                        if (Twig.lib.boolval(result)) {
+                            found = v;
+                            didFind = true;
+                        }
+                    });
+            }).then(() => found);
         },
         keys(value) {
             if (value === undefined || value === null) {

@@ -543,4 +543,47 @@ describe('Twig.js Expressions ->', function () {
             output.should.equal('ok!');
         });
     });
+
+    describe('Arrow / grouping edge cases ->', function () {
+        it('should evaluate parenthesized arithmetic (not confused with arrow =>)', function () {
+            const testTemplate = twig({data: '{{ (a + b) * c }}'});
+            testTemplate.render({a: 1, b: 2, c: 3}).should.equal('9');
+        });
+
+        it('should throw when arrow preprocess finds an empty body', function () {
+            (function () {
+                twig({
+                    data: '{{ v => }}',
+                    rethrow: true
+                }).render();
+            }).should.throw('Arrow function has empty body');
+        });
+
+        it('should throw when => is not valid after the preceding token (number)', function () {
+            (function () {
+                twig({
+                    data: '{{ 1 => 2 }}',
+                    rethrow: true
+                }).render();
+            }).should.throw(/Twig\.expression\.type\.arrowOperator cannot follow a Twig\.expression\.type\.number/);
+        });
+
+        it('should throw when filter arguments use => without a parameter list', function () {
+            (function () {
+                twig({
+                    data: '{{ [1]|filter(=> true) }}',
+                    rethrow: true
+                }).render();
+            }).should.throw(/Twig\.expression\.type\.arrowOperator cannot follow a Twig\.expression\.type\.parameter\.start/);
+        });
+
+        it('should throw when an arrow filter argument has no body after =>', function () {
+            (function () {
+                twig({
+                    data: '{{ [1]|filter(v => ) }}',
+                    rethrow: true
+                }).render();
+            }).should.throw(/Twig\.expression\.type\.(subexpression\.end|parameter\.end) cannot follow a Twig\.expression\.type\.arrowOperator/);
+        });
+    });
 });
