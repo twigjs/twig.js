@@ -91,6 +91,13 @@ describe('Twig.js Expressions ->', function () {
             });
         });
 
+        it('should bind ** tighter than other arithmetic and group it right to left', function () {
+            twig({data: '{{ 2 * 3 ** 2 }}'}).render().should.equal('18');
+            twig({data: '{{ 12 / 2 ** 2 }}'}).render().should.equal('3');
+            twig({data: '{{ 2 ** 3 * 2 }}'}).render().should.equal('16');
+            twig({data: '{{ 2 ** 2 ** 3 }}'}).render().should.equal('256');
+        });
+
         it('should concatanate values', function () {
             twig({data: '{{ "test" ~ a }}'}).render({a: 1234}).should.equal('test1234');
             twig({data: '{{ a ~ "test" ~ a }}'}).render({a: 1234}).should.equal('1234test1234');

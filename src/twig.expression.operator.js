@@ -115,8 +115,12 @@ module.exports = function (Twig) {
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
-            case '//':
             case '**':
+                token.precidence = 4;
+                token.associativity = Twig.expression.operator.rightToLeft;
+                break;
+
+            case '//':
             case '*':
             case '/':
             case '%':
