@@ -98,6 +98,24 @@ describe('Twig.js Expressions ->', function () {
             twig({data: '{{ 2 ** 2 ** 3 }}'}).render().should.equal('256');
         });
 
+        it('should follow the operator precedence of Twig 4', function () {
+            twig({data: '{{ (not 1 ** 0) ? "y" : "n" }}'}).render().should.equal('n');
+            twig({data: '{{ 1 ~ 2 + 30 }}'}).render().should.equal('132');
+            twig({data: '{{ 1 ~ 2 - 30 }}'}).render().should.equal('1-28');
+            twig({data: '{{ 2 in 1..3 ? "y" : "n" }}'}).render().should.equal('y');
+            twig({data: '{{ 5 not in 1..3 ? "y" : "n" }}'}).render().should.equal('y');
+            twig({data: '{{ 1 == 2 in [false] ? "y" : "n" }}'}).render().should.equal('y');
+            twig({data: '{{ "a" == "a" > 0 ? "y" : "n" }}'}).render().should.equal('y');
+            twig({data: '{{ 1 ?: 0 ? "y" : "n" }}'}).render().should.equal('y');
+            twig({data: '{{ 1 ? 0 ?: 5 : 9 }}'}).render().should.equal('5');
+        });
+
+        it('should group ?? and ?: right to left at the same level', function () {
+            twig({data: '{{ 0 ?? 1 ?: 2 }}'}).render().should.equal('0');
+            twig({data: '{{ 0 ?: 1 ?? 2 }}'}).render().should.equal('1');
+            twig({data: '{{ 0 ? "a" : 0 ? "b" : "c" }}'}).render().should.equal('c');
+        });
+
         it('should concatanate values', function () {
             twig({data: '{{ "test" ~ a }}'}).render({a: 1234}).should.equal('test1234');
             twig({data: '{{ a ~ "test" ~ a }}'}).render({a: 1234}).should.equal('1234test1234');
