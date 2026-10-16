@@ -288,7 +288,7 @@ module.exports = function (Twig) {
             for (i = 0; i < l; i += 1) {
                 thisStrPos = template.indexOf(Twig.token.strings[i], offset);
 
-                if (thisStrPos > 0 && thisStrPos < pos &&
+                if (thisStrPos >= 0 && thisStrPos < pos &&
                         (strPos === null || thisStrPos < strPos)) {
                     strPos = thisStrPos;
                     strFound = Twig.token.strings[i];

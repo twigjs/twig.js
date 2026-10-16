@@ -52,6 +52,14 @@ describe('Twig.js Core ->', function () {
         twig({data: '{{ \' "}} \' }}'}).render().should.equal(' "}} ');
     });
 
+    it('should parse strings that start directly after the tag opening', function () {
+        twig({data: '{{"It\'s"}}'}).render().should.equal('It\'s');
+        twig({data: '{{\'say "hi"\'}}'}).render().should.equal('say "hi"');
+        twig({data: '{{" }} "}}'}).render().should.equal(' }} ');
+        twig({data: '{{"a \\" it\'s"}}'}).render().should.equal('a " it\'s');
+        twig({data: '{{-"It\'s"-}}'}).render().should.equal('It\'s');
+    });
+
     it('should be able to parse whitespace control output tags', function () {
         twig({data: ' {{- "test" -}}'}).render().should.equal('test');
         twig({data: ' {{- "test" -}} '}).render().should.equal('test');
