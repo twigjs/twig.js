@@ -33,19 +33,19 @@ module.exports = function (Twig) {
     };
 
     /**
-     * Get the precidence and associativity of an operator. These follow the order of Twig 4.
+     * Get the precedence and associativity of an operator. These follow the order of Twig 4.
      * See https://github.com/twigphp/Twig/blob/b336924298d65a90f1016bc6ef77548651da23e0/doc/operators_precedence.rst
      * Twig counts upwards for tighter binding; here lower numbers bind tighter.
      */
     Twig.expression.operator.lookup = function (operator, token) {
         switch (operator) {
             case '**':
-                token.precidence = 1;
+                token.precedence = 1;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
             case 'not':
-                token.precidence = 2;
+                token.precedence = 2;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
@@ -53,24 +53,24 @@ module.exports = function (Twig) {
             case '*':
             case '/':
             case '%':
-                token.precidence = 3;
+                token.precedence = 3;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case '+':
             case '-':
-                token.precidence = 4;
+                token.precedence = 4;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             // String concatination
             case '~':
-                token.precidence = 5;
+                token.precedence = 5;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case '..':
-                token.precidence = 6;
+                token.precedence = 6;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
@@ -86,51 +86,51 @@ module.exports = function (Twig) {
             case 'matches':
             case 'starts with':
             case 'ends with':
-                token.precidence = 7;
+                token.precedence = 7;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'b-and':
-                token.precidence = 8;
+                token.precedence = 8;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'b-xor':
-                token.precidence = 9;
+                token.precedence = 9;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'b-or':
-                token.precidence = 10;
+                token.precedence = 10;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'and':
-                token.precidence = 11;
+                token.precedence = 11;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             case 'or':
-                token.precidence = 12;
+                token.precedence = 12;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
             // Elvis and null-coalescing operators
             case '?:':
             case '??':
-                token.precidence = 13;
+                token.precedence = 13;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
             // Ternary
             case '?':
             case ':':
-                token.precidence = 14;
+                token.precedence = 14;
                 token.associativity = Twig.expression.operator.rightToLeft;
                 break;
 
             case ',':
-                token.precidence = 15;
+                token.precedence = 15;
                 token.associativity = Twig.expression.operator.leftToRight;
                 break;
 
