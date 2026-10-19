@@ -313,7 +313,7 @@ module.exports = function (Twig) {
                             }
                         });
                 } else {
-                    Twig.expression.operator.parse(token.value, stack);
+                    Twig.expression.operator.parse(token.value, stack, state);
                 }
             }
         },
@@ -348,7 +348,7 @@ module.exports = function (Twig) {
                 stack.push(operator);
             },
             parse(token, stack) {
-                Twig.expression.operator.parse(token.value, stack);
+                Twig.expression.operator.parse(token.value, stack, this);
             }
         },
         {

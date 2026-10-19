@@ -412,10 +412,19 @@ describe('Twig.js Expressions ->', function () {
         it('should support strict variables in/containment functionality', function () {
             let testTemplate;
 
-            testTemplate = twig({data: '{{ 1 in ["1", "2", "3"] }}'});
+            testTemplate = twig({strict_variables: true, data: '{{ 1 in ["1", "2", "3"] }}'});
             testTemplate.render().should.equal(false.toString());
 
-            testTemplate = twig({data: '{{ "1" in ["1", "2", "3"] }}'});
+            testTemplate = twig({strict_variables: true, data: '{{ "1" in ["1", "2", "3"] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({strict_variables: false, data: '{{ 1 in ["1", "2", "3"] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({strict_variables: false, data: '{{ "1" in [1, 2, 3] }}'});
+            testTemplate.render().should.equal(true.toString());
+
+            testTemplate = twig({strict_variables: false, data: '{{ 1 in [1, 2, 3] }}'});
             testTemplate.render().should.equal(true.toString());
         });
 
