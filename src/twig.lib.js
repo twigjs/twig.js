@@ -16,6 +16,7 @@ module.exports = function (Twig) {
     const { strtotime } = require('locutus/php/datetime/strtotime');
     const { date } = require('locutus/php/datetime/date');
     const { boolval } = require('locutus/php/var/boolval');
+    const { in_array } = require('locutus/php/array/in_array');
 
     // Namespace for libraries
     Twig.lib = { };
@@ -29,6 +30,7 @@ module.exports = function (Twig) {
     Twig.lib.strtotime = strtotime;
     Twig.lib.date = date;
     Twig.lib.boolval = boolval;
+    Twig.lib.in_array = in_array;
 
     Twig.lib.is = function (type, obj) {
         if (typeof obj === 'undefined' || obj === null) {
