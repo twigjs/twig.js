@@ -19,7 +19,17 @@ module.exports = function (Twig) {
 
         if (b && Array.isArray(b)) {
             // Array
-            return JSON.stringify(b).includes(JSON.stringify(a));
+            if (Array.isArray(a)) {
+                let found = false
+                for (const elem of b) {
+                    if (a.every(item => Twig.lib.in_array(item, elem, true))) {
+                        found = true;
+                    }
+                }
+                return found;
+            } else {
+                return Twig.lib.in_array(a, b, true);
+            }
         }
 
         if (b.indexOf !== undefined) {
