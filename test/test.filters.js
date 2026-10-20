@@ -235,6 +235,499 @@ describe('Twig.js Filters ->', function () {
         });
     });
 
+    describe('filter (arrow) ->', function () {
+        it('should filter an array by predicate', function () {
+            return twig({
+                data: '{{ [1, 2, 3, 4, 5]|filter(v => v > 3)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('4,5');
+                });
+        });
+        it('should pass key as second argument for arrays', function () {
+            return twig({
+                data: '{{ ["a", "b", "c"]|filter((v, k) => k > 0)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('bc');
+                });
+        });
+        it('should filter an object by value', function () {
+            return twig({
+                data: '{{ {"a": 1, "b": 2}|filter((v, k) => v > 1)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2');
+                });
+        });
+        it('should use outer context inside the arrow body', function () {
+            return twig({
+                data: '{{ sizes|filter(v => v > min)|join(",") }}'
+            }).renderAsync({sizes: [38, 40, 42], min: 39})
+                .then(output => {
+                    output.should.equal('40,42');
+                });
+        });
+        it('should support nested parentheses in arrow bodies', function () {
+            return twig({
+                data: '{{ [1, 5, 2, 7, 8]|filter(v => (v > 3) and (v < 10))|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5,7,8');
+                });
+        });
+        it('should support slice/first-char checks in arrow bodies', function () {
+            return twig({
+                data: '{{ ["abc", "bcd", "acd"]|filter(v => v|slice(0, 1) == "a")|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('abc,acd');
+                });
+        });
+        it('should yield empty output when no elements pass the predicate', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|filter(v => v > 10)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should handle empty input array', function () {
+            return twig({
+                data: '{{ []|filter(v => v)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should support single-param parentheses form', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|filter((v) => v > 1)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,3');
+                });
+        });
+        it('should support the is test inside arrows', function () {
+            return twig({
+                data: '{% for v in [1, 2, 3, 4, 5]|filter(v => v is odd) %}{{ v }}{% endfor %}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('135');
+                });
+        });
+        it('should support iterating filtered objects in for loops', function () {
+            return twig({
+                data: '{% for k, v in {"a": 1, "b": 40}|filter(v => v > 38) %}{{ k }}={{ v }} {% endfor %}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('b=40 ');
+                });
+        });
+        it('should run async filter inside arrow bodies (renderAsync)', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [1, 2, 3]|filter(v => v|asyncDouble > 3)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,3');
+                });
+        });
+        it('should pass through a scalar string when the value is not an array or plain object', function () {
+            return twig({
+                data: '{{ "ab"|filter(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('ab');
+                });
+        });
+        it('should reject when an arrow body references a missing variable and strict_variables is true', function () {
+            return twig({
+                data: '{{ [1]|filter(v => v > missingVar) }}',
+                rethrow: true,
+                strict_variables: true
+            }).renderAsync()
+                .then(() => {
+                    throw new Error('should have rejected');
+                }, err => {
+                    err.message.should.equal('Variable "missingVar" does not exist.');
+                });
+        });
+    });
+
+    describe('map (arrow) ->', function () {
+        it('should map array values', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|map(v => v * 2)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4,6');
+                });
+        });
+        it('should pass key as second argument for arrays', function () {
+            return twig({
+                data: '{{ ["a", "b"]|map((v, k) => v ~ k)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('a0b1');
+                });
+        });
+        it('should map object values preserving keys', function () {
+            return twig({
+                data: '{{ {"x": 1, "y": 2}|map((v, k) => v ~ k)|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1x2y');
+                });
+        });
+        it('should use outer context inside the arrow body', function () {
+            return twig({
+                data: '{{ nums|map(v => v + offset)|join(",") }}'
+            }).renderAsync({nums: [10, 20], offset: 5})
+                .then(output => {
+                    output.should.equal('15,25');
+                });
+        });
+        it('should support ternary in arrow bodies', function () {
+            return twig({
+                data: '{{ [-1, 2, 0]|map(v => v > 0 ? "yes" : "no")|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('no,yes,no');
+                });
+        });
+        it('should support nested filters in arrow bodies', function () {
+            return twig({
+                data: '{{ ["a", "b"]|map(v => v|upper)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('A,B');
+                });
+        });
+        it('should support nested arrows (inner filter uses outer param)', function () {
+            return twig({
+                data: '{{ [2, 3]|map(v => [1, 2, 3]|filter(x => x > v)|join(","))|join("|") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('3|');
+                });
+        });
+        it('should let arrow parameters shadow outer context names', function () {
+            return twig({
+                data: '{% set v = "outer" %}{{ [1]|map(v => v * 2) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2');
+                });
+        });
+        it('should compile arrow map in {% set %} expressions and join the bound variable', function () {
+            return twig({
+                data: '{% set mapped = [1, 2]|map(v => v * 2) %}{{ mapped|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4');
+                });
+        });
+        it('should format keys in join output (0:a style)', function () {
+            return twig({
+                data: '{{ ["a", "b"]|map((v, k) => k ~ ":" ~ v)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('0:a,1:b');
+                });
+        });
+        it('should map with async filter in arrow body', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [1, 2, 3]|map(v => v|asyncDouble)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4,6');
+                });
+        });
+        it('should pass through a number when the value is not an array or plain object', function () {
+            return twig({
+                data: '{{ 5|map(v => v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5');
+                });
+        });
+    });
+
+    describe('reduce (arrow) ->', function () {
+        it('should reduce an array with an initial value', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|reduce((c, v) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('6');
+                });
+        });
+        it('should pass key as third argument for arrays', function () {
+            return twig({
+                data: '{{ [10, 100]|reduce((c, v, k) => c + v * k, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('100');
+                });
+        });
+        it('should reduce an object', function () {
+            return twig({
+                data: '{{ {"a": 1, "b": 2}|reduce((c, v, k) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('3');
+                });
+        });
+        it('should default carry to null when no initial is passed', function () {
+            return twig({
+                data: '{{ [1, 2]|reduce((c, v) => (c ?? 0) + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('3');
+                });
+        });
+        it('should render NaN when naive addition is used without an initial value because null plus a number yields NaN', function () {
+            return twig({
+                data: '{{ [1, 2, 3]|reduce((c, v) => c + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('NaN');
+                });
+        });
+        it('should support string concatenation with initial empty string', function () {
+            return twig({
+                data: '{{ ["a", "b", "c"]|reduce((carry, v) => carry ~ v, "") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('abc');
+                });
+        });
+        it('should pass null as carry on the first iteration when no initial value is given', function () {
+            return twig({
+                data: '{{ [1]|reduce((carry, v) => carry is null) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('true');
+                });
+        });
+        it('should return the initial value when reducing an empty array', function () {
+            return twig({
+                data: '{{ []|reduce((c, v) => c + v, 10) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('10');
+                });
+        });
+        it('should leave carry as null when reducing an empty array with no initial value', function () {
+            return twig({
+                data: '{{ []|reduce((c, v) => c + v) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should reduce a single-element array with an initial value', function () {
+            return twig({
+                data: '{{ [42]|reduce((c, v) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('42');
+                });
+        });
+        it('should leave the initial carry unchanged for a number primitive (no enumerable keys, unlike filter/map)', function () {
+            return twig({
+                data: '{{ 5|reduce((c, v) => c + v, 0) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('0');
+                });
+        });
+        it('should iterate string primitives by index because Object.keys exposes string characters', function () {
+            return twig({
+                data: '{{ "ab"|reduce((carry, v) => carry ~ v, "") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('ab');
+                });
+        });
+    });
+
+    describe('sort (arrow) ->', function () {
+        it('should sort an array with a sync arrow comparator', function () {
+            return twig({
+                data: '{{ [3, 1, 2]|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should join to an empty string when sorting an empty array with an arrow comparator', function () {
+            return twig({
+                data: '{{ []|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should not mutate the original array', function () {
+            return twig({
+                data: '{% set arr = [2, 1] %}{{ arr|sort((a, b) => a - b)|join }}{{ arr|join }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1221');
+                });
+        });
+        it('should sort with an arrow that uses async function in renderAsync', function () {
+            Twig.extendFunction('asyncDoubleSort', x => Twig.Promise.resolve(x * 2));
+            return twig({
+                data: '{{ [2, 1, 3]|sort((a, b) => asyncDoubleSort(a) - asyncDoubleSort(b))|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should keep default sort without arrow (regression)', function () {
+            return twig({
+                data: '{{ [3, 1, 2]|sort|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should sort with async filter in comparator (merge-sort path)', function () {
+            Twig.extendFilter('asyncDouble', v => Twig.Promise.resolve(v * 2));
+            return twig({
+                data: '{{ [3, 1, 2]|sort((a, b) => a|asyncDouble - b|asyncDouble)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should sort arrays with duplicate values using a numeric comparator', function () {
+            return twig({
+                data: '{{ [2, 1, 1, 3]|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,1,2,3');
+                });
+        });
+        it('should sort an array of objects by a numeric field using an arrow comparator', function () {
+            return twig({
+                data: '{{ [{"score": 3}, {"score": 1}, {"score": 2}]|sort((a, b) => a.score - b.score)|map(o => o.score)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+    });
+
+    describe('find (arrow) ->', function () {
+        it('should return the first matching value in an array', function () {
+            return twig({
+                data: '{{ [1, 5, 2, 7]|find(v => v > 3) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5');
+                });
+        });
+        it('should return the first match by key for arrays', function () {
+            return twig({
+                data: '{{ ["x", "y", "z"]|find((v, k) => k >= 2) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('z');
+                });
+        });
+        it('should return the first matching value in an object', function () {
+            return twig({
+                data: '{{ {"a": 1, "b": 5, "c": 2}|find((v, k) => v > 3) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('5');
+                });
+        });
+        it('should return nothing when no element matches', function () {
+            return twig({
+                data: '{{ [1, 2]|find(v => v > 9) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should render an empty string when the array is empty', function () {
+            return twig({
+                data: '{{ []|find(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should render an empty string when the object is empty', function () {
+            return twig({
+                data: '{{ {}|find(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('');
+                });
+        });
+        it('should pass through a scalar string when the value is not an array or plain object', function () {
+            return twig({
+                data: '{{ "x"|find(v => true) }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('x');
+                });
+        });
+    });
+
+    describe('arrow filters — integration ->', function () {
+        it('should support parenthesized filter arguments beside arrows', function () {
+            return twig({
+                data: '{{ items|slice(0, (n - 1))|join(",") }}'
+            }).renderAsync({items: [1, 2, 3, 4, 5], n: 4})
+                .then(output => {
+                    output.should.equal('1,2,3');
+                });
+        });
+        it('should chain filter, map, sort, and join', function () {
+            return twig({
+                data: '{{ [5, 1, 4, 2, 3]|filter(v => v > 0)|map(v => v * 2)|sort((a, b) => a - b)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('2,4,6,8,10');
+                });
+        });
+        it('should throw when sync render uses an async filter inside an arrow body', function () {
+            Twig.extendFilter('asyncDoubleNative', v => Promise.resolve(v * 2));
+            try {
+                twig({
+                    data: '{{ [1]|filter(v => v|asyncDoubleNative > 0) }}'
+                }).render();
+                throw new Error('should have thrown an error.');
+            } catch (error) {
+                error.message.should.equal('You are using Twig.js in sync mode in combination with async extensions.');
+            }
+        });
+        it('should render synchronously when a filter returns Twig.Promise inside an arrow body, unlike native Promise', function () {
+            Twig.extendFilter('asyncTwigPromise', v => Twig.Promise.resolve(v * 2));
+            twig({
+                data: '{{ [1]|filter(v => v|asyncTwigPromise > 0) }}'
+            }).render().should.equal('1');
+        });
+        it('should chain two async filters used inside arrow bodies (renderAsync)', function () {
+            Twig.extendFilter('asyncAdd10', v => Twig.Promise.resolve(v + 10));
+            Twig.extendFilter('asyncMul3', v => Twig.Promise.resolve(v * 3));
+            return twig({
+                data: '{{ [1, 2]|map(v => v|asyncAdd10)|filter(v => v|asyncMul3 > 35)|join(",") }}'
+            }).renderAsync()
+                .then(output => {
+                    output.should.equal('12');
+                });
+        });
+    });
+
     // Other
     describe('default ->', function () {
         it('should not provide the default value if a key is defined and not empty', function () {
