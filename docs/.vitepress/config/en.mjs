@@ -1,5 +1,7 @@
 import { defineConfig } from "vitepress";
 
+import { version } from "../../../package.json" with { type: "json" };
+
 export const en = defineConfig({
   lang: "en-US",
   description: "JS port of the Twig templating language",
@@ -11,25 +13,24 @@ export const en = defineConfig({
       "/guide/": { base: "/guide/", items: sidebarGuide() },
       "/reference/": {
         base: "/reference/",
-        items: sidebarReference()
-      }
+        items: sidebarReference(),
+      },
     },
 
     editLink: {
-      pattern:
-        "https://github.com/twigjs/twig.js/edit/master/docs/:path",
-      text: "Edit this page on GitHub"
+      pattern: "https://github.com/twigjs/twig.js/edit/master/docs/:path",
+      text: "Edit this page on GitHub",
     },
 
     outline: {
-      level: "deep"
+      level: "deep",
     },
 
     footer: {
       message: "Docs released under the MIT License.",
-      copyright: `Copyright © ${new Date().getFullYear()} twig.js`
-    }
-  }
+      copyright: `Copyright © ${new Date().getFullYear()} twig.js`,
+    },
+  },
 });
 
 function nav() {
@@ -37,30 +38,28 @@ function nav() {
     {
       text: "Guide",
       link: "/guide/what-is-it",
-      activeMatch: "/guide/"
+      activeMatch: "/guide/",
     },
     {
       text: "Reference",
       link: "/reference/compiling-templates",
-      activeMatch: "/reference/"
+      activeMatch: "/reference/",
     },
     {
-      text: "1.7.1",
+      text: version,
       items: [
         {
           text: "Release Notes",
-          link:
-            "https://github.com/twigjs/twig.js/releases/tag/v1.17.1",
-          target: "_blank"
+          link: `https://github.com/twigjs/twig.js/releases/tag/v${version}`,
+          target: "_blank",
         },
         {
           text: "Contributing",
-          link:
-            "https://github.com/twigjs/twig.js/blob/master/.github/contributing.md",
-          target: "_blank"
-        }
-      ]
-    }
+          link: "https://github.com/twigjs/twig.js/blob/master/.github/contributing.md",
+          target: "_blank",
+        },
+      ],
+    },
   ];
 }
 
@@ -72,9 +71,9 @@ function sidebarGuide() {
         { text: "What is it?", link: "what-is-it" },
         { text: "Getting Started", link: "getting-started" },
         { text: "Using twig.js", link: "using-twigjs" },
-        { text: "Available Extensions", link: "available-extensions" }
-      ]
-    }
+        { text: "Available Extensions", link: "available-extensions" },
+      ],
+    },
   ];
 }
 
@@ -87,13 +86,13 @@ function sidebarReference() {
         { text: "Extending twig.js", link: "extending-twigjs" },
         {
           text: "Extending twig.js With Custom Tags",
-          link: "extending-twigjs-with-custom-tags"
+          link: "extending-twigjs-with-custom-tags",
         },
         {
           text: "Implementation Notes",
-          link: "implementation-notes"
-        }
-      ]
-    }
+          link: "implementation-notes",
+        },
+      ],
+    },
   ];
 }
