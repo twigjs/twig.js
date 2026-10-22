@@ -142,6 +142,22 @@ describe('Twig.js Expression -> Optional Chaining (?.) ->', function () {
         });
     });
 
+    describe('Method calls ->', function () {
+        it('should work with array methods', function () {
+            const testTemplate = twig({data: '{{ a?.slice(0, 1) }}'});
+            const output = testTemplate.render({a: ['first', 'second', 'third']});
+
+            output.should.equal('first');
+        });
+
+        it('should return undefined when array method called on null', function () {
+            const testTemplate = twig({data: '{{ a?.slice(0, 2) }}'});
+            const output = testTemplate.render({a: null});
+
+            output.should.equal('');
+        });
+    });
+
     describe('Filters after optional chaining ->', function () {
         it('should apply filter when object exists', function () {
             const testTemplate = twig({data: '{{ a?.value | length }}'});

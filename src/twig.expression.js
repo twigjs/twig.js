@@ -958,6 +958,11 @@ module.exports = function (Twig) {
 
                 if (token.optional && !isSafeAccess(object)) {
                     stack.push(undefined);
+                    // Swallow a trailing function-call argument list so its evaluated
+                    // arguments don't overwrite the short-circuited undefined.
+                    if (nextToken && nextToken.type === Twig.expression.type.parameter.end) {
+                        nextToken.cleanup = true;
+                    }
                     return;
                 }
 
@@ -1035,6 +1040,11 @@ module.exports = function (Twig) {
                         // For optional chaining, short-circuit on null/undefined
                         if (token.optional && !isSafeAccess(object)) {
                             stack.push(undefined);
+                            // Swallow a trailing function-call argument list so its evaluated
+                            // arguments don't overwrite the short-circuited undefined.
+                            if (nextToken && nextToken.type === Twig.expression.type.parameter.end) {
+                                nextToken.cleanup = true;
+                            }
                             return;
                         }
 
