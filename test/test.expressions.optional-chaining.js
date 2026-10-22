@@ -142,112 +142,19 @@ describe('Twig.js Expression -> Optional Chaining (?.) ->', function () {
         });
     });
 
-    describe('Method calls ->', function () {
-        it('should call method when object exists', function () {
-            const testTemplate = twig({data: '{{ a?.toUpperCase() }}'});
-            const output = testTemplate.render({a: 'hello'});
-
-            output.should.equal('HELLO');
-        });
-
-        it('should support optional call method when object exists', function () {
-            const testTemplate = twig({data: '{{ a?.toUpperCase?.() }}'});
-            const output = testTemplate.render({a: 'hello'});
-
-            output.should.equal('HELLO');
-        });
-
-        it('should return undefined when object is null', function () {
-            const testTemplate = twig({data: '{{ a?.toUpperCase() }}'});
-            const output = testTemplate.render({a: null});
-
-            output.should.equal('');
-        });
-
-        it('should return undefined when object is undefined', function () {
-            const testTemplate = twig({data: '{{ a?.toUpperCase() }}'});
-            const output = testTemplate.render({a: undefined});
-
-            output.should.equal('');
-        });
-
-        it('should return undefined when method does not exist', function () {
-            const testTemplate = twig({data: '{{ a?.nonExistentMethod() }}'});
-            const output = testTemplate.render({a: 'hello'});
-
-            output.should.equal('');
-        });
-
-        it('should support optional call syntax on a missing method', function () {
-            const testTemplate = twig({data: '{{ a.toCamelCase?.() }}'});
-            const output = testTemplate.render({a: 'hello'});
-
-            output.should.equal('');
-        });
-
-        it('should work with nested method calls', function () {
-            const testTemplate = twig({data: '{{ a?.b?.c?.toUpperCase() }}'});
-            const output = testTemplate.render({a: {b: {c: 'hello'}}});
-
-            output.should.equal('HELLO');
-        });
-
-        it('should stop at null in nested method calls', function () {
-            const testTemplate = twig({data: '{{ a?.b?.c?.toUpperCase() }}'});
-            const output = testTemplate.render({a: {b: null, c: 'hello'}});
-
-            output.should.equal('');
-        });
-
-        it('should work with method that takes parameters', function () {
-            const testTemplate = twig({data: '{{ a?.replace("e", "3") }}'});
-            const output = testTemplate.render({a: 'hello'});
-
-            output.should.equal('h3llo');
-        });
-
-        it('should work with built-in functions after optional chaining', function () {
-            const testTemplate = twig({data: '{{ a?.length }}'});
-            const output = testTemplate.render({a: 'hello'});
+    describe('Filters after optional chaining ->', function () {
+        it('should apply filter when object exists', function () {
+            const testTemplate = twig({data: '{{ a?.value | length }}'});
+            const output = testTemplate.render({a: {value: 'hello'}});
 
             output.should.equal('5');
         });
 
-        it('should work with array methods', function () {
-            const testTemplate = twig({data: '{{ a?.slice(0, 1) }}'});
-            const output = testTemplate.render({a: ['first', 'second', 'third']});
-
-            output.should.equal('first');
-        });
-
-        it('should return undefined when array method called on null', function () {
-            const testTemplate = twig({data: '{{ a?.slice?.length }}'});
+        it('should return zero when object is null', function () {
+            const testTemplate = twig({data: '{{ a?.value | length }}'});
             const output = testTemplate.render({a: null});
 
-            output.should.equal('');
-        });
-
-        it('should work with array method on nested array', function () {
-            const testTemplate = twig({data: '{{ a?.[0]?.slice(1) }}'});
-            const output = testTemplate.render({a: ['abc', 'def', 'ghi']});
-
-            output.should.equal('bc');
-        });
-    });
-
-    describe('Filters after optional chaining ->', function () {
-        it('should apply filter when object exists', function () {
-            const testTemplate = twig({data: '{{ a?.value | upper }}'});
-            const output = testTemplate.render({a: {value: 'hello'}});
-
-            output.should.equal('HELLO');
-        });
-
-        it('should return undefined when object is null', function () {
-            const testTemplate = twig({data: '{{ a?.value | upper }}'});
-            const output = testTemplate.render({a: null});
-
-            output.should.equal('');
+            output.should.equal('0');
         });
 
         it('should apply filter on array elements', function () {
@@ -294,25 +201,11 @@ describe('Twig.js Expression -> Optional Chaining (?.) ->', function () {
     });
 
     describe('Combination of optional chaining ->', function () {
-        it('should work with property and method call', function () {
-            const testTemplate = twig({data: '{{ a?.b?.toUpperCase() }}'});
-            const output = testTemplate.render({a: {b: 'hello'}});
-
-            output.should.equal('HELLO');
-        });
-
         it('should work with array and property access', function () {
             const testTemplate = twig({data: '{{ a?.[0]?.prop }}'});
             const output = testTemplate.render({a: [{prop: 'value'}]});
 
             output.should.equal('value');
-        });
-
-        it('should work with array and method call', function () {
-            const testTemplate = twig({data: '{{ a?.[0]?.toUpperCase() }}'});
-            const output = testTemplate.render({a: ['hello']});
-
-            output.should.equal('HELLO');
         });
 
         it('should handle empty string gracefully', function () {

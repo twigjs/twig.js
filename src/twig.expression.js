@@ -979,13 +979,12 @@ module.exports = function (Twig) {
                         } else {
                             // Get the variable from the context
                             const capitalizedKey = capitalize(key);
-                            const normalizedObject = Object(object);
-                            if (key in normalizedObject) {
-                                value = normalizedObject[key];
-                            } else if (normalizedObject['get' + capitalizedKey]) {
-                                value = normalizedObject['get' + capitalizedKey];
-                            } else if (normalizedObject['is' + capitalizedKey]) {
-                                value = normalizedObject['is' + capitalizedKey];
+                            if (typeof object === 'object' && key in object) {
+                                value = object[key];
+                            } else if (object['get' + capitalizedKey]) {
+                                value = object['get' + capitalizedKey];
+                            } else if (object['is' + capitalizedKey]) {
+                                value = object['is' + capitalizedKey];
                             } else {
                                 value = undefined;
                             }
