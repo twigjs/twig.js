@@ -4,6 +4,14 @@
 module.exports = function (Twig) {
     'use strict';
 
+    function capitalize(value) {
+        return value.slice(0, 1).toUpperCase() + value.slice(1);
+    }
+
+    function isSafeAccess(value) {
+        return value !== null && value !== undefined;
+    }
+
     function parseParams(state, params, context) {
         if (params) {
             return Twig.expression.parseAsync.call(state, params, context);
@@ -223,7 +231,7 @@ module.exports = function (Twig) {
             type: Twig.expression.type.operator.binary,
             // Match any of ??, ?:, +, *, /, -, %, ~, <=>, <, <=, >, >=, !=, ==, **, ?, :, and, b-and, or, b-or, b-xor, in, not in
             // and, or, in, not in, matches, starts with, ends with can be followed by a space or parenthesis
-            regex: /(^\?\?|^\?\s*:|^(b-and)|^(b-or)|^(b-xor)|^[+\-~%?]|^(<=>)|^[:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[(|\s+]|^(or)[(|\s+]|^(in)[(|\s+]|^(not in)[(|\s+]|^(matches)|^(starts with)|^(ends with)|^\.\.)/,
+            regex: /(^\?\?|^\?\s*:|^(b-and)|^(b-or)|^(b-xor)|^[+\-~%]|^\?(?![.\[])|^(<=>)|^[:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[(|\s+]|^(or)[(|\s+]|^(in)[(|\s+]|^(not in)[(|\s+]|^(matches)|^(starts with)|^(ends with)|^\.\.)/,
             next: Twig.expression.set.expressions,
             transform(match, tokens) {
                 switch (match[0]) {
@@ -497,14 +505,20 @@ module.exports = function (Twig) {
              * Match a parameter set start.
              */
             type: Twig.expression.type.parameter.start,
-            regex: /^\(/,
+            regex: /^(\?\.)?\(/,
             next: Twig.expression.set.expressions.concat([Twig.expression.type.parameter.end]),
             validate(match, tokens) {
                 const lastToken = tokens[tokens.length - 1];
                 // We can't use the regex to test if we follow a space because expression is trimmed
                 return lastToken && (!Twig.expression.reservedWords.includes(lastToken.value.trim()));
             },
-            compile: Twig.expression.fn.compile.pushBoth,
+            compile(token, stack, output) {
+                token.optionalCall = token.match[1] === '?.';
+                token.value = '(';
+                delete token.match;
+                output.push(token);
+                stack.push(token);
+            },
             parse: Twig.expression.fn.parse.push
         },
         {
@@ -532,6 +546,7 @@ module.exports = function (Twig) {
                     token = output.pop();
                 }
 
+                endToken.optionalCall = token.optionalCall;
                 paramStack.unshift(token);
 
                 // Get the token preceding the parameters
@@ -829,8 +844,7 @@ module.exports = function (Twig) {
                 return '(';
             },
             compile(token, stack, output) {
-                const fn = token.match[1];
-                token.fn = fn;
+                token.fn = token.match[1];
                 // Cleanup token
                 delete token.match;
                 delete token.value;
@@ -881,14 +895,19 @@ module.exports = function (Twig) {
             validate(match) {
                 return (!Twig.expression.reservedWords.includes(match[0]));
             },
-            parse(token, stack, context) {
+            parse(token, stack, context, nextToken) {
                 const state = this;
 
                 // Get the variable from the context
                 return Twig.expression.resolveAsync.call(state, context[token.value], context)
                     .then(value => {
+                        const isOptionalChain = nextToken &&
+                            (nextToken.type === Twig.expression.type.key.period ||
+                             nextToken.type === Twig.expression.type.key.brackets) &&
+                            nextToken.optional;
+
                         if (state.template.options.strictVariables && value === undefined) {
-                            let skipException = false;
+                            let skipException = isOptionalChain;
                             if (token.peek) {
                                 const {peek} = token;
                                 if (peek.type === Twig.expression.type.filter && peek.value === 'default') {
@@ -909,18 +928,23 @@ module.exports = function (Twig) {
                             }
                         }
 
-                        stack.push(value);
+                        if (isOptionalChain && !isSafeAccess(value)) {
+                            stack.push(undefined);
+                        } else {
+                            stack.push(value);
+                        }
                     });
             }
         },
         {
             type: Twig.expression.type.key.period,
-            regex: /^\.(\w+)/,
+            regex: /^(\?\.|\.)(\w+)/,
             next: Twig.expression.set.operationsExtended.concat([
                 Twig.expression.type.parameter.start
             ]),
             compile(token, stack, output) {
-                token.key = token.match[1];
+                token.optional = token.match[1] === '?.';
+                token.key = token.match[2];
                 delete token.match;
                 delete token.value;
 
@@ -932,12 +956,19 @@ module.exports = function (Twig) {
                 const object = stack.pop();
                 let value;
 
-                if (object && !Object.prototype.hasOwnProperty.call(object, key) && state.template.options.strictVariables) {
-                    const keys = Object.keys(object);
-                    if (keys.length > 0) {
-                        throw new Twig.Error('Key "' + key + '" for object with keys "' + Object.keys(object).join(', ') + '" does not exist.');
-                    } else {
-                        throw new Twig.Error('Key "' + key + '" does not exist as the object is empty.');
+                if (token.optional && !isSafeAccess(object)) {
+                    stack.push(undefined);
+                    return;
+                }
+
+                if (Object(object) === object) {
+                    if (!Object.hasOwn(object, key) && state.template.options.strictVariables) {
+                        const keys = Object.keys(object);
+                        if (keys.length > 0) {
+                            throw new Twig.Error('Key "' + key + '" for object with keys "' + keys.join(', ') + '" does not exist.');
+                        } else {
+                            throw new Twig.Error('Key "' + key + '" does not exist as the object is empty.');
+                        }
                     }
                 }
 
@@ -946,23 +977,21 @@ module.exports = function (Twig) {
                         if (object === null || object === undefined) {
                             value = undefined;
                         } else {
-                            const capitalize = function (value) {
-                                return value.slice(0, 1).toUpperCase() + value.slice(1);
-                            };
-
                             // Get the variable from the context
-                            if (typeof object === 'object' && key in object) {
-                                value = object[key];
-                            } else if (object['get' + capitalize(key)]) {
-                                value = object['get' + capitalize(key)];
-                            } else if (object['is' + capitalize(key)]) {
-                                value = object['is' + capitalize(key)];
+                            const capitalizedKey = capitalize(key);
+                            const normalizedObject = Object(object);
+                            if (key in normalizedObject) {
+                                value = normalizedObject[key];
+                            } else if (normalizedObject['get' + capitalizedKey]) {
+                                value = normalizedObject['get' + capitalizedKey];
+                            } else if (normalizedObject['is' + capitalizedKey]) {
+                                value = normalizedObject['is' + capitalizedKey];
                             } else {
                                 value = undefined;
                             }
                         }
 
-                        // When resolving an expression we need to pass nextToken in case the expression is a function
+                        // When resolving an expression, we need to pass nextToken in case the expression is a function
                         return Twig.expression.resolveAsync.call(state, value, context, params, nextToken, object);
                     })
                     .then(result => {
@@ -972,12 +1001,13 @@ module.exports = function (Twig) {
         },
         {
             type: Twig.expression.type.key.brackets,
-            regex: /^\[([^\]]*)\]/,
+            regex: /^(\?\.)?\[([^\]]*)]/,
             next: Twig.expression.set.operationsExtended.concat([
                 Twig.expression.type.parameter.start
             ]),
             compile(token, stack, output) {
-                const match = token.match[1];
+                const match = token.match[2];
+                token.optional = token.match[1] === '?.';
                 delete token.value;
                 delete token.match;
 
@@ -1003,25 +1033,29 @@ module.exports = function (Twig) {
                     .then(key => {
                         object = stack.pop();
 
-                        if (object && !Object.prototype.hasOwnProperty.call(object, key) && state.template.options.strictVariables) {
-                            const keys = Object.keys(object);
-                            if (keys.length > 0) {
-                                throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
-                            } else {
-                                throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
+                        // For optional chaining, short-circuit on null/undefined
+                        if (token.optional && !isSafeAccess(object)) {
+                            stack.push(undefined);
+                            return;
+                        }
+
+                        if (Object(object) === object) {
+                            if (!Object.hasOwn(object, key) && state.template.options.strictVariables) {
+                                const keys = Object.keys(object);
+                                if (keys.length > 0) {
+                                    throw new Twig.Error('Key "' + key + '" for array with keys "' + keys.join(', ') + '" does not exist.');
+                                } else {
+                                    throw new Twig.Error('Key "' + key + '" does not exist as the array is empty.');
+                                }
                             }
-                        } else if (object === null || object === undefined) {
-                            return null;
+
+                            // Get the variable from the context
+                            if (key in object) {
+                                value = object[key];
+                            }
                         }
 
-                        // Get the variable from the context
-                        if (typeof object === 'object' && key in object) {
-                            value = object[key];
-                        } else {
-                            value = null;
-                        }
-
-                        // When resolving an expression we need to pass nextToken in case the expression is a function
+                        // When resolving an expression, we need to pass nextToken in case the expression is a function
                         return Twig.expression.resolveAsync.call(state, value, object, params, nextToken);
                     })
                     .then(result => {
@@ -1087,6 +1121,14 @@ module.exports = function (Twig) {
 
         if (typeof value !== 'function') {
             return Twig.Promise.resolve(value);
+        }
+
+        // Handle optional chaining for method calls
+        if (nextToken && nextToken.type === Twig.expression.type.parameter.end && nextToken.optionalCall) {
+            // For optional calls, only return undefined if the object is null/undefined
+            if (!isSafeAccess(object)) {
+                return Twig.Promise.resolve(undefined);
+            }
         }
 
         let promise = Twig.Promise.resolve(params);
