@@ -27,7 +27,7 @@
     "postversion": "git push origin master && git push origin master --tags",
     "pretest": "npm run build",
     "test": "mocha -r should",
-    "build": "node node/build.js",
+    "build": "webpack",
     "posttest": "npm run lint",
     "lint": "eslint"
   },
