@@ -26,6 +26,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ ({ a: "customer@example.com", b: { c: 123, d: [1, 2, 3] } })|url_encode }}'});
             testTemplate.render().should.equal('a=customer%40example.com&amp;b%5Bc%5D=123&amp;b%5Bd%5D%5B0%5D=1&amp;b%5Bd%5D%5B1%5D=2&amp;b%5Bd%5D%5B2%5D=3');
         });
+        it('should encode markup', function () {
+            const testTemplate = twig({data: '{{ "a b&c"|raw|url_encode }} {{ "d e"|raw|e("url") }}'});
+            testTemplate.render().should.equal('a%20b%26c d%20e');
+        });
     });
     describe('json_encode ->', function () {
         it('should encode strings to json', function () {
@@ -58,6 +62,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ test|json_encode }}'});
             const data = {a: new Date('2011-10-10')};
             testTemplate.render({test: data}).should.equal('{"a":"2011-10-10T00:00:00.000Z"}');
+        });
+        it('should encode markup as a string', function () {
+            const testTemplate = twig({data: '{{ "abc"|raw|json_encode }}'});
+            testTemplate.render().should.equal('"abc"');
         });
     });
 
@@ -436,6 +444,11 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ ""|striptags }}'});
             testTemplate.render().should.equal('');
         });
+
+        it('should remove tags from markup', function () {
+            const testTemplate = twig({data: '{{ "<b>hi</b>"|raw|striptags }}'});
+            testTemplate.render().should.equal('hi');
+        });
     });
 
     describe('escape ->', function () {
@@ -720,6 +733,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ \'abcde\'|first }}'});
             testTemplate.render().should.equal('a');
         });
+        it('should return first character in markup', function () {
+            const testTemplate = twig({data: '{{ "abcde"|raw|first }}'});
+            testTemplate.render().should.equal('a');
+        });
         it('should return the first digit of numbers', function () {
             const singleDigitTemplate = twig({data: '{{ 1|first }}'});
             singleDigitTemplate.render().should.equal('1');
@@ -781,6 +798,10 @@ describe('Twig.js Filters ->', function () {
     describe('last ->', function () {
         it('should return last character in string', function () {
             const testTemplate = twig({data: '{{ \'abcd\'|last }}'});
+            testTemplate.render().should.equal('d');
+        });
+        it('should return last character in markup', function () {
+            const testTemplate = twig({data: '{{ "abcd"|raw|last }}'});
             testTemplate.render().should.equal('d');
         });
         it('should return last item in array', function () {
