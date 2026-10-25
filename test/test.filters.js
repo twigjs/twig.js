@@ -71,6 +71,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|upper }}'});
             testTemplate.render().should.equal('');
         });
+        it('should convert markup to uppercase', function () {
+            const testTemplate = twig({data: '{{ "a<b"|e|upper }}{{ "c"|raw|upper }}'});
+            testTemplate.render().should.equal('A&LT;BC');
+        });
     });
     describe('lower ->', function () {
         it('should convert text to lowercase', function () {
@@ -80,6 +84,10 @@ describe('Twig.js Filters ->', function () {
         it('should handle undefined', function () {
             const testTemplate = twig({data: '{{ undef|lower }}'});
             testTemplate.render().should.equal('');
+        });
+        it('should convert markup to lowercase', function () {
+            const testTemplate = twig({data: '{{ "A<B"|e|lower }}'});
+            testTemplate.render().should.equal('a&lt;b');
         });
     });
     describe('capitalize ->', function () {
@@ -95,6 +103,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|capitalize }}'});
             testTemplate.render().should.equal('');
         });
+        it('should capitalize markup', function () {
+            const testTemplate = twig({data: '{{ "hello WORLD"|raw|capitalize }}'});
+            testTemplate.render().should.equal('Hello world');
+        });
     });
     describe('title ->', function () {
         it('should capitalize all the words in a string', function () {
@@ -109,6 +121,10 @@ describe('Twig.js Filters ->', function () {
             const testTemplate = twig({data: '{{ undef|title }}'});
             testTemplate.render().should.equal('');
         });
+        it('should capitalize all the words in markup', function () {
+            const testTemplate = twig({data: '{{ "hello world"|raw|title }}'});
+            testTemplate.render().should.equal('Hello World');
+        });
     });
 
     // String/Object/Array check
@@ -116,6 +132,10 @@ describe('Twig.js Filters ->', function () {
         it('should determine the length of a string', function () {
             const testTemplate = twig({data: '{{ "test"|length }}'});
             testTemplate.render().should.equal('4');
+        });
+        it('should determine the length of markup', function () {
+            const testTemplate = twig({data: '{{ "a<b"|e|length }}'});
+            testTemplate.render().should.equal('6');
         });
         it('should determine the length of an array', function () {
             const testTemplate = twig({data: '{{ [1,2,4,76,"tesrt"]|length }}'});

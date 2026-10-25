@@ -11,28 +11,28 @@ module.exports = function (Twig) {
     Twig.filters = {
         // String Filters
         upper(value) {
-            if (typeof value !== 'string') {
+            if (!is('String', value)) {
                 return value;
             }
 
             return value.toUpperCase();
         },
         lower(value) {
-            if (typeof value !== 'string') {
+            if (!is('String', value)) {
                 return value;
             }
 
             return value.toLowerCase();
         },
         capitalize(value) {
-            if (typeof value !== 'string') {
+            if (!is('String', value)) {
                 return value;
             }
 
             return value.slice(0, 1).toUpperCase() + value.toLowerCase().slice(1);
         },
         title(value) {
-            if (typeof value !== 'string') {
+            if (!is('String', value)) {
                 return value;
             }
 
@@ -41,7 +41,7 @@ module.exports = function (Twig) {
             });
         },
         length(value) {
-            if (Twig.lib.is('Array', value) || typeof value === 'string') {
+            if (Twig.lib.is('Array', value) || is('String', value)) {
                 return value.length;
             }
 
