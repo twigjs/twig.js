@@ -146,7 +146,7 @@ module.exports = function (Twig) {
                 return;
             }
 
-            if (Twig.lib.is('Object', value)) {
+            if (Twig.lib.is('Object', value) && !Twig.lib.is('String', value)) {
                 const serialize = function (obj, prefix) {
                     const result = [];
                     const keyset = obj._keys || Object.keys(obj);
@@ -240,7 +240,7 @@ module.exports = function (Twig) {
                 return '"' + value.toISOString() + '"';
             }
 
-            if (typeof value === 'object') {
+            if ((typeof value === 'object') && !is('String', value)) {
                 const keyset = value._keys || Object.keys(value);
                 const output = [];
 
@@ -398,7 +398,7 @@ module.exports = function (Twig) {
                 return;
             }
 
-            return Twig.lib.stripTags(value, allowed);
+            return Twig.lib.stripTags(is('String', value) ? value.toString() : value, allowed);
         },
 
         escape(value, params) {
@@ -681,7 +681,7 @@ module.exports = function (Twig) {
                 if ('_keys' in value) {
                     return value[value._keys[0]];
                 }
-            } else if (typeof value === 'string') {
+            } else if (is('String', value)) {
                 return value.slice(0, 1);
             } else if (is('Number', value)) {
                 return value.toString().slice(0, 1);
@@ -745,7 +745,7 @@ module.exports = function (Twig) {
             throw new Twig.Error('split filter expects value to be a string');
         },
         last(value) {
-            if (Twig.lib.is('Object', value)) {
+            if (Twig.lib.is('Object', value) && !Twig.lib.is('String', value)) {
                 let keys;
 
                 if (value._keys === undefined) {
