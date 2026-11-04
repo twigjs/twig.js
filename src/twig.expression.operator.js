@@ -12,9 +12,24 @@ module.exports = function (Twig) {
         rightToLeft: 'rightToLeft'
     };
 
-    const containment = function (a, b) {
+    const containment = function (a, b, strictVariables) {
         if (b === undefined || b === null) {
             return null;
+        }
+
+        if (b && Array.isArray(b)) {
+            // Array
+            if (Array.isArray(a)) {
+                let found = false
+                for (const elem of b) {
+                    if (a.every(item => Twig.lib.in_array(item, elem, strictVariables))) {
+                        found = true;
+                    }
+                }
+                return found;
+            } else {
+                return Twig.lib.in_array(a, b, strictVariables);
+            }
         }
 
         if (b.indexOf !== undefined) {
@@ -157,11 +172,17 @@ module.exports = function (Twig) {
      *
      * Returns the updated stack.
      */
-    Twig.expression.operator.parse = function (operator, stack) {
+    Twig.expression.operator.parse = function (operator, stack, state) {
         Twig.log.trace('Twig.expression.operator.parse: ', 'Handling ', operator);
         let a;
         let b;
         let c;
+        const strictVariables = Boolean(
+            state &&
+            state.template &&
+            state.template.options &&
+            state.template.options.strictVariables
+        );
 
         if (operator === '?') {
             c = stack.pop();
@@ -342,11 +363,11 @@ module.exports = function (Twig) {
                 break;
 
             case 'not in':
-                stack.push(!containment(a, b));
+                stack.push(!containment(a, b, strictVariables));
                 break;
 
             case 'in':
-                stack.push(containment(a, b));
+                stack.push(containment(a, b, strictVariables));
                 break;
 
             case 'matches':
