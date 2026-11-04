@@ -9,7 +9,6 @@ qtest
 .git
 .gitignore
 .gitmodules
-.travis.yml
 .idea
 .editorconfig
 .nojekyll
