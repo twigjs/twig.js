@@ -1,35 +1,34 @@
 {
-  "author": "John Roepke <john@justjohn.us> (http://john.sh/)",
   "name": "twig",
-  "description": "JS port of the Twig templating language.",
   "version": "3.0.0",
+  "description": "JS port of the Twig templating language.",
   "homepage": "https://github.com/twigjs/twig.js",
   "license": "BSD-2-Clause",
-  "licenses": [
-    {
-      "type": "BSD-2-Clause",
-      "url": "https://raw.github.com/twigjs/twig.js/master/LICENSE"
-    }
-  ],
+  "author": "John Roepke <john@justjohn.us> (http://john.sh/)",
   "repository": {
     "type": "git",
     "url": "git://github.com/twigjs/twig.js.git"
   },
-  "main": "src/twig.js",
-  "engines": {
-    "node": ">=22"
-  },
   "bin": {
     "twigjs": "./bin/twigjs"
   },
+  "main": "src/twig.js",
+  "browser": {
+    "fs": false
+  },
   "scripts": {
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "preversion": "npm test && git diff --exit-code --quiet",
     "postversion": "git push origin master && git push origin master --tags",
     "pretest": "npm run build",
     "test": "mocha -r should",
     "build": "node node/build.js",
     "posttest": "npm run lint",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "locutus": "^3.0.9"
@@ -44,16 +43,24 @@
     "eslint": "^10.1.0",
     "globals": "^17.4.0",
     "mocha": "12.0.0-beta-10",
+    "oxfmt": "^0.74.0",
     "path-browserify": "^1.0.1",
     "should": "^13.2.3",
     "should-sinon": "0.0.6",
     "sinon": "^21.0.0",
     "terser-webpack-plugin": "^5.3.6",
     "tokenizer2": "^2.0.1",
+    "vitepress": "2.0.0-alpha.20",
     "webpack": "^5.75.0",
     "webpack-cli": "^6.0.1"
   },
-  "browser": {
-    "fs": false
-  }
+  "engines": {
+    "node": ">=22"
+  },
+  "licenses": [
+    {
+      "type": "BSD-2-Clause",
+      "url": "https://raw.github.com/twigjs/twig.js/master/LICENSE"
+    }
+  ]
 }
